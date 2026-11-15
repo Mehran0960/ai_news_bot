@@ -20,6 +20,7 @@ import requests
 import affilio_radar as radar
 from content_delivery import (
     allocate_publication_sequence,
+    editorial_dispatch_runway_seconds,
     get_last_channel_published_at,
     refresh_unpublished_selections,
 )
@@ -192,6 +193,7 @@ def queue_editorial_if_due(
     active_products = product_queue if isinstance(product_queue, dict) else {}
     if active:
         valid_active = []
+        dispatch_runway = timedelta(seconds=editorial_dispatch_runway_seconds(state))
         for queued_editorial in active:
             related_id = str(queued_editorial.get("related_product_id") or "").strip()
             product_entry = active_products.get(related_id) if related_id else None
@@ -200,20 +202,31 @@ def queue_editorial_if_due(
                 if isinstance(product_entry, dict) else None
             )
             product_slot_is_due = product_slot_at is not None and product_slot_at <= current
+            dispatch_window_closed = (
+                product_slot_at is not None
+                and product_slot_at - current <= dispatch_runway
+            )
             if (
                 isinstance(product_entry, dict)
                 and product_entry.get("status") not in {"published", "cancelled", "stale_selection"}
                 and not _product_has_core_channel_success(product_entry)
                 and not product_slot_is_due
+                and not dispatch_window_closed
             ):
+                # Keep the midpoint as the target, but allow the minute dispatcher
+                # to deliver any time afterwards while the real runway remains open.
+                queued_editorial["window_closes_at"] = (
+                    product_slot_at - dispatch_runway
+                ).isoformat()
                 valid_active.append(queued_editorial)
                 continue
             queued_editorial["status"] = "cancelled"
-            queued_editorial["last_detail"] = (
-                "editorial_midpoint_passed_related_product_due"
-                if product_slot_is_due
-                else "editorial_requires_an_active_related_product_slot"
-            )
+            if product_slot_is_due:
+                queued_editorial["last_detail"] = "editorial_midpoint_passed_related_product_due"
+            elif dispatch_window_closed:
+                queued_editorial["last_detail"] = "editorial_dispatch_window_closed_before_product"
+            else:
+                queued_editorial["last_detail"] = "editorial_requires_an_active_related_product_slot"
             editorial_queue = state.get("editorial_delivery_queue")
             if isinstance(editorial_queue, dict):
                 editorial_queue.pop(str(queued_editorial.get("content_id") or ""), None)
@@ -256,6 +269,18 @@ def queue_editorial_if_due(
     gap_seconds = max(0.0, (product_at - anchor).total_seconds())
     if gap_seconds <= 0:
         return None
+    dispatch_runway_seconds = editorial_dispatch_runway_seconds(state)
+    # The midpoint is only a useful target when the minute dispatcher can wake
+    # and finish a normal send before the next product slot. This is not a fixed
+    # product-post interval: it is a live feasibility check from polling + p90 send.
+    if gap_seconds / 2 < dispatch_runway_seconds:
+        print(
+            "EDITORIAL_WAIT_INSUFFICIENT_DISPATCH_WINDOW "
+            f"product_id={related_product_id} gap_seconds={int(gap_seconds)} "
+            f"required_gap_seconds={dispatch_runway_seconds * 2} "
+            f"dispatch_runway_seconds={dispatch_runway_seconds}"
+        )
+        return None
     scheduled_at = anchor + timedelta(seconds=gap_seconds / 2)
     if scheduled_at <= current:
         print(
@@ -295,6 +320,8 @@ def queue_editorial_if_due(
         "selected_at": current.isoformat(),
         "scheduled_at": scheduled_at.isoformat(),
         "next_attempt_at": scheduled_at.isoformat(),
+        "window_closes_at": (product_at - timedelta(seconds=dispatch_runway_seconds)).isoformat(),
+        "dispatch_runway_seconds": dispatch_runway_seconds,
         "status": "queued",
         "attempt_count": 0,
         "payload": item,
@@ -914,6 +941,8 @@ def _refresh_delivery_history(state: dict, entry: dict, now: datetime) -> None:
         if isinstance(row, dict):
             row["destinations"] = targets
             row["sequence_number"] = entry.get("sequence_number")
+            if entry.get("delivery_duration_seconds") is not None:
+                row["delivery_duration_seconds"] = entry.get("delivery_duration_seconds")
 
 
 def _finalize_if_terminal(state: dict, entry: dict, now: datetime) -> bool:
@@ -938,6 +967,7 @@ def _finalize_if_terminal(state: dict, entry: dict, now: datetime) -> bool:
         "sequence_number": entry.get("sequence_number"),
         "status": entry["status"],
         "terminal_summary": entry["terminal_summary"],
+        "delivery_duration_seconds": entry.get("delivery_duration_seconds"),
         "updated_at": now.isoformat(),
     })
     state["editorial_delivery_attempts"] = history[-200:]
@@ -1096,7 +1126,24 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         )
         return 0
 
+    window_closes_at = _utc(entry.get("window_closes_at"))
+    if window_closes_at is not None and current.astimezone(timezone.utc) >= window_closes_at:
+        entry["status"] = "cancelled"
+        entry["last_detail"] = "editorial_dispatch_window_closed_before_product"
+        queue = state.get("editorial_delivery_queue")
+        if isinstance(queue, dict):
+            queue.pop(str(entry.get("content_id") or ""), None)
+        print(
+            "EDITORIAL_WINDOW_CLOSED "
+            f"content_id={entry.get('content_id')} window_closes_at={window_closes_at.isoformat()}"
+        )
+        _save(state)
+        _refresh_dispatch_projection(state)
+        return 0
+
     if mode == "channels":
+        entry["delivery_started_at"] = _now().isoformat()
+        _save(state)
         try:
             from editorial_video import render_editorial_poster
             image_bytes = render_editorial_poster(payload)
@@ -1117,6 +1164,8 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
             _save(state)
             _refresh_dispatch_projection(state)
             return 0
+        entry["delivery_started_at"] = _now().isoformat()
+        _save(state)
         output_path = Path("video_artifacts") / (
             f"editorial-{payload.get('editorial_id')}-{entry.get('sequence_number')}.mp4"
         )
@@ -1139,6 +1188,11 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
             _handle_video_destination(state, entry, destination, output_path, _now())
 
     now_after = _now()
+    delivery_started_at = _utc(entry.get("delivery_started_at"))
+    if delivery_started_at is not None:
+        entry["delivery_duration_seconds"] = round(
+            max(0.0, (now_after - delivery_started_at).total_seconds()), 1
+        )
     _refresh_delivery_history(state, entry, now_after)
     finalized = _finalize_if_terminal(state, entry, now_after)
     if finalized:
