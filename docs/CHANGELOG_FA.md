@@ -2301,3 +2301,20 @@
 **ریسک/بازگشت:** اگر محصول، دسته یا نتیجهٔ فیلتر دسته از API پاسخ داده نشود، اسکن متوقف می‌شود. این fail-closed عمدی است؛ به‌جای شل کردن شروط یا قبول موجودی نامعلوم، قرارداد زندهٔ API باید دوباره بررسی شود.
 
 **وضعیت:** گیت و تست‌ها ثبت شده‌اند؛ CI و اجرای زندهٔ strict preflight در انتظار.
+
+
+## ۲۰۲۶-۱۱-۱۵ — اصلاح refresh درخت دسته از فیلترهای Discovery
+
+**هدف:** جلوگیری از استفادهٔ طولانی از نام/شناسه‌های taxonomy منسوخ، که می‌تواند باعث انتساب محصولات نامرتبط به دسته‌های اشتباه شود.
+
+**تغییر/اقدام:** `discover_categories()` اکنون category facets/tree موجود در `data.filters` پاسخ `/discovery/api/v1/search` را با `extract_categories()` استخراج می‌کند و آن را با شناسه‌های query-scoped از `query_attributes.category_ids` و autocomplete ادغام می‌کند. در برخورد شناسه، metadata زندهٔ دسته (نام، parent، depth) جای دادهٔ قدیمی را می‌گیرد؛ cache کامل صرفاً به‌خاطر محدود بودن query results کنار گذاشته نمی‌شود. preflight هم از category facets برای انتخاب category probe استفاده می‌کند و sample category/product-category را در log ثبت می‌کند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/catalog_sweep.py`، `affilio_radar/test_catalog_sweep.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
+
+**آزمون و نتیجه:** regression برای استخراج درخت parent/child از فیلترهای Discovery و ادغام query-scoped IDs اضافه شد. اجرای چهارعاملی و ۳۶۶ تست قبلی موفق بوده‌اند؛ تست جدید و اجرای live با taxonomy تازه در انتظار نتیجه‌اند.
+
+**شواهد/شناسه:** کد: `4ab234bb545912267c0e94096de8809f29a6b698`; regression: `11fd882f23539f377536acf0883d271b6498baf0`.
+
+**ریسک/بازگشت:** اگر Discovery پاسخ filters ندهد، اسکنر به query-scoped IDs و سپس autocomplete برمی‌گردد؛ اگر آن‌ها نیز قابل استفاده نباشند، از cache معتبر با backoff استفاده می‌شود و وضعیت fallback صریح گزارش می‌شود. هیچ دسته یا محصولی بدون شناسه/وضعیت قابل‌تأیید به‌عنوان معتبر فرض نمی‌شود.
+
+**وضعیت:** اصلاح taxonomy و regression ثبت شده؛ CI و اسکن واقعی بعد از refresh در انتظار.
