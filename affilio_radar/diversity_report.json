@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-15T17:13:16.440589+00:00",
+  "generated_at": "2026-11-15T17:24:31.266957+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {},
     "category_post_counts": {},
@@ -273,30 +273,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1316,
+    "all_time_count": 1317,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 489,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-14T12:46:27.786768+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-714799",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-14T12:46:27.786768+00:00",
         "brand": "",
@@ -618,6 +601,23 @@
           "similarity_repeat"
         ],
         "title": "شامپو مو فر ویتاپلکس مدل Curl Care حجم 500 میلی‌لیتر، تقویت‌کننده، مرطوب‌کننده، لطافت‌بخش، کنترل چربی و جلوگیری از وز شدن مو، مناسب پوست سر معمولی، دارای گلیسیرین",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-15T17:24:31.266957+00:00",
+        "brand": "",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-21090992",
+        "family": "beauty_fragrance:fragrance",
+        "product_id": "dkp-22700244",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ادو پرفیوم زنانه زدفون مدل ویکتوریا سکرت بامب شل با رایحه خنک حجم 30 میلی لیتر",
         "use_case": "personal_care"
       }
     ]
