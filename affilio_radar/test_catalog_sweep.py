@@ -21,6 +21,7 @@ try:
         refresh_categories,
         CatalogSweepError,
         extract_categories,
+        extract_autocomplete_categories,
         extract_product_rows,
         extract_total_pages,
         _category_page_url,
@@ -369,7 +370,7 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertIn("/v2/category/123/", url)
         self.assertEqual(params["q"], "گوشی موبایل")
         self.assertEqual(params["page"], 2)
-        self.assertEqual(params["sort"], 5)
+        self.assertEqual(params["sort"], 7)
 
     def test_fresh_digikala_bestseller_rank_outranks_a_larger_discount(self):
         now = datetime.now(timezone.utc)
