@@ -5331,6 +5331,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                 not already_linked
                 and not already_checked_after_product
                 and gap_seconds > 0
+                and gap_seconds / 2 >= editorial_dispatch_runway_seconds(state)
                 and midpoint_at > current
                 and product_at > current
             ):
