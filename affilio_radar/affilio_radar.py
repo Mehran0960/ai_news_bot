@@ -318,14 +318,10 @@ SEARCH_TERMS = [
 MAX_INCREDIBLE_OFFER_CANDIDATES = max(
     1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "250")))
 )
-SESSION = requests.Session()
-DIGIKALA_SESSION = new_digikala_session()
-SESSION.headers.update({
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8",
-    "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.7",
-    "Referer": "https://www.digikala.com/",
-})
+SESSION = new_digikala_session()
+# Shared call sites remain compatible, while the transport matches DigiKala's
+# verified browser/XHR requirements. Partner-specific headers still override.
+DIGIKALA_SESSION = SESSION
 
 SNAPPSHOP_API_BASE_URL = "https://apix.snappshop.ir"
 SNAPPSHOP_HTTP_TIMEOUT = max(3, min(8, int(os.getenv("AFFILIO_SNAPPSHOP_HTTP_TIMEOUT", "6"))))
