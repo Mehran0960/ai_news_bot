@@ -379,6 +379,38 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         )
         self.assertEqual(state["parallel_leaf_category_count"], 1)
 
+    def test_trusted_taxonomy_policy_migration_requeues_categories_from_page_one(self):
+        state = {
+            "categories": [
+                {"id": "11", "name": "گوشی موبایل", "query": "گوشی"},
+                {"id": "22", "name": "لوازم خانگی", "query": "لوازم خانگی"},
+            ],
+            "parallel_queue_initialized": True,
+            "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
+            "parallel_api_route_policy_version": "digikala_discovery_api_v1_query_scoped_category_filter_v3",
+            "parallel_known_category_ids": ["11", "22"],
+            "parallel_pending_pages": [
+                {"category_id": "11", "category_name": "گوشی موبایل", "page": 9, "attempts": 1},
+            ],
+            "parallel_cycle_completed_category_ids": ["22"],
+            "parallel_cycle_unqueryable_category_ids": ["11"],
+            "parallel_cycle_pages_success": 123,
+            "parallel_cycle_product_rows_success": 456,
+            "stats": {"completed_cycles": 4},
+        }
+        queued = sweep._ensure_parallel_state(state)
+        self.assertEqual(
+            [(row["category_id"], row["page"], row.get("category_query")) for row in queued],
+            [("11", 1, "گوشی"), ("22", 1, "لوازم خانگی")],
+        )
+        self.assertEqual(state["parallel_cycle_completed_category_ids"], [])
+        self.assertEqual(state["parallel_cycle_unqueryable_category_ids"], [])
+        self.assertEqual(state["parallel_cycle_pages_success"], 0)
+        self.assertEqual(
+            state["parallel_api_route_policy_version"],
+            "digikala_discovery_api_v1_trusted_category_taxonomy_v4",
+        )
+
     def test_next_page_preserves_original_query_and_pagination(self):
         task = {
             "category_id": "12",
@@ -476,6 +508,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             candidates_path = root / "candidates.json"
             publisher_state_path = root / "publisher.json"
             state_path.write_text(json.dumps({
+                "category_taxonomy_policy_version": sweep.base.CATEGORY_TAXONOMY_POLICY_VERSION,
                 "categories": [
                     {"id": "10", "name": "mobile"},
                     {"id": "20", "name": "accessories"},

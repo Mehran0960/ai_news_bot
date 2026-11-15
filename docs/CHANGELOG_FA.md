@@ -2386,3 +2386,56 @@
 **ریسک/بازگشت:** فقط انتظار تست تغییر کرده است؛ rollback با بازگرداندن assertion قدیمی ممکن است، اما با منشأ فعلی parser سازگار نخواهد بود.
 
 **وضعیت:** اصلاح assertion و مستندسازی ثبت شد؛ اجرای CI دوباره لازم است.
+
+
+## ۲۰۲۶-۱۱-۱۵ — اصلاح آلودگی taxonomy و گیت رتبه‌بندی دسته‌ای
+
+**هدف:** جلوگیری از اینکه facetهای فروشنده/برند/ارسال یا محصولات nested به‌عنوان category شناخته شوند و محصولات نامرتبط رتبهٔ پرفروش یک دسته را به ارث ببرند.
+
+**تغییر/اقدام:** `extract_categories()` از پیمایش عمومی کل payload به خواندن محدود از فیلدهای صریح `category_tree`، `mega_menu` و filter groupهای دقیق category تبدیل شد. گروه‌های `seller_ids`، `brands` و delivery facets دیگر category محسوب نمی‌شوند. query-matched `query_attributes.category_ids` همچنان از مسیر اختصاصی خود ادغام می‌شود. گیت سازگاری محصول/دسته نیز یک طبقه‌بندی دقیق‌تر برای گوشی، لوازم جانبی کامپیوتر، حافظه، نمایشگر، شبکه، دوربین، قطعات کامپیوتر، اداری، جواهرات، پوشاک و کابل/مبدل اضافه کرد؛ mismatch روشن پیش از ثبت bestseller rank رد می‌شود. route policy به `digikala_discovery_api_v1_trusted_category_taxonomy_v4` ارتقا یافت تا تمام category taskها از صفحهٔ ۱ دوباره seed شوند. snapshot نامزدهای چرخهٔ قبلی به‌دلیل تفاوت شناسهٔ چرخه در چرخهٔ جدید مصرف نمی‌شود؛ تاریخچه و رسیدهای انتشار ناشر حفظ می‌شوند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/catalog_sweep.py`، `affilio_radar/parallel_catalog_sweep.py`، `affilio_radar/test_catalog_sweep.py`، `affilio_radar/test_parallel_catalog_sweep.py`، handbook و همین changelog.
+
+**آزمون و نتیجه:** regressionهای جدید، seller/brand/delivery facets و product widgets را به‌عنوان category رد می‌کنند، category tree/facet صریح را حفظ می‌کنند، و mismatchهای ماوس/فلش/مانیتور در دستهٔ گوشی و دوربین در دستهٔ عینک را رد می‌کنند. آزمون مهاجرت نیز seed مجدد صفحهٔ اول را بررسی می‌کند. CI و اسکن زندهٔ این نسخه پس از ثبت تغییرات باید موفق شوند؛ هیچ موفقیت snapshot یا انتشار پیشاپیش ادعا نمی‌شود.
+
+**شواهد/شناسه:** شاخهٔ `fix/offerchin-trusted-taxonomy-guard-20261115` از `main`؛ سیاست مسیر `digikala_discovery_api_v1_trusted_category_taxonomy_v4`.
+
+**ریسک/بازگشت:** استخراج category محدودتر می‌شود؛ در صورت تغییر schema، صف خالی/ناقص می‌ماند تا parser برای ساختار واقعی اصلاح شود. گیت mismatch فقط زمانی محصول را رد می‌کند که هر دو سمت topic دقیق و متفاوت داشته باشند؛ طبقه‌بندی نامعلوم به‌تنهایی حذف‌کننده نیست. rollback با revert همین commitها ممکن است، اما parser عمومی قبلی نباید به‌عنوان fallback فعال شود.
+
+**وضعیت:** اصلاح کد، تست و مستندات روی شاخهٔ مستقل؛ CI، refresh زندهٔ taxonomy و چرخهٔ کامل بدون شکاف هنوز معیارهای پذیرش‌اند.
+
+
+## ۲۰۲۶-۱۱-۱۵ — بی‌اعتبارسازی cache taxonomy قدیمی در مهاجرت parser
+
+**هدف:** جلوگیری از مصرف دوبارهٔ فهرست دسته‌های آلودهٔ cache‌شده پس از محدودشدن parser به category roots صریح.
+
+**تغییر/اقدام:** نشانگر `CATEGORY_TAXONOMY_POLICY_VERSION=discovery_explicit_category_roots_v2` اضافه شد. cache فاقد این نشانگر، حتی اگر از نظر زمانی تازه باشد، در مهاجرت معتبر نیست؛ refresh زنده اجباری می‌شود و cache قدیمی نه merge می‌شود و نه fallback. اگر Discovery API خطا بدهد، اسکن با پیام `category_taxonomy_migration_requires_live_refresh` متوقف می‌شود و retry-after برای جلوگیری از درخواست‌های فشرده ثبت می‌شود. پس از refresh موفق، cache نسخه‌دار و fallback موقت بعدی مجاز می‌شود. تست‌های cache قبلی اکنون فقط cache دارای policy marker را «تأییدشده» فرض می‌کنند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/catalog_sweep.py`، `affilio_radar/test_catalog_sweep.py`، handbook و changelog.
+
+**آزمون و نتیجه:** دو regression جدید تضمین می‌کنند cache legacy در خطای API مصرف نشود و در موفقیت زنده کاملاً جایگزین شود. CI تازه پس از commit لازم است.
+
+**شواهد/شناسه:** شاخهٔ `fix/offerchin-trusted-taxonomy-guard-main-sync-20261115`، PR #196؛ policy cache `discovery_explicit_category_roots_v2`.
+
+**ریسک/بازگشت:** اگر Discovery API برای مدت طولانی taxonomy قابل‌خواندن ارائه نکند، اسکن تا بازیابی منبع دسته متوقف می‌شود؛ این توقف عمدی و ایمن‌تر از رتبه‌دهی بر پایهٔ cache آلوده است.
+
+
+
+**وضعیت:** پیاده‌سازی مهاجرت cache و تست‌های fail-closed روی شاخهٔ PR ثبت شد؛ اجرای CI آخرین نسخه و اسکن زنده پس از ادغام هنوز لازم است.
+
+## ۲۰۲۶-۱۱-۱۵ — علامت‌گذاری fixtureهای taxonomy معتبر در regressionهای صف قدیمی
+
+**هدف:** تفکیک تست‌هایی که عمداً رفتار عادی cache معتبر را بررسی می‌کنند از تست مهاجرت cache قدیمی و غیرقابل‌اعتماد.
+
+**تغییر/اقدام:** fixture تست پیمایش ترتیبی و تست صف موازی، نشانگر `category_taxonomy_policy_version` را دریافت کردند. بنابراین این تست‌ها رفتار صفحه‌بندی عادی را بدون refresh اجباری مهاجرت می‌سنجند؛ تست‌های مستقل جدید همچنان ثابت می‌کنند cache فاقد نشانگر در خطای API پذیرفته نمی‌شود و در موفقیت زنده جایگزین می‌شود.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/test_catalog_sweep.py`، `affilio_radar/test_parallel_catalog_sweep.py`، همین دفتر تغییرات.
+
+**آزمون و نتیجه:** دو regression قبلی که به‌علت استفاده از fixture فاقد policy marker وارد مسیر migration می‌شدند اصلاح شدند؛ اجرای کامل Catalog Sweep Regression، Four-Factor Ranking، Top-100، Video Fan-out و Documentation Gate روی آخرین head لازم است.
+
+**شواهد/شناسه:** شاخهٔ `fix/offerchin-trusted-taxonomy-guard-main-sync-20261115`، PR #196.
+
+**ریسک/بازگشت:** منطق تولیدی تغییر نکرده است؛ فقط fixtureهایی که ادعای «cache معتبر قبلی» دارند این وضعیت را صریح اعلام می‌کنند.
+
+
+**وضعیت:** fixtureها و مستندات روی شاخهٔ PR به‌روزرسانی شدند؛ نتیجهٔ CI نهایی در انتظار ثبت است.

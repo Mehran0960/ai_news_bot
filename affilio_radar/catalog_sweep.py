@@ -64,6 +64,8 @@ SEARCH_URL = DISCOVERY_SEARCH_URL
 CATEGORY_SEARCH_URL = DISCOVERY_SEARCH_URL
 REQUEST_TIMEOUT = (5, 18)
 CATEGORY_REFRESH_HOURS = 24
+# Cached category IDs/names are trusted only when produced by this restricted parser.
+CATEGORY_TAXONOMY_POLICY_VERSION = "discovery_explicit_category_roots_v2"
 # A verified taxonomy may bridge a temporary API change long enough to refresh it.
 CATEGORY_CACHE_MAX_FALLBACK_AGE_HOURS = 168
 CATEGORY_DISCOVERY_RETRY_MINUTES = 60
@@ -207,42 +209,39 @@ def sort_categories_for_sweep(categories: Any) -> list[dict]:
 
 
 def extract_categories(payload: Any) -> list[dict]:
-    """Extract category nodes from category_tree/mega_menu or search filters."""
-    found: dict[str, dict] = {}
-    child_keys = {
-        "children", "childs", "categories", "sub_categories", "subcategories",
-        "items", "nodes", "category_tree", "mega_menu",
-    }
+    """Extract categories only from explicit category trees or category filter groups.
 
-    def visit(value: Any, parent_id: str = "", depth: int = 0, category_context: bool = False):
+    Discovery search responses contain many unrelated facets (sellers, brands,
+    delivery options, etc.). A generic recursive walk over every object that has
+    an id/name/children shape is unsafe: it can mislabel seller names as product
+    categories. Only enter roots whose API field explicitly identifies taxonomy.
+    """
+    data = payload.get("data") if isinstance(payload, dict) else None
+    if not isinstance(data, dict):
+        return []
+
+    found: dict[str, dict] = {}
+    child_keys = ("children", "childs", "sub_categories", "subcategories")
+
+    def add_node(value: Any, parent_id: str = "", depth: int = 0) -> None:
         if isinstance(value, list):
             for child in value:
-                visit(child, parent_id, depth, category_context)
+                add_node(child, parent_id, depth)
             return
         if not isinstance(value, dict):
             return
 
         candidate_id = _category_id(value)
         candidate_name = _category_name(value)
-        has_child_container = any(
-            isinstance(value.get(key), (list, dict)) for key in child_keys
-        )
-        looks_like_category = bool(
-            candidate_id and candidate_name and (
-                category_context or has_child_container
-                or any(key in value for key in ("slug", "category_slug", "url", "uri"))
-            )
-        )
-
         next_parent = parent_id
         next_depth = depth
-        if looks_like_category:
+        if candidate_id and candidate_name:
             record = {
                 "id": candidate_id,
                 "name": candidate_name,
                 "parent_id": parent_id,
                 "depth": depth,
-                "slug": str(value.get("slug") or value.get("category_slug") or "")[:160],
+                "slug": str(value.get("slug") or value.get("category_slug") or value.get("code") or "")[:160],
             }
             previous = found.get(candidate_id)
             if previous is None or (
@@ -252,37 +251,61 @@ def extract_categories(payload: Any) -> list[dict]:
             next_parent = candidate_id
             next_depth = depth + 1
 
-        for key, child in value.items():
-            key_lower = str(key).lower()
-            next_context = category_context or (
-                "categor" in key_lower or "mega_menu" in key_lower or key_lower == "children"
-            )
+        # Children are traversed only after entering a known category tree/facet.
+        for key in child_keys:
+            child = value.get(key)
             if isinstance(child, (dict, list)):
-                visit(child, next_parent, next_depth, next_context)
+                add_node(child, next_parent, next_depth)
 
-    visit(payload)
+    # These are dedicated category-tree fields; never search products or sellers
+    # for similarly-shaped nested objects.
+    for key in ("category_tree", "categoryTree", "mega_menu", "megaMenu"):
+        root = data.get(key)
+        if isinstance(root, (dict, list)):
+            add_node(root)
 
-    # Some search API versions expose category facets instead of a tree.
-    if not found:
-        for node in _walk_dicts(payload):
-            key = str(node.get("key") or node.get("name") or node.get("slug") or "").lower()
-            if "categor" not in key and "دسته" not in key:
-                continue
-            for list_key in ("values", "options", "items", "children"):
-                values = node.get(list_key)
-                if not isinstance(values, list):
-                    continue
-                for item in values:
-                    if not isinstance(item, dict):
-                        continue
-                    cid = _category_id(item)
-                    name = _category_name(item)
-                    if cid and name:
-                        found.setdefault(cid, {
-                            "id": cid, "name": name, "parent_id": "",
-                            "depth": 0,
-                            "slug": str(item.get("slug") or "")[:160],
-                        })
+    filters = data.get("filters")
+    if isinstance(filters, dict):
+        filter_groups = list(filters.values())
+    elif isinstance(filters, list):
+        filter_groups = filters
+    else:
+        filter_groups = []
+
+    category_keys = {
+        "category", "categories", "category_id", "category_ids",
+        "category_filter", "category_filters",
+    }
+    category_names = {"دسته", "دسته بندی", "دسته‌بندی", "دسته کالا", "دسته‌بندی کالا"}
+
+    for group in filter_groups:
+        if not isinstance(group, dict):
+            continue
+        raw_key = str(
+            group.get("key") or group.get("filter_key") or group.get("slug")
+            or group.get("param") or ""
+        ).strip().lower()
+        normalized_key = re.sub(r"\[.*?\]$", "", raw_key).replace("-", "_")
+        display_name = str(
+            group.get("title_fa") or group.get("title") or group.get("name_fa")
+            or group.get("name") or group.get("label") or ""
+        ).strip().lower()
+        declared_type = str(group.get("type") or group.get("kind") or "").strip().lower()
+        is_category_group = (
+            normalized_key in category_keys
+            or display_name in category_names
+            or declared_type in {"category", "categories", "category_filter"}
+        )
+        if not is_category_group:
+            continue
+
+        values = None
+        for key in ("values", "options", "items", "children", "categories"):
+            if isinstance(group.get(key), (dict, list)):
+                values = group.get(key)
+                break
+        if values is not None:
+            add_node(values)
 
     return sort_categories_for_sweep(found.values())
 
@@ -925,16 +948,50 @@ def _catalog_live_demand_score(row: dict) -> float:
     return round(min(100.0, (base_score + coverage_bonus) * freshness), 2)
 
 
-def catalog_category_is_consistent(row: dict, catalog_category_name: object) -> bool:
-    """Reject a bestseller rank when product taxonomy and scanned category conflict.
+def _specific_catalog_topic(value: object) -> str:
+    """Return a conservative, fine-grained topic for taxonomy cross-checking."""
+    text = " ".join(str(value or "").lower().replace("\u200c", " ").split())
+    text = text.replace("ي", "ی").replace("ك", "ک")
+    text = re.sub(r"[\u064b-\u065f\u0670ـ]", "", text)
+    patterns = (
+        ("tablet_accessory", r"لوازم جانبی.{0,24}(?:تبلت|موبایل)|قطعات.{0,24}(?:تبلت|موبایل)"),
+        ("smart_watch", r"ساعت هوشمند|اپل واچ|apple watch|watch ultra"),
+        ("smartphone", r"گوشی موبایل|گوشی هوشمند|گوشی|موبایل"),
+        ("computer_storage", r"تجهیزات ذخیره سازی|ذخیره سازی اطلاعات|فلش مموری|حافظه|هارد|ssd"),
+        ("computer_peripheral", r"لوازم جانبی کامپیوتر|ماوس|موس|کیبورد|صفحه کلید|وبکم"),
+        ("computer_display", r"نمایشگر|مانیتور|monitor"),
+        ("network_equipment", r"تجهیزات شبکه|شبکه اکتیو|شبکه پسیو|مودم|روتر|سوئیچ شبکه|آنتن مودم"),
+        ("camera_equipment", r"دوربین|تجهیزات امنیتی|لوازم جانبی دوربین"),
+        ("computer_component", r"قطعات کامپیوتر|کارت گرافیک|مادربرد|پردازنده|cpu|ram"),
+        ("office_printing", r"ماشین های اداری|ماشین اداری|پرینتر|چاپگر|لیبل زن|لوازم اداری و فروشگاهی"),
+        ("jewelry", r"طلا|جواهر|انگشتر|گردنبند|زیورآلات|دستبند"),
+        ("fashion", r"پوشاک|لباس|کلاه|شلوار|پیراهن|بلوز|شومیز|کفش|عینک مردانه|عینک زنانه"),
+        ("cable_adapter", r"کابل و مبدل|کابل usb|کابل پرینتر|مبدل"),
+        ("audio_device", r"هدفون|هدست|هندزفری|اسپیکر|میکروفن|میکروفون"),
+    )
+    for topic, pattern in patterns:
+        if re.search(pattern, text, re.I):
+            return topic
+    return ""
 
-    A missing/unknown taxonomy is not treated as a mismatch. A rejection only
-    occurs when both the product's own data_layer category and the scanned
-    category are confidently classified into different semantic groups.
+
+def catalog_category_is_consistent(row: dict, catalog_category_name: object) -> bool:
+    """Reject a bestseller rank if fine-grained product and category taxonomies conflict.
+
+    Broad use-case groups remain a fallback for categories that cannot be
+    classified more precisely. Missing taxonomy is not treated as proof of a
+    mismatch, but a known mouse/storage/display/network product cannot inherit
+    a smartphone or jewellery bestseller rank.
     """
     if not isinstance(row, dict):
         return True
-    product_group = _infer_use_case_group("", row.get("category") or "")
+    product_text = row.get("category") or row.get("title") or ""
+    product_topic = _specific_catalog_topic(product_text)
+    scanned_topic = _specific_catalog_topic(catalog_category_name)
+    if product_topic and scanned_topic:
+        return product_topic == scanned_topic
+
+    product_group = _infer_use_case_group("", row.get("category") or row.get("title") or "")
     scanned_group = _infer_use_case_group("", catalog_category_name or "")
     return (
         product_group == "unknown"
@@ -1431,6 +1488,21 @@ def refresh_categories(state: dict, session: requests.Session, force: bool = Fal
     refreshed = state.get("categories_refreshed_at")
     age_hours = _category_cache_age_hours(refreshed, now)
     stale = age_hours is None or age_hours >= CATEGORY_REFRESH_HOURS
+    taxonomy_policy_changed = (
+        state.get("category_taxonomy_policy_version") != CATEGORY_TAXONOMY_POLICY_VERSION
+    )
+
+    # A cache produced by the previous permissive recursive parser is not a
+    # "verified taxonomy". Force a live rebuild and never use that cache as a
+    # fallback until the new parser has succeeded at least once.
+    if taxonomy_policy_changed:
+        force = True
+        if state.get("category_taxonomy_migration_pending_policy") != CATEGORY_TAXONOMY_POLICY_VERSION:
+            state["category_taxonomy_migration_pending_policy"] = CATEGORY_TAXONOMY_POLICY_VERSION
+            # A retry timer from the old parser must not delay the first attempt
+            # to establish the restricted taxonomy.
+            state.pop("category_discovery_retry_after", None)
+
     if current and not force and not stale:
         return
 
@@ -1445,7 +1517,19 @@ def refresh_categories(state: dict, session: requests.Session, force: bool = Fal
     except (TypeError, ValueError, OverflowError):
         retry_after = None
 
-    cache_usable = _category_cache_is_usable(current, age_hours)
+    cache_usable = bool(
+        not taxonomy_policy_changed and _category_cache_is_usable(current, age_hours)
+    )
+    if taxonomy_policy_changed and retry_after is not None and retry_after > now:
+        state["category_discovery_fallback_used"] = False
+        state["category_taxonomy_migration_blocked"] = True
+        print(
+            "CATALOG_CATEGORY_TAXONOMY_MIGRATION_BLOCKED "
+            f"policy={CATEGORY_TAXONOMY_POLICY_VERSION} retry_after={retry_after.isoformat()} "
+            "reason=live_refresh_required_legacy_cache_rejected=true"
+        )
+        raise CatalogSweepError("category_taxonomy_migration_waiting_for_live_refresh")
+
     if (
         cache_usable and not force and retry_after is not None and retry_after > now
     ):
@@ -1461,12 +1545,24 @@ def refresh_categories(state: dict, session: requests.Session, force: bool = Fal
         if not categories:
             raise CatalogSweepError("category_tree_empty")
     except Exception as exc:
+        retry_minutes = _category_discovery_retry_minutes(exc)
+        retry_at = now + timedelta(minutes=retry_minutes)
+        state["category_discovery_last_failed_at"] = now.isoformat()
+        state["category_discovery_last_error"] = str(exc)[:220]
+        state["category_discovery_retry_after"] = retry_at.isoformat()
+        if taxonomy_policy_changed:
+            state["category_discovery_fallback_used"] = False
+            state["category_taxonomy_migration_blocked"] = True
+            print(
+                "CATALOG_CATEGORY_TAXONOMY_MIGRATION_BLOCKED "
+                f"policy={CATEGORY_TAXONOMY_POLICY_VERSION} reason={str(exc)[:180]!r} "
+                f"retry_minutes={retry_minutes} legacy_cache_rejected=true"
+            )
+            raise CatalogSweepError(
+                "category_taxonomy_migration_requires_live_refresh:"
+                + str(exc)[:160]
+            ) from exc
         if cache_usable:
-            retry_minutes = _category_discovery_retry_minutes(exc)
-            retry_at = now + timedelta(minutes=retry_minutes)
-            state["category_discovery_last_failed_at"] = now.isoformat()
-            state["category_discovery_last_error"] = str(exc)[:220]
-            state["category_discovery_retry_after"] = retry_at.isoformat()
             state["category_discovery_fallback_used"] = True
             print(
                 "CATALOG_CATEGORY_DISCOVERY_FALLBACK "
@@ -1483,9 +1579,8 @@ def refresh_categories(state: dict, session: requests.Session, force: bool = Fal
     if old_index < len(old_categories) and isinstance(old_categories[old_index], dict):
         previous_id = str(old_categories[old_index].get("id") or "")
 
-    # Autocomplete is query-scoped, not a complete taxonomy tree. When a recent
-    # verified tree is available, merge discovered IDs into it instead of replacing
-    # the full catalog with the handful of categories returned for seed queries.
+    # Merge query-scoped discoveries into a cache only when that cache has
+    # already been certified by the same restricted taxonomy policy.
     if cache_usable:
         merged = {
             str(row.get("id")): dict(row)
@@ -1507,6 +1602,9 @@ def refresh_categories(state: dict, session: requests.Session, force: bool = Fal
 
     state["categories"] = categories
     state["categories_refreshed_at"] = now.isoformat()
+    state["category_taxonomy_policy_version"] = CATEGORY_TAXONOMY_POLICY_VERSION
+    state.pop("category_taxonomy_migration_pending_policy", None)
+    state.pop("category_taxonomy_migration_blocked", None)
     ids = [str(row["id"]) for row in categories]
     state["category_count"] = len(categories)
     state["category_ids_hash"] = str(hash(tuple(ids)))
