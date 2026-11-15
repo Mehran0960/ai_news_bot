@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from typing import Callable
 
 
-POLICY_VERSION = "offerchin_four_factor_harmonic_v3_final_price_affordability"
+POLICY_VERSION = "offerchin_four_factor_harmonic_v4_taxonomy_consistency"
 MIN_PRICE_COHORT_SIZE = 8
 # Versioned, offline benchmark: 1405 minimum base daily wage x 30 / 10 Rial per Toman.
 # It is a conservative public purchasing-power proxy, not an individual's disposable income.
