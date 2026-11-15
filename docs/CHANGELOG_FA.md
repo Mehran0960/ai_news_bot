@@ -2542,3 +2542,19 @@
 
 
 **Regression guard:** آزمون `test_empty_video_projection_releases_shared_publisher_lock_before_setup` به `affilio_radar/test_shared_selection_media_routing.py` اضافه شد تا ترتیب gate، بررسی projection، خروجی empty و شرط اجرای مراحل سنگین را کنترل کند.
+
+## ۲۰۲۶-۱۱-۱۵ — تازه‌سازی شواهد پرفروش در انتقال نامزد به صف ناشر
+
+**هدف:** جلوگیری از ماندن نامزدهای بدون تغییر قیمت در صف قدیمی و از دست رفتن رتبهٔ پرفروش تازه‌ای که چرخهٔ کامل کاتالوگ ثبت می‌کند.
+
+**تغییر/اقدام:** اثرانگشت `catalog_handoff_fingerprint()` اکنون حالت مرتب‌سازی پرفروش، رتبهٔ تازه، دستهٔ رتبه‌بندی، نقشهٔ رتبه‌های دسته‌ای و زمان مشاهده را نیز لحاظ می‌کند. در نتیجه تغییر مدرک تقاضا حتی وقتی قیمت/موجودی ثابت‌اند، نامزد را برای بررسی زندهٔ مجدد به handoff بازمی‌گرداند. تست رگرسیون جداگانه برای این سناریو افزوده شد. هیچ گیت انتشار یا کنترل زنده‌ای تغییر نکرد.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/catalog_sweep.py`، `affilio_radar/test_catalog_sweep.py`، `.github/workflows/offerchin-publisher.yml`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md` و همین changelog.
+
+**آزمون و نتیجه:** Catalog Sweep Regression، Catalog Sweep PR validation، Four-Factor Ranking، Top-100/DigiPay و Unified Video Fan-out در PR #202 موفق شدند. اجرای قدیمی ناشر #3705 در run `43741002934` پس از رسیدن snapshot کامل، ۲۵۰ نامزد را handoff و ۴۸ محصول را واجد انتخاب/صف‌بندی کرد؛ همان اجرا در انتها `PUBLISHER_NOTHING_DUE queue_size=48` ثبت کرد، بنابراین این نتیجه هنوز رسید انتشار عمومی نیست. Documentation Gate ابتدا به‌علت نبود این دو به‌روزرسانی سندی fail شد و پس از افزودن این ورودی باید دوباره بررسی شود.
+
+**شواهد/شناسه:** PR #202؛ head commit `e3440d865f5fd36bcefaeb719453454fbd1a8bcc`؛ Catalog Sweep Regression run `43741919631`؛ Catalog Sweep validation `43741919652`؛ Four-Factor run `43741919723`؛ Top-100/DigiPay run `43741919725`؛ Video fan-out run `43741919685`؛ ناشر run `43741002934`.
+
+**ریسک/بازگشت:** تغییر رتبه یا timestamp می‌تواند تعداد بیشتری نامزد را برای بازبینی زنده به صف برگرداند و بار درخواست API را افزایش دهد؛ handoff همچنان محدود به batch تنظیم‌شده است و مراحل زنده/ضدتکرار پابرجا هستند. rollback با revert تغییر `catalog_handoff_fingerprint()` و تست همراه ممکن است.
+
+**وضعیت:** اصلاح کد و تست ثبت شده؛ به‌روزرسانی handbook و changelog انجام شد؛ ادغام PR و رسید واقعی ارسال مقصد هنوز تأیید نشده‌اند.
