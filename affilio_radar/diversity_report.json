@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-15T21:29:18.103231+00:00",
+  "generated_at": "2026-11-15T21:37:22.703890+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -110,6 +110,7 @@
       "روغن زیتون": 1,
       "رژ لب جامد": 1,
       "ست زیرپوش و شورت مردانه": 1,
+      "ست لباس راحتی دخترانه": 1,
       "شکر سفید": 1,
       "شیر ظرفشویی": 1,
       "عدس محلی و ارگانیک": 1,
@@ -148,7 +149,7 @@
     "category_post_counts": {
       "beauty_fragrance": 1,
       "books_stationery": 6,
-      "fashion": 4,
+      "fashion": 5,
       "grocery_food": 5,
       "home": 2,
       "kids_sports": 2,
@@ -160,30 +161,30 @@
       "sports_outdoor": 2
     },
     "category_share_percent": {
-      "beauty_fragrance": 2.3,
-      "books_stationery": 13.6,
-      "fashion": 9.1,
-      "grocery_food": 11.4,
-      "home": 4.5,
-      "kids_sports": 4.5,
-      "large_appliances": 4.5,
-      "lighting": 2.3,
-      "mobile_devices": 4.5,
-      "other": 29.5,
-      "personal_care": 9.1,
-      "sports_outdoor": 4.5
+      "beauty_fragrance": 2.2,
+      "books_stationery": 13.3,
+      "fashion": 11.1,
+      "grocery_food": 11.1,
+      "home": 4.4,
+      "kids_sports": 4.4,
+      "large_appliances": 4.4,
+      "lighting": 2.2,
+      "mobile_devices": 4.4,
+      "other": 28.9,
+      "personal_care": 8.9,
+      "sports_outdoor": 4.4
     },
-    "distinct_catalog_categories": 44,
+    "distinct_catalog_categories": 45,
     "distinct_categories": 12,
-    "distinct_families": 44,
+    "distinct_families": 45,
     "distinct_retailers": 1,
     "distinct_use_cases": 10,
     "known_brand_posts": 1,
-    "posts": 44,
+    "posts": 45,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 44
+      "digikala": 45
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -192,7 +193,7 @@
       "baby_care": 2,
       "books_learning": 7,
       "catalog_taxonomy_other": 1,
-      "fashion_lifestyle": 1,
+      "fashion_lifestyle": 2,
       "grocery_food": 4,
       "home_cleaning": 1,
       "home_living": 2,
@@ -232,6 +233,7 @@
       "ساعت هوشمند": 1,
       "سایر محصولات بهداشت جنسی": 1,
       "ست زیرپوش و شورت مردانه": 1,
+      "ست لباس راحتی دخترانه": 1,
       "سرم و اسپری مراقبت مو": 1,
       "سرم پوست": 1,
       "سمپاش": 2,
@@ -314,7 +316,7 @@
       "beauty_fragrance": 3,
       "books_stationery": 8,
       "digital_accessories": 1,
-      "fashion": 10,
+      "fashion": 11,
       "grocery_food": 8,
       "home": 6,
       "kids_sports": 3,
@@ -330,33 +332,33 @@
       "audio_wearables": 2.8,
       "automotive": 1.4,
       "beauty_fragrance": 2.1,
-      "books_stationery": 5.6,
+      "books_stationery": 5.5,
       "digital_accessories": 0.7,
-      "fashion": 6.9,
-      "grocery_food": 5.6,
-      "home": 4.2,
+      "fashion": 7.6,
+      "grocery_food": 5.5,
+      "home": 4.1,
       "kids_sports": 2.1,
       "large_appliances": 1.4,
       "lighting": 1.4,
       "mobile_devices": 2.8,
-      "other": 36.8,
-      "personal_care": 20.1,
+      "other": 36.6,
+      "personal_care": 20.0,
       "power_backup": 1.4,
-      "sports_outdoor": 4.9
+      "sports_outdoor": 4.8
     },
-    "distinct_catalog_categories": 104,
+    "distinct_catalog_categories": 105,
     "distinct_categories": 16,
-    "distinct_families": 122,
+    "distinct_families": 123,
     "distinct_retailers": 1,
     "distinct_use_cases": 19,
     "known_brand_posts": 7,
-    "posts": 144,
+    "posts": 145,
     "repeated_brand_count": 1,
     "repeated_brands": {
       "habsan": 2
     },
     "retailer_post_counts": {
-      "digikala": 144
+      "digikala": 145
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -367,7 +369,7 @@
       "baby_care": 3,
       "books_learning": 9,
       "catalog_taxonomy_other": 17,
-      "fashion_lifestyle": 5,
+      "fashion_lifestyle": 6,
       "general": 12,
       "grocery_food": 5,
       "health_wellness": 1,
@@ -397,47 +399,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1340,
+    "all_time_count": 1342,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 480,
+      "family_repeat": 479,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-15T17:54:39.895866+00:00",
-        "brand": "",
-        "catalog_category_id": "9458",
-        "catalog_category_name": "لباس زیر ورزشی مردانه",
-        "category": "sports_outdoor",
-        "compared_to_product_id": "dkp-616041",
-        "family": "digikala_category:9458",
-        "product_id": "dkp-3279500",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "شورت ورزشی مردانه نوزده نودیک مدل SH1928 WB",
-        "use_case": "sports_fitness"
-      },
-      {
-        "at": "2026-11-15T17:54:39.895866+00:00",
-        "brand": "",
-        "catalog_category_id": "11682",
-        "catalog_category_name": "ست زیرپوش و شورت مردانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-15292899",
-        "family": "digikala_category:11682",
-        "product_id": "dkp-9380314",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ست شورت و زیرپوش مردانه تولیدی پاران مدل اقتصادی 03",
-        "use_case": "fashion_lifestyle"
-      },
       {
         "at": "2026-11-15T17:54:39.895866+00:00",
         "brand": "",
@@ -734,6 +702,39 @@
         ],
         "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
         "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-15T21:37:22.703890+00:00",
+        "brand": "",
+        "catalog_category_id": "9371",
+        "catalog_category_name": "کفش پاشنه دار زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-6223366",
+        "family": "digikala_category:9371",
+        "product_id": "dkp-21219236",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش پاشنه‌دار زنانه مدل jzi-852",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-15T21:37:22.703890+00:00",
+        "brand": "",
+        "catalog_category_id": "9473",
+        "catalog_category_name": "زیرپوش مردانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-7284546",
+        "family": "digikala_category:9473",
+        "product_id": "dkp-720533",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "زیرپوش مردانه آریان نخ باف کد 1211",
+        "use_case": "fashion_lifestyle"
       }
     ]
   }
