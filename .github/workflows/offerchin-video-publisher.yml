@@ -25,7 +25,23 @@ jobs:
           ref: main
           fetch-depth: 0
 
+      # All selected-channel/video delivery receipts are projected here. An empty
+      # projection means there is no canonical video work to process; do not hold
+      # the shared publisher lock while installing Chromium or checking credentials.
+      - name: Skip immediately when the canonical video queue is empty
+        id: video_queue
+        shell: bash
+        run: |
+          if jq -e '.published | type == "object" and length > 0' affilio_radar/video_upload_dispatch_state.json >/dev/null 2>&1; then
+            echo "has_video_records=true" >> "$GITHUB_OUTPUT"
+            echo "UNIFIED_VIDEO_QUEUE_NONEMPTY"
+          else
+            echo "has_video_records=false" >> "$GITHUB_OUTPUT"
+            echo "UNIFIED_VIDEO_QUEUE_EMPTY; releasing the shared content-publisher lock without installing upload dependencies."
+          fi
+
       - name: Set up Python
+        if: steps.video_queue.outputs.has_video_records == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -33,6 +49,7 @@ jobs:
           cache-dependency-path: affilio_radar/requirements.txt
 
       - name: Install project dependencies
+        if: steps.video_queue.outputs.has_video_records == 'true'
         run: |
           for attempt in 1 2 3; do
             python -m pip install -r affilio_radar/requirements.txt && break
@@ -45,11 +62,13 @@ jobs:
           done
 
       - name: Install Playwright Chromium for the Filo adapter
+        if: steps.video_queue.outputs.has_video_records == 'true'
         run: |
           python -m pip install "playwright>=1.48,<2"
           python -m playwright install --with-deps chromium
 
       - name: Stage official DigiPay logo for matching video cards
+        if: steps.video_queue.outputs.has_video_records == 'true'
         continue-on-error: true
         run: |
           mkdir -p affilio_radar/assets/retailer-logos
@@ -65,6 +84,7 @@ jobs:
           PY
 
       - name: Validate the shared FIFO and video upload adapters
+        if: steps.video_queue.outputs.has_video_records == 'true'
         run: |
           python -m py_compile \
             affilio_radar/affilio_radar.py \
@@ -81,6 +101,7 @@ jobs:
             test_short_video.py
 
       - name: Verify Filo login without publishing
+        if: steps.video_queue.outputs.has_video_records == 'true'
         continue-on-error: true
         env:
           FILO_USER: ${{ secrets.FILO_USER }}
@@ -89,6 +110,7 @@ jobs:
         run: python affilio_radar/affilio_radar.py --filo-login-check-only
 
       - name: Publish the active editorial video before newer product videos
+        if: steps.video_queue.outputs.has_video_records == 'true'
         env:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
@@ -114,6 +136,7 @@ jobs:
 
 
       - name: Fan out the same FIFO to YouTube, Aparat and Filo
+        if: steps.video_queue.outputs.has_video_records == 'true'
         env:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
@@ -138,7 +161,7 @@ jobs:
         run: python affilio_radar/affilio_radar.py --all-video-upload-only
 
       - name: Preserve rendered video artifacts for diagnostics
-        if: always()
+        if: ${{ always() && steps.video_queue.outputs.has_video_records == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: offerchin-unified-videos-${{ github.run_id }}
@@ -147,7 +170,7 @@ jobs:
           retention-days: 3
 
       - name: Persist all per-destination outcomes
-        if: always()
+        if: ${{ always() && steps.video_queue.outputs.has_video_records == 'true' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

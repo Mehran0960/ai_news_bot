@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 from datetime import datetime, timedelta, timezone
 
@@ -16,6 +17,46 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
             None,
             False,
             list(destinations),
+        )
+
+    def test_empty_video_projection_releases_shared_publisher_lock_before_setup(self):
+        workflow = (
+            Path(__file__).resolve().parents[1]
+            / ".github"
+            / "workflows"
+            / "offerchin-video-publisher.yml"
+        ).read_text(encoding="utf-8")
+        gate_index = workflow.index("Skip immediately when the canonical video queue is empty")
+        python_index = workflow.index("- name: Set up Python")
+        self.assertLess(gate_index, python_index)
+        self.assertIn("id: video_queue", workflow)
+        self.assertIn(
+            "jq -e '.published | type == \"object\" and length > 0'",
+            workflow,
+        )
+        self.assertIn('echo "has_video_records=false" >> "$GITHUB_OUTPUT"', workflow)
+        gated_steps = (
+            "Set up Python",
+            "Install project dependencies",
+            "Install Playwright Chromium for the Filo adapter",
+            "Stage official DigiPay logo for matching video cards",
+            "Validate the shared FIFO and video upload adapters",
+            "Verify Filo login without publishing",
+            "Publish the active editorial video before newer product videos",
+            "Fan out the same FIFO to YouTube, Aparat and Filo",
+        )
+        for name in gated_steps:
+            start = workflow.index(f"- name: {name}")
+            end = workflow.find("\n      - name:", start + 1)
+            section = workflow[start:end if end >= 0 else len(workflow)]
+            self.assertIn(
+                "if: steps.video_queue.outputs.has_video_records == 'true'",
+                section,
+                msg=f"{name} must not run when the canonical queue is empty",
+            )
+        self.assertIn(
+            "always() && steps.video_queue.outputs.has_video_records == 'true'",
+            workflow,
         )
 
     def test_youtube_keeps_channel_selection_order_not_discount_order(self):
