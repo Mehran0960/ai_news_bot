@@ -413,6 +413,83 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(state["page"], 1)
         self.assertEqual(state["completed_cycles"], 1)
 
+    def test_discovery_preflight_requires_search_and_category_scoped_products(self):
+        def payload(product_id):
+            return {
+                "data": {
+                    "widgets": [{
+                        "type": "vertical_product_listing",
+                        "data": {
+                            "query_attributes": {
+                                "category_ids": [{"id": 11, "title_fa": "موبایل"}]
+                            },
+                            "widgets": [{
+                                "type": "product",
+                                "data": {
+                                    "id": product_id,
+                                    "url": f"/product/dkp-{product_id}/sample/",
+                                    "title_fa": "گوشی هوشمند نمونه",
+                                    "status": "marketable",
+                                    "default_variant": {
+                                        "status": "marketable",
+                                        "price": {
+                                            "selling_price": 9_000_000,
+                                            "rrp_price": 10_000_000,
+                                            "discount_percent": 10,
+                                        },
+                                    },
+                                },
+                            }],
+                        },
+                    }],
+                    "pager": {"total_pages": 1},
+                }
+            }
+
+        search_payload = payload(101)
+        category_payload = payload(102)
+        session = FakeSession([search_payload, category_payload])
+
+        returned = validate_discovery_api(session)
+
+        self.assertEqual(returned, search_payload)
+        self.assertEqual(len(session.calls), 2)
+        self.assertTrue(session.calls[0][0].endswith("/discovery/api/v1/search"))
+        self.assertEqual(session.calls[0][1]["q"], "گوشی")
+        self.assertTrue(session.calls[1][0].endswith("/discovery/api/v1/search"))
+        self.assertEqual(session.calls[1][1], {
+            "categories[0]": "11", "page": 1, "sort": 7
+        })
+
+    def test_discovery_preflight_rejects_http_200_with_no_marketable_products(self):
+        empty_search = {
+            "data": {
+                "widgets": [{
+                    "type": "vertical_product_listing",
+                    "data": {
+                        "query_attributes": {
+                            "category_ids": [{"id": 11, "title_fa": "موبایل"}]
+                        },
+                        "widgets": [{
+                            "type": "product",
+                            "data": {
+                                "id": 101,
+                                "title_fa": "گوشی ناموجود",
+                                "status": "not_marketable",
+                                "default_variant": {"status": "out_of_stock"},
+                            },
+                        }],
+                    },
+                }],
+            }
+        }
+        session = FakeSession([empty_search])
+        with self.assertRaisesRegex(
+            CatalogSweepError, "discovery_api_search_returned_zero_marketable_products"
+        ):
+            validate_discovery_api(session)
+        self.assertEqual(len(session.calls), 1)
+
     def test_discovery_endpoints_use_operation_paths(self):
         self.assertTrue(DISCOVERY_SEARCH_URL.endswith("/discovery/api/v1/search"))
         self.assertTrue(DISCOVERY_AUTOCOMPLETE_URL.endswith("/discovery/api/v1/autocomplete"))
