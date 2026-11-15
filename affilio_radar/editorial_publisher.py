@@ -57,6 +57,15 @@ def _save(state: dict) -> None:
     radar.save_json(radar.STATE, state)
 
 
+def _refresh_dispatch_projection(state: dict) -> None:
+    """Persist the current editorial/product due times for the minute dispatcher."""
+    try:
+        projection = radar.build_video_upload_dispatch_state(state, now=_now())
+        radar.save_json(ROOT / "video_upload_dispatch_state.json", projection)
+    except Exception as exc:
+        print(f"EDITORIAL_DISPATCH_PROJECTION_REFRESH_FAILED error={type(exc).__name__}")
+
+
 def _load_bank() -> list[dict]:
     try:
         value = json.loads(EDITORIAL_BANK.read_text(encoding="utf-8"))
@@ -186,7 +195,11 @@ def queue_editorial_if_due(
         for queued_editorial in active:
             related_id = str(queued_editorial.get("related_product_id") or "").strip()
             product_entry = active_products.get(related_id) if related_id else None
-            if isinstance(product_entry, dict) and product_entry.get("status") not in {"published", "cancelled", "stale_selection"}:
+            if (
+                isinstance(product_entry, dict)
+                and product_entry.get("status") not in {"published", "cancelled", "stale_selection"}
+                and not _product_has_core_channel_success(product_entry)
+            ):
                 valid_active.append(queued_editorial)
                 continue
             queued_editorial["status"] = "cancelled"
@@ -1050,6 +1063,7 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         # Persist the canonical id and allocated sequence before rendering or any
         # outbound request, so a runner restart cannot allocate a duplicate sequence.
         _save(state)
+        _refresh_dispatch_projection(state)
     if not entry:
         if publish:
             _save(state)
@@ -1062,6 +1076,7 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         )
         if publish:
             _save(state)
+            _refresh_dispatch_projection(state)
         return 0
     payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
     if not publish:
@@ -1090,6 +1105,7 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         if _pending_product_video_exists(state):
             print("EDITORIAL_VIDEO_WAIT reason=older_product_video_fifo_pending")
             _save(state)
+            _refresh_dispatch_projection(state)
             return 0
         output_path = Path("video_artifacts") / (
             f"editorial-{payload.get('editorial_id')}-{entry.get('sequence_number')}.mp4"
@@ -1121,6 +1137,8 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
             f"status={entry.get('status')} sequence={entry.get('sequence_number')}"
         )
     _save(state)
+    if publish:
+        _refresh_dispatch_projection(state)
     return 0
 
 

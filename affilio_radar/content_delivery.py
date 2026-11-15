@@ -324,6 +324,79 @@ def reschedule_product_queue_evenly(
     return {"scheduled": len(pending) - deferred, "deferred": deferred, "interval_seconds": interval}
 
 
+def reflow_product_queue_after_delivery(
+    state: dict,
+    *,
+    now: datetime | None = None,
+) -> dict:
+    """Recalculate remaining product slots from the latest real product send to the next clean scan."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+
+    queue = state.get("content_delivery_queue")
+    cadence = state.get("product_publication_cadence")
+    if not isinstance(queue, dict) or not isinstance(cadence, dict):
+        return {"scheduled": 0, "deferred": 0, "reason": "product_plan_unavailable"}
+
+    pending_count = 0
+    for entry in queue.values():
+        if not isinstance(entry, dict) or entry.get("status") in TERMINAL_QUEUE_STATUSES:
+            continue
+        if str(entry.get("content_type") or "product") != "product":
+            continue
+        platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+        if any(
+            isinstance(platforms.get(name), dict)
+            and platforms[name].get("status") == "sent"
+            for name in ("telegram", "bale", "rubika", "eitaa")
+        ):
+            continue
+        pending_count += 1
+
+    if pending_count == 0:
+        return {"scheduled": 0, "deferred": 0, "pending_products": 0}
+
+    scan_eta = _utc(cadence.get("estimated_next_clean_scan_at"))
+    last_product = get_last_product_channel_published_at(state)
+    if scan_eta is None or last_product is None:
+        return {
+            "scheduled": 0,
+            "deferred": pending_count,
+            "pending_products": pending_count,
+            "reason": "verified_scan_eta_or_product_receipt_unavailable",
+        }
+
+    remaining_seconds = max(0.0, (scan_eta - last_product).total_seconds())
+    interval_seconds = remaining_seconds / pending_count
+    updated_cadence = dict(cadence)
+    updated_cadence.update({
+        "calculated_at": current.isoformat(),
+        "candidate_count": pending_count,
+        "planned_product_slots": pending_count,
+        "plan_anchor_at": last_product.isoformat(),
+        "plan_anchor_kind": "last_product",
+        "seconds_until_estimated_next_clean_scan": max(0.0, (scan_eta - current).total_seconds()),
+        "seconds_from_plan_anchor_to_next_scan": remaining_seconds,
+        "interval_seconds": interval_seconds,
+        "interval_minutes": round(interval_seconds / 60, 3),
+        "policy": "equal_spacing_pending_selected_products_across_time_until_next_clean_catalog_scan",
+    })
+    state["product_publication_cadence"] = updated_cadence
+    state["product_publication_interval_seconds"] = interval_seconds
+    state["product_publication_plan_anchor_at"] = last_product.isoformat()
+    state["product_publication_plan_anchor_kind"] = "last_product"
+
+    result = reschedule_product_queue_evenly(state, updated_cadence, now=current)
+    return {
+        **result,
+        "pending_products": pending_count,
+        "next_clean_scan_at": scan_eta.isoformat(),
+        "interval_seconds": interval_seconds,
+    }
+
+
 def has_fresh_unpublished_selection(
     state: dict,
     *,

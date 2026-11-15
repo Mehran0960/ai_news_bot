@@ -169,6 +169,35 @@ class EditorialPublisherTests(unittest.TestCase):
         }
         self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
 
+    def test_active_editorial_is_cancelled_after_related_product_was_publicly_sent(self):
+        editorial = {
+            "content_id": "editorial:late-midpoint",
+            "sequence_number": 20,
+            "status": "queued",
+            "scheduled_at": (NOW - timedelta(minutes=1)).isoformat(),
+            "next_attempt_at": (NOW - timedelta(minutes=1)).isoformat(),
+            "related_product_id": "dkp-already-posted",
+            "payload": editorial_item(),
+            "platforms": {},
+        }
+        product = {
+            "content_type": "product",
+            "status": "partial",
+            "scheduled_at": (NOW - timedelta(seconds=30)).isoformat(),
+            "platforms": {
+                "telegram": {"status": "sent"},
+                "bale": {"status": "sent"},
+                "rubika": {"status": "pending"},
+            },
+        }
+        state = {
+            "editorial_delivery_queue": {editorial["content_id"]: editorial},
+            "content_delivery_queue": {"dkp-already-posted": product},
+        }
+        self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
+        self.assertNotIn(editorial["content_id"], state["editorial_delivery_queue"])
+        self.assertEqual(editorial["status"], "cancelled")
+
     def test_pending_product_video_does_not_hold_back_editorial_channel_post(self):
         state = {
             "last_channel_published_at": (NOW - timedelta(minutes=60)).isoformat(),
