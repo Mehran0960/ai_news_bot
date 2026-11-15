@@ -5017,7 +5017,6 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
             related_product_id, _product_entry, product_at = next_product
             anchor_at = _parse_utc_datetime(state.get("last_channel_published_at")) or current
             gap_seconds = int((product_at - anchor_at).total_seconds())
-            minimum_gap_seconds = 27 * 60
             already_linked = any(
                 isinstance(row, dict)
                 and str(row.get("related_product_id") or "") == related_product_id
@@ -5034,38 +5033,14 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                     and str(row.get("status") or "").lower() not in terminal_queue_statuses
                     for row in editorial_queue.values()
                 )
-            last_empty_check = _parse_utc_datetime(state.get("last_editorial_empty_bank_check_at"))
-            bank_empty_backoff_active = bool(
-                last_empty_check and current - last_empty_check < timedelta(minutes=55)
-            )
-            if (
-                not already_linked
-                and not bank_empty_backoff_active
-                and gap_seconds >= 2 * minimum_gap_seconds
-                and product_at - current >= timedelta(seconds=minimum_gap_seconds)
-            ):
-                # Wake the publisher at the actual editorial midpoint, not at the
-                # earliest legal channel slot. queue_editorial_if_due uses the same
-                # midpoint, so this avoids premature wakeups and keeps products on plan.
+            if not already_linked and product_at > current and gap_seconds > 0:
                 midpoint_at = anchor_at + timedelta(seconds=gap_seconds // 2)
                 planning_at = max(current, midpoint_at)
-                if (
-                    (planning_at - anchor_at).total_seconds() >= minimum_gap_seconds
-                    and (product_at - planning_at).total_seconds() >= minimum_gap_seconds
-                ):
+                if planning_at < product_at:
                     next_editorial_planning_at = planning_at.isoformat()
 
-    if next_product is None and isinstance(state, dict):
-        # With no product slot, preserve a standalone editorial check at 55 minutes.
-        # A recent empty-bank check moves the next retry forward rather than causing
-        # a minute-by-minute dispatch loop.
-        last_post_at = _parse_utc_datetime(state.get("last_channel_published_at"))
-        empty_check_at = _parse_utc_datetime(state.get("last_editorial_empty_bank_check_at"))
-        if last_post_at is not None:
-            standalone_at = last_post_at + timedelta(minutes=55)
-            if empty_check_at is not None and empty_check_at > last_post_at:
-                standalone_at = max(standalone_at, empty_check_at + timedelta(minutes=55))
-            next_editorial_planning_at = standalone_at.isoformat()
+    # No future product slot means no editorial planning slot. Editorial is a gap
+    # filler between selected products, never a standalone substitute for products.
 
     emergency_record = state.get("emergency_continuity") if isinstance(state, dict) else None
     emergency_expires = (
