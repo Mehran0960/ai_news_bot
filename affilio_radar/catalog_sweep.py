@@ -465,6 +465,7 @@ def category_search_request(category: dict, page: int) -> tuple[str, dict]:
     if not category_id.isdigit():
         raise CatalogSweepError("invalid_category_id")
     return CATEGORY_SEARCH_URL, {
+        "q": str(category.get("query") or category.get("name") or category_id).strip(),
         "categories[0]": category_id,
         "page": max(1, int(page)),
         "sort": BEST_SELLING_SORT_VALUE,
@@ -924,12 +925,34 @@ def _catalog_live_demand_score(row: dict) -> float:
     return round(min(100.0, (base_score + coverage_bonus) * freshness), 2)
 
 
+def catalog_category_is_consistent(row: dict, catalog_category_name: object) -> bool:
+    """Reject a bestseller rank when product taxonomy and scanned category conflict.
+
+    A missing/unknown taxonomy is not treated as a mismatch. A rejection only
+    occurs when both the product's own data_layer category and the scanned
+    category are confidently classified into different semantic groups.
+    """
+    if not isinstance(row, dict):
+        return True
+    product_group = _infer_use_case_group("", row.get("category") or "")
+    scanned_group = _infer_use_case_group("", catalog_category_name or "")
+    return (
+        product_group == "unknown"
+        or scanned_group == "unknown"
+        or product_group == scanned_group
+    )
+
+
 def _score_catalog_candidate_cohort(rows: list[dict]) -> None:
     _apply_four_factor_scores(
         rows,
         live_demand_score_fn=_catalog_live_demand_score,
         use_case_group_fn=lambda row: _infer_use_case_group(
-            row.get("title"), row.get("catalog_category_name") or row.get("catalog_category_path")
+            row.get("title"),
+            " ".join(str(value or "") for value in (
+                row.get("catalog_category_name") or row.get("catalog_category_path"),
+                row.get("category") or "",
+            )),
         ),
         # Compare prices within the same taxonomy node, not across unrelated use cases.
         price_group_fn=lambda row: str(
