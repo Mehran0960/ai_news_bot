@@ -90,21 +90,28 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(entry["payload"]["sequence_number"], 9)
         self.assertEqual(entry["content_type"], "product")
 
-    def test_default_interval_is_23_minutes_from_last_channel_publication(self):
+    def test_initial_product_slot_has_no_fixed_offset_and_later_slots_use_planned_interval(self):
         state = {}
         enqueue_selected_content(
-            state, [self.item("dkp-first")], now=self.now, minimum_runway_minutes=0
+            state, [self.item("dkp-first")], now=self.now,
+            interval_seconds=1200, minimum_runway_minutes=0,
         )
-        state["last_channel_published_at"] = self.now.isoformat()
+        first = datetime.fromisoformat(
+            state["content_delivery_queue"]["dkp-first"]["scheduled_at"]
+        )
+        self.assertEqual(first, self.now)
+
+        state["last_product_channel_published_at"] = self.now.isoformat()
+        state["editorial_delivery_history"] = [{"content_id": "editorial:sample"}]
         enqueue_selected_content(
             state, [self.item("dkp-second")],
-            now=self.now + timedelta(minutes=22),
-            minimum_runway_minutes=0,
+            now=self.now + timedelta(minutes=1),
+            interval_seconds=1200, minimum_runway_minutes=0,
         )
-        scheduled = datetime.fromisoformat(
+        second = datetime.fromisoformat(
             state["content_delivery_queue"]["dkp-second"]["scheduled_at"]
         )
-        self.assertEqual(scheduled, self.now + timedelta(minutes=23))
+        self.assertEqual(second, self.now + timedelta(minutes=20))
 
 
     def test_enqueue_persists_platform_neutral_payload_without_delivery(self):
