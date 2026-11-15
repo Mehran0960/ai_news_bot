@@ -26,18 +26,17 @@ PENDING_PLATFORM_STATUSES = {"pending", "failed", "retry"}
 PRODUCT_ID_PATTERN = re.compile(r"^(?:dkp|snp)-\d{1,12}$", re.IGNORECASE)
 
 
-def editorial_dispatch_runway_seconds(state: dict | None = None) -> int:
-    """Return the real dispatch-and-delivery runway needed for an editorial slot.
-
-    The Cloudflare dispatcher polls once per minute by default. The delivery part is
-    estimated from recent completed editorial sends, using a conservative p90. This
-    is an eligibility window, not a minimum interval between channel posts.
-    """
+def editorial_dispatch_poll_seconds() -> int:
+    """Configured scheduler polling horizon; defaults to the Cloudflare minute poll."""
     try:
         poll_seconds = int(os.getenv("OFFERCHIN_EDITORIAL_DISPATCH_POLL_SECONDS", "60"))
     except (TypeError, ValueError, OverflowError):
         poll_seconds = 60
-    poll_seconds = max(15, min(180, poll_seconds))
+    return max(15, min(180, poll_seconds))
+
+
+def editorial_delivery_p90_seconds(state: dict | None = None) -> int:
+    """Estimate a conservative editorial send duration from recent confirmed attempts."""
     try:
         default_delivery = int(os.getenv("OFFERCHIN_EDITORIAL_DEFAULT_DELIVERY_SECONDS", "30"))
     except (TypeError, ValueError, OverflowError):
@@ -60,14 +59,16 @@ def editorial_dispatch_runway_seconds(state: dict | None = None) -> int:
                 if 0 < duration <= 900:
                     durations.append(duration)
 
-    if durations:
-        durations.sort()
-        # Nearest-rank 90th percentile; a single observation is still useful.
-        index = max(0, min(len(durations) - 1, math.ceil(0.90 * len(durations)) - 1))
-        delivery_seconds = max(10, int(math.ceil(durations[index])))
-    else:
-        delivery_seconds = default_delivery
-    return poll_seconds + delivery_seconds
+    if not durations:
+        return default_delivery
+    durations.sort()
+    index = max(0, min(len(durations) - 1, math.ceil(0.90 * len(durations)) - 1))
+    return max(10, int(math.ceil(durations[index])))
+
+
+def editorial_dispatch_runway_seconds(state: dict | None = None) -> int:
+    """Combined scheduler-poll + delivery runway, not a fixed interval between posts."""
+    return editorial_dispatch_poll_seconds() + editorial_delivery_p90_seconds(state)
 
 
 def _configured_queue_limit(value: Any = None) -> int:
