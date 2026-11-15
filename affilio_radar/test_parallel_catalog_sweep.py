@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 try:
     from . import parallel_catalog_sweep as sweep
@@ -14,6 +14,53 @@ except ImportError:  # unittest discovery from the workflow's affilio_radar work
 
 
 class ParallelCatalogSweepTests(unittest.TestCase):
+    def test_fetch_page_uses_v2_category_endpoint_and_marketable_widget_parser(self):
+        payload = {
+            "data": {
+                "widgets": [{
+                    "type": "vertical_product_listing",
+                    "data": {"widgets": [{
+                        "type": "product",
+                        "data": {
+                            "id": 12345,
+                            "title_fa": "گوشی هوشمند نمونه",
+                            "url": {"uri": "/product/dkp-12345/sample/"},
+                            "status": "marketable",
+                            "default_variant": {"price": {
+                                "selling_price": 10_000_000,
+                                "rrp_price": 12_000_000,
+                                "discount_percent": 17,
+                            }},
+                        },
+                    }]},
+                }],
+                "pager": {"total_pages": 9},
+            }
+        }
+        response = Mock()
+        response.status_code = 200
+        response.content = b"{}"
+        response.json.return_value = payload
+        session = Mock()
+        session.get.return_value = response
+
+        with patch.object(sweep, "_session", return_value=session):
+            result = sweep._fetch_page({
+                "category_id": "77",
+                "category_name": "موبایل",
+                "category_query": "گوشی سامسونگ",
+                "page": 3,
+            })
+
+        self.assertEqual(result["kind"], "ok")
+        self.assertEqual(result["rows"][0]["product_id"], "dkp-12345")
+        self.assertEqual(result["total_pages"], 9)
+        args, kwargs = session.get.call_args
+        self.assertIn("/v2/category/77/", args[0])
+        self.assertEqual(kwargs["params"], {
+            "q": "گوشی سامسونگ", "page": 3, "sort": sweep.BEST_SELLING_SORT_VALUE
+        })
+
     def test_legacy_worker_checkpoint_is_normalized_to_the_first_trial_level_once(self):
         legacy = {}
         self.assertEqual(sweep._apply_worker_ramp_policy(legacy, 13, 16), 12)
@@ -196,23 +243,101 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         self.assertEqual([(row["category_id"], row["page"]) for row in queued], [("10", 1), ("10", 3), ("10", 4), ("10", 500)])
         self.assertEqual(state["parallel_deep_pages_pruned"], 0)
 
-    def test_fetch_page_requests_best_selling_order(self):
-        captured = {}
+    def test_fetch_page_falls_back_to_discovery_and_legacy_category_routes(self):
+        captured = []
+
+        class Response:
+            def __init__(self, status_code, payload=None):
+                self.status_code = status_code
+                self.content = b"{}"
+                self._payload = payload or {}
+            def json(self):
+                return self._payload
+            def raise_for_status(self):
+                if self.status_code >= 400:
+                    raise RuntimeError(f"http_{self.status_code}")
+
+        product_payload = {
+            "data": {
+                "widgets": [{
+                    "type": "vertical_product_listing",
+                    "data": {"widgets": [{
+                        "type": "product",
+                        "data": {
+                            "id": 12345,
+                            "title_fa": "گوشی هوشمند نمونه",
+                            "url": {"uri": "/product/dkp-12345/sample/"},
+                            "status": "marketable",
+                            "default_variant": {"price": {
+                                "selling_price": 10_000_000,
+                                "rrp_price": 12_000_000,
+                                "discount_percent": 17,
+                            }},
+                        },
+                    }]},
+                }],
+                "pager": {"total_pages": 4},
+            }
+        }
+
+        class Session:
+            def get(self, url, params, timeout):
+                captured.append({"url": url, "params": params, "timeout": timeout})
+                if "/v2/category/123/" in url:
+                    return Response(404)
+                if "/discovery/api/v2/categories/123/products/" in url:
+                    return Response(200, product_payload)
+                return Response(404)
+
+        with patch.object(sweep, "_session", return_value=Session()):
+            result = sweep._fetch_page({
+                "category_id": "123", "category_query": "گوشی", "page": 2
+            })
+
+        self.assertEqual(result["kind"], "ok")
+        self.assertEqual(result["source"], "discovery_api_v2_category_products")
+        self.assertEqual(result["rows"][0]["product_id"], "dkp-12345")
+        self.assertEqual(result["total_pages"], 4)
+        self.assertIn("/v2/category/123/", captured[0]["url"])
+        self.assertEqual(captured[0]["params"]["sort"], 5)
+        self.assertIn("/discovery/api/v2/categories/123/products/", captured[1]["url"])
+        self.assertEqual(captured[1]["params"]["page"], 2)
+
+    def test_fetch_page_closes_category_only_after_all_known_routes_return_not_found(self):
+        captured = []
 
         class Response:
             status_code = 404
         class Session:
             def get(self, url, params, timeout):
-                captured.update({"url": url, "params": params, "timeout": timeout})
+                captured.append({"url": url, "params": params})
                 return Response()
 
         with patch.object(sweep, "_session", return_value=Session()):
             result = sweep._fetch_page({"category_id": "123", "page": 2})
 
         self.assertEqual(result["kind"], "terminal")
-        self.assertEqual(captured["params"]["categories[]"], "123")
-        self.assertEqual(captured["params"]["page"], 2)
-        self.assertEqual(captured["params"]["sort"], 7)
+        self.assertEqual(len(captured), 3)
+        self.assertEqual(captured[0]["params"]["sort"], 5)
+        self.assertIn("/discovery/api/v2/categories/123/products/", captured[1]["url"])
+        self.assertEqual(captured[2]["params"]["categories[]"], "123")
+        self.assertEqual(captured[2]["params"]["sort"], 5)
+
+    def test_fetch_page_keeps_forbidden_routes_retryable(self):
+        calls = []
+
+        class Response:
+            status_code = 403
+        class Session:
+            def get(self, url, params, timeout):
+                calls.append(url)
+                return Response()
+
+        with patch.object(sweep, "_session", return_value=Session()):
+            result = sweep._fetch_page({"category_id": "123", "page": 2})
+
+        self.assertEqual(result["kind"], "retry")
+        self.assertEqual(len(calls), 3)
 
     def test_persisted_page_queue_sweeps_leaf_page_one_before_parent_and_deeper_pages(self):
         state = {

@@ -148,7 +148,6 @@ MAX_VIDEO_UPLOAD_ATTEMPTS = max(1, min(5, int(os.getenv("AFFILIO_MAX_VIDEO_UPLOA
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
 MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(250, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "250"))))
-MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.45")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
 PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TTL_HOURS", "24"))))
@@ -166,13 +165,11 @@ COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
     120, min(600, int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS", "240")))
 )
 CAPTION_DEADLINE_FORMAT_VERSION = 14
-# Urgency can speed cadence only while the offer still clears the minimum runway.
+# Offer deadlines affect eligibility and cleanup only; product publication timestamps
+# come exclusively from the equal-spacing catalog plan.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
-URGENT_MIN_POST_INTERVAL_MINUTES = 27
 DEADLINE_CRITICAL_WINDOW_MINUTES = 120
-# Offers inside the hard 90-minute cutoff are rejected instead of being rushed out.
 ULTRA_URGENT_WINDOW_MINUTES = 0
-ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 27
 URGENT_MIN_DISCOUNT_PERCENT = 80
 URGENT_MIN_SAVINGS_TOMAN = 500_000
 IRAN_TIMEZONE = ZoneInfo("Asia/Tehran")
@@ -875,17 +872,34 @@ def _api_product_url(obj):
 
 
 def api_search_product_urls(payload):
-    """Read the product array only; never confuse filter/category IDs with product IDs."""
+    """Read legacy product arrays or Search API v2 product widgets, never category IDs."""
     data = payload.get("data", {}) if isinstance(payload, dict) else {}
     product_items = data.get("products", []) if isinstance(data, dict) else []
+    if not isinstance(product_items, list):
+        product_items = []
+    if not product_items:
+        widgets = data.get("widgets", []) if isinstance(data, dict) else []
+        for widget in widgets if isinstance(widgets, list) else []:
+            if not isinstance(widget, dict) or widget.get("type") != "vertical_product_listing":
+                continue
+            listing = widget.get("data") if isinstance(widget.get("data"), dict) else {}
+            for product_widget in listing.get("widgets", []) if isinstance(listing.get("widgets"), list) else []:
+                if not isinstance(product_widget, dict) or product_widget.get("type") != "product":
+                    continue
+                product = product_widget.get("data")
+                if isinstance(product, dict) and str(product.get("status") or "").lower() == "marketable":
+                    product_items.append(product)
+
     found = []
-    for obj in product_items if isinstance(product_items, list) else []:
+    for obj in product_items:
         if not isinstance(obj, dict):
             continue
         title = obj.get("title_fa") or obj.get("product_title") or obj.get("title")
         raw_id = obj.get("id") or obj.get("product_id")
         product_shape = any(k in obj for k in ("default_variant", "variants", "images", "product_type", "status"))
         if not title or not product_shape or not is_publishable_product_title(title):
+            continue
+        if obj.get("status") is not None and str(obj.get("status")).lower() != "marketable":
             continue
         candidate = _api_product_url(obj)
         if not candidate and (isinstance(raw_id, int) or (isinstance(raw_id, str) and raw_id.isdigit())):
@@ -895,6 +909,72 @@ def api_search_product_urls(payload):
         if len(found) >= MAX_PER_QUERY:
             break
     return found
+
+
+def _autocomplete_category_queries(payload: dict, query: str, limit: int = 2) -> list[dict]:
+    data = payload.get("data", {}) if isinstance(payload, dict) else {}
+    items = data.get("categories", []) if isinstance(data, dict) else []
+    categories = []
+    seen = set()
+    for item in items if isinstance(items, list) else []:
+        if not isinstance(item, dict):
+            continue
+        category = item.get("category") if isinstance(item.get("category"), dict) else item
+        category_id = str(category.get("id") or category.get("category_id") or "").strip()
+        if not category_id.isdigit() or category_id in seen:
+            continue
+        seen.add(category_id)
+        categories.append({
+            "id": category_id,
+            "name": str(category.get("title_fa") or category.get("title") or ""),
+            "query": str(item.get("keyword") or query).strip(),
+        })
+        if len(categories) >= max(1, int(limit)):
+            break
+    return categories
+
+
+def search_digikala_v2_product_urls(query: str, session=None, category_limit: int = 2) -> tuple[list[str], list[dict]]:
+    """Resolve a query with public autocomplete, then Search API v2 category listings."""
+    http = session or SESSION
+    response = http.get(
+        "https://api.digikala.com/v1/autocomplete/",
+        params={"q": query},
+        timeout=HTTP_TIMEOUT,
+    )
+    response.raise_for_status()
+    if len(response.content) > 4_000_000:
+        raise RuntimeError("autocomplete API response exceeded 4 MB")
+    autocomplete = response.json()
+    categories = _autocomplete_category_queries(autocomplete, query, category_limit)
+    found = []
+    diagnostics = []
+    for category in categories:
+        category_id = category["id"]
+        search_response = http.get(
+            f"https://api.digikala.com/v2/category/{category_id}/",
+            params={"q": category["query"], "page": 1, "sort": 7},
+            timeout=HTTP_TIMEOUT,
+        )
+        search_response.raise_for_status()
+        if len(search_response.content) > 8_000_000:
+            raise RuntimeError("category search API response exceeded 8 MB")
+        payload = search_response.json()
+        rows = api_search_product_urls(payload)
+        diagnostics.append({
+            "category_id": category_id,
+            "category": category["name"],
+            "products_found": len(rows),
+            "status": search_response.status_code,
+        })
+        for url in rows:
+            if url not in found:
+                found.append(url)
+            if len(found) >= MAX_PER_QUERY:
+                break
+        if len(found) >= MAX_PER_QUERY:
+            break
+    return found[:MAX_PER_QUERY], diagnostics
 
 
 def _offer_discount_percent(obj: dict) -> int:
@@ -1669,9 +1749,20 @@ def fetch_product_record(url: str) -> dict:
             try:
                 response = SESSION.get(api_url, timeout=HTTP_TIMEOUT, allow_redirects=True)
                 if not response.ok:
+                    print(
+                        f"PRODUCT_API_HTTP id={product_id(url)} version={api_version} "
+                        f"status={response.status_code}"
+                    )
                     continue
                 payload = response.json()
                 api_product = parse_product_api(payload, url)
+                if not api_product:
+                    data_node = payload.get("data") if isinstance(payload, dict) else None
+                    print(
+                        f"PRODUCT_API_PARSE_EMPTY id={product_id(url)} version={api_version} "
+                        f"root_keys={','.join(sorted(payload.keys())[:12]) if isinstance(payload, dict) else 'non_object'} "
+                        f"data_keys={','.join(sorted(data_node.keys())[:12]) if isinstance(data_node, dict) else 'none'}"
+                    )
                 if api_product.get("title") or api_product.get("current_price") or api_product.get("availability") == "in_stock":
                     print(f"PRODUCT_API id={product_id(url)} version={api_version} title={bool(api_product.get('title'))} price={bool(api_product.get('current_price'))} stock={api_product.get('availability')}")
                     break
@@ -1722,6 +1813,45 @@ def fetch_product_record(url: str) -> dict:
     merged.setdefault("product_url", safe_product_url(url))
     merged.setdefault("checked_at", datetime.now(timezone.utc).isoformat())
     return merged
+
+
+def restore_emergency_snapshot_identity_title(
+    live_record: dict,
+    snapshot_lead: dict,
+    requested_url: str,
+) -> dict:
+    """Use a hash-pinned snapshot title only as an identity/display fallback.
+
+    No commercial field is copied from the snapshot. Product ID must match the
+    requested canonical DigiKala URL and any ID returned by live data.
+    """
+    result = dict(live_record) if isinstance(live_record, dict) else {}
+    if not isinstance(snapshot_lead, dict):
+        return result
+    if snapshot_lead.get("source") != "digikala_emergency_last_clean_snapshot":
+        return result
+
+    expected_id = product_id(safe_product_url(requested_url) or requested_url)
+    snapshot_id = str(snapshot_lead.get("product_id") or "").strip().lower()
+    live_id = str(
+        result.get("product_id")
+        or product_id(result.get("product_url") or "")
+        or ""
+    ).strip().lower()
+    if not expected_id or not expected_id.startswith("dkp-") or snapshot_id != expected_id:
+        return result
+    if live_id and live_id != expected_id:
+        return result
+    if is_publishable_product_title(result.get("title")):
+        return result
+
+    snapshot_title = str(snapshot_lead.get("title") or "").strip()
+    if not is_publishable_product_title(snapshot_title):
+        return result
+
+    result["title"] = snapshot_title
+    result["title_source"] = "hash_pinned_last_clean_catalog_snapshot_identity_only"
+    return result
 
 
 def _history_price_toman(raw) -> int | None:
@@ -4380,28 +4510,27 @@ def discover_product_urls(
         local = []
         api_error = ""
         try:
-            response = SESSION.get(
-                "https://api.digikala.com/v1/search/",
-                params={"q": term, "page": 1},
-                timeout=HTTP_TIMEOUT,
+            local, category_diagnostics = search_digikala_v2_product_urls(
+                term, session=SESSION, category_limit=2
             )
-            response.raise_for_status()
-            if len(response.content) > 8_000_000:
-                raise RuntimeError("search API response exceeded 8 MB")
-            payload = response.json()
-            local = api_search_product_urls(payload)
             print(
-                f"SEARCH_API term={term!r} status={response.status_code} "
-                f"data_keys={list(payload.get('data', {}).keys())[:24] if isinstance(payload, dict) and isinstance(payload.get('data'), dict) else 'n/a'} "
-                f"sample={json.dumps(_search_api_sample(payload), ensure_ascii=False)[:700]}"
+                f"SEARCH_API_V2 term={term!r} categories={len(category_diagnostics)} "
+                f"category_results={json.dumps(category_diagnostics, ensure_ascii=False)[:900]}"
             )
             if local:
-                diagnostics.append({"term": term, "ok": True, "products_found": len(local), "source": "public_api", "status": "ok"})
+                diagnostics.append({
+                    "term": term, "ok": True, "products_found": len(local),
+                    "source": "digikala_autocomplete_category_v2", "status": "ok",
+                    "categories": category_diagnostics,
+                })
             else:
-                api_error = "api_no_product_urls"
+                api_error = "autocomplete_or_category_search_no_product_urls"
         except Exception as exc:
             api_error = type(exc).__name__
-            print(f"SEARCH_API_FAILED term={term!r} error={type(exc).__name__} detail={str(exc)[:220]!r}")
+            print(
+                f"SEARCH_API_V2_FAILED term={term!r} error={type(exc).__name__} "
+                f"detail={str(exc)[:220]!r}"
+            )
 
         if not local:
             try:
@@ -5017,7 +5146,6 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
             related_product_id, _product_entry, product_at = next_product
             anchor_at = _parse_utc_datetime(state.get("last_channel_published_at")) or current
             gap_seconds = int((product_at - anchor_at).total_seconds())
-            minimum_gap_seconds = 27 * 60
             already_linked = any(
                 isinstance(row, dict)
                 and str(row.get("related_product_id") or "") == related_product_id
@@ -5035,37 +5163,19 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                     for row in editorial_queue.values()
                 )
             last_empty_check = _parse_utc_datetime(state.get("last_editorial_empty_bank_check_at"))
-            bank_empty_backoff_active = bool(
-                last_empty_check and current - last_empty_check < timedelta(minutes=55)
+            already_checked_after_product = bool(
+                last_empty_check and last_empty_check > anchor_at
             )
+            midpoint_at = anchor_at + timedelta(seconds=max(0, gap_seconds) / 2)
             if (
                 not already_linked
-                and not bank_empty_backoff_active
-                and gap_seconds >= 2 * minimum_gap_seconds
-                and product_at - current >= timedelta(seconds=minimum_gap_seconds)
+                and not already_checked_after_product
+                and gap_seconds > 0
+                and midpoint_at > current
+                and product_at > current
             ):
-                # Wake the publisher at the actual editorial midpoint, not at the
-                # earliest legal channel slot. queue_editorial_if_due uses the same
-                # midpoint, so this avoids premature wakeups and keeps products on plan.
-                midpoint_at = anchor_at + timedelta(seconds=gap_seconds // 2)
-                planning_at = max(current, midpoint_at)
-                if (
-                    (planning_at - anchor_at).total_seconds() >= minimum_gap_seconds
-                    and (product_at - planning_at).total_seconds() >= minimum_gap_seconds
-                ):
-                    next_editorial_planning_at = planning_at.isoformat()
-
-    if next_product is None and isinstance(state, dict):
-        # With no product slot, preserve a standalone editorial check at 55 minutes.
-        # A recent empty-bank check moves the next retry forward rather than causing
-        # a minute-by-minute dispatch loop.
-        last_post_at = _parse_utc_datetime(state.get("last_channel_published_at"))
-        empty_check_at = _parse_utc_datetime(state.get("last_editorial_empty_bank_check_at"))
-        if last_post_at is not None:
-            standalone_at = last_post_at + timedelta(minutes=55)
-            if empty_check_at is not None and empty_check_at > last_post_at:
-                standalone_at = max(standalone_at, empty_check_at + timedelta(minutes=55))
-            next_editorial_planning_at = standalone_at.isoformat()
+                next_editorial_planning_at = midpoint_at.isoformat()
+    # No product slot means no editorial wake-up. Editorial is not a standalone post.
 
     emergency_record = state.get("emergency_continuity") if isinstance(state, dict) else None
     emergency_expires = (
@@ -11236,6 +11346,14 @@ def run(publish=False, selection_only=False):
             item = fetch_product_record(canonical)
             pid = item.get("product_id", "") or product_id(canonical)
             catalog_record = discovery_queue.get(str(pid), {}) if isinstance(discovery_queue, dict) else {}
+            if isinstance(catalog_record, dict) and catalog_record.get("source") == "digikala_emergency_last_clean_snapshot":
+                before_title = str(item.get("title") or "")
+                item = restore_emergency_snapshot_identity_title(item, catalog_record, canonical)
+                if item.get("title_source") == "hash_pinned_last_clean_catalog_snapshot_identity_only":
+                    print(
+                        f"PRODUCT_TITLE_IDENTITY_FROM_LAST_CLEAN_SNAPSHOT id={pid} "
+                        f"live_title_missing={not is_publishable_product_title(before_title)}"
+                    )
             if isinstance(catalog_record, dict):
                 for field in (
                     "catalog_sort_mode",
@@ -11797,56 +11915,17 @@ def run(publish=False, selection_only=False):
     state.setdefault("published", {})
     state.setdefault("last_published_at", "")
     now = time.time()
-    last_post = _last_post_timestamp(state)
-    cooldown_remaining = -1 if FORCE_POST_COOLDOWN_BYPASS else MIN_POST_INTERVAL_HOURS * 3600 - (now - last_post)
     now_utc = datetime.fromtimestamp(now, tz=timezone.utc)
     local_now = now_utc.astimezone(IRAN_TIMEZONE)
     posting_window = preferred_publication_window(now_utc)
-    # A fixed "quiet hours" block can make a short-lived offer expire before the next
-    # audience window. The queue/cooldown—not the wall clock—now controls publishing.
+    # All public product post timestamps are planned in content_delivery.py.
+    # No global cooldown or urgency-dependent interval is applied in this path.
     regular_window_open = True
     print(
         f"POSTING_WINDOW iran_time={local_now.strftime('%H:%M')} "
-        f"preferred_window={posting_window} posting_allowed={regular_window_open}"
+        f"preferred_window={posting_window} posting_allowed={regular_window_open} "
+        "cadence=selected_products_equally_spaced_until_next_catalog_scan"
     )
-    urgent_candidate = select_urgent_publication_candidate(
-        eligible,
-        now=now_utc,
-        published=state.get("published"),
-        recent_publications=state.get("recent_publications"),
-    )
-    urgent_minimum_spacing = URGENT_MIN_POST_INTERVAL_MINUTES
-    if urgent_candidate:
-        urgent_expiry = _parse_utc_datetime(_parse_deal_expiry_value(urgent_candidate.get("deal_expires_at")))
-        if urgent_expiry and 0 < (urgent_expiry - now_utc).total_seconds() <= ULTRA_URGENT_WINDOW_MINUTES * 60:
-            urgent_minimum_spacing = ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES
-    urgent_override_allowed = bool(
-        urgent_candidate
-        and now - last_post >= urgent_minimum_spacing * 60
-    )
-    urgent_cooldown_bypass = bool(
-        cooldown_remaining > 0
-        and urgent_override_allowed
-        and not FORCE_POST_COOLDOWN_BYPASS
-    )
-    if cooldown_remaining > 0:
-        print(f"POST_COOLDOWN remaining_minutes={int(cooldown_remaining / 60)}")
-    if cooldown_remaining > 0 and urgent_cooldown_bypass:
-        expiry_utc = _parse_utc_datetime(_parse_deal_expiry_value(urgent_candidate.get("deal_expires_at")))
-        deadline_minutes = int((expiry_utc - now_utc).total_seconds() / 60) if expiry_utc else -1
-        print(
-            f"URGENT_PRIORITY_COOLDOWN_BYPASS id={urgent_candidate.get('product_id')} "
-            f"deadline_minutes={deadline_minutes} minimum_spacing_minutes={urgent_minimum_spacing}"
-        )
-    elif cooldown_remaining > 0 and urgent_candidate and not urgent_override_allowed:
-        print(f"URGENT_PRIORITY_WAIT minimum_spacing_minutes={urgent_minimum_spacing}")
-    if not regular_window_open and urgent_override_allowed:
-        expiry_utc = _parse_utc_datetime(_parse_deal_expiry_value(urgent_candidate.get("deal_expires_at")))
-        deadline_minutes = int((expiry_utc - now_utc).total_seconds() / 60) if expiry_utc else -1
-        print(
-            f"QUIET_HOURS_URGENT_OVERRIDE id={urgent_candidate.get('product_id')} "
-            f"deadline_minutes={deadline_minutes}"
-        )
 
     if publish and CLEAR_PREVIOUS_CHANNEL_POSTS:
         if not BATCH_OPERATION_KEY or state.get("cleanup_batch_operation") != BATCH_OPERATION_KEY:
@@ -11870,10 +11949,6 @@ def run(publish=False, selection_only=False):
             "current price/image, affiliate link, title, expiry and duplicate checks. "
             "Open-ended offers are accepted only after live stock/current-price validation."
         )
-    elif not regular_window_open and not urgent_override_allowed and not FORCE_POST_COOLDOWN_BYPASS:
-        print("PUBLISH_BLOCKED: quiet hours in Iran; regular offer retained for the next audience window.")
-    elif cooldown_remaining > 0 and not urgent_cooldown_bypass:
-        print("PUBLISH_BLOCKED: global posting cooldown active; queue retained.")
     else:
         sent = 0
         attempted_candidates = 0

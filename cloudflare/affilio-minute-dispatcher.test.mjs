@@ -8,8 +8,7 @@ import {
   hasPendingVideoQueue,
   videoRecordDue,
   isFiloLoginVerified,
-  PUBLISHER_INTERVAL_MS,
-  PUBLISHER_STANDALONE_EDITORIAL_GAP_MS,
+  PUBLISHER_DISCOVERY_RETRY_MS,
   isEmergencyContinuityAvailable,
   isPublisherAttemptRun,
   nextPublisherDueAt,
@@ -187,39 +186,42 @@ test("fails closed on missing, stale-schema, or partial-scan status", () => {
 });
 
 
-test("uses a 27-minute minimum channel publication interval", () => {
-  assert.equal(PUBLISHER_INTERVAL_MS, 27 * 60 * 1000);
+test("publisher cadence follows the exact scheduled product timestamp regardless of last post", () => {
+  const now = Date.now();
+  const productAt = now + 10 * 60 * 1000;
+  const state = { next_channel_content_due_at: new Date(productAt).toISOString() };
+  assert.equal(nextPublisherDueAt(state), productAt);
 });
 
-test("floating publisher waits for the next scheduled product or editorial slot", () => {
+test("publisher chooses the earliest editorial midpoint or product slot", () => {
   const now = Date.now();
-  const scheduled = now + 3 * 60 * 60 * 1000;
-  const state = { next_channel_content_due_at: new Date(scheduled).toISOString() };
-  assert.equal(nextPublisherDueAt(state, now), scheduled);
-});
-
-test("publisher wakes 27 minutes after the last post to plan an editorial midpoint before a product", () => {
-  const now = Date.now();
-  const productAt = now + 2 * 60 * 60 * 1000;
-  const planningAt = now + PUBLISHER_INTERVAL_MS;
+  const productAt = now + 3 * 60 * 60 * 1000;
+  const editorialAt = now + 47 * 60 * 1000;
   const state = {
     next_channel_content_due_at: new Date(productAt).toISOString(),
-    next_editorial_planning_at: new Date(planningAt).toISOString(),
+    next_editorial_planning_at: new Date(editorialAt).toISOString(),
   };
-  assert.equal(nextPublisherDueAt(state, now), planningAt);
+  assert.equal(nextPublisherDueAt(state), editorialAt);
 });
 
-test("floating publisher never violates the 27-minute minimum after a channel post", () => {
-  const now = Date.now();
-  const tooSoon = now + 10 * 60 * 1000;
-  const state = { next_channel_content_due_at: new Date(tooSoon).toISOString() };
-  assert.equal(nextPublisherDueAt(state, now), now + PUBLISHER_INTERVAL_MS);
+test("publisher has no standalone editorial schedule when no product slot exists", () => {
+  assert.equal(nextPublisherDueAt({}), null);
+  assert.equal(PUBLISHER_DISCOVERY_RETRY_MS, 3 * 60 * 1000,
+    "three minutes is only an unscheduled discovery retry throttle");
 });
 
-test("standalone editorial fallback uses its own 55-minute gap when no queue slot exists", () => {
+test("emergency discovery never adds a public posting gap", () => {
   const now = Date.now();
-  assert.equal(PUBLISHER_STANDALONE_EDITORIAL_GAP_MS, 55 * 60 * 1000);
-  assert.equal(nextPublisherDueAt({}, now), now + 55 * 60 * 1000);
+  const scheduled = now + 90_000;
+  const state = { next_channel_content_due_at: new Date(scheduled).toISOString() };
+  assert.equal(nextPublisherDueAt(state), scheduled);
+  assert.equal(nextPublisherDueAt({}), null);
+});
+
+test("editorial requires a real selected product slot; there is no 55-minute fallback", () => {
+  const now = Date.now();
+  const state = { last_channel_published_at: new Date(now - 24 * 60 * 60 * 1000).toISOString() };
+  assert.equal(nextPublisherDueAt(state), null);
 });
 
 test("publisher retry cooldown recognizes guarded push and workflow_dispatch attempts", () => {
@@ -228,39 +230,6 @@ test("publisher retry cooldown recognizes guarded push and workflow_dispatch att
   assert.equal(isPublisherAttemptRun({ event: "push", head_branch: "feature/preview" }), false);
   assert.equal(isPublisherAttemptRun({ event: "schedule", head_branch: "main" }), false);
   assert.equal(isPublisherAttemptRun(null), false);
-});
-
-test("emergency continuity retries discovery instead of waiting for standalone editorial", () => {
-  const now = Date.now();
-  const lastPost = now - PUBLISHER_INTERVAL_MS - 60_000;
-  const state = {
-    next_editorial_planning_at: new Date(now + 20 * 60 * 1000).toISOString(),
-  };
-  assert.equal(
-    nextPublisherDueAt(state, lastPost, { emergencyContinuityFallback: true }),
-    lastPost + PUBLISHER_INTERVAL_MS
-  );
-
-  const recentPost = now - 10 * 60 * 1000;
-  assert.equal(
-    nextPublisherDueAt(state, recentPost, { emergencyContinuityFallback: true }),
-    recentPost + PUBLISHER_INTERVAL_MS,
-    "emergency discovery must not weaken the public-post minimum gap"
-  );
-});
-
-test("emergency continuity still respects an already queued product or editorial slot", () => {
-  const now = Date.now();
-  const lastPost = now - 60 * 60 * 1000;
-  const scheduled = now + 40 * 60 * 1000;
-  const state = {
-    next_channel_content_due_at: new Date(scheduled).toISOString(),
-    next_editorial_planning_at: new Date(now + 55 * 60 * 1000).toISOString(),
-  };
-  assert.equal(
-    nextPublisherDueAt(state, lastPost, { emergencyContinuityFallback: true }),
-    scheduled
-  );
 });
 
 test("emergency Worker dispatch requires a pinned hash and an unexpired window", () => {

@@ -29,6 +29,7 @@ CANDIDATES_PATH = ROOT / "catalog_sweep_candidates.json"
 PUBLISHER_STATE_PATH = ROOT / "state.json"
 DEFAULT_PAGES_PER_RUN = 480
 DEFAULT_WORKERS = 16
+BEST_SELLING_SORT_VALUE = base.BEST_SELLING_SORT_VALUE
 WORKER_RAMP_POLICY_VERSION = "explicit_12_14_16_v1"
 _thread_local = threading.local()
 
@@ -83,6 +84,7 @@ def build_initial_page_queue(
         tasks.append({
             "category_id": category_id,
             "category_name": str(category.get("name") or category_id),
+            "category_query": str(category.get("query") or category.get("name") or category_id),
             "page": page if index == start_index else 1,
             "attempts": 0,
         })
@@ -109,14 +111,17 @@ def _next_page_task(task: dict, total_pages: int | None, product_count: int) -> 
     }
 
 def _fetch_page(task: dict) -> dict:
-    """Fetch one page and attach end-to-end request/parse latency telemetry.
+    """Try current and compatible public DigiKala category-list routes safely.
 
-    400/404 close an unqueryable category/page; other failures are retryable
-    and remain in the persisted queue.
+    A 400/403/404 on one route is not treated as proof that the category itself
+    is unqueryable until the fallback routes have also been tried. 403 is kept
+    retryable because it can reflect runner/network access policy, not a missing
+    category. No product is accepted without the expected listing parse contract.
     """
     request_started = time.monotonic()
-    category_id = str(task.get("category_id") or "")
+    category_id = str(task.get("category_id") or "").strip()
     page = max(1, base._normal_int(task.get("page"), 1))
+    category_query = str(task.get("category_query") or task.get("category_name") or category_id)
 
     def timed_result(kind: str, **fields: object) -> dict:
         return {
@@ -125,44 +130,86 @@ def _fetch_page(task: dict) -> dict:
             "elapsed_seconds": round(time.monotonic() - request_started, 3),
         }
 
-    try:
-        response = _session().get(
-            base.SEARCH_URL,
-            params={
-                "categories[]": category_id,
-                "page": page,
-                "sort": base.BEST_SELLING_SORT_VALUE,
-            },
-            timeout=base.REQUEST_TIMEOUT,
-        )
-        if response.status_code in (400, 404):
-            return timed_result("terminal", status_code=response.status_code, rows=[])
-        if response.status_code == 429:
-            return timed_result("retry", status_code=429, rows=[], error="rate_limited")
-        response.raise_for_status()
-        if len(response.content) > 8_000_000:
-            raise base.CatalogSweepError("api_response_exceeded_8mb")
+    if not category_id.isdigit():
+        return timed_result("terminal", status_code=400, rows=[], error="invalid_category_id")
+
+    primary_url, primary_params = base._category_page_url(category_id, page, category_query)
+    route_specs = [
+        ("search_api_v2_category", primary_url, primary_params),
+        (
+            "discovery_api_v2_category_products",
+            f"https://api.digikala.com/discovery/api/v2/categories/{category_id}/products/",
+            {"page": page, "sort": base.BEST_SELLING_SORT_VALUE, "q": category_query},
+        ),
+        (
+            "legacy_search_api_v1",
+            "https://api.digikala.com/v1/search/",
+            {"categories[]": category_id, "page": page, "sort": base.BEST_SELLING_SORT_VALUE},
+        ),
+    ]
+
+    http = _session()
+    route_errors = []
+    seen_statuses = []
+    for source, search_url, params in route_specs:
         try:
-            payload = response.json()
-        except ValueError as exc:
-            raise base.CatalogSweepError("api_returned_non_json") from exc
-        if not isinstance(payload, dict):
-            raise base.CatalogSweepError("api_payload_not_object")
-        rows = base.extract_product_rows(payload)
-        total_pages = base.extract_total_pages(payload, page, len(rows))
+            response = http.get(search_url, params=params, timeout=base.REQUEST_TIMEOUT)
+            status_code = int(getattr(response, "status_code", 0) or 0)
+            seen_statuses.append(status_code)
+            if status_code == 429:
+                return timed_result(
+                    "retry", status_code=429, rows=[], error="rate_limited",
+                    source=source, route_errors=route_errors,
+                )
+            if status_code in (400, 403, 404):
+                route_errors.append(f"{source}_http_{status_code}")
+                continue
+            response.raise_for_status()
+            if len(response.content) > 8_000_000:
+                route_errors.append(f"{source}_response_exceeded_8mb")
+                continue
+            try:
+                payload = response.json()
+            except ValueError:
+                route_errors.append(f"{source}_non_json")
+                continue
+            if not isinstance(payload, dict):
+                route_errors.append(f"{source}_payload_not_object")
+                continue
+            try:
+                rows = base.extract_product_rows(payload)
+            except Exception as exc:
+                route_errors.append(f"{source}_{type(exc).__name__}")
+                continue
+            total_pages = base.extract_total_pages(payload, page, len(rows))
+            return timed_result(
+                "ok", rows=rows, total_pages=total_pages, status_code=status_code,
+                source=source, route_errors=route_errors,
+            )
+        except Exception as exc:
+            status = getattr(getattr(exc, "response", None), "status_code", None)
+            route_errors.append(f"{source}_{type(exc).__name__}")
+            if status is not None:
+                try:
+                    seen_statuses.append(int(status))
+                except (TypeError, ValueError, OverflowError):
+                    pass
+
+    # Only an all-400/404 outcome proves the category route is absent. A 403
+    # remains retryable; it may be runner/IP policy rather than bad taxonomy.
+    terminal_statuses = {400, 404}
+    if seen_statuses and all(status in terminal_statuses for status in seen_statuses) and not any(
+        "non_json" in error or "payload_not_object" in error or "response_exceeded" in error
+        for error in route_errors
+    ):
         return timed_result(
-            "ok",
-            rows=rows,
-            total_pages=total_pages,
-            status_code=response.status_code,
+            "terminal", status_code=seen_statuses[-1], rows=[],
+            error="all_category_routes_not_found", route_errors=route_errors,
         )
-    except Exception as exc:  # keep the cursor safe on all transient/schema failures
-        return timed_result(
-            "retry",
-            rows=[],
-            error=f"{type(exc).__name__}:{str(exc)[:140]}",
-            status_code=getattr(getattr(exc, "response", None), "status_code", None),
-        )
+    return timed_result(
+        "retry", rows=[], error=";".join(route_errors[-3:]) or "category_routes_failed",
+        status_code=seen_statuses[-1] if seen_statuses else None, route_errors=route_errors,
+    )
 
 
 def _percentile(values: list[float], percentile: float) -> float:

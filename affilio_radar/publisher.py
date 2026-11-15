@@ -712,78 +712,8 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
 
 
 def editorial_fifo_lock_entry(state: dict) -> dict | None:
-    """Apply the editorial FIFO only when its scheduled gap has arrived.
-
-    Products whose slots precede the editorial remain first. Editorial items whose
-    slots are later than the upcoming editorial are not allowed to block those products.
-    Video uploads retain their own FIFO and never hold back channel publication.
-    """
-    enabled = os.getenv("OFFERCHIN_EDITORIAL_PUBLISH_ENABLED", "false").strip().lower() in {
-        "1", "true", "yes", "on"
-    }
-    if not enabled:
-        return None
-    now = _now()
-    queue = state.get("editorial_delivery_queue")
-    active = [
-        value for value in (queue.values() if isinstance(queue, dict) else [])
-        if isinstance(value, dict) and value.get("status") not in {"completed", "cancelled", "failed"}
-    ]
-    locks = []
-    for entry in active:
-        platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
-        core_statuses = [
-            (str((platforms.get(destination) or {}).get("status") or "pending").strip().lower()
-             if isinstance(platforms.get(destination), dict) else "pending")
-            for destination in CORE_PHOTO_PLATFORMS
-        ]
-        core_sent = any(status == "sent" for status in core_statuses)
-        core_pending = any(status not in TERMINAL_PLATFORM for status in core_statuses)
-        # Keep the related editorial ahead of its product until both core photo
-        # channels are terminal, but the bounded max-block timeout below prevents a stall.
-        if not core_pending:
-            continue
-        scheduled = _utc(entry.get("scheduled_at")) or _utc(entry.get("selected_at")) or now
-        attempt_anchor = _utc(entry.get("last_attempt_at")) or _utc(entry.get("selected_at")) or scheduled
-        max_block = max(1, min(30, int(os.getenv("OFFERCHIN_EDITORIAL_PRODUCT_BLOCK_MAX_MINUTES", "8"))))
-        if now - attempt_anchor > timedelta(minutes=max_block):
-            print(
-                "PUBLISHER_EDITORIAL_LOCK_RELEASED "
-                f"content_id={entry.get('content_id', 'unknown')} reason=max_block_wait_exceeded "
-                f"minutes={max_block}"
-            )
-            continue
-        if scheduled <= now:
-            locks.append((scheduled, entry))
-    if not locks:
-        return None
-
-    editorial_at, editorial = min(
-        locks,
-        key=lambda row: (row[0], int(row[1].get("sequence_number") or 0)),
-    )
-    product_queue = state.get("content_delivery_queue")
-    for product_id, entry in (product_queue.items() if isinstance(product_queue, dict) else []):
-        if not isinstance(entry, dict) or entry.get("status") in {"published", "cancelled", "stale_selection"}:
-            continue
-        if str(entry.get("content_type") or "product") != "product":
-            continue
-        platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
-        if any(
-            isinstance(platforms.get(name), dict) and platforms[name].get("status") == "sent"
-            for name in CORE_PHOTO_PLATFORMS
-        ):
-            continue
-        product_at = _utc(entry.get("scheduled_at"))
-        if product_at is not None and product_at <= editorial_at:
-            print(
-                "PUBLISHER_EDITORIAL_WAIT_FOR_EARLIER_PRODUCT "
-                f"editorial_id={editorial.get('content_id', 'unknown')} "
-                f"product_id={product_id} product_slot={product_at.isoformat()} "
-                f"editorial_slot={editorial_at.isoformat()}"
-            )
-            return None
-    return editorial
+    """Editorial delivery never locks or delays a selected product."""
+    return None
 
 
 def publish_due_queue(_fallback_depth: int = 0) -> int:
