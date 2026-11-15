@@ -19,6 +19,26 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
             list(destinations),
         )
 
+    def test_publisher_delivers_due_items_before_heavy_tests_and_discovery(self):
+        workflow = (
+            Path(__file__).resolve().parents[1]
+            / ".github"
+            / "workflows"
+            / "offerchin-publisher.yml"
+        ).read_text(encoding="utf-8")
+        product_publish = workflow.index("name: Publish due selections to Telegram and Bale only")
+        editorial_publish = workflow.index("name: Publish the same-sequence editorial fallback to photo channels")
+        demand_tests = workflow.index("name: Validate DigiKala demand-first ranking and publication gates")
+        due_gate = workflow.index("name: Detect due product or editorial slots")
+        discovery = workflow.index("name: Discover and queue the next verified selection")
+        self.assertLess(product_publish, editorial_publish)
+        self.assertLess(editorial_publish, demand_tests)
+        self.assertLess(demand_tests, due_gate)
+        self.assertLess(due_gate, discovery)
+        self.assertIn("--queue-state-path affilio_radar/state.json", workflow)
+        self.assertIn("fetch-depth: 20", workflow)
+        self.assertEqual(workflow.count("if: ${{ github.event_name == 'push' }}"), 2)
+
     def test_empty_video_projection_releases_shared_publisher_lock_before_setup(self):
         workflow = (
             Path(__file__).resolve().parents[1]
