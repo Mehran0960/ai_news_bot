@@ -148,7 +148,6 @@ MAX_VIDEO_UPLOAD_ATTEMPTS = max(1, min(5, int(os.getenv("AFFILIO_MAX_VIDEO_UPLOA
 PUBLISH_BACKLOG_BURST_THRESHOLD = max(2, min(50, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_THRESHOLD", "8"))))
 PUBLISH_BACKLOG_BURST_MAX_POSTS = max(1, min(3, int(os.getenv("AFFILIO_PUBLISH_BACKLOG_BURST_MAX_POSTS", "2"))))
 MAX_PUBLISH_CANDIDATE_ATTEMPTS = max(1, min(250, int(os.getenv("AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS", "250"))))
-MIN_POST_INTERVAL_HOURS = max(1 / 60, float(os.getenv("AFFILIO_MIN_POST_INTERVAL_HOURS", "0.45")))
 PRODUCT_COOLDOWN_DAYS = max(1, int(os.getenv("AFFILIO_PRODUCT_COOLDOWN_DAYS", "30")))
 PENDING_QUEUE_LIMIT = max(20, min(200, int(os.getenv("AFFILIO_PENDING_QUEUE_LIMIT", "200"))))
 PENDING_QUEUE_TTL_HOURS = max(1, min(72, int(os.getenv("AFFILIO_PENDING_QUEUE_TTL_HOURS", "24"))))
@@ -166,13 +165,11 @@ COUNTDOWN_REFRESH_INTERVAL_SECONDS = max(
     120, min(600, int(os.getenv("AFFILIO_COUNTDOWN_REFRESH_INTERVAL_SECONDS", "240")))
 )
 CAPTION_DEADLINE_FORMAT_VERSION = 14
-# Urgency can speed cadence only while the offer still clears the minimum runway.
+# Offer deadlines affect eligibility and cleanup only; product publication timestamps
+# come exclusively from the equal-spacing catalog plan.
 URGENT_EXPIRY_WINDOW_MINUTES = 180
-URGENT_MIN_POST_INTERVAL_MINUTES = 27
 DEADLINE_CRITICAL_WINDOW_MINUTES = 120
-# Offers inside the hard 90-minute cutoff are rejected instead of being rushed out.
 ULTRA_URGENT_WINDOW_MINUTES = 0
-ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES = 27
 URGENT_MIN_DISCOUNT_PERCENT = 80
 URGENT_MIN_SAVINGS_TOMAN = 500_000
 IRAN_TIMEZONE = ZoneInfo("Asia/Tehran")
@@ -5099,7 +5096,6 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
             related_product_id, _product_entry, product_at = next_product
             anchor_at = _parse_utc_datetime(state.get("last_channel_published_at")) or current
             gap_seconds = int((product_at - anchor_at).total_seconds())
-            minimum_gap_seconds = 27 * 60
             already_linked = any(
                 isinstance(row, dict)
                 and str(row.get("related_product_id") or "") == related_product_id
@@ -5117,37 +5113,19 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                     for row in editorial_queue.values()
                 )
             last_empty_check = _parse_utc_datetime(state.get("last_editorial_empty_bank_check_at"))
-            bank_empty_backoff_active = bool(
-                last_empty_check and current - last_empty_check < timedelta(minutes=55)
+            already_checked_after_product = bool(
+                last_empty_check and last_empty_check > anchor_at
             )
+            midpoint_at = anchor_at + timedelta(seconds=max(0, gap_seconds) / 2)
             if (
                 not already_linked
-                and not bank_empty_backoff_active
-                and gap_seconds >= 2 * minimum_gap_seconds
-                and product_at - current >= timedelta(seconds=minimum_gap_seconds)
+                and not already_checked_after_product
+                and gap_seconds > 0
+                and midpoint_at > current
+                and product_at > current
             ):
-                # Wake the publisher at the actual editorial midpoint, not at the
-                # earliest legal channel slot. queue_editorial_if_due uses the same
-                # midpoint, so this avoids premature wakeups and keeps products on plan.
-                midpoint_at = anchor_at + timedelta(seconds=gap_seconds // 2)
-                planning_at = max(current, midpoint_at)
-                if (
-                    (planning_at - anchor_at).total_seconds() >= minimum_gap_seconds
-                    and (product_at - planning_at).total_seconds() >= minimum_gap_seconds
-                ):
-                    next_editorial_planning_at = planning_at.isoformat()
-
-    if next_product is None and isinstance(state, dict):
-        # With no product slot, preserve a standalone editorial check at 55 minutes.
-        # A recent empty-bank check moves the next retry forward rather than causing
-        # a minute-by-minute dispatch loop.
-        last_post_at = _parse_utc_datetime(state.get("last_channel_published_at"))
-        empty_check_at = _parse_utc_datetime(state.get("last_editorial_empty_bank_check_at"))
-        if last_post_at is not None:
-            standalone_at = last_post_at + timedelta(minutes=55)
-            if empty_check_at is not None and empty_check_at > last_post_at:
-                standalone_at = max(standalone_at, empty_check_at + timedelta(minutes=55))
-            next_editorial_planning_at = standalone_at.isoformat()
+                next_editorial_planning_at = midpoint_at.isoformat()
+    # No product slot means no editorial wake-up. Editorial is not a standalone post.
 
     emergency_record = state.get("emergency_continuity") if isinstance(state, dict) else None
     emergency_expires = (
@@ -11879,56 +11857,17 @@ def run(publish=False, selection_only=False):
     state.setdefault("published", {})
     state.setdefault("last_published_at", "")
     now = time.time()
-    last_post = _last_post_timestamp(state)
-    cooldown_remaining = -1 if FORCE_POST_COOLDOWN_BYPASS else MIN_POST_INTERVAL_HOURS * 3600 - (now - last_post)
     now_utc = datetime.fromtimestamp(now, tz=timezone.utc)
     local_now = now_utc.astimezone(IRAN_TIMEZONE)
     posting_window = preferred_publication_window(now_utc)
-    # A fixed "quiet hours" block can make a short-lived offer expire before the next
-    # audience window. The queue/cooldown—not the wall clock—now controls publishing.
+    # All public product post timestamps are planned in content_delivery.py.
+    # No global cooldown or urgency-dependent interval is applied in this path.
     regular_window_open = True
     print(
         f"POSTING_WINDOW iran_time={local_now.strftime('%H:%M')} "
-        f"preferred_window={posting_window} posting_allowed={regular_window_open}"
+        f"preferred_window={posting_window} posting_allowed={regular_window_open} "
+        "cadence=selected_products_equally_spaced_until_next_catalog_scan"
     )
-    urgent_candidate = select_urgent_publication_candidate(
-        eligible,
-        now=now_utc,
-        published=state.get("published"),
-        recent_publications=state.get("recent_publications"),
-    )
-    urgent_minimum_spacing = URGENT_MIN_POST_INTERVAL_MINUTES
-    if urgent_candidate:
-        urgent_expiry = _parse_utc_datetime(_parse_deal_expiry_value(urgent_candidate.get("deal_expires_at")))
-        if urgent_expiry and 0 < (urgent_expiry - now_utc).total_seconds() <= ULTRA_URGENT_WINDOW_MINUTES * 60:
-            urgent_minimum_spacing = ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES
-    urgent_override_allowed = bool(
-        urgent_candidate
-        and now - last_post >= urgent_minimum_spacing * 60
-    )
-    urgent_cooldown_bypass = bool(
-        cooldown_remaining > 0
-        and urgent_override_allowed
-        and not FORCE_POST_COOLDOWN_BYPASS
-    )
-    if cooldown_remaining > 0:
-        print(f"POST_COOLDOWN remaining_minutes={int(cooldown_remaining / 60)}")
-    if cooldown_remaining > 0 and urgent_cooldown_bypass:
-        expiry_utc = _parse_utc_datetime(_parse_deal_expiry_value(urgent_candidate.get("deal_expires_at")))
-        deadline_minutes = int((expiry_utc - now_utc).total_seconds() / 60) if expiry_utc else -1
-        print(
-            f"URGENT_PRIORITY_COOLDOWN_BYPASS id={urgent_candidate.get('product_id')} "
-            f"deadline_minutes={deadline_minutes} minimum_spacing_minutes={urgent_minimum_spacing}"
-        )
-    elif cooldown_remaining > 0 and urgent_candidate and not urgent_override_allowed:
-        print(f"URGENT_PRIORITY_WAIT minimum_spacing_minutes={urgent_minimum_spacing}")
-    if not regular_window_open and urgent_override_allowed:
-        expiry_utc = _parse_utc_datetime(_parse_deal_expiry_value(urgent_candidate.get("deal_expires_at")))
-        deadline_minutes = int((expiry_utc - now_utc).total_seconds() / 60) if expiry_utc else -1
-        print(
-            f"QUIET_HOURS_URGENT_OVERRIDE id={urgent_candidate.get('product_id')} "
-            f"deadline_minutes={deadline_minutes}"
-        )
 
     if publish and CLEAR_PREVIOUS_CHANNEL_POSTS:
         if not BATCH_OPERATION_KEY or state.get("cleanup_batch_operation") != BATCH_OPERATION_KEY:
@@ -11952,10 +11891,6 @@ def run(publish=False, selection_only=False):
             "current price/image, affiliate link, title, expiry and duplicate checks. "
             "Open-ended offers are accepted only after live stock/current-price validation."
         )
-    elif not regular_window_open and not urgent_override_allowed and not FORCE_POST_COOLDOWN_BYPASS:
-        print("PUBLISH_BLOCKED: quiet hours in Iran; regular offer retained for the next audience window.")
-    elif cooldown_remaining > 0 and not urgent_cooldown_bypass:
-        print("PUBLISH_BLOCKED: global posting cooldown active; queue retained.")
     else:
         sent = 0
         attempted_candidates = 0
