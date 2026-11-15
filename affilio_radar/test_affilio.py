@@ -64,7 +64,7 @@ from affilio_radar import (
     unicode_strikethrough,
     _money_to_toman,
     api_search_product_urls,
-    search_digikala_v2_product_urls,
+    search_digikala_discovery_product_urls,
     api_incredible_offer_product_urls,
     api_incredible_offer_product_candidates,
     discover_product_urls,
@@ -937,7 +937,7 @@ class AffilioRadarTests(unittest.TestCase):
             ],
         )
 
-    def test_search_api_v2_resolves_autocomplete_category_and_fetches_marketable_cards(self):
+    def test_discovery_search_resolves_marketable_cards_without_legacy_routes(self):
         class Response:
             def __init__(self, payload):
                 self.payload = payload
@@ -951,12 +951,8 @@ class AffilioRadarTests(unittest.TestCase):
         class Session:
             def __init__(self):
                 self.calls = []
-            def get(self, url, params=None, timeout=None):
-                self.calls.append((url, params))
-                if "/v1/autocomplete/" in url:
-                    return Response({"data": {"categories": [
-                        {"keyword": "گوشی سامسونگ", "category": {"id": 77, "title_fa": "موبایل"}},
-                    ]}})
+            def get(self, url, params=None, timeout=None, allow_redirects=None, headers=None):
+                self.calls.append((url, params, allow_redirects, headers))
                 return Response({"data": {"widgets": [{
                     "type": "vertical_product_listing",
                     "data": {"widgets": [
@@ -965,19 +961,65 @@ class AffilioRadarTests(unittest.TestCase):
                             "url": {"uri": "/product/dkp-12345/test/"},
                             "status": "marketable", "default_variant": {},
                         }},
+                        {"type": "product", "data": {
+                            "id": 12346, "title_fa": "گوشی ناموجود آزمایشی",
+                            "url": {"uri": "/product/dkp-12346/test/"},
+                            "status": "not_marketable", "default_variant": {},
+                        }},
                     ]},
                 }]}})
 
         session = Session()
-        urls, diagnostics = search_digikala_v2_product_urls(
-            "گوشی سامسونگ", session=session, category_limit=2
+        urls, diagnostics = search_digikala_discovery_product_urls(
+            "گوشی سامسونگ", session=session
         )
         self.assertEqual(urls, ["https://www.digikala.com/product/dkp-12345/"])
-        self.assertEqual(len(diagnostics), 1)
-        self.assertIn("/v1/autocomplete/", session.calls[0][0])
-        self.assertIn("/v2/category/77/", session.calls[1][0])
-        self.assertEqual(session.calls[1][1]["q"], "گوشی سامسونگ")
-        self.assertEqual(session.calls[1][1]["sort"], 7)
+        self.assertEqual(len(session.calls), 1)
+        self.assertIn("/discovery/api/v1/search", session.calls[0][0])
+        self.assertEqual(
+            session.calls[0][1],
+            {"q": "گوشی سامسونگ", "page": 1, "sort": 7},
+        )
+        self.assertFalse(any("/v1/autocomplete/" in call[0] or "/v2/category/" in call[0] for call in session.calls))
+        self.assertEqual(diagnostics[0]["source"], "digikala_discovery_api_v1_search")
+        self.assertEqual(diagnostics[0]["sort"], 7)
+
+    def test_digikala_http_client_retries_one_307_with_cdn_cookie(self):
+        first = SimpleNamespace(
+            status_code=307,
+            headers={"Set-Cookie": "digicdn_cookie=challenge-token; Path=/; Secure"},
+            cookies={},
+            url="https://api.digikala.com/v2/product/12345/",
+        )
+        second = SimpleNamespace(
+            status_code=200,
+            headers={},
+            cookies={},
+            url="https://api.digikala.com/v2/product/12345/",
+            raise_for_status=lambda: None,
+        )
+        with patch("affilio_radar.SESSION.get", side_effect=[first, second]) as get:
+            response = radar_module._digikala_get("https://api.digikala.com/v2/product/12345/")
+        self.assertIs(response, second)
+        self.assertEqual(get.call_count, 2)
+        self.assertFalse(get.call_args_list[0].kwargs["allow_redirects"])
+        self.assertEqual(
+            get.call_args_list[1].kwargs["headers"]["Cookie"],
+            "digicdn_cookie=challenge-token",
+        )
+
+    def test_digikala_http_client_fails_closed_on_307_without_cdn_cookie(self):
+        first = SimpleNamespace(
+            status_code=307,
+            headers={"Location": "https://cdn.example.invalid/challenge"},
+            cookies={},
+            url="https://api.digikala.com/v2/product/12345/",
+        )
+        with patch("affilio_radar.SESSION.get", return_value=first) as get:
+            with self.assertRaisesRegex(RuntimeError, "digikala_cdn_307_without_digicdn_cookie"):
+                radar_module._digikala_get("https://api.digikala.com/v2/product/12345/")
+        get.assert_called_once()
+
 
     def test_incredible_offers_parser_keeps_discounted_product_urls_only(self):
         payload = {
@@ -2664,7 +2706,7 @@ class AffilioRadarTests(unittest.TestCase):
             "original_price": 17_500_000,
             "availability": "in_stock",
         }
-        response = SimpleNamespace(ok=True, status_code=200, json=lambda: {"product": "fresh"})
+        response = SimpleNamespace(ok=True, status_code=200, headers={}, cookies={}, raise_for_status=lambda: None, json=lambda: {"product": "fresh"})
         with patch("affilio_radar.SESSION.get", return_value=response), patch(
             "affilio_radar.parse_product_api", return_value=live_api
         ), patch("affilio_radar.fetch_page") as html_fetch:
@@ -2685,7 +2727,7 @@ class AffilioRadarTests(unittest.TestCase):
             "current_price": 2_500_000,
             "availability": "in_stock",
         }
-        response = SimpleNamespace(ok=True, status_code=200, json=lambda: {"product": "fresh"})
+        response = SimpleNamespace(ok=True, status_code=200, headers={}, cookies={}, raise_for_status=lambda: None, json=lambda: {"product": "fresh"})
         with patch("affilio_radar.SESSION.get", return_value=response), patch(
             "affilio_radar.parse_product_api", return_value=live_api
         ), patch("affilio_radar.fetch_page") as html_fetch:
@@ -2707,7 +2749,7 @@ class AffilioRadarTests(unittest.TestCase):
             "current_price": 1_924_990,
             "availability": "out_of_stock",
         }
-        response = SimpleNamespace(ok=True, status_code=200, json=lambda: {"product": "fresh"})
+        response = SimpleNamespace(ok=True, status_code=200, headers={}, cookies={}, raise_for_status=lambda: None, json=lambda: {"product": "fresh"})
         with patch("affilio_radar.SESSION.get", return_value=response), patch(
             "affilio_radar.parse_product_api", return_value=live_api
         ):
