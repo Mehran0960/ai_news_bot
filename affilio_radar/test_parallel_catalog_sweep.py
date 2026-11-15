@@ -363,6 +363,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             ],
             "parallel_queue_initialized": True,
             "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
+            "parallel_api_route_policy_version": sweep.API_ROUTE_POLICY_VERSION,
             "parallel_known_category_ids": ["1", "2", "3"],
             "parallel_pending_pages": [
                 {"category_id": "1", "page": 1, "attempts": 0},
