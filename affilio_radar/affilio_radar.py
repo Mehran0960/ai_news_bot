@@ -987,7 +987,7 @@ def search_digikala_v2_product_urls(query: str, session=None, category_limit: in
                 if status == 429:
                     raise RuntimeError(f"{source}_rate_limited")
                 if status in (400, 403, 404):
-                    body = re.sub(r"\\s+", " ", str(getattr(search_response, "text", "") or ""))[:180]
+                    body = re.sub(r"\s+", " ", str(getattr(search_response, "text", "") or ""))[:180]
                     route_errors.append(f"{source}_http_{status}:{body}")
                     continue
                 search_response.raise_for_status()
