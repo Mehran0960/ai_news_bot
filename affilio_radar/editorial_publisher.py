@@ -209,6 +209,7 @@ def queue_editorial_if_due(
             )
             if (
                 isinstance(product_entry, dict)
+                and product_slot_at is not None
                 and product_entry.get("status") not in {"published", "cancelled", "stale_selection"}
                 and not _product_has_core_channel_success(product_entry)
                 and not product_slot_is_due
