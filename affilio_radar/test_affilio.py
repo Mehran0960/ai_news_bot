@@ -366,6 +366,7 @@ class AffilioRadarTests(unittest.TestCase):
         ):
             record = fetch_product_record(url)
         self.assertEqual(record["availability"], "in_stock")
+        self.assertEqual(record["review_count"], 83)
         self.assertEqual(record["product_id"], "snp-25751584")
         self.assertEqual(get.call_args.args[0], "https://apix.snappshop.ir/products/v2/42yeLw")
         self.assertEqual(get.call_args.kwargs["headers"]["Origin"], "https://snappshop.ir")
@@ -398,6 +399,7 @@ class AffilioRadarTests(unittest.TestCase):
                         },
                     }],
                     "rating": {"rate": 92.0, "count": 120},
+                    "comments_count": 83,
                 }
             },
         }
