@@ -31,7 +31,7 @@ DEFAULT_PAGES_PER_RUN = 480
 DEFAULT_WORKERS = 16
 BEST_SELLING_SORT_VALUE = base.BEST_SELLING_SORT_VALUE
 WORKER_RAMP_POLICY_VERSION = "explicit_12_14_16_v1"
-API_ROUTE_POLICY_VERSION = "digikala_discovery_api_v1_search_autocomplete_categories_0_v2"
+API_ROUTE_POLICY_VERSION = "digikala_discovery_api_v1_query_scoped_category_filter_v3"
 _thread_local = threading.local()
 
 
@@ -104,12 +104,16 @@ def _next_page_task(task: dict, total_pages: int | None, product_count: int) -> 
         return None
     if total_pages is not None and page >= max(1, int(total_pages)):
         return None
-    return {
+    next_task = {
         "category_id": str(task.get("category_id") or ""),
         "category_name": str(task.get("category_name") or task.get("category_id") or ""),
         "page": page + 1,
         "attempts": 0,
     }
+    category_query = str(task.get("category_query") or "").strip()
+    if category_query:
+        next_task["category_query"] = category_query
+    return next_task
 
 def _fetch_page(task: dict) -> dict:
     """Try current and compatible public DigiKala category-list routes safely.
@@ -316,6 +320,7 @@ def _ensure_parallel_state(state: dict) -> list[dict]:
                 queue.append({
                     "category_id": category_id,
                     "category_name": str(category.get("name") or category_id),
+                    "category_query": str(category.get("query") or category.get("name") or category_id),
                     "page": 1,
                     "attempts": 0,
                 })
