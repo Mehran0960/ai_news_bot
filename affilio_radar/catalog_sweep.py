@@ -1005,9 +1005,11 @@ def retain_diverse_candidates(
     return ranked[:cap]
 
 def _category_page_url(category_id: str, page: int, category_name: str = "") -> tuple[str, dict]:
-    # DigiKala removed its category-page endpoint on 2026-11-13. Category
-    # browsing now uses the Discovery API's native categories[0] filter.
+    # Discovery API category filters are query-scoped. Sending only the numeric
+    # category ID loses search context and may return an empty/unusable listing.
+    query = str(category_name or category_id).strip()[:120]
     return CATEGORY_SEARCH_URL, {
+        "q": query,
         "categories[0]": str(category_id),
         "page": max(1, int(page)),
         "sort": BEST_SELLING_SORT_VALUE,
