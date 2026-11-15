@@ -2576,3 +2576,19 @@
 
 **وضعیت:** اصلاح کد و تست انجام‌شده؛ ادغام پس از موفقیت مجدد Documentation Gate.
 
+
+## ۲۰۲۶-۱۱-۱۵ — تسریع batch بررسی زنده و تطبیق cadence با آخرین اسکن
+
+**هدف:** کوتاه‌کردن اجرای کشف/اعتبارسنجی و جلوگیری از صفرشدن slotهای محصولات وقتی discovery طولانی‌تر از ETA قبلی می‌شود و اسکن کامل تازه‌ای حین اجرا خاتمه می‌یابد.
+
+**تغییر/اقدام:** سقف واکشی زندهٔ جزئیات محصول و سقف بررسی صف discovery در هر اجرا از ۲۵۰ به ۱۰۰ کاهش یافت؛ handoff از snapshot کامل کاتالوگ ۲۵۰ حفظ شد و نامزدهای بررسی‌نشده در صف باقی می‌مانند. پس از discovery و پیش از publisher، workflow با checkout جداگانهٔ فقط‌خواندنی آخرین `catalog_sweep_status.json` از `main` را دریافت می‌کند و تعداد محصولات ارسال‌نشده را از صف و وضعیت مقصدها محاسبه می‌کند؛ سپس همهٔ محصولات باقی‌مانده را بر اساس آخرین ETA معتبر به‌طور مساوی باززمان‌بندی می‌کند. state تحویل از remote بازنویسی نمی‌شود.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/offerchin-publisher.yml`، `affilio_radar/test_content_delivery.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md` و همین changelog.
+
+**آزمون و نتیجه:** آزمون `test_product_cadence_replans_from_new_scan_when_previous_eta_has_passed` عبور ETA قبلی و شروع چرخهٔ جدید را پوشش می‌دهد. اجرای ناشر `43742046567` به علت stale checkout مقدار `planned_slots=0` و `PUBLISHER_NOTHING_DUE queue_size=37` ثبت کرد؛ مرحلهٔ تازه قبل از انتشار، status را از آخرین main دریافت می‌کند. CI شامل Top-100/DigiPay، video fan-out، editorial contract، fallback regression و Documentation Gate اجرا می‌شود.
+
+**شواهد/شناسه:** PR #205 قبلی؛ run ناشر `43742046567`؛ run اسکن کاتالوگ `43742627870`؛ main head مبنا `221d672b4babc0096324ff9def0589561031de92`.
+
+**ریسک/بازگشت:** اگر واکشی status تازه شکست بخورد یا JSON معتبر نباشد، مرحله با خطا متوقف می‌شود و publisher اجرا نمی‌شود؛ صف و گیت‌های کیفیت دست‌نخورده می‌مانند. هیچ فاصلهٔ ثابت یا حداقل وقفه اضافه نشده است. rollback با revert workflow و آزمون همراه ممکن است؛ state/صف runtime نباید reset شود.
+
+**وضعیت:** اصلاح در شاخهٔ تازه بر پایهٔ آخرین main ثبت شده و در انتظار CI و ادغام است؛ انتشار عمومی فقط با شناسهٔ واقعی پیام Telegram/Bale تأیید می‌شود.
