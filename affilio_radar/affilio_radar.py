@@ -4718,6 +4718,7 @@ def classify_category(title: str) -> str:
     # Specific product families first; "other" should be the true fallback.
     patterns = [
         # Keep dedicated families ahead of broad matches; otherwise the rotation can't see them as distinct.
+        ("digital_accessories", r"قلم لمسی|استایلوس|stylus"),
         ("mobile_devices", r"گوشی\s*(?:موبایل|هوشمند)|گوشی\s+(?:سامسونگ|شیائومی|ردمی|پوکو|اپل|آیفون|هواوی|آنر|نوکیا|realme)|آیفون|iphone|smartphone|mobile phone|تبلت|آیپد|ipad"),
         ("tv_audio_video", r"تلویزیون|android\s*tv|smart\s*tv|پروژکتور|سینما خانگی|گیرنده دیجیتال|اندروید باکس|دوربین عکاسی|لنز دوربین|camcorder"),
         ("large_appliances", r"یخچال|فریزر|ماشین لباسشویی|لباسشویی|ماشین ظرفشویی|کولر گازی|اسپلیت|بخاری برقی|آبگرمکن|اجاق گاز|فر توکار|مایکروویو|آون توستر"),
@@ -7656,13 +7657,12 @@ def _publication_use_case_group(product_or_title) -> str:
         text = re.sub(r"[\s،,:;؛|/_\-]+", " ", text).strip()
         return text
 
-    catalog_text = normalize(" ".join(
-        value for value in (category.get("name", ""), category.get("path", "")) if value
-    ))
+    leaf_text = normalize(category.get("name", ""))
+    path_text = normalize(category.get("path", ""))
     title_text = normalize(title)
-    # Taxonomy is included first, and specific non-mobile groups precede broad
-    # electronics words. In particular, bare «رم» must never match «گرم».
-    text = " ".join(part for part in (catalog_text, title_text) if part)
+    # Decide from the exact leaf and product title first. Ancestor paths are only
+    # a fallback: broad parent labels must never override a more specific child.
+    text = " ".join(part for part in (leaf_text, title_text) if part)
     patterns = (
         ("automotive", r"خودرو|ماشین|موتور سیکلت|فندکی|داشبورد|لاستیک|تایر|فیلتر کابین|روغن موتور|ضد یخ خودرو|لوازم خودرو|جانبی خودرو|شارژر خودرو|کمپرسور باد"),
         ("outdoor_travel", r"کمپینگ|کوهنوردی|چادر مسافرتی|طبیعت گردی|لوازم سفر|مسافرت|ماهیگیری|لوازم ماهیگیری|کیف و کوله سفری|تجهیزات اسکان|چمدان"),
@@ -7672,7 +7672,7 @@ def _publication_use_case_group(product_or_title) -> str:
         ("office_study", r"اداری|لوازم اداری|میز کار|مطالعه|تحریر|لوازم تحریر|مدرسه|دانشجویی|لوازم ارائه|پوینتر ارائه|پرینتر|کاغذ|نوشت افزار|مهر و استامپ"),
         ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک|غذای مادر و کودک|پوشک|اسباب بازی کودک|دهان شویه کودک|خمیردندان کودک|مکمل کمک درمانی کودک"),
         ("pet_care", r"حیوان خانگی|حیوانات خانگی|گربه|سگ|خاک گربه|غذای حیوان|غذای سگ|غذای گربه|قلاده|آکواریوم|اسکرچر"),
-        ("kitchen_food", r"آشپزخانه|آشپزی|ظرفشویی|پخت و پز|قهوه ساز|اسپرسو|قابلمه|تابه|چای ساز|سرویس کفگیر|کفگیر|ملاقه|قاشق|چنگال|ظروف غذاخوری|لوازم پخت"),
+        ("kitchen_food", r"آشپزخانه|آشپزی|ماشین ظرفشویی|پخت و پز|قهوه ساز|اسپرسو|قابلمه|تابه|چای ساز|سرویس کفگیر|کفگیر|ملاقه|قاشق|چنگال|ظروف غذاخوری|لوازم پخت"),
         ("grocery_food", r"خوراکی|مواد غذایی|صبحانه|نوشیدنی|چای|دمنوش|قهوه|شکلات|تنقلات|غلات|کنسرو|ادویه|کالای خوراکی|خرما|کنجد|عسل|حلوا|مربا|شیره|آجیل|خشکبار|برنج|جو پرک|گندم|آرد|حبوبات|عدس|لپه|نخود|لوبیا|شکر|پاستا|ماکارونی|نودل|روغن زیتون|روغن ذرت|روغن خوراکی|سس|سرکه|ترشی|(?<![آ-ی])جو(?![آ-ی])"),
         ("local_goods", r"محصولات بومی|محصولات محلی|سوغات محلی"),
         ("home_cleaning", r"اسکاچ|سیم ظرفشویی|اسفنج ظرفشویی|دستمال نظافت|دستکش نظافت|شوینده سطوح|نظافت خانه|نظافت|شستشو|شوینده|تمیزکننده|زمین شوی|بخارشوی|جارو"),
@@ -7691,10 +7691,14 @@ def _publication_use_case_group(product_or_title) -> str:
     matched = next((name for name, pattern in patterns if re.search(pattern, text, re.I)), None)
     if matched:
         return matched
+    if path_text and path_text not in {leaf_text, title_text}:
+        matched = next((name for name, pattern in patterns if re.search(pattern, path_text, re.I)), None)
+        if matched:
+            return matched
 
-    # Use the catalog category as a final structured fallback; never infer a mobile
-    # use-case merely because a title contains an isolated generic word.
-    broad = classify_category(catalog_text) if catalog_text else classify_category(title_text)
+    # Use the exact catalog leaf as the final structured fallback; never infer a
+    # mobile use-case merely because a title contains an isolated generic word.
+    broad = classify_category(leaf_text) if leaf_text else classify_category(title_text)
     broad_use_cases = {
         "automotive": "automotive",
         "sports_outdoor": "sports_fitness",
