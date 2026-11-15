@@ -284,7 +284,11 @@ class EditorialPublisherTests(unittest.TestCase):
 
     def test_telegram_and_bale_editorial_photo_paths_use_send_photo(self):
         state = {}
-        entry = {"content_id": "editorial:test-guide", "payload": {"editorial_id": "test-guide"}, "platforms": {}}
+        entry = {
+            "content_id": "editorial:test-guide",
+            "payload": {"editorial_id": "test-guide", "topic": "test-topic"},
+            "platforms": {},
+        }
         with patch("editorial_publisher._destination_ready", return_value=(True, "")), \
              patch("editorial_publisher._send_bot_photo", return_value={"message_id": "12345"}) as sender, \
              patch("editorial_publisher._save"):
