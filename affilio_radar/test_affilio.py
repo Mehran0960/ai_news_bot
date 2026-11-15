@@ -64,7 +64,7 @@ from affilio_radar import (
     unicode_strikethrough,
     _money_to_toman,
     api_search_product_urls,
-    search_digikala_v2_product_urls,
+    search_digikala_discovery_product_urls,
     api_incredible_offer_product_urls,
     api_incredible_offer_product_candidates,
     discover_product_urls,
@@ -970,8 +970,8 @@ class AffilioRadarTests(unittest.TestCase):
                 }]}})
 
         session = Session()
-        urls, diagnostics = search_digikala_v2_product_urls(
-            "گوشی سامسونگ", session=session, category_limit=2
+        urls, diagnostics = search_digikala_discovery_product_urls(
+            "گوشی سامسونگ", session=session
         )
         self.assertEqual(urls, ["https://www.digikala.com/product/dkp-12345/"])
         self.assertEqual(len(session.calls), 1)
