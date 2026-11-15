@@ -1297,6 +1297,28 @@ def refresh_categories(state: dict, session: requests.Session, force: bool = Fal
     if old_index < len(old_categories) and isinstance(old_categories[old_index], dict):
         previous_id = str(old_categories[old_index].get("id") or "")
 
+    # Autocomplete is query-scoped, not a complete taxonomy tree. When a recent
+    # verified tree is available, merge discovered IDs into it instead of replacing
+    # the full catalog with the handful of categories returned for seed queries.
+    if cache_usable:
+        merged = {
+            str(row.get("id")): dict(row)
+            for row in old_categories
+            if isinstance(row, dict) and str(row.get("id") or "").isdigit()
+        }
+        for row in categories:
+            category_id = str(row.get("id") or "")
+            if not category_id.isdigit():
+                continue
+            existing = merged.get(category_id, {})
+            merged[category_id] = {**existing, **row}
+        categories = sort_categories_for_sweep(merged.values())
+        print(
+            "CATALOG_CATEGORY_TAXONOMY_MERGED "
+            f"previous={len(old_categories)} discovered={len(categories)} "
+            "verified_cache_preserved=true"
+        )
+
     state["categories"] = categories
     state["categories_refreshed_at"] = now.isoformat()
     ids = [str(row["id"]) for row in categories]
