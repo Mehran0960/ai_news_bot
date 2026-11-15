@@ -2576,3 +2576,18 @@
 
 **وضعیت:** اصلاح کد و تست انجام‌شده؛ ادغام پس از موفقیت مجدد Documentation Gate.
 
+## ۲۰۲۶-۱۱-۱۵ — تقدم تحویل صف موعددار و سبک‌سازی اجرای ناشر
+
+**هدف:** کاهش تأخیر بین موعد انتشار محصول و ارسال عمومی، با حذف انتظار غیرضروری برای کشف/انتخاب سنگین بعدی و کوتاه‌کردن شروع هر اجرای دقیقه‌ای.
+
+**تغییر/اقدام:** ترتیب workflow به این شکل تغییر کرد: آماده‌سازی سبک و اعتبارسنجی delivery-only، ارسال محصولات موعددار، انتشار تحریریهٔ میانی، سپس discovery. مرحلهٔ discovery ابتدا وضعیت `content_delivery_queue` و `editorial_delivery_queue` را از طریق `channel_queue_gate.py` می‌خواند و تا وقتی مقصدهای اصلی Telegram/Bale یک رکورد فعال تعیین‌تکلیف نشده‌اند، اسکن انتخابی سنگین را skip می‌کند؛ اسکن موازی کامل مستقل از این gate ادامه دارد. suiteهای سنگین فقط روی push کنترل‌شده اجرا می‌شوند و اجرای معمولی `workflow_dispatch` آن‌ها را تکرار نمی‌کند. checkout به ۲۰ commit اخیر محدود شده است.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/offerchin-publisher.yml`، `affilio_radar/channel_queue_gate.py`، `affilio_radar/test_shared_selection_media_routing.py`، handbook فنی و همین changelog؛ GitHub Actions ناشر و Cloudflare minute dispatcher.
+
+**آزمون و نتیجه:** تست‌های واحد gate برای رسیدهای موجود/ناموجود، وضعیت‌های terminal و state خراب افزوده شدند. تست رگرسیون ترتیب publish/editorial/discovery، queue gate، shallow checkout و شرط اجرای suiteها نیز اضافه شد. PR checks باید پیش از ادغام موفق شوند؛ اجرای واقعی ناشر پس از merge باید لاگ `CONTENT_CHANNEL_DELIVERY_COMPLETE` یا `CONTENT_CHANNEL_CORE_COMPLETE_OPTIONAL_PENDING` همراه message ID/receipt ایجاد کند. این تغییر به‌تنهایی رسید عمومی محسوب نمی‌شود.
+
+**شواهد/شناسه:** Main baseline `d8d921f457d7b755b1811d89c86299492c53eb41`؛ اجرای ناشر #3705 با ۴۸ نامزد صف‌شده و پیام `PUBLISHER_NOTHING_DUE queue_size=48` نشان داد discovery قبلی پیش از تحویل اجرا می‌شد؛ branch `fix/offerchin-due-first-publisher-20261115`.
+
+**ریسک/بازگشت:** اگر state فایل قابل‌خواندن نباشد، discovery به‌صورت fail-closed به تعویق می‌افتد و تحویل صف همچنان اجرا می‌شود. اگر یک کانال اصلی به وضعیت retry/failed بماند، discovery تا retry/رسید نهایی عقب می‌افتد تا صف تازه روی تحویل معوق سوار نشود. rollback با بازگرداندن ترتیب workflow و gate ممکن است؛ دادهٔ صف یا رسیدها نباید reset شوند.
+
+**وضعیت:** workflow، تست رگرسیون و مستندات در شاخهٔ مستقل ثبت شدند؛ پذیرش نهایی منوط به CI و رسید ارسال واقعی است.
