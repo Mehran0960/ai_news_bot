@@ -1757,6 +1757,10 @@ class AffilioRadarTests(unittest.TestCase):
         }
         compact = radar_module.build_video_upload_dispatch_state(state, now=now)
         self.assertEqual(
+            compact["next_channel_content_due_at"],
+            "2026-11-05T13:00:00+00:00",
+        )
+        self.assertEqual(
             compact["next_editorial_planning_at"],
             "2026-11-05T13:00:00+00:00",
         )
@@ -1791,6 +1795,65 @@ class AffilioRadarTests(unittest.TestCase):
                 "2026-11-05T13:00:00+00:00",
             )
             self.assertIn("dkp-video-ready", saved["published"])
+
+    def test_video_dispatch_state_does_not_keep_channel_slot_due_for_video_backlog(self):
+        now = datetime(2026, 11, 15, 18, 0, tzinfo=timezone.utc)
+        state = {
+            "last_channel_published_at": now.isoformat(),
+            "content_delivery_queue": {
+                "dkp-channel-complete": {
+                    "status": "partial",
+                    "content_type": "product",
+                    "scheduled_at": (now - timedelta(minutes=10)).isoformat(),
+                    "next_attempt_at": (now - timedelta(minutes=10)).isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "sent"},
+                        "bale": {"status": "sent"},
+                        "rubika": {"status": "pending"},
+                        "youtube": {"status": "pending"},
+                        "aparat": {"status": "pending"},
+                    },
+                },
+            },
+            "published": {},
+        }
+
+        compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+
+        self.assertIsNone(compact["next_channel_content_due_at"])
+        self.assertIsNone(compact["next_editorial_planning_at"])
+
+    def test_video_dispatch_state_tracks_unsent_core_channel_retry_not_optional_backlog(self):
+        now = datetime(2026, 11, 15, 18, 0, tzinfo=timezone.utc)
+        bale_retry_at = now + timedelta(minutes=30)
+        state = {
+            "last_channel_published_at": now.isoformat(),
+            "content_delivery_queue": {
+                "dkp-bale-retry": {
+                    "status": "partial",
+                    "content_type": "product",
+                    "scheduled_at": (now - timedelta(minutes=10)).isoformat(),
+                    "next_attempt_at": (now - timedelta(minutes=10)).isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "sent"},
+                        "bale": {
+                            "status": "failed",
+                            "next_attempt_at": bale_retry_at.isoformat(),
+                        },
+                        "rubika": {"status": "pending"},
+                        "youtube": {"status": "pending"},
+                    },
+                },
+            },
+            "published": {},
+        }
+
+        compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+
+        self.assertEqual(
+            compact["next_channel_content_due_at"],
+            bale_retry_at.isoformat(),
+        )
 
     def test_regular_and_sport_eyewear_share_one_global_family(self):
         regular_category, regular_family, _ = radar_module._publication_diversity_group(
