@@ -1748,6 +1748,51 @@ class AffilioRadarTests(unittest.TestCase):
             (now + timedelta(hours=1)).isoformat(),
         )
 
+    def test_video_dispatch_state_uses_latest_safe_editorial_wakeup_for_short_gap(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        product_at = now + timedelta(minutes=2)
+        state = {
+            "last_channel_published_at": now.isoformat(),
+            "content_delivery_queue": {
+                "dkp-short-gap": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": product_at.isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                },
+            },
+            "published": {},
+        }
+        compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertEqual(
+            compact["next_editorial_planning_at"],
+            (now + timedelta(seconds=30)).isoformat(),
+        )
+
+    def test_video_dispatch_state_skips_editorial_when_dispatch_runway_cannot_fit(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        product_at = now + timedelta(seconds=75)
+        state = {
+            "last_channel_published_at": now.isoformat(),
+            "content_delivery_queue": {
+                "dkp-no-runway": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": product_at.isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                },
+            },
+            "published": {},
+        }
+        compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertIsNone(compact["next_editorial_planning_at"])
+
     def test_video_dispatch_state_uses_midpoint_without_a_minimum_gap(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
         product_at = now + timedelta(minutes=50)
@@ -6151,8 +6196,13 @@ class AffilioRadarTests(unittest.TestCase):
     def test_discovery_check_budget_applies_24h_family_guard_before_budget(self):
         now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
         recent = [
-            {"product_id": f"dkp-recent-audio-{i}", "title": f"هدفون بلوتوثی نمونه {i}",
-             "ts": now.timestamp() - 60 * (6 - i)}
+            {
+                "product_id": f"dkp-recent-audio-{i}",
+                "title": f"هدفون بلوتوثی نمونه {i}",
+                "catalog_category_id": "audio-headphones",
+                "catalog_category_name": "هدفون",
+                "ts": now.timestamp() - timedelta(hours=3).total_seconds() - 60 * (6 - i),
+            }
             for i in range(6)
         ]
         queue = {}
@@ -6165,6 +6215,16 @@ class AffilioRadarTests(unittest.TestCase):
                 "product_id": pid,
                 "product_url": f"https://www.digikala.com/product/{pid}/",
                 "title": title,
+                "catalog_category_id": {
+                    "dkp-93031": "audio-headphones",
+                    "dkp-93032": "audio-speakers",
+                    "dkp-93033": "fashion-shirts",
+                }[pid],
+                "catalog_category_name": {
+                    "dkp-93031": "هدفون",
+                    "dkp-93032": "اسپیکر",
+                    "dkp-93033": "تی شرت",
+                }[pid],
                 "deal_expires_at": (now + timedelta(hours=4)).isoformat(),
                 "demand_score": demand,
                 "discount_percent": discount,
