@@ -549,17 +549,30 @@ def discover_categories(session: requests.Session | None = None) -> list[dict]:
                 DISCOVERY_SEARCH_URL,
                 params={"q": seed, "page": 1, "sort": BEST_SELLING_SORT_VALUE},
             )
-            # The category filter/tree in data.filters is fresher and richer
-            # than the small query-matched ID list. Merge it first so current
-            # category names/parents can correct stale cached taxonomy entries.
+            # Query-matched category IDs are the most precise signal for this
+            # seed and must retain the seed as their search query. Do this first:
+            # extract_categories also walks query_attributes, but those rows are
+            # not a complete taxonomy tree and must not overwrite their provenance.
+            for row in extract_autocomplete_categories(payload, seed):
+                row = {
+                    **row,
+                    "query": row.get("query") or seed,
+                    "source": "digikala_discovery_api_v1_query_categories",
+                }
+                previous = discovered.get(row["id"])
+                if previous is None or (
+                    previous.get("name", "").startswith("دسته ")
+                    and not row.get("name", "").startswith("دسته ")
+                ):
+                    discovered[row["id"]] = row
+            # Broader filter/category metadata can enrich categories not returned
+            # by query_attributes, while never replacing a precise query match.
             for row in extract_categories(payload):
                 row = {
                     **row,
                     "query": seed,
                     "source": "digikala_discovery_api_v1_search_taxonomy",
                 }
-                discovered[row["id"]] = row
-            for row in extract_autocomplete_categories(payload, seed):
                 previous = discovered.get(row["id"])
                 if previous is None or (
                     previous.get("name", "").startswith("دسته ")
@@ -1005,9 +1018,12 @@ def retain_diverse_candidates(
     return ranked[:cap]
 
 def _category_page_url(category_id: str, page: int, category_name: str = "") -> tuple[str, dict]:
-    # DigiKala removed its category-page endpoint on 2026-11-13. Category
-    # browsing now uses the Discovery API's native categories[0] filter.
+    # Discovery API category filters are query-scoped. Sending only the numeric
+    # category id silently loses the search context and can return an empty or
+    # unusable listing. Keep the same Persian query across every page.
+    query = str(category_name or category_id).strip()[:120]
     return CATEGORY_SEARCH_URL, {
+        "q": query,
         "categories[0]": str(category_id),
         "page": max(1, int(page)),
         "sort": BEST_SELLING_SORT_VALUE,
