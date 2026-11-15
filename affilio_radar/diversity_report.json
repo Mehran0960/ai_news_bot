@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-15T21:20:06.894389+00:00",
+  "generated_at": "2026-11-15T21:29:18.103231+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -134,6 +134,7 @@
       "کارت حافظه": 1,
       "کاور مبل": 1,
       "کتاب روانشناسی": 1,
+      "کتاب سیاسی و علوم اجتماعی": 1,
       "کتاب شعر": 1,
       "کتاب فلسفه": 1,
       "کتاب موفقیت و رشد فردی": 1,
@@ -146,7 +147,7 @@
     },
     "category_post_counts": {
       "beauty_fragrance": 1,
-      "books_stationery": 5,
+      "books_stationery": 6,
       "fashion": 4,
       "grocery_food": 5,
       "home": 2,
@@ -160,36 +161,36 @@
     },
     "category_share_percent": {
       "beauty_fragrance": 2.3,
-      "books_stationery": 11.6,
-      "fashion": 9.3,
-      "grocery_food": 11.6,
-      "home": 4.7,
-      "kids_sports": 4.7,
-      "large_appliances": 4.7,
+      "books_stationery": 13.6,
+      "fashion": 9.1,
+      "grocery_food": 11.4,
+      "home": 4.5,
+      "kids_sports": 4.5,
+      "large_appliances": 4.5,
       "lighting": 2.3,
-      "mobile_devices": 4.7,
-      "other": 30.2,
-      "personal_care": 9.3,
-      "sports_outdoor": 4.7
+      "mobile_devices": 4.5,
+      "other": 29.5,
+      "personal_care": 9.1,
+      "sports_outdoor": 4.5
     },
-    "distinct_catalog_categories": 43,
+    "distinct_catalog_categories": 44,
     "distinct_categories": 12,
-    "distinct_families": 43,
+    "distinct_families": 44,
     "distinct_retailers": 1,
     "distinct_use_cases": 10,
     "known_brand_posts": 1,
-    "posts": 43,
+    "posts": 44,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 43
+      "digikala": 44
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
       "baby_care": 2,
-      "books_learning": 6,
+      "books_learning": 7,
       "catalog_taxonomy_other": 1,
       "fashion_lifestyle": 1,
       "grocery_food": 4,
@@ -283,6 +284,7 @@
       "کاپوچینو": 1,
       "کتاب رمان و ادبیات داستانی و نمایشی": 1,
       "کتاب روانشناسی": 1,
+      "کتاب سیاسی و علوم اجتماعی": 1,
       "کتاب شعر": 1,
       "کتاب فلسفه": 1,
       "کتاب موفقیت و رشد فردی": 1,
@@ -310,7 +312,7 @@
       "audio_wearables": 4,
       "automotive": 2,
       "beauty_fragrance": 3,
-      "books_stationery": 7,
+      "books_stationery": 8,
       "digital_accessories": 1,
       "fashion": 10,
       "grocery_food": 8,
@@ -328,33 +330,33 @@
       "audio_wearables": 2.8,
       "automotive": 1.4,
       "beauty_fragrance": 2.1,
-      "books_stationery": 4.9,
+      "books_stationery": 5.6,
       "digital_accessories": 0.7,
-      "fashion": 7.0,
+      "fashion": 6.9,
       "grocery_food": 5.6,
       "home": 4.2,
       "kids_sports": 2.1,
       "large_appliances": 1.4,
       "lighting": 1.4,
       "mobile_devices": 2.8,
-      "other": 37.1,
-      "personal_care": 20.3,
+      "other": 36.8,
+      "personal_care": 20.1,
       "power_backup": 1.4,
       "sports_outdoor": 4.9
     },
-    "distinct_catalog_categories": 103,
+    "distinct_catalog_categories": 104,
     "distinct_categories": 16,
-    "distinct_families": 121,
+    "distinct_families": 122,
     "distinct_retailers": 1,
     "distinct_use_cases": 19,
     "known_brand_posts": 7,
-    "posts": 143,
+    "posts": 144,
     "repeated_brand_count": 1,
     "repeated_brands": {
       "habsan": 2
     },
     "retailer_post_counts": {
-      "digikala": 143
+      "digikala": 144
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -363,7 +365,7 @@
       "audio_visual": 3,
       "automotive": 6,
       "baby_care": 3,
-      "books_learning": 8,
+      "books_learning": 9,
       "catalog_taxonomy_other": 17,
       "fashion_lifestyle": 5,
       "general": 12,
@@ -395,30 +397,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1339,
+    "all_time_count": 1340,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 481,
+      "family_repeat": 480,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-15T17:54:39.895866+00:00",
-        "brand": "",
-        "catalog_category_id": "11044",
-        "catalog_category_name": "البسه طبی و پزشکی",
-        "category": "other",
-        "compared_to_product_id": "dkp-14395622",
-        "family": "digikala_category:11044",
-        "product_id": "dkp-14396543",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ست اتاق عمل مردانه ناب تن مدل اسکراب کد z604",
-        "use_case": "health_wellness"
-      },
       {
         "at": "2026-11-15T17:54:39.895866+00:00",
         "brand": "",
@@ -733,6 +718,22 @@
         ],
         "title": "کفش زنانه پاتکان کد NIC829",
         "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-15T21:29:18.103231+00:00",
+        "brand": "",
+        "catalog_category_id": "9224",
+        "catalog_category_name": "گوشت گوسفند",
+        "category": "other",
+        "compared_to_product_id": "dkp-20502655",
+        "family": "digikala_category:9224",
+        "product_id": "dkp-21586430",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
+        "use_case": "mobile_productivity"
       }
     ]
   }
