@@ -193,6 +193,8 @@ jobs:
           AFFILIO_MCP_PAGES_PER_SCAN: "5"
           AFFILIO_AUTOPUBLISH: "false"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "0"
+          # Offer-expiry protection only; this is not a gap between public posts.
+          AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS: "250"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py --select-only
