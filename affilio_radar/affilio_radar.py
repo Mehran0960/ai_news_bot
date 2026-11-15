@@ -82,7 +82,7 @@ from offerchin_copy import (
     normalize_brand_display_name,
 )
 from integrity_audit_state import apply_integrity_audit_ledger
-from content_delivery import editorial_dispatch_runway_seconds
+from content_delivery import editorial_delivery_p90_seconds, editorial_dispatch_runway_seconds
 import arabic_reshaper
 from bidi.algorithm import get_display
 
@@ -5355,17 +5355,21 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                 last_empty_check and last_empty_check > anchor_at
             )
             dispatch_runway_seconds = editorial_dispatch_runway_seconds(state)
+            delivery_runway_seconds = editorial_delivery_p90_seconds(state)
             midpoint_at = anchor_at + timedelta(seconds=max(0, gap_seconds) / 2)
             latest_safe_dispatch_at = product_at - timedelta(seconds=dispatch_runway_seconds)
             planning_at = min(midpoint_at, latest_safe_dispatch_at)
+            window_closes_at = product_at - timedelta(seconds=delivery_runway_seconds)
             if (
                 not already_linked
                 and not already_checked_after_product
                 and gap_seconds > dispatch_runway_seconds
-                and planning_at > current
+                and current < window_closes_at
                 and product_at > current
             ):
-                next_editorial_planning_at = planning_at.isoformat()
+                # Persist an already-due wake-up too. Otherwise a publisher run
+                # between the target and the next Worker poll could erase the slot.
+                next_editorial_planning_at = max(planning_at, current).isoformat()
     # No product slot means no editorial wake-up. Editorial is not a standalone post.
 
     emergency_record = state.get("emergency_continuity") if isinstance(state, dict) else None
