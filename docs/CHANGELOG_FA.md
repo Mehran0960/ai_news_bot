@@ -2193,3 +2193,20 @@
 **ریسک/بازگشت:** انتشار محصول فقط از leadهای snapshot پس از بازبینی زندهٔ قیمت، موجودی، هویت، تخفیف و لینک افیلیت مجاز است. صفر محصول تازه به معنی توقف انتشار نیست؛ محتوای تحریریهٔ معتبر و retry کنترل‌شدهٔ emergency discovery جایگزین می‌شوند. هرگز snapshot ناقص به‌عنوان snapshot کامل علامت‌گذاری نشود.
 
 **وضعیت:** اسکن بعدی اجرا شده ولی کامل و معتبر نیست؛ تبصرهٔ اضطراری باز است؛ retryهای ناشر طبق فاصلهٔ ایمن عمومی و سیاست سه‌دقیقه‌ای بررسی batch ادامه می‌یابد.
+
+
+## 2026-11-15 — حذف فاصله‌های ثابت انتشار و رفع گلوگاه انتخاب محصول
+
+**هدف:** هم‌راستا کردن انتشار با خواستهٔ نهایی کاربر: حذف کامل حداقل فاصله/فاصلهٔ ایمنی برای پست‌های کانالی، توزیع برابر محصولات منتخب در پنجرهٔ بین دو اسکن، قراردادن تحریریه در شکاف واقعی محصولات و بازیابی مسیر انتشار محصول که به‌علت عنوان ناقص عملاً خالی می‌ماند.
+
+**تغییر/اقدام:** در شاخهٔ PR #188، زمان‌بندی محصول به توزیع مساوی در زمان باقی‌مانده تا اسکن بعدی وابسته شده و هیچ minimum/default فاصلهٔ انتشار باقی نمانده است؛ تحریریه فقط در midpoint شکاف محصول صف می‌شود و بدون محصول مستقل منتشر نمی‌شود. قالب تحریریه برای تیتر/متن/منابع فارسی، عنوان روشن سازمان و منبع، URL جداگانه، لینک HTML عضویت کانال و تصویر مرتبط اصلاح شده است. مسیر emergency title identity فقط از snapshot hash-pinned و پس از تطبیق دقیق شناسه/URL عنوان نمایشی را بازیابی می‌کند؛ قیمت، موجودی، تخفیف، تصویر و affiliate همچنان از بررسی زنده می‌آیند. اسناد نیز تفاوت DigiKala Mag metadata discovery با انتشار عمومی را روشن می‌کنند: RSS فعلاً نامزد کشف می‌کند و خلاصهٔ مستقل تأییدشده هنوز به صف انتشار متصل نیست. خطاهای آزمون کشف دسته، پارامتر sort و fixture تحریریه نیز اصلاح شده‌اند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `affilio_radar/content_delivery.py`، `affilio_radar/editorial_publisher.py`، `affilio_radar/editorial_video.py`، `affilio_radar/catalog_sweep.py`، `affilio_radar/parallel_catalog_sweep.py`، تست‌های متناظر، `cloudflare/affilio-minute-dispatcher.js`، `.github/workflows/offerchin-publisher.yml`، `docs/OFFERCHIN_FLOATING_PUBLICATION_POLICY_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/OFFERCHIN_EDITORIAL_FALLBACK_FA.md`، `docs/OFFERCHIN_DIGIKALA_MAG_SOURCE_POLICY_FA.md`، `docs/CHANGELOG_FA.md`.
+
+**آزمون و نتیجه:** دو شکست Catalog Sweep (حفظ شناسهٔ cursor پس از مرتب‌سازی دسته‌ها و مقدار sort از constant رسمی تستی) و یک شکست Editorial Photo (fixture فاقد topic الزامی) اصلاح شدند. اجرای مجدد suiteهای Catalog Sweep، Editorial Contract، Product Ranking، Worker و Documentation Gate پس از آخرین commit در انتظار است. پس از ادغام، اجرای production publisher باید با log و شناسهٔ واقعی پیام محصول بررسی شود؛ سبز بودن workflow به‌تنهایی اثبات انتشار نیست.
+
+**شواهد/شناسه:** PR #188 — https://github.com/Mehran0960/ai_news_bot/pull/188؛ شاخهٔ کاری `fix/offerchin-pure-floating-cadence-products-editorial-20261115`. لاگ اجرای production پیش از اصلاح، `ranked=0` و `PUBLISHER_QUEUE_EMPTY` را پس از رد نامزدها با `invalid_or_incomplete_title` ثبت کرده بود. نتیجهٔ اجرای جدید و شناسهٔ پست محصول پس از rollout تکمیل می‌شود.
+
+**ریسک/بازگشت:** اگر عنوان موجود در snapshot نیز نامعتبر باشد یا محصول دقیقاً با شناسه/URL آن تطبیق نکند، محصول رد می‌ماند؛ هیچ دادهٔ تجاری قدیمی از snapshot استفاده نمی‌شود. اگر اسکن API دیجی‌کالا همچنان ۴۰۴ بدهد، مسیر degraded فقط در صورت رجیستری کامل دسته و کنترل زنده می‌تواند کار کند. rollback با revert کردن PR #188 و عدم deploy نسخهٔ Worker جدید امکان‌پذیر است؛ state/queue نباید reset شود.
+
+**وضعیت:** اصلاحات روی شاخه انجام شده‌اند؛ PR هنوز merge/deploy نشده و انتشار واقعی محصول هنوز تأیید نشده است.
