@@ -106,7 +106,6 @@ from affilio_radar import (
     _retain_superseded_youtube_video,
     VIDEO_STYLE_VERSION,
     YOUTUBE_UPLOAD_INTERVAL_HOURS,
-    MIN_POST_INTERVAL_HOURS,
     VIDEO_DISPATCH_STATE_RECORD_LIMIT,
     VIDEO_UPLOAD_CANDIDATE_LIMIT,
     effective_posts_per_run,
@@ -5218,10 +5217,13 @@ class AffilioRadarTests(unittest.TestCase):
             "YouTube channel IDs should appear before product details",
         )
 
-    def test_publication_interval_is_27_minutes(self):
-        self.assertAlmostEqual(MIN_POST_INTERVAL_HOURS, 27 / 60)
-        self.assertEqual(radar_module.URGENT_MIN_POST_INTERVAL_MINUTES, 27)
-        self.assertEqual(radar_module.ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES, 27)
+    def test_channel_publication_has_no_global_interval_or_urgency_override(self):
+        self.assertFalse(hasattr(radar_module, "MIN_POST_INTERVAL_HOURS"))
+        self.assertFalse(hasattr(radar_module, "URGENT_MIN_POST_INTERVAL_MINUTES"))
+        self.assertFalse(hasattr(radar_module, "ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES"))
+        source = Path(radar_module.__file__).read_text(encoding="utf-8")
+        self.assertNotIn("AFFILIO_MIN_POST_INTERVAL_HOURS", source)
+        self.assertNotIn("cooldown_remaining", source)
 
     def test_video_upload_candidate_limit_covers_dispatch_sidecar(self):
         self.assertEqual(VIDEO_UPLOAD_CANDIDATE_LIMIT, VIDEO_DISPATCH_STATE_RECORD_LIMIT)
