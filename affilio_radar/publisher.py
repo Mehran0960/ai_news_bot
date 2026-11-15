@@ -10,12 +10,13 @@ import os
 import re
 import time
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any
 
 import affilio_radar as radar
 from content_delivery import (
     _active_publication, due_content, enforce_queue_limit, finish_queue_item,
-    promote_fallback_selection,
+    promote_fallback_selection, reflow_product_queue_after_delivery,
 )
 from platform_registry import (
     CORE_PHOTO_PLATFORMS, PLATFORM_NAMES, PHOTO_PLATFORMS,
@@ -25,7 +26,7 @@ from integrity_audit_state import apply_integrity_audit_ledger
 
 
 RETRY_BASE_SECONDS = max(60, int(os.getenv("AFFILIO_PUBLISH_RETRY_BASE_SECONDS", "300")))
-MAX_ITEMS_PER_RUN = max(1, min(3, int(os.getenv("AFFILIO_PUBLISHER_BATCH_SIZE", "1"))))
+MAX_ITEMS_PER_RUN = 1  # Keep one public content item per dispatch; never burst overdue slots.
 MAX_INLINE_FALLBACK_ATTEMPTS = 50
 TERMINAL_PLATFORM = {"sent", "not_connected", "manual_review"}
 
@@ -711,9 +712,84 @@ def _process_video_destinations(state: dict, entry: dict, record: dict, now: dat
     _save(state)
 
 
+
+def _refresh_dispatch_projection(state: dict) -> None:
+    """Keep Cloudflare's small due-time sidecar aligned with the canonical queue."""
+    try:
+        projection = radar.build_video_upload_dispatch_state(state, now=_now())
+        radar.save_json(Path(__file__).resolve().parent / "video_upload_dispatch_state.json", projection)
+    except Exception as exc:
+        print(f"PUBLISHER_DISPATCH_PROJECTION_REFRESH_FAILED error={type(exc).__name__}")
+
+
 def editorial_fifo_lock_entry(state: dict) -> dict | None:
     """Editorial delivery never locks or delays a selected product."""
     return None
+
+
+
+def _product_has_core_photo_success(entry: dict) -> bool:
+    platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+    return any(
+        isinstance(platforms.get(name), dict)
+        and platforms[name].get("status") == "sent"
+        for name in ("telegram", "bale", "rubika", "eitaa")
+    )
+
+
+def _due_editorial_precedes_product(
+    state: dict,
+    now: datetime,
+    due_products: list[tuple[str, dict]],
+) -> dict | None:
+    """Return the oldest due editorial only when its midpoint precedes the next product slot."""
+    editorial_queue = state.get("editorial_delivery_queue")
+    product_queue = state.get("content_delivery_queue")
+    if not isinstance(editorial_queue, dict) or not isinstance(product_queue, dict):
+        return None
+
+    active_editorials = sorted(
+        (
+            row for row in editorial_queue.values()
+            if isinstance(row, dict)
+            and row.get("status") not in {"completed", "cancelled", "failed"}
+        ),
+        key=lambda row: int(row.get("sequence_number") or 0),
+    )
+    if not active_editorials:
+        return None
+
+    editorial = active_editorials[0]
+    editorial_at = _utc(editorial.get("scheduled_at"))
+    retry_at = _utc(editorial.get("next_attempt_at")) or editorial_at
+    if editorial_at is None or retry_at is None or editorial_at > now or retry_at > now:
+        return None
+
+    related_id = str(editorial.get("related_product_id") or "").strip()
+    related_product = product_queue.get(related_id)
+    if not isinstance(related_product, dict):
+        return None
+    if related_product.get("status") in {"published", "cancelled", "stale_selection"}:
+        return None
+    if _product_has_core_photo_success(related_product):
+        return None
+
+    related_product_at = _utc(related_product.get("scheduled_at"))
+    if related_product_at is None or editorial_at >= related_product_at:
+        return None
+
+    next_due_product = next(
+        (
+            entry for _product_id, entry in due_products
+            if isinstance(entry, dict) and not _product_has_core_photo_success(entry)
+        ),
+        None,
+    )
+    if next_due_product is not None:
+        next_due_at = _utc(next_due_product.get("scheduled_at")) or now
+        if next_due_at <= editorial_at:
+            return None
+    return editorial
 
 
 def publish_due_queue(_fallback_depth: int = 0) -> int:
@@ -738,11 +814,24 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         _save(state)
         print(f"PUBLISHER_RETRY_QUEUE_BOUNDED evicted={evicted}")
     queue = state.get("content_delivery_queue")
-    if not isinstance(queue, dict) or not queue:
+    queue = queue if isinstance(queue, dict) else {}
+    due = due_content(state, now=now, limit=MAX_ITEMS_PER_RUN) if queue else []
+    editorial_before_product = _due_editorial_precedes_product(state, now, due)
+    if editorial_before_product is not None:
+        _save(state)
+        print(
+            "PUBLISHER_EDITORIAL_SLOT_PRECEDES_PRODUCT "
+            f"content_id={editorial_before_product.get('content_id')} "
+            f"scheduled_at={editorial_before_product.get('scheduled_at')}"
+        )
+        from editorial_publisher import run_editorial_publisher
+        return run_editorial_publisher(mode="channels", publish=True, now=now)
+    if not queue:
+        _refresh_dispatch_projection(state)
         print("PUBLISHER_QUEUE_EMPTY")
         return 0
-    due = due_content(state, now=now, limit=MAX_ITEMS_PER_RUN)
     if not due:
+        _refresh_dispatch_projection(state)
         print(f"PUBLISHER_NOTHING_DUE queue_size={len(queue)}")
         return 0
 
@@ -934,6 +1023,14 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             state["last_channel_published_at"] = public_posted_at
             state["last_product_channel_published_at"] = public_posted_at
             state["last_published_at"] = public_posted_at
+            cadence_update = reflow_product_queue_after_delivery(state, now=_now())
+            print(
+                "PRODUCT_PUBLICATION_CADENCE_REFLOWED "
+                f"pending={cadence_update.get('pending_products', 0)} "
+                f"scheduled={cadence_update.get('scheduled', 0)} "
+                f"deferred={cadence_update.get('deferred', 0)} "
+                f"interval_seconds={cadence_update.get('interval_seconds', 0)}"
+            )
 
         # Preserve the original post timestamp when retrying pending channel platforms.
         # Video destination timestamps are maintained by their own upload workflows.
@@ -1012,6 +1109,7 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             return publish_due_queue(_fallback_depth + 1)
         print("PUBLISHER_INLINE_FALLBACK_LIMIT_REACHED")
     print(f"PUBLISHER_RUN_SUMMARY due={len(due)} completed={sent_content} remaining={sum(1 for x in state.get('content_delivery_queue', {}).values() if isinstance(x, dict))}")
+    _refresh_dispatch_projection(state)
     return 0
 
 
