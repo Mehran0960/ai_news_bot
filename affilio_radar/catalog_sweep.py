@@ -65,8 +65,9 @@ CATEGORY_DISCOVERY_RETRY_MINUTES = 60
 CATEGORY_AUTOCOMPLETE_SEEDS = ("گوشی", "لپ تاپ", "خانه", "پوشاک", "کفش", "لوازم خانگی", "هدفون", "زیبایی")
 CANDIDATE_TTL_HOURS = 72
 MIN_CANDIDATE_DISCOUNT = 1
-# DigiKala's live data.sort_options maps id=7 to پرفروش‌ترین and id=4 to پربازدیدترین.
-# This controls only upstream page order; it is not a page-depth or product eligibility limit.
+# Shared Search API v2 sort setting; keep live discovery and full-catalog sweep aligned.
+# The current numeric mapping is based on public integration references and remains
+# subject to confirmation against DigiKala's live data.sort_options response.
 BEST_SELLING_SORT_VALUE = 5
 BEST_SELLING_PAGE_SIZE = 20
 BEST_SELLING_MAX_PAGES_PER_CATEGORY = 3
