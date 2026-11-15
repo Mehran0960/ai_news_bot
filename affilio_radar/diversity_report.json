@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-15T19:40:52.232760+00:00",
+  "generated_at": "2026-11-15T19:49:15.870106+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "تاپ و تی شرت راحتی مردانه": 1,
@@ -125,6 +125,7 @@
       "پودر کیک و شیرینی": 1,
       "چای سیاه": 1,
       "چراغ خواب و آباژور": 1,
+      "کارت حافظه": 1,
       "کاور مبل": 1,
       "کتاب روانشناسی": 1,
       "کتاب شعر": 1,
@@ -142,7 +143,7 @@
       "books_stationery": 5,
       "fashion": 4,
       "grocery_food": 4,
-      "home": 1,
+      "home": 2,
       "kids_sports": 1,
       "large_appliances": 2,
       "lighting": 1,
@@ -152,30 +153,30 @@
       "sports_outdoor": 2
     },
     "category_share_percent": {
-      "beauty_fragrance": 2.8,
-      "books_stationery": 13.9,
-      "fashion": 11.1,
-      "grocery_food": 11.1,
-      "home": 2.8,
-      "kids_sports": 2.8,
-      "large_appliances": 5.6,
-      "lighting": 2.8,
-      "mobile_devices": 2.8,
-      "other": 30.6,
-      "personal_care": 8.3,
-      "sports_outdoor": 5.6
+      "beauty_fragrance": 2.7,
+      "books_stationery": 13.5,
+      "fashion": 10.8,
+      "grocery_food": 10.8,
+      "home": 5.4,
+      "kids_sports": 2.7,
+      "large_appliances": 5.4,
+      "lighting": 2.7,
+      "mobile_devices": 2.7,
+      "other": 29.7,
+      "personal_care": 8.1,
+      "sports_outdoor": 5.4
     },
-    "distinct_catalog_categories": 36,
+    "distinct_catalog_categories": 37,
     "distinct_categories": 12,
-    "distinct_families": 36,
+    "distinct_families": 37,
     "distinct_retailers": 1,
     "distinct_use_cases": 10,
     "known_brand_posts": 1,
-    "posts": 36,
+    "posts": 37,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 36
+      "digikala": 37
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -189,7 +190,7 @@
       "home_cleaning": 1,
       "home_living": 2,
       "kitchen_food": 2,
-      "mobile_productivity": 17,
+      "mobile_productivity": 18,
       "personal_care": 1
     }
   },
@@ -250,7 +251,6 @@
       "لپه": 1,
       "متر": 1,
       "مجموعه شمش و پلاک طلا و نقره": 1,
-      "محصولات بومی و محلی": 1,
       "مکمل غذایی": 1,
       "نشانگر کتاب": 1,
       "نظافت و نگهداری خودرو": 1,
@@ -267,6 +267,7 @@
       "چراغ خواب و آباژور": 1,
       "ژل و صابون ابرو": 1,
       "ژل و کرم ترمیم کننده": 1,
+      "کارت حافظه": 1,
       "کاور مبل": 1,
       "کاپوچینو": 1,
       "کتاب رمان و ادبیات داستانی و نمایشی": 2,
@@ -301,8 +302,8 @@
       "books_stationery": 8,
       "digital_accessories": 1,
       "fashion": 10,
-      "grocery_food": 8,
-      "home": 5,
+      "grocery_food": 7,
+      "home": 6,
       "kids_sports": 2,
       "large_appliances": 2,
       "lighting": 2,
@@ -319,8 +320,8 @@
       "books_stationery": 5.8,
       "digital_accessories": 0.7,
       "fashion": 7.2,
-      "grocery_food": 5.8,
-      "home": 3.6,
+      "grocery_food": 5.0,
+      "home": 4.3,
       "kids_sports": 1.4,
       "large_appliances": 1.4,
       "lighting": 1.4,
@@ -334,7 +335,7 @@
     "distinct_categories": 16,
     "distinct_families": 116,
     "distinct_retailers": 1,
-    "distinct_use_cases": 20,
+    "distinct_use_cases": 19,
     "known_brand_posts": 7,
     "posts": 139,
     "repeated_brand_count": 1,
@@ -361,8 +362,7 @@
       "home_living": 3,
       "kitchen_food": 6,
       "lighting_electrical": 2,
-      "local_goods": 1,
-      "mobile_productivity": 43,
+      "mobile_productivity": 44,
       "office_study": 2,
       "outdoor_travel": 2,
       "personal_care": 13,
@@ -384,30 +384,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1327,
+    "all_time_count": 1328,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 488,
+      "family_repeat": 487,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-14T13:22:26.290701+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-20682942",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مو ویتاپلکس مدل CURL CARE مناسب برای موهای فر حجم 150 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-14T13:22:26.290701+00:00",
         "brand": "",
@@ -716,6 +699,22 @@
       },
       {
         "at": "2026-11-15T19:31:38.816693+00:00",
+        "brand": "",
+        "catalog_category_id": "9224",
+        "catalog_category_name": "گوشت گوسفند",
+        "category": "other",
+        "compared_to_product_id": "dkp-20502655",
+        "family": "digikala_category:9224",
+        "product_id": "dkp-21586430",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-15T19:49:15.870106+00:00",
         "brand": "",
         "catalog_category_id": "9224",
         "catalog_category_name": "گوشت گوسفند",

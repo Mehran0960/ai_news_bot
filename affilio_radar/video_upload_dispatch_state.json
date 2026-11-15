@@ -1,1 +1,49 @@
-{"aparat_next_upload_at":null,"emergency_continuity_active":false,"emergency_continuity_baseline_completed_at":null,"emergency_continuity_expires_at":null,"emergency_continuity_snapshot_sha256":null,"filo_login_verification_status":"verified","filo_login_verified_at":"2026-11-15T19:42:41.110763+00:00","filo_next_upload_at":null,"filo_upload_interval_policy_version":3,"generated_at":"2026-11-15T19:43:25.528905+00:00","last_channel_published_at":"2026-11-15T19:41:11.423357+00:00","last_product_channel_published_at":"2026-11-15T19:41:11.423357+00:00","next_channel_content_due_at":"2026-11-15T19:42:29.214583+00:00","next_editorial_planning_at":null,"product_publication_cadence_cycle_id":"2026-11-15T19:24:31.846900+00:00","product_publication_interval_seconds":155.58245228571428,"product_publication_plan_cycle_id":"2026-11-15T19:24:31.846900+00:00","published":{},"schema_version":2,"youtube_next_upload_at":null,"youtube_upload_pause_reason":"daily_upload_limit","youtube_uploads_paused_until":"2026-11-16T04:25:59.640555+00:00"}
+{
+  "aparat_next_upload_at": null,
+  "emergency_continuity_active": false,
+  "emergency_continuity_baseline_completed_at": null,
+  "emergency_continuity_expires_at": null,
+  "emergency_continuity_snapshot_sha256": null,
+  "filo_login_verification_status": "verified",
+  "filo_login_verified_at": "2026-11-15T19:42:41.110763+00:00",
+  "filo_next_upload_at": null,
+  "filo_upload_interval_policy_version": 3,
+  "generated_at": "2026-11-15T19:49:42.824363+00:00",
+  "last_channel_published_at": "2026-11-15T19:49:41.404408+00:00",
+  "last_product_channel_published_at": "2026-11-15T19:49:41.404408+00:00",
+  "next_channel_content_due_at": "2026-11-15T19:49:50.744668+00:00",
+  "next_editorial_planning_at": null,
+  "product_publication_cadence_cycle_id": "2026-11-15T19:24:31.846900+00:00",
+  "product_publication_interval_seconds": 18.680519838709678,
+  "product_publication_plan_cycle_id": "2026-11-15T19:24:31.846900+00:00",
+  "published": {
+    "dkp-4265681": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2028,
+      "content_id": "dkp-4265681",
+      "content_type": "product",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "distribution_queue_id": "dkp-4265681:2026-11-15T19:40:54.453858+00:00",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "sequence_number": 201,
+      "telegram_message_id": 1524,
+      "ts": 1794772158.995552,
+      "video_dispatch_eligible": true,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
+    }
+  },
+  "schema_version": 2,
+  "youtube_next_upload_at": null,
+  "youtube_upload_pause_reason": "daily_upload_limit",
+  "youtube_uploads_paused_until": "2026-11-16T04:25:59.640555+00:00"
+}
