@@ -46,7 +46,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: main
-          fetch-depth: 0
+          fetch-depth: 20
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -98,11 +98,65 @@ jobs:
           assert "discover_product_urls(" not in source
           workflow = Path(".github/workflows/offerchin-publisher.yml").read_text(encoding="utf-8")
           assert "git reset --hard HEAD" in workflow
+          assert workflow.index("name: Publish due selections to Telegram and Bale only") < workflow.index("name: Publish the same-sequence editorial fallback to photo channels") < workflow.index("name: Discover and queue the next verified selection")
+          assert "channel_queue_gate.py" in workflow
+          assert "fetch-depth: 20" in workflow
+          assert workflow.count("if: ${{ github.event_name == 'push' }}") == 2
           print("OFFERCHIN_DELIVERY_ONLY_PATH_VALIDATED")
           print("OFFERCHIN_STATE_PERSISTENCE_WORKTREE_RESET_VALIDATED")
           PY
 
+      - name: Publish due selections to Telegram and Bale only
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          RUBIKA_BOT_TOKEN: ${{ secrets.RUBIKA_BOT_TOKEN }}
+          RUBIKA_CHANNEL_ID: ${{ secrets.RUBIKA_CHAT_ID || vars.RUBIKA_CHAT_ID || secrets.RUBIKA_CHANNEL_ID || vars.RUBIKA_CHANNEL_ID || 'c0EH9WW0c7fa831d965d050233b7ab35' }}
+          RUBIKA_ENABLE_PUBLISHING: ${{ vars.RUBIKA_ENABLE_PUBLISHING || 'true' }}
+          EITAA_BOT_TOKEN: ${{ secrets.EITAA_BOT_TOKEN }}
+          EITAA_CHANNEL_ID: ${{ secrets.EITAA_CHANNEL_ID }}
+          EITAA_CHANNEL_URL: ${{ vars.EITAA_CHANNEL_URL || '' }}
+          EITAA_ENABLE_PUBLISHING: ${{ vars.EITAA_ENABLE_PUBLISHING || 'false' }}
+          # Video publication is deliberately excluded from the channel worker.
+          AFFILIO_APARAT_UPLOAD_ENABLED: "false"
+          APARAT_SHORTS_ONLY: "false"
+          APARAT_VIDEO_PASS: "0"
+          APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
+          AFFILIO_PUBLISHER_BATCH_SIZE: "1"
+          AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "250"
+          AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "0"
+          AFFILIO_MAX_DAILY_CHANNEL_POSTS: "72"
+          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: "true"
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/publisher.py
+
+      - name: Publish the same-sequence editorial fallback to photo channels
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          RUBIKA_BOT_TOKEN: ${{ secrets.RUBIKA_BOT_TOKEN }}
+          RUBIKA_CHANNEL_ID: ${{ secrets.RUBIKA_CHAT_ID || vars.RUBIKA_CHAT_ID || secrets.RUBIKA_CHANNEL_ID || vars.RUBIKA_CHANNEL_ID || 'c0EH9WW0c7fa831d965d050233b7ab35' }}
+          RUBIKA_ENABLE_PUBLISHING: ${{ vars.RUBIKA_ENABLE_PUBLISHING || 'true' }}
+          EITAA_BOT_TOKEN: ${{ secrets.EITAA_BOT_TOKEN }}
+          EITAA_CHANNEL_ID: ${{ secrets.EITAA_CHANNEL_ID }}
+          EITAA_ENABLE_PUBLISHING: ${{ vars.EITAA_ENABLE_PUBLISHING || 'false' }}
+          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: "true"
+          PYTHONUNBUFFERED: "1"
+        run: |
+          if [[ "${OFFERCHIN_EDITORIAL_PUBLISH_ENABLED,,}" == "true" ]]; then
+            echo "EDITORIAL_PUBLISH_FEATURE_ENABLED"
+            python affilio_radar/editorial_publisher.py --channels-only --publish
+          else
+            echo "EDITORIAL_SHADOW_ONLY_PUBLIC_PUBLISH_DISABLED"
+            python affilio_radar/editorial_publisher.py --channels-only
+          fi
+
       - name: Validate DigiKala demand-first ranking and publication gates
+        if: ${{ github.event_name == 'push' }}
         run: |
           cd affilio_radar
           python -m unittest \
@@ -145,6 +199,7 @@ jobs:
           node --test test_affiliate_deal_radar_worker.mjs
 
       - name: Validate permanent YouTube retention policy
+        if: ${{ github.event_name == 'push' }}
         run: |
           cd affilio_radar
           python -m unittest \
@@ -199,56 +254,13 @@ jobs:
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS: "250"
           PYTHONUNBUFFERED: "1"
-        run: python affilio_radar/affilio_radar.py --select-only
-      - name: Publish due selections to Telegram and Bale only
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
-          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
-          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          RUBIKA_BOT_TOKEN: ${{ secrets.RUBIKA_BOT_TOKEN }}
-          RUBIKA_CHANNEL_ID: ${{ secrets.RUBIKA_CHAT_ID || vars.RUBIKA_CHAT_ID || secrets.RUBIKA_CHANNEL_ID || vars.RUBIKA_CHANNEL_ID || 'c0EH9WW0c7fa831d965d050233b7ab35' }}
-          RUBIKA_ENABLE_PUBLISHING: ${{ vars.RUBIKA_ENABLE_PUBLISHING || 'true' }}
-          EITAA_BOT_TOKEN: ${{ secrets.EITAA_BOT_TOKEN }}
-          EITAA_CHANNEL_ID: ${{ secrets.EITAA_CHANNEL_ID }}
-          EITAA_CHANNEL_URL: ${{ vars.EITAA_CHANNEL_URL || '' }}
-          EITAA_ENABLE_PUBLISHING: ${{ vars.EITAA_ENABLE_PUBLISHING || 'false' }}
-          # Video publication is deliberately excluded from the channel worker.
-          AFFILIO_APARAT_UPLOAD_ENABLED: "false"
-          APARAT_SHORTS_ONLY: "false"
-          APARAT_VIDEO_PASS: "0"
-          APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
-          AFFILIO_PUBLISHER_BATCH_SIZE: "1"
-          AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "250"
-          AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "0"
-          AFFILIO_MAX_DAILY_CHANNEL_POSTS: "72"
-          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: "true"
-          PYTHONUNBUFFERED: "1"
-        run: python affilio_radar/publisher.py
-
-      - name: Publish the same-sequence editorial fallback to photo channels
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
-          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
-          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          RUBIKA_BOT_TOKEN: ${{ secrets.RUBIKA_BOT_TOKEN }}
-          RUBIKA_CHANNEL_ID: ${{ secrets.RUBIKA_CHAT_ID || vars.RUBIKA_CHAT_ID || secrets.RUBIKA_CHANNEL_ID || vars.RUBIKA_CHANNEL_ID || 'c0EH9WW0c7fa831d965d050233b7ab35' }}
-          RUBIKA_ENABLE_PUBLISHING: ${{ vars.RUBIKA_ENABLE_PUBLISHING || 'true' }}
-          EITAA_BOT_TOKEN: ${{ secrets.EITAA_BOT_TOKEN }}
-          EITAA_CHANNEL_ID: ${{ secrets.EITAA_CHANNEL_ID }}
-          EITAA_ENABLE_PUBLISHING: ${{ vars.EITAA_ENABLE_PUBLISHING || 'false' }}
-          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: "true"
-          PYTHONUNBUFFERED: "1"
         run: |
-          if [[ "${OFFERCHIN_EDITORIAL_PUBLISH_ENABLED,,}" == "true" ]]; then
-            echo "EDITORIAL_PUBLISH_FEATURE_ENABLED"
-            python affilio_radar/editorial_publisher.py --channels-only --publish
+          if python affilio_radar/channel_queue_gate.py; then
+            echo "OFFERCHIN_DISCOVERY_ALLOWED reason=core_channel_queues_drained"
+            python affilio_radar/affilio_radar.py --select-only
           else
-            echo "EDITORIAL_SHADOW_ONLY_PUBLIC_PUBLISH_DISABLED"
-            python affilio_radar/editorial_publisher.py --channels-only
+            echo "OFFERCHIN_DISCOVERY_SKIPPED; due content delivery took priority or publisher state was unavailable."
           fi
-
       # Cleanup has its own scheduled workflow and audit ledger; it never
       # occupies this publisher's execution window or competes for state.json.
       - name: Persist independent per-platform results
