@@ -368,7 +368,7 @@ def _digikala_get(url: str, params=None, timeout=None, session=None):
                     or response_headers.get("set-cookie")
                     or ""
                 )
-                match = re.search(r"(?:^|[,;]\\s*)digicdn_cookie=([^;,\\s]+)", set_cookie)
+                match = re.search(r"(?:^|[,;]\s*)digicdn_cookie=([^;,\s]+)", set_cookie)
                 cookie = match.group(1) if match else ""
             if not cookie:
                 raise RuntimeError("digikala_cdn_307_without_digicdn_cookie")
@@ -960,7 +960,7 @@ def _api_product_url(obj):
 
 
 def api_search_product_urls(payload):
-    """Read legacy product arrays or Search API v2 product widgets, never category IDs."""
+    """Read DigiKala product arrays or Discovery Search product widgets, never category IDs."""
     data = payload.get("data", {}) if isinstance(payload, dict) else {}
     product_items = data.get("products", []) if isinstance(data, dict) else []
     if not isinstance(product_items, list):
