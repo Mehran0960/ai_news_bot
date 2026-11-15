@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-15T22:08:48.485032+00:00",
+  "generated_at": "2026-11-15T22:20:22.859155+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -399,160 +399,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1345,
+    "all_time_count": 1354,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 477,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-15T17:54:39.895866+00:00",
-        "brand": "",
-        "catalog_category_id": "6533",
-        "catalog_category_name": "شامپو بدن",
-        "category": "other",
-        "compared_to_product_id": "dkp-14013351",
-        "family": "digikala_category:6533",
-        "product_id": "dkp-14013298",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "شامپو بدن لپیور مدل اوشن دایو حجم 414 میلی لیتر",
-        "use_case": "catalog_taxonomy_other"
-      },
-      {
-        "at": "2026-11-15T19:31:38.816693+00:00",
-        "brand": "",
-        "catalog_category_id": "9224",
-        "catalog_category_name": "گوشت گوسفند",
-        "category": "other",
-        "compared_to_product_id": "dkp-20502655",
-        "family": "digikala_category:9224",
-        "product_id": "dkp-21586430",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-15T19:49:15.870106+00:00",
-        "brand": "",
-        "catalog_category_id": "9224",
-        "catalog_category_name": "گوشت گوسفند",
-        "category": "other",
-        "compared_to_product_id": "dkp-20502655",
-        "family": "digikala_category:9224",
-        "product_id": "dkp-21586430",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-15T20:06:30.907958+00:00",
-        "brand": "",
-        "catalog_category_id": "10750",
-        "catalog_category_name": "پودر سیر، موسیر و پیاز",
-        "category": "other",
-        "compared_to_product_id": "dkp-22281401",
-        "family": "digikala_category:10750",
-        "product_id": "dkp-22290854",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "پودر سیر مثه خودته - 100 گرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-15T20:06:30.907958+00:00",
-        "brand": "",
-        "catalog_category_id": "9224",
-        "catalog_category_name": "گوشت گوسفند",
-        "category": "other",
-        "compared_to_product_id": "dkp-20502655",
-        "family": "digikala_category:9224",
-        "product_id": "dkp-21586430",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-15T20:06:30.907958+00:00",
-        "brand": "",
-        "catalog_category_id": "8942",
-        "catalog_category_name": "زردچوبه",
-        "category": "other",
-        "compared_to_product_id": "dkp-22281401",
-        "family": "digikala_category:8942",
-        "product_id": "dkp-20836128",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "پودر زردچوبه شاهسوند - 75 گرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-15T20:28:29.089902+00:00",
-        "brand": "",
-        "catalog_category_id": "9224",
-        "catalog_category_name": "گوشت گوسفند",
-        "category": "other",
-        "compared_to_product_id": "dkp-20502655",
-        "family": "digikala_category:9224",
-        "product_id": "dkp-21586430",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-15T20:51:43.637085+00:00",
-        "brand": "",
-        "catalog_category_id": "9224",
-        "catalog_category_name": "گوشت گوسفند",
-        "category": "other",
-        "compared_to_product_id": "dkp-20502655",
-        "family": "digikala_category:9224",
-        "product_id": "dkp-21586430",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-15T20:51:43.637085+00:00",
-        "brand": "",
-        "catalog_category_id": "9371",
-        "catalog_category_name": "کفش پاشنه دار زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-6223366",
-        "family": "digikala_category:9371",
-        "product_id": "dkp-3584477",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش زنانه پاتکان کد NIC829",
-        "use_case": "fashion_lifestyle"
-      },
       {
         "at": "2026-11-15T20:59:42.945871+00:00",
         "brand": "",
@@ -733,6 +586,159 @@
         ],
         "title": "کفش پاشنه‌دار زنانه سیی 1966 مدل کلارا کد 1793.4",
         "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-15T22:20:22.859155+00:00",
+        "brand": "",
+        "catalog_category_id": "10559",
+        "catalog_category_name": "کتاب زبان خارجی",
+        "category": "books_stationery",
+        "compared_to_product_id": "dkp-2304995",
+        "family": "digikala_category:10559",
+        "product_id": "dkp-3319356",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کتاب Family and Friends 4 اثر Naomi Simmons انتشارات الوندپویان",
+        "use_case": "books_learning"
+      },
+      {
+        "at": "2026-11-15T22:20:22.859155+00:00",
+        "brand": "",
+        "catalog_category_id": "9467",
+        "catalog_category_name": "مایو و لباس شنای مردانه",
+        "category": "sports_outdoor",
+        "compared_to_product_id": "dkp-21678448",
+        "family": "digikala_category:9467",
+        "product_id": "dkp-9634240",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "مایو مردانه تکنیک+07 مدل SH-143-ME",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-15T22:20:22.859155+00:00",
+        "brand": "",
+        "catalog_category_id": "9371",
+        "catalog_category_name": "کفش پاشنه دار زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-6223366",
+        "family": "digikala_category:9371",
+        "product_id": "dkp-3584477",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش زنانه پاتکان کد NIC829",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-15T22:20:22.859155+00:00",
+        "brand": "",
+        "catalog_category_id": "10762",
+        "catalog_category_name": "سایر فرآورده‌های کاکائویی",
+        "category": "grocery_food",
+        "compared_to_product_id": "dkp-11517794",
+        "family": "digikala_category:10762",
+        "product_id": "dkp-6806274",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "فرآورده کنجدی تکسان - 1000 گرم",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-15T22:20:22.859155+00:00",
+        "brand": "",
+        "catalog_category_id": "11084",
+        "catalog_category_name": "غذا و دانه پرندگان",
+        "category": "other",
+        "compared_to_product_id": "dkp-5467971",
+        "family": "digikala_category:11084",
+        "product_id": "dkp-12290421",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "غذای خشک طوطی عروس هلندی مای برد مدل پلاس کد Cockatiel+1 وزن یک کیلوگرم",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-15T22:20:22.859155+00:00",
+        "brand": "",
+        "catalog_category_id": "11331",
+        "catalog_category_name": "کتاب دانشگاهی",
+        "category": "books_stationery",
+        "compared_to_product_id": "dkp-2434295",
+        "family": "digikala_category:11331",
+        "product_id": "dkp-9011410",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کتاب آزمون های روانی اثر هادی بهرامی انتشارات دانشگاه علامه طباطبائی",
+        "use_case": "books_learning"
+      },
+      {
+        "at": "2026-11-15T22:20:22.859155+00:00",
+        "brand": "",
+        "catalog_category_id": "9473",
+        "catalog_category_name": "زیرپوش مردانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-15583832",
+        "family": "digikala_category:9473",
+        "product_id": "dkp-720533",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "زیرپوش مردانه آریان نخ باف کد 1211",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-15T22:20:22.859155+00:00",
+        "brand": "",
+        "catalog_category_id": "10553",
+        "catalog_category_name": "کتاب دانش نامه و دایره المعارف",
+        "category": "books_stationery",
+        "compared_to_product_id": "dkp-20205931",
+        "family": "digikala_category:10553",
+        "product_id": "dkp-4003204",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کتاب نیمه پنهان ماه 5 به روایت منیره ارمغان همسر شهید مهدی زین الدین اثر بابک واعظی انتشارات روایت فتح",
+        "use_case": "books_learning"
+      },
+      {
+        "at": "2026-11-15T22:20:22.859155+00:00",
+        "brand": "",
+        "catalog_category_id": "6430",
+        "catalog_category_name": "لوازم جانبی اتو",
+        "category": "other",
+        "compared_to_product_id": "dkp-22768828",
+        "family": "digikala_category:6430",
+        "product_id": "dkp-22940067",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "محافظ اتوکشی آسانو مدل Grade A 1",
+        "use_case": "catalog_taxonomy_other"
       }
     ]
   }
