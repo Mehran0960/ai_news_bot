@@ -321,6 +321,7 @@ MAX_INCREDIBLE_OFFER_CANDIDATES = max(
 SESSION = new_digikala_session()
 # Shared call sites remain compatible, while the transport matches DigiKala's
 # verified browser/XHR requirements. Partner-specific headers still override.
+# This branch is intentionally exercising the candidate route probes before production merge.
 DIGIKALA_SESSION = SESSION
 
 SNAPPSHOP_API_BASE_URL = "https://apix.snappshop.ir"
