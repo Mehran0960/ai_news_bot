@@ -875,17 +875,34 @@ def _api_product_url(obj):
 
 
 def api_search_product_urls(payload):
-    """Read the product array only; never confuse filter/category IDs with product IDs."""
+    """Read legacy product arrays or Search API v2 product widgets, never category IDs."""
     data = payload.get("data", {}) if isinstance(payload, dict) else {}
     product_items = data.get("products", []) if isinstance(data, dict) else []
+    if not isinstance(product_items, list):
+        product_items = []
+    if not product_items:
+        widgets = data.get("widgets", []) if isinstance(data, dict) else []
+        for widget in widgets if isinstance(widgets, list) else []:
+            if not isinstance(widget, dict) or widget.get("type") != "vertical_product_listing":
+                continue
+            listing = widget.get("data") if isinstance(widget.get("data"), dict) else {}
+            for product_widget in listing.get("widgets", []) if isinstance(listing.get("widgets"), list) else []:
+                if not isinstance(product_widget, dict) or product_widget.get("type") != "product":
+                    continue
+                product = product_widget.get("data")
+                if isinstance(product, dict) and str(product.get("status") or "").lower() == "marketable":
+                    product_items.append(product)
+
     found = []
-    for obj in product_items if isinstance(product_items, list) else []:
+    for obj in product_items:
         if not isinstance(obj, dict):
             continue
         title = obj.get("title_fa") or obj.get("product_title") or obj.get("title")
         raw_id = obj.get("id") or obj.get("product_id")
         product_shape = any(k in obj for k in ("default_variant", "variants", "images", "product_type", "status"))
         if not title or not product_shape or not is_publishable_product_title(title):
+            continue
+        if obj.get("status") is not None and str(obj.get("status")).lower() != "marketable":
             continue
         candidate = _api_product_url(obj)
         if not candidate and (isinstance(raw_id, int) or (isinstance(raw_id, str) and raw_id.isdigit())):
@@ -895,6 +912,72 @@ def api_search_product_urls(payload):
         if len(found) >= MAX_PER_QUERY:
             break
     return found
+
+
+def _autocomplete_category_queries(payload: dict, query: str, limit: int = 2) -> list[dict]:
+    data = payload.get("data", {}) if isinstance(payload, dict) else {}
+    items = data.get("categories", []) if isinstance(data, dict) else []
+    categories = []
+    seen = set()
+    for item in items if isinstance(items, list) else []:
+        if not isinstance(item, dict):
+            continue
+        category = item.get("category") if isinstance(item.get("category"), dict) else item
+        category_id = str(category.get("id") or category.get("category_id") or "").strip()
+        if not category_id.isdigit() or category_id in seen:
+            continue
+        seen.add(category_id)
+        categories.append({
+            "id": category_id,
+            "name": str(category.get("title_fa") or category.get("title") or ""),
+            "query": str(item.get("keyword") or query).strip(),
+        })
+        if len(categories) >= max(1, int(limit)):
+            break
+    return categories
+
+
+def search_digikala_v2_product_urls(query: str, session=None, category_limit: int = 2) -> tuple[list[str], list[dict]]:
+    """Resolve a query with public autocomplete, then Search API v2 category listings."""
+    http = session or SESSION
+    response = http.get(
+        "https://api.digikala.com/v1/autocomplete/",
+        params={"q": query},
+        timeout=HTTP_TIMEOUT,
+    )
+    response.raise_for_status()
+    if len(response.content) > 4_000_000:
+        raise RuntimeError("autocomplete API response exceeded 4 MB")
+    autocomplete = response.json()
+    categories = _autocomplete_category_queries(autocomplete, query, category_limit)
+    found = []
+    diagnostics = []
+    for category in categories:
+        category_id = category["id"]
+        search_response = http.get(
+            f"https://api.digikala.com/v2/category/{category_id}/",
+            params={"q": category["query"], "page": 1, "sort": 5},
+            timeout=HTTP_TIMEOUT,
+        )
+        search_response.raise_for_status()
+        if len(search_response.content) > 8_000_000:
+            raise RuntimeError("category search API response exceeded 8 MB")
+        payload = search_response.json()
+        rows = api_search_product_urls(payload)
+        diagnostics.append({
+            "category_id": category_id,
+            "category": category["name"],
+            "products_found": len(rows),
+            "status": search_response.status_code,
+        })
+        for url in rows:
+            if url not in found:
+                found.append(url)
+            if len(found) >= MAX_PER_QUERY:
+                break
+        if len(found) >= MAX_PER_QUERY:
+            break
+    return found[:MAX_PER_QUERY], diagnostics
 
 
 def _offer_discount_percent(obj: dict) -> int:
@@ -4380,28 +4463,27 @@ def discover_product_urls(
         local = []
         api_error = ""
         try:
-            response = SESSION.get(
-                "https://api.digikala.com/v1/search/",
-                params={"q": term, "page": 1},
-                timeout=HTTP_TIMEOUT,
+            local, category_diagnostics = search_digikala_v2_product_urls(
+                term, session=SESSION, category_limit=2
             )
-            response.raise_for_status()
-            if len(response.content) > 8_000_000:
-                raise RuntimeError("search API response exceeded 8 MB")
-            payload = response.json()
-            local = api_search_product_urls(payload)
             print(
-                f"SEARCH_API term={term!r} status={response.status_code} "
-                f"data_keys={list(payload.get('data', {}).keys())[:24] if isinstance(payload, dict) and isinstance(payload.get('data'), dict) else 'n/a'} "
-                f"sample={json.dumps(_search_api_sample(payload), ensure_ascii=False)[:700]}"
+                f"SEARCH_API_V2 term={term!r} categories={len(category_diagnostics)} "
+                f"category_results={json.dumps(category_diagnostics, ensure_ascii=False)[:900]}"
             )
             if local:
-                diagnostics.append({"term": term, "ok": True, "products_found": len(local), "source": "public_api", "status": "ok"})
+                diagnostics.append({
+                    "term": term, "ok": True, "products_found": len(local),
+                    "source": "digikala_autocomplete_category_v2", "status": "ok",
+                    "categories": category_diagnostics,
+                })
             else:
-                api_error = "api_no_product_urls"
+                api_error = "autocomplete_or_category_search_no_product_urls"
         except Exception as exc:
             api_error = type(exc).__name__
-            print(f"SEARCH_API_FAILED term={term!r} error={type(exc).__name__} detail={str(exc)[:220]!r}")
+            print(
+                f"SEARCH_API_V2_FAILED term={term!r} error={type(exc).__name__} "
+                f"detail={str(exc)[:220]!r}"
+            )
 
         if not local:
             try:
