@@ -397,7 +397,7 @@ def _format_message(item: dict, *, html_mode: bool = True, platform: str = "tele
     ]
     for source in source_rows:
         organization = _source_organization(source)
-        source_title = str(source.get("title") or "راهنمای رسمی").strip()
+        source_title = _source_display_title(source)
         url = str(source.get("url") or "").strip()
         escaped_url = html.escape(url, quote=True)
         rendered.extend([
