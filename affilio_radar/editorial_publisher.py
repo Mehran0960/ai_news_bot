@@ -6,6 +6,7 @@ product pipeline. Live network actions require the explicit --publish flag.
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import os
 import re
@@ -32,8 +33,8 @@ CHANNEL_DESTINATIONS = ("telegram", "bale", "rubika", "eitaa")
 VIDEO_DESTINATIONS = ("youtube", "aparat", "filo")
 TERMINAL = {"sent", "not_connected", "manual_review", "skipped_limit"}
 RETRYABLE = {"pending", "failed", "retry"}
-STANDALONE_EDITORIAL_GAP_MINUTES = max(50, min(59, int(os.getenv("OFFERCHIN_EDITORIAL_GAP_MINUTES", "55"))))
-MINIMUM_PRODUCT_GAP_MINUTES = 27
+# Editorial is only placed inside an actual product-to-product window.
+# It never creates a standalone publication slot or delays a product.
 RETRY_BASE_SECONDS = max(60, min(1800, int(os.getenv("OFFERCHIN_EDITORIAL_RETRY_SECONDS", "300"))))
 MAX_ATTEMPTS = max(1, min(5, int(os.getenv("OFFERCHIN_EDITORIAL_MAX_ATTEMPTS", "3"))))
 
@@ -167,74 +168,78 @@ def queue_editorial_if_due(
     *,
     now: datetime | None = None,
 ) -> dict | None:
-    """Place one reviewed editorial in the gap before the next product, if space permits."""
+    """Place one reviewed editorial at the true midpoint before an already queued product.
+
+    Editorial never publishes on its own and never creates a product slot. If there is no
+    future product in the queue, or its midpoint has already passed, it waits.
+    """
     current = now or _now()
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
 
     active = _active_editorial_entries(state)
+    product_queue = state.get("content_delivery_queue")
+    active_products = product_queue if isinstance(product_queue, dict) else {}
     if active:
-        return active[0]
+        valid_active = []
+        for queued_editorial in active:
+            related_id = str(queued_editorial.get("related_product_id") or "").strip()
+            product_entry = active_products.get(related_id) if related_id else None
+            if isinstance(product_entry, dict) and product_entry.get("status") not in {"published", "cancelled", "stale_selection"}:
+                valid_active.append(queued_editorial)
+                continue
+            queued_editorial["status"] = "cancelled"
+            queued_editorial["last_detail"] = "editorial_requires_an_active_related_product_slot"
+            editorial_queue = state.get("editorial_delivery_queue")
+            if isinstance(editorial_queue, dict):
+                editorial_queue.pop(str(queued_editorial.get("content_id") or ""), None)
+        if valid_active:
+            return valid_active[0]
 
     refresh_unpublished_selections(state, now=current, stale_after_minutes=8)
     next_product = _next_product_slot(state, current)
-    if next_product and next_product[2] <= current:
-        print("EDITORIAL_FALLBACK_WAIT reason=product_slot_due")
+    if not next_product:
+        print("EDITORIAL_WAIT_FOR_PRODUCT_SLOT reason=no_selected_product_in_queue")
+        return None
+
+    related_product_id, product_entry, product_at = next_product
+    if product_at <= current:
+        print("EDITORIAL_WAIT_FOR_PRODUCT_SLOT reason=product_slot_due")
+        return None
+
+    related_product = (
+        product_entry.get("payload")
+        if isinstance(product_entry.get("payload"), dict) else {}
+    )
+    history = state.get("editorial_delivery_history")
+    history = history if isinstance(history, list) else []
+    already_linked = any(
+        str(row.get("related_product_id") or "") == related_product_id
+        for row in history if isinstance(row, dict)
+    )
+    active_queue = state.get("editorial_delivery_queue")
+    if isinstance(active_queue, dict):
+        already_linked = already_linked or any(
+            isinstance(row, dict)
+            and str(row.get("related_product_id") or "") == related_product_id
+            and row.get("status") not in {"completed", "cancelled", "failed"}
+            for row in active_queue.values()
+        )
+    if already_linked:
         return None
 
     anchor = get_last_channel_published_at(state) or current
-    related_product = None
-    related_product_id = ""
-    if next_product:
-        related_product_id, product_entry, product_at = next_product
-        related_product = (
-            product_entry.get("payload")
-            if isinstance(product_entry.get("payload"), dict) else {}
+    gap_seconds = max(0.0, (product_at - anchor).total_seconds())
+    if gap_seconds <= 0:
+        return None
+    scheduled_at = anchor + timedelta(seconds=gap_seconds / 2)
+    if scheduled_at <= current:
+        print(
+            "EDITORIAL_MIDPOINT_PASSED "
+            f"product_id={related_product_id} product_slot={product_at.isoformat()}"
         )
-        # Only one editorial may be attached to a given product slot.
-        history = state.get("editorial_delivery_history")
-        history = history if isinstance(history, list) else []
-        already_linked = any(
-            str(row.get("related_product_id") or "") == related_product_id
-            for row in history if isinstance(row, dict)
-        )
-        active_queue = state.get("editorial_delivery_queue")
-        if isinstance(active_queue, dict):
-            already_linked = already_linked or any(
-                isinstance(row, dict)
-                and str(row.get("related_product_id") or "") == related_product_id
-                and row.get("status") not in {"completed", "cancelled", "failed"}
-                for row in active_queue.values()
-            )
-        if already_linked:
-            return None
-
-        gap_seconds = int((product_at - anchor).total_seconds())
-        minimum_gap = MINIMUM_PRODUCT_GAP_MINUTES * 60
-        if gap_seconds < 2 * minimum_gap:
-            print(
-                "EDITORIAL_FALLBACK_NO_ROOM "
-                f"product_id={related_product_id} gap_minutes={round(gap_seconds / 60, 1)}"
-            )
-            return None
-        scheduled_at = anchor + timedelta(seconds=gap_seconds // 2)
-        if scheduled_at < current:
-            scheduled_at = current
-        if (scheduled_at - anchor).total_seconds() < minimum_gap or (
-            product_at - scheduled_at
-        ).total_seconds() < minimum_gap:
-            return None
-    else:
-        # When no product is waiting, use the reviewed bank at a slower standalone pace.
-        if anchor and current - anchor < timedelta(minutes=STANDALONE_EDITORIAL_GAP_MINUTES):
-            remaining = max(
-                0,
-                int((timedelta(minutes=STANDALONE_EDITORIAL_GAP_MINUTES) - (current - anchor)).total_seconds()),
-            )
-            print(f"EDITORIAL_FALLBACK_NOT_DUE remaining_seconds={remaining}")
-            return None
-        scheduled_at = current
+        return None
 
     if radar.daily_channel_posts_count(state, current) >= radar.MAX_DAILY_CHANNEL_POSTS:
         print(
@@ -251,11 +256,11 @@ def queue_editorial_if_due(
         print("EDITORIAL_FALLBACK_EMPTY reason=no_valid_reviewed_item_or_bank_cycle")
         return None
 
+    item["related_product_image_url"] = str(related_product.get("image_url") or "")
+    item["related_product_title"] = str(related_product.get("title") or "")[:180]
     sequence_number = allocate_publication_sequence(state)
     item["sequence_number"] = sequence_number
-    if related_product_id:
-        item["related_product_id"] = related_product_id
-        item["related_product_title"] = str(related_product.get("title") or "")[:180]
+    item["related_product_id"] = related_product_id
     queue = state.setdefault("editorial_delivery_queue", {})
     if not isinstance(queue, dict):
         queue = {}
@@ -281,31 +286,131 @@ def queue_editorial_if_due(
     print(
         "EDITORIAL_FALLBACK_QUEUED "
         f"content_id={item['content_id']} sequence={sequence_number} "
-        f"related_product_id={related_product_id or 'none'} "
-        f"scheduled_at={scheduled_at.isoformat()}"
+        f"related_product_id={related_product_id} "
+        f"scheduled_at={scheduled_at.isoformat()} "
+        f"product_slot={product_at.isoformat()}"
     )
     return entry
 
 
-def _format_message(item: dict) -> str:
+def _source_organization(source: dict) -> str:
+    url = str(source.get("url") or "").strip().lower()
+    title = str(source.get("title") or "").strip()
+    if "consumer.ftc.gov" in url or "ftc.gov" in url:
+        return "کمیسیون تجارت فدرال آمریکا (FTC)"
+    if "digikala.com/mag" in url:
+        return "دیجی‌کالا مگ"
+    if "digikala.com" in url:
+        return "دیجی‌کالا"
+    return str(source.get("publisher") or source.get("organization") or title or "منبع معتبر").strip()
+
+
+def _source_display_title(source: dict) -> str:
+    """Prefer a concise Persian label while retaining the exact source URL."""
+    source_id = str(source.get("source_id") or "").strip().lower()
+    localized = {
+        "ftc-infographic": "اینفوگرافیک خرید اینترنتی",
+        "ftc-online-shopping": "راهنمای خرید اینترنتی",
+        "ftc-marketplace": "راهنمای خرید از بازارگاه آنلاین",
+    }
+    return str(
+        source.get("title_fa")
+        or localized.get(source_id)
+        or source.get("title")
+        or "راهنمای رسمی"
+    ).strip()
+
+
+def _topic_emoji(item: dict) -> str:
+    topic = str(item.get("topic") or "").strip().lower()
+    mapping = {
+        "purchase-planning": "🛒",
+        "review-literacy": "⭐",
+        "seller-check": "🛍️",
+        "purchase-records": "🧾",
+        "product-inspection": "🔎",
+        "total-cost": "💰",
+        "fit-and-size": "📏",
+        "device-compatibility": "🔌",
+        "security": "🔐",
+        "account-security": "🔐",
+        "privacy": "🛡️",
+        "parcel-check": "📦",
+        "delivery": "🚚",
+        "home-care": "🏠",
+        "mobile": "📱",
+    }
+    return mapping.get(topic, "💡")
+
+
+def _format_message(item: dict, *, html_mode: bool = True, platform: str = "telegram") -> str:
+    """Build a readable Persian post with attributed source lines and a clickable CTA."""
+    title = str(item.get("title") or "").strip()
+    body = str(item.get("body") or "").strip()
+    emoji = _topic_emoji(item)
+    source_rows = [
+        source for source in (item.get("sources") or [])
+        if isinstance(source, dict) and str(source.get("url") or "").startswith("https://")
+    ][:2]
+    channel_urls = {
+        "telegram": "https://t.me/OfferChin",
+        "bale": "https://ble.ir/OfferChin",
+        "rubika": "https://rubika.ir/offerchin",
+        "eitaa": str(os.getenv("EITAA_CHANNEL_URL") or "").strip(),
+    }
+    channel_url = channel_urls.get(platform) or channel_urls["telegram"]
+
     lines = [
         "🧭 راهنمای کاربردی آفِرچین",
         "",
-        str(item.get("title") or "").strip(),
+        f"{emoji} {title}",
         "",
-        str(item.get("body") or "").strip(),
+        body,
         "",
         "منابع:",
     ]
-    for source in item.get("sources") or []:
-        if isinstance(source, dict):
-            title = str(source.get("title") or "منبع")
-            url = str(source.get("url") or "")
-            if url.startswith("https://"):
-                lines.append(f"• {title}: {url}")
-    lines.extend(["", "آفِرچین | t.me/OfferChin"])
-    message = "\n".join(lines)
-    return message[:3900]
+    for source in source_rows:
+        organization = _source_organization(source)
+        source_title = _source_display_title(source)
+        url = str(source.get("url") or "").strip()
+        lines.extend([
+            f"• {organization} — «{source_title}»:",
+            url,
+            "",
+        ])
+    lines.extend([
+        "آفِرچین",
+        "t.me/OfferChin" if platform == "telegram" else channel_url,
+    ])
+
+    if not html_mode:
+        return "\n".join(lines).rstrip()[:3400]
+
+    rendered = [
+        "🧭 <b>راهنمای کاربردی آفِرچین</b>",
+        "",
+        f"{emoji} <b>{html.escape(title)}</b>",
+        "",
+        html.escape(body),
+        "",
+        "<b>منابع:</b>",
+    ]
+    for source in source_rows:
+        organization = _source_organization(source)
+        source_title = _source_display_title(source)
+        url = str(source.get("url") or "").strip()
+        escaped_url = html.escape(url, quote=True)
+        rendered.extend([
+            f"• {html.escape(organization)} — «{html.escape(source_title)}»:",
+            f'<a href="{escaped_url}">{html.escape(url)}</a>',
+            "",
+        ])
+    escaped_channel = html.escape(channel_url, quote=True)
+    rendered.extend([
+        "<b>آفِرچین</b>",
+        f'<a href="{escaped_channel}">عضویت در کانال آفِرچین</a>',
+    ])
+    return "\n".join(rendered).rstrip()[:1000]
 
 
 def _send_bot_message(platform: str, message: str) -> dict:
@@ -321,15 +426,51 @@ def _send_bot_message(platform: str, message: str) -> dict:
         raise ValueError("unsupported_bot_message_destination")
     if not token or not chat_id:
         raise RuntimeError("destination_credentials_missing")
+    payload_data = {"chat_id": chat_id, "text": message, "disable_web_page_preview": "true"}
+    if "<a href=" in message:
+        payload_data["parse_mode"] = "HTML"
     response = requests.post(
         endpoint,
-        data={"chat_id": chat_id, "text": message, "disable_web_page_preview": "true"},
+        data=payload_data,
         timeout=(15, 45),
     )
     response.raise_for_status()
     payload = response.json()
     if payload.get("ok") is not True or not isinstance(payload.get("result"), dict):
         raise RuntimeError(f"{platform}_send_message_not_confirmed")
+    result = payload["result"]
+    message_id = result.get("message_id") or result.get("id")
+    if message_id in (None, ""):
+        return {"api_accepted": True}
+    return {"message_id": str(message_id)}
+
+
+def _send_bot_photo(platform: str, image_bytes: bytes, caption: str) -> dict:
+    if platform == "telegram":
+        token = radar.BOT_TOKEN
+        chat_id = radar.TARGET_CHAT
+        endpoint = f"https://api.telegram.org/bot{token}/sendPhoto"
+    elif platform == "bale":
+        token = radar.BALE_BOT_TOKEN
+        chat_id = radar.BALE_CHANNEL_ID
+        endpoint = f"https://tapi.bale.ai/bot{token}/sendPhoto"
+    else:
+        raise ValueError("unsupported_bot_photo_destination")
+    if not token or not chat_id:
+        raise RuntimeError("destination_credentials_missing")
+    data = {"chat_id": chat_id, "caption": caption[:1000]}
+    if "<a href=" in caption:
+        data["parse_mode"] = "HTML"
+    response = requests.post(
+        endpoint,
+        data=data,
+        files={"photo": ("offerchin-editorial.png", image_bytes, "image/png")},
+        timeout=(15, 90),
+    )
+    response.raise_for_status()
+    payload = response.json()
+    if payload.get("ok") is not True or not isinstance(payload.get("result"), dict):
+        raise RuntimeError(f"{platform}_send_photo_not_confirmed")
     result = payload["result"]
     message_id = result.get("message_id") or result.get("id")
     if message_id in (None, ""):
@@ -568,7 +709,10 @@ def _handle_channel_destination(
     _save(state)
     try:
         if destination in {"telegram", "bale"}:
-            receipt = _send_bot_message(destination, message)
+            receipt = (
+                _send_bot_photo(destination, image_bytes, message)
+                if image_bytes else _send_bot_message(destination, message)
+            )
         elif destination == "rubika":
             receipt = _send_rubika_image(image_bytes, message)
         else:
@@ -790,12 +934,7 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
     pending_videos = _pending_product_video_exists(state)
     shadow_state_for_anchor = json.loads(json.dumps(state, ensure_ascii=False, default=str))
     anchor = _recent_attempt_anchor(shadow_state_for_anchor)
-    elapsed = (current - anchor) if anchor else None
-    remaining = (
-        max(0, int((timedelta(minutes=STANDALONE_EDITORIAL_GAP_MINUTES) - elapsed).total_seconds()))
-        if elapsed is not None and elapsed < timedelta(minutes=STANDALONE_EDITORIAL_GAP_MINUTES)
-        else 0
-    )
+    remaining = 0
 
     destination_config = {
         "telegram": bool(radar.BOT_TOKEN and radar.TARGET_CHAT),
@@ -836,22 +975,31 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         decision = "wait_for_older_product_video_fifo"
         item_id = None
         sequence = None
-    elif remaining:
-        decision = "wait_for_55_minute_fallback_interval"
-        item_id = None
-        sequence = None
     else:
-        # Simulate enqueue against a JSON copy only. The live state and queue are read-only.
-        shadow_state = json.loads(json.dumps(state, ensure_ascii=False, default=str))
-        candidate = select_editorial_fallback(bank, shadow_state, now=current)
-        if candidate is None:
-            decision = "no_valid_nonrepeating_reviewed_item"
+        # Editorial may only occupy a midpoint before a product already selected.
+        # The shadow report must never predict a standalone editorial post.
+        candidate_product = _next_product_slot(state, current)
+        if candidate_product is None:
+            decision = "wait_for_selected_product_slot"
             item_id = None
             sequence = None
         else:
-            sequence = allocate_publication_sequence(shadow_state)
-            decision = "would_queue_editorial"
-            item_id = str(candidate.get("content_id") or "")
+            shadow_state = json.loads(json.dumps(state, ensure_ascii=False, default=str))
+            candidate = select_editorial_fallback(
+                bank, shadow_state, now=current,
+                related_product=(
+                    candidate_product[1].get("payload")
+                    if isinstance(candidate_product[1].get("payload"), dict) else {}
+                ),
+            )
+            if candidate is None:
+                decision = "no_valid_nonrepeating_reviewed_item"
+                item_id = None
+                sequence = None
+            else:
+                sequence = allocate_publication_sequence(shadow_state)
+                decision = "would_queue_editorial_before_product"
+                item_id = str(candidate.get("content_id") or "")
 
     return {
         "observed_at": current.astimezone(timezone.utc).isoformat(),
@@ -860,8 +1008,7 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         "decision": decision,
         "would_select_content_id": item_id,
         "would_allocate_sequence_number": sequence,
-        "fallback_interval_minutes": STANDALONE_EDITORIAL_GAP_MINUTES,
-        "seconds_until_fallback_due": remaining,
+        "requires_selected_product_slot": True,
         "editorial_bank_total": len(bank),
         "editorial_bank_valid": len(valid_items),
         "editorial_bank_invalid": invalid_items,
@@ -918,8 +1065,12 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         except Exception as exc:
             print(f"EDITORIAL_POSTER_RENDER_FAILED error={type(exc).__name__}")
             return 1
-        message = _format_message(payload)
         for destination in CHANNEL_DESTINATIONS:
+            message = _format_message(
+                payload,
+                html_mode=destination in {"telegram", "bale"},
+                platform=destination,
+            )
             _handle_channel_destination(state, entry, destination, image_bytes, message, _now())
     else:
         # Keep all older product videos ahead of a newer editorial video.

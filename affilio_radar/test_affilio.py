@@ -28,6 +28,7 @@ from affilio_radar import (
     has_publishable_expiry_or_open_offer,
     parse_snappshop_product_api,
     fetch_product_record,
+    restore_emergency_snapshot_identity_title,
     is_urgent_priority_deal,
     is_deadline_critical_deal,
     is_materially_improved_offer,
@@ -63,6 +64,7 @@ from affilio_radar import (
     unicode_strikethrough,
     _money_to_toman,
     api_search_product_urls,
+    search_digikala_v2_product_urls,
     api_incredible_offer_product_urls,
     api_incredible_offer_product_candidates,
     discover_product_urls,
@@ -105,7 +107,6 @@ from affilio_radar import (
     _retain_superseded_youtube_video,
     VIDEO_STYLE_VERSION,
     YOUTUBE_UPLOAD_INTERVAL_HOURS,
-    MIN_POST_INTERVAL_HOURS,
     VIDEO_DISPATCH_STATE_RECORD_LIMIT,
     VIDEO_UPLOAD_CANDIDATE_LIMIT,
     effective_posts_per_run,
@@ -198,6 +199,48 @@ class AffilioRadarTests(unittest.TestCase):
 
     def test_emergency_continuity_snapshot_loader_is_available_for_direct_script_import(self):
         self.assertTrue(callable(radar_module.load_emergency_continuity_candidates))
+
+    def test_emergency_snapshot_title_is_identity_only_and_requires_exact_product_match(self):
+        url = "https://www.digikala.com/product/dkp-12345/"
+        live = {
+            "product_id": "dkp-12345",
+            "title": "",
+            "current_price": 1_250_000,
+            "availability": "in_stock",
+            "image_url": "https://dkstatics-public.digikala.com/live.jpg",
+        }
+        lead = {
+            "product_id": "dkp-12345",
+            "product_url": url,
+            "title": "هدفون بی‌سیم مدل آزمایشی",
+            "brand": "نمونه",
+            "source": "digikala_emergency_last_clean_snapshot",
+            "current_price": 1,
+            "discount_percent": 99,
+            "availability": "out_of_stock",
+        }
+        restored = restore_emergency_snapshot_identity_title(live, lead, url)
+        self.assertEqual(restored["title"], "هدفون بی‌سیم مدل آزمایشی")
+        self.assertEqual(restored["current_price"], 1_250_000)
+        self.assertEqual(restored["availability"], "in_stock")
+        self.assertNotIn("discount_percent", restored)
+        self.assertEqual(
+            restored["title_source"],
+            "hash_pinned_last_clean_catalog_snapshot_identity_only",
+        )
+
+        wrong_id = restore_emergency_snapshot_identity_title(
+            live, {**lead, "product_id": "dkp-999"}, url
+        )
+        self.assertEqual(wrong_id["title"], "")
+        wrong_source = restore_emergency_snapshot_identity_title(
+            live, {**lead, "source": "unverified_catalog"}, url
+        )
+        self.assertEqual(wrong_source["title"], "")
+        wrong_live_id = restore_emergency_snapshot_identity_title(
+            {**live, "product_id": "dkp-54321"}, lead, url
+        )
+        self.assertEqual(wrong_live_id["title"], "")
 
     def test_demand_context_precedes_discount_but_clicks_and_synthetic_scores_are_ignored(self):
         now = datetime(2026, 10, 28, tzinfo=timezone.utc)
@@ -894,6 +937,48 @@ class AffilioRadarTests(unittest.TestCase):
             ],
         )
 
+    def test_search_api_v2_resolves_autocomplete_category_and_fetches_marketable_cards(self):
+        class Response:
+            def __init__(self, payload):
+                self.payload = payload
+                self.status_code = 200
+                self.content = json.dumps(payload).encode("utf-8")
+            def raise_for_status(self):
+                return None
+            def json(self):
+                return self.payload
+
+        class Session:
+            def __init__(self):
+                self.calls = []
+            def get(self, url, params=None, timeout=None):
+                self.calls.append((url, params))
+                if "/v1/autocomplete/" in url:
+                    return Response({"data": {"categories": [
+                        {"keyword": "گوشی سامسونگ", "category": {"id": 77, "title_fa": "موبایل"}},
+                    ]}})
+                return Response({"data": {"widgets": [{
+                    "type": "vertical_product_listing",
+                    "data": {"widgets": [
+                        {"type": "product", "data": {
+                            "id": 12345, "title_fa": "گوشی سامسونگ مدل آزمایشی",
+                            "url": {"uri": "/product/dkp-12345/test/"},
+                            "status": "marketable", "default_variant": {},
+                        }},
+                    ]},
+                }]}})
+
+        session = Session()
+        urls, diagnostics = search_digikala_v2_product_urls(
+            "گوشی سامسونگ", session=session, category_limit=2
+        )
+        self.assertEqual(urls, ["https://www.digikala.com/product/dkp-12345/"])
+        self.assertEqual(len(diagnostics), 1)
+        self.assertIn("/v1/autocomplete/", session.calls[0][0])
+        self.assertIn("/v2/category/77/", session.calls[1][0])
+        self.assertEqual(session.calls[1][1]["q"], "گوشی سامسونگ")
+        self.assertEqual(session.calls[1][1]["sort"], 7)
+
     def test_incredible_offers_parser_keeps_discounted_product_urls_only(self):
         payload = {
             "data": {
@@ -1399,7 +1484,7 @@ class AffilioRadarTests(unittest.TestCase):
         )
 
 
-    def test_video_dispatch_state_schedules_standalone_editorial_after_55_minutes(self):
+    def test_video_dispatch_state_never_schedules_standalone_editorial_without_product_slot(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
         state = {
             "last_channel_published_at": now.isoformat(),
@@ -1407,10 +1492,7 @@ class AffilioRadarTests(unittest.TestCase):
             "published": {},
         }
         compact = radar_module.build_video_upload_dispatch_state(state, now=now)
-        self.assertEqual(
-            compact["next_editorial_planning_at"],
-            (now + timedelta(minutes=65)).isoformat(),
-        )
+        self.assertIsNone(compact["next_editorial_planning_at"])
 
     def test_video_dispatch_state_wakes_at_related_editorial_midpoint(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
@@ -1436,7 +1518,7 @@ class AffilioRadarTests(unittest.TestCase):
             (now + timedelta(hours=1)).isoformat(),
         )
 
-    def test_video_dispatch_state_skips_editorial_midpoint_when_gap_is_too_short(self):
+    def test_video_dispatch_state_uses_midpoint_without_a_minimum_gap(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
         product_at = now + timedelta(minutes=50)
         state = {
@@ -1455,7 +1537,10 @@ class AffilioRadarTests(unittest.TestCase):
             "published": {},
         }
         compact = radar_module.build_video_upload_dispatch_state(state, now=now)
-        self.assertIsNone(compact["next_editorial_planning_at"])
+        self.assertEqual(
+            compact["next_editorial_planning_at"],
+            (now + timedelta(minutes=25)).isoformat(),
+        )
 
     def test_video_dispatch_state_exposes_only_active_hash_pinned_emergency_continuity(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
@@ -5175,10 +5260,13 @@ class AffilioRadarTests(unittest.TestCase):
             "YouTube channel IDs should appear before product details",
         )
 
-    def test_publication_interval_is_27_minutes(self):
-        self.assertAlmostEqual(MIN_POST_INTERVAL_HOURS, 27 / 60)
-        self.assertEqual(radar_module.URGENT_MIN_POST_INTERVAL_MINUTES, 27)
-        self.assertEqual(radar_module.ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES, 27)
+    def test_channel_publication_has_no_global_interval_or_urgency_override(self):
+        self.assertFalse(hasattr(radar_module, "MIN_POST_INTERVAL_HOURS"))
+        self.assertFalse(hasattr(radar_module, "URGENT_MIN_POST_INTERVAL_MINUTES"))
+        self.assertFalse(hasattr(radar_module, "ULTRA_URGENT_MIN_POST_INTERVAL_MINUTES"))
+        source = Path(radar_module.__file__).read_text(encoding="utf-8")
+        self.assertNotIn("AFFILIO_MIN_POST_INTERVAL_HOURS", source)
+        self.assertNotIn("cooldown_remaining", source)
 
     def test_video_upload_candidate_limit_covers_dispatch_sidecar(self):
         self.assertEqual(VIDEO_UPLOAD_CANDIDATE_LIMIT, VIDEO_DISPATCH_STATE_RECORD_LIMIT)

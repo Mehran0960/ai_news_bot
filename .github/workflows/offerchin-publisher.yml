@@ -17,7 +17,7 @@ on:
       - main
     paths:
       - ".github/workflows/offerchin-publisher.yml"
-  # Cloudflare checks every minute and dispatches at the next queued product/editorial slot, respecting 27 minutes minimum.
+  # Cloudflare checks every minute and dispatches only when the next product or midpoint-editorial slot is due.
   # [publisher-run-now] One-time resume after channel-publication clock repair.
   # [publisher-run-now] One-time retry after transient image-fetch and stale-selection fixes.
   # [publisher-run-now] One-time verify active-queue cadence repair.
@@ -116,7 +116,8 @@ jobs:
             test_affilio.AffilioRadarTests.test_all_real_discount_bands_compete_without_a_percentage_or_saving_floor \
             test_affilio.AffilioRadarTests.test_last_mile_photo_sender_accepts_a_49_percent_offer_with_real_markdown \
             test_affilio.AffilioRadarTests.test_preferred_posting_windows_use_iran_local_time \
-            test_affilio.AffilioRadarTests.test_publication_interval_is_27_minutes \
+            test_affilio.AffilioRadarTests.test_video_dispatch_state_never_schedules_standalone_editorial_without_product_slot \
+            test_affilio.AffilioRadarTests.test_video_dispatch_state_uses_midpoint_without_a_minimum_gap \
             test_affilio.AffilioRadarTests.test_video_upload_candidate_limit_covers_dispatch_sidecar \
             test_affilio.AffilioRadarTests.test_fresh_bestseller_rank_changes_demand_ranking_but_clicks_do_not \
             test_affilio.AffilioRadarTests.test_scoring_does_not_generate_popularity_or_demand_scores \
@@ -191,7 +192,6 @@ jobs:
           AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS: "250"
           AFFILIO_MCP_PAGES_PER_SCAN: "5"
           AFFILIO_AUTOPUBLISH: "false"
-          AFFILIO_MIN_POST_INTERVAL_HOURS: "0.45"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "0"
           AFFILIO_COUNTDOWN_SAFETY_BUFFER_MINUTES: "10"
           AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS: "250"
@@ -218,7 +218,6 @@ jobs:
           AFFILIO_PUBLISHER_BATCH_SIZE: "1"
           AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "250"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "0"
-          AFFILIO_MIN_POST_INTERVAL_HOURS: "0.45"
           AFFILIO_MAX_DAILY_CHANNEL_POSTS: "72"
           OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: "true"
           PYTHONUNBUFFERED: "1"
@@ -236,7 +235,6 @@ jobs:
           EITAA_BOT_TOKEN: ${{ secrets.EITAA_BOT_TOKEN }}
           EITAA_CHANNEL_ID: ${{ secrets.EITAA_CHANNEL_ID }}
           EITAA_ENABLE_PUBLISHING: ${{ vars.EITAA_ENABLE_PUBLISHING || 'false' }}
-          OFFERCHIN_EDITORIAL_GAP_MINUTES: "55"
           OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: "true"
           PYTHONUNBUFFERED: "1"
         run: |

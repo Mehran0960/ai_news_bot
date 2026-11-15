@@ -52,7 +52,7 @@ class EditorialPublisherTests(unittest.TestCase):
         with patch.dict(os.environ, {}, clear=True):
             self.assertIsNone(editorial_fifo_lock_entry(state))
 
-    def test_editorial_fifo_lock_activates_only_with_explicit_flag(self):
+    def test_editorial_never_locks_or_delays_a_product(self):
         state = {
             "editorial_delivery_queue": {
                 "editorial:test": {
@@ -63,10 +63,14 @@ class EditorialPublisherTests(unittest.TestCase):
                         "youtube": {"status": "pending"},
                     },
                 }
+            },
+            "content_delivery_queue": {
+                "dkp-product": {"content_type": "product", "status": "queued",
+                    "scheduled_at": (NOW + timedelta(seconds=1)).isoformat()}
             }
         }
         with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
-            self.assertEqual(editorial_fifo_lock_entry(state)["sequence_number"], 4)
+            self.assertIsNone(editorial_fifo_lock_entry(state))
 
     def test_editorial_lock_releases_after_core_photo_channels_are_terminal(self):
         state = {
@@ -88,7 +92,7 @@ class EditorialPublisherTests(unittest.TestCase):
         with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
             self.assertIsNone(editorial_fifo_lock_entry(state))
 
-    def test_editorial_lock_still_waits_for_a_core_photo_channel(self):
+    def test_editorial_photo_retry_does_not_block_due_product_slot(self):
         state = {
             "editorial_delivery_queue": {
                 "editorial:test": {
@@ -103,21 +107,23 @@ class EditorialPublisherTests(unittest.TestCase):
                         "filo": {"status": "uploaded"},
                     },
                 }
+            },
+            "content_delivery_queue": {
+                "dkp-product": {"content_type": "product", "status": "queued",
+                    "scheduled_at": NOW.isoformat()}
             }
         }
-        with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_PUBLISH_ENABLED": "true"}, clear=True):
-            self.assertEqual(editorial_fifo_lock_entry(state)["sequence_number"], 4)
+        self.assertIsNone(editorial_fifo_lock_entry(state))
 
-    def test_editorial_gets_shared_monotonic_sequence(self):
+    def test_editorial_never_publishes_without_a_selected_product_slot(self):
         state = {
             "publication_sequence_counter": 12,
-            "last_channel_published_at": (NOW - timedelta(minutes=60)).isoformat(),
+            "last_channel_published_at": (NOW - timedelta(days=10)).isoformat(),
         }
         entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
-        self.assertEqual(entry["sequence_number"], 13)
-        self.assertEqual(entry["content_type"], "editorial")
-        self.assertEqual(entry["payload"]["content_id"], "editorial:test-guide")
-        self.assertEqual(state["publication_sequence_counter"], 13)
+        self.assertIsNone(entry)
+        self.assertFalse(state.get("editorial_delivery_queue"))
+        self.assertEqual(state["publication_sequence_counter"], 12)
 
     def test_editorial_fallback_obeys_shared_daily_channel_post_cap(self):
         state = {}
@@ -127,10 +133,26 @@ class EditorialPublisherTests(unittest.TestCase):
             self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
         self.assertFalse(state.get("editorial_delivery_queue"))
 
-    def test_editorial_does_not_preempt_recent_channel_publication(self):
-        state = {"last_channel_published_at": (NOW - timedelta(minutes=20)).isoformat()}
-        self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
-        self.assertFalse(state.get("editorial_delivery_queue"))
+    def test_editorial_midpoint_is_based_on_scan_slot_not_a_minute_floor(self):
+        product_at = NOW + timedelta(hours=2)
+        state = {
+            "last_channel_published_at": (NOW - timedelta(minutes=20)).isoformat(),
+            "content_delivery_queue": {
+                "dkp-next": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": product_at.isoformat(),
+                    "payload": {"product_id": "dkp-next", "title": "گوشی هوشمند"},
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                }
+            },
+        }
+        entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
+        self.assertIsNotNone(entry)
+        self.assertEqual(
+            datetime.fromisoformat(entry["scheduled_at"]),
+            NOW + timedelta(minutes=50),
+        )
 
     def test_editorial_does_not_preempt_a_due_product_slot(self):
         state = {
@@ -158,6 +180,15 @@ class EditorialPublisherTests(unittest.TestCase):
                     "filo_upload_status": "uploaded",
                 }
             },
+            "content_delivery_queue": {
+                "dkp-next": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": (NOW + timedelta(hours=2)).isoformat(),
+                    "payload": {"product_id": "dkp-next", "title": "گوشی هوشمند"},
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                }
+            },
         }
         entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
         self.assertIsNotNone(entry)
@@ -168,6 +199,7 @@ class EditorialPublisherTests(unittest.TestCase):
         product = {
             "product_id": "dkp-related",
             "title": "گوشی هوشمند",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/test.jpg",
             "offerchin_four_factor": {"generality_group": "mobile_productivity"},
         }
         state = {
@@ -192,15 +224,37 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertEqual(entry["related_product_id"], "dkp-related")
         self.assertEqual(entry["payload"]["editorial_id"], "device-fit")
         self.assertEqual(
+            entry["payload"]["related_product_image_url"],
+            "https://dkstatics-public.digikala.com/digikala-products/test.jpg",
+        )
+        self.assertEqual(
             datetime.fromisoformat(entry["scheduled_at"]),
             NOW + timedelta(hours=1),
         )
 
-    def test_editorial_message_contains_sources(self):
-        message = _format_message(editorial_item())
-        self.assertIn("منابع:", message)
-        self.assertIn("https://consumer.ftc.gov/articles/online-shopping", message)
-        self.assertIn("راهنمای کوتاه خرید آگاهانه", message)
+    def test_editorial_message_has_separated_attributed_clickable_sources_and_cta(self):
+        message = _format_message(editorial_item(), html_mode=True, platform="telegram")
+        self.assertIn("<b>منابع:</b>", message)
+        self.assertIn("کمیسیون تجارت فدرال آمریکا (FTC)", message)
+        self.assertIn("«منبع رسمی راهنمای خرید»:", message)
+        self.assertIn('href="https://consumer.ftc.gov/articles/online-shopping"', message)
+        self.assertIn('href="https://t.me/OfferChin">عضویت در کانال آفِرچین</a>', message)
+        plain = _format_message(editorial_item(), html_mode=False, platform="bale")
+        self.assertIn("منابع:\n• کمیسیون تجارت فدرال آمریکا (FTC)", plain)
+        self.assertIn("\nhttps://consumer.ftc.gov/articles/online-shopping", plain)
+        self.assertIn("https://ble.ir/OfferChin", plain)
+
+    def test_known_ftc_sources_are_labeled_in_persian_with_clear_organization(self):
+        item = editorial_item()
+        item["sources"] = [{
+            "source_id": "ftc-online-shopping",
+            "title": "Online Shopping – Consumer Advice",
+            "url": "https://consumer.ftc.gov/articles/online-shopping",
+        }]
+        message = _format_message(item, html_mode=True, platform="telegram")
+        self.assertIn("کمیسیون تجارت فدرال آمریکا (FTC) — «راهنمای خرید اینترنتی»:", message)
+        self.assertIn('href="https://consumer.ftc.gov/articles/online-shopping"', message)
+        self.assertIn('href="https://t.me/OfferChin">عضویت در کانال آفِرچین</a>', message)
 
     def test_video_fifo_uses_canonical_sequence_for_timestamp_ties(self):
         same_timestamp = NOW.timestamp()
@@ -227,6 +281,24 @@ class EditorialPublisherTests(unittest.TestCase):
         image = Image.open(BytesIO(poster))
         self.assertEqual(image.size, (720, 1280))
         self.assertEqual(image.format, "PNG")
+        # An original topic illustration fills the visual area when no cleared photo exists.
+        self.assertNotEqual(image.getpixel((360, 310)), (14, 25, 43))
+
+    def test_telegram_and_bale_editorial_photo_paths_use_send_photo(self):
+        state = {}
+        entry = {
+            "content_id": "editorial:test-guide",
+            "payload": {"editorial_id": "test-guide", "topic": "test-topic"},
+            "platforms": {},
+        }
+        with patch("editorial_publisher._destination_ready", return_value=(True, "")), \
+             patch("editorial_publisher._send_bot_photo", return_value={"message_id": "12345"}) as sender, \
+             patch("editorial_publisher._save"):
+            _handle_channel_destination(
+                state, entry, "telegram", b"png-bytes", "editorial test", NOW
+            )
+        sender.assert_called_once_with("telegram", b"png-bytes", "editorial test")
+        self.assertEqual(entry["platforms"]["telegram"]["status"], "sent")
 
     def test_api_acceptance_without_message_id_is_manual_review(self):
         state = {}
