@@ -1551,6 +1551,94 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(radar_module.FAMILY_REPEAT_COOLDOWN_HOURS, 24)
         self.assertEqual(radar_module.BRAND_REPEAT_COOLDOWN_HOURS, 24)
         self.assertEqual(radar_module.PUBLICATION_SIMILARITY_COOLDOWN_HOURS, 24)
+        self.assertEqual(radar_module.PUBLICATION_CATEGORY_REPEAT_COOLDOWN_HOURS, 6)
+        self.assertEqual(radar_module.PUBLICATION_USE_CASE_REPEAT_COOLDOWN_HOURS, 2)
+
+    def test_catalog_category_guard_is_independent_and_expires_after_six_hours(self):
+        now = datetime(2026, 11, 16, 12, 0, tzinfo=timezone.utc)
+        previous = {
+            "product_id": "dkp-old-book",
+            "title": "کتاب آشپزی ایتالیایی با دستورهای سنتی",
+            "catalog_category_id": "book-leaf-17",
+            "catalog_category_name": "کتاب‌های آموزشی",
+            "ts": (now - timedelta(hours=3)).timestamp(),
+        }
+        candidate = {
+            "product_id": "dkp-new-book",
+            "title": "کتاب آموزش تعمیرات لپ تاپ و قطعات رایانه",
+            "catalog_category_id": "book-leaf-17",
+            "catalog_category_name": "کتاب‌های آموزشی",
+        }
+        self.assertEqual(radar_module._publication_family_guard_key(previous), "")
+        self.assertEqual(
+            radar_module._publication_category_guard_key(previous),
+            radar_module._publication_category_guard_key(candidate),
+        )
+        self.assertEqual(
+            radar_module._filter_recent_publication_repeats(
+                [candidate], {}, [previous], now
+            ),
+            [],
+        )
+
+        previous["ts"] = (now - timedelta(hours=7)).timestamp()
+        self.assertEqual(
+            radar_module._filter_recent_publication_repeats(
+                [candidate], {}, [previous], now
+            ),
+            [candidate],
+        )
+
+    def test_use_case_guard_blocks_different_families_for_two_hours_only(self):
+        now = datetime(2026, 11, 16, 12, 0, tzinfo=timezone.utc)
+        previous = {
+            "product_id": "dkp-old-phone",
+            "title": "گوشی موبایل سامسونگ Galaxy S24",
+            "catalog_category_id": "smartphone-leaf",
+            "catalog_category_name": "گوشی موبایل",
+            "ts": (now - timedelta(hours=1)).timestamp(),
+        }
+        candidate = {
+            "product_id": "dkp-new-laptop",
+            "title": "لپ تاپ ایسوس Zenbook 14",
+            "catalog_category_id": "laptop-leaf",
+            "catalog_category_name": "لپ تاپ",
+        }
+        self.assertNotEqual(
+            radar_module._publication_family_guard_key(previous),
+            radar_module._publication_family_guard_key(candidate),
+        )
+        self.assertNotEqual(
+            radar_module._publication_category_guard_key(previous),
+            radar_module._publication_category_guard_key(candidate),
+        )
+        self.assertEqual(radar_module._publication_use_case_group(previous), "mobile_productivity")
+        self.assertEqual(radar_module._publication_use_case_group(candidate), "mobile_productivity")
+        self.assertEqual(
+            radar_module._filter_recent_publication_repeats(
+                [candidate], {}, [previous], now
+            ),
+            [],
+        )
+
+        previous["ts"] = (now - timedelta(hours=3)).timestamp()
+        self.assertEqual(
+            radar_module._filter_recent_publication_repeats(
+                [candidate], {}, [previous], now
+            ),
+            [candidate],
+        )
+
+    def test_explicit_brand_metadata_is_normalized_for_repeat_guards(self):
+        self.assertEqual(
+            radar_module._extract_brand_name({"title_fa": "سامسونگ", "title_en": "Samsung"}),
+            "سامسونگ",
+        )
+        _category, _family, brand = radar_module._publication_diversity_group({
+            "title": "هدفون بی سیم مدل Galaxy Buds",
+            "brand": {"title_fa": "سامسونگ", "title_en": "Samsung"},
+        })
+        self.assertEqual(brand, "samsung")
 
     def test_recent_brand_is_blocked_for_24_hours_and_released_afterward(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
@@ -1890,6 +1978,14 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(classify_category("توپ فوتبال مدل نمونه"), "sports_outdoor")
         self.assertEqual(classify_category("لیزر پوینتر ارائه مدل نمونه"), "presentation_tools")
         self.assertEqual(classify_category("لوازم نقاشی و طراحی مدل نمونه"), "arts_crafts")
+        self.assertEqual(classify_category("پودر سیر مثه خودته - 100 گرم"), "grocery_food")
+        self.assertEqual(classify_category("پاستا فوری گوجه ریحان"), "grocery_food")
+        self.assertEqual(classify_category("دستکش نظافت خانگی"), "home_cleaning")
+        self.assertEqual(classify_category("قلم لمسی Stylus برای تبلت"), "digital_accessories")
+        self.assertEqual(
+            radar_module._publication_use_case_group("پودر سیر مثه خودته - 100 گرم"),
+            "grocery_food",
+        )
 
     def test_sesame_cream_sweets_are_not_misclassified_as_skincare(self):
         food = {
@@ -2349,18 +2445,22 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(selected[0]["product_id"], "dkp-eyewear-0")
 
 
-    def test_single_repeated_category_candidate_is_still_publishable(self):
+    def test_distinct_catalog_leaf_in_same_broad_category_remains_eligible_after_short_cooldowns(self):
         now = datetime(2026, 10, 29, 10, 0, tzinfo=timezone.utc)
         published = {
             "dkp-old-audio": {
                 "title": "هدفون بلوتوثی مدل قبلی",
+                "catalog_category_id": "audio-headphones",
+                "catalog_category_name": "هدفون",
                 "telegram_message_id": 1201,
-                "ts": now.timestamp() - 60,
+                "ts": now.timestamp() - timedelta(hours=3).total_seconds(),
             }
         }
         candidate = {
             "product_id": "dkp-only-audio",
             "title": "اسپیکر بلوتوثی مدل فعلی",
+            "catalog_category_id": "audio-speakers",
+            "catalog_category_name": "اسپیکر",
             "demand_score": 60,
             "discount_percent": 55,
             "review_count": 500,
