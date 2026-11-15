@@ -2238,7 +2238,7 @@
 
 **هدف:** رفع مانع اتصال API که باعث صفرشدن انتخاب محصول شده، بدون کاهش هیچ‌یک از گیت‌های کیفیت و اعتبارسنجی.
 
-**تغییر/اقدام:** افزودن نشست HTTP مرورگرمحور با curl_cffi و هدرهای XHR برای جزئیات محصول، اعتبارسنجی و هر دو crawler کاتالوگ؛ حفظ endpointها، parserها و همهٔ شروط سخت‌گیرانه. حذف تنظیم‌های منسوخ فاصلهٔ ایمنی/۵۵ دقیقه‌ای از workflowها.
+**تغییر/اقدام:** افزودن نشست HTTP مرورگرمحور با curl_cffi و هدرهای XHR برای جزئیات محصول، اعتبارسنجی و هر دو crawler کاتالوگ؛ حفظ endpointها، parserها و همهٔ شروط سخت‌گیرانه. نصب curl_cffi در هر دو job اسکن کاتالوگ نیز الزامی شد تا transport به fallback عادی تنزل نکند. حذف تنظیم‌های منسوخ فاصلهٔ ایمنی/۵۵ دقیقه‌ای از workflowها.
 
 **فایل‌ها/سامانه‌ها:** `affilio_radar/digikala_http.py`، `affilio_radar/affilio_radar.py`، `affilio_radar/catalog_sweep.py`، `affilio_radar/parallel_catalog_sweep.py`، `affilio_radar/requirements.txt`، workflowهای ناشر/اسکن/تحریریه، تست transport و دفتر راهنمای پروژه.
 
