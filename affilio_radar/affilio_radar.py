@@ -5326,16 +5326,18 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
             already_checked_after_product = bool(
                 last_empty_check and last_empty_check > anchor_at
             )
+            dispatch_runway_seconds = editorial_dispatch_runway_seconds(state)
             midpoint_at = anchor_at + timedelta(seconds=max(0, gap_seconds) / 2)
+            latest_safe_dispatch_at = product_at - timedelta(seconds=dispatch_runway_seconds)
+            planning_at = min(midpoint_at, latest_safe_dispatch_at)
             if (
                 not already_linked
                 and not already_checked_after_product
-                and gap_seconds > 0
-                and gap_seconds / 2 >= editorial_dispatch_runway_seconds(state)
-                and midpoint_at > current
+                and gap_seconds > dispatch_runway_seconds
+                and planning_at > current
                 and product_at > current
             ):
-                next_editorial_planning_at = midpoint_at.isoformat()
+                next_editorial_planning_at = planning_at.isoformat()
     # No product slot means no editorial wake-up. Editorial is not a standalone post.
 
     emergency_record = state.get("emergency_continuity") if isinstance(state, dict) else None
