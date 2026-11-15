@@ -371,6 +371,106 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(get.call_args.kwargs["headers"]["Origin"], "https://snappshop.ir")
 
 
+    def test_fetch_product_record_uses_current_product_detail_endpoint(self):
+        url = "https://www.digikala.com/product/dkp-22104577/"
+        payload = {
+            "status": 200,
+            "data": {
+                "product": {
+                    "id": 22104577,
+                    "title_fa": "هدفون بلوتوثی دبلیو کی دیزاین مدل INAIR32",
+                    "status": "marketable",
+                    "images": ["https://dkstatics-public.digikala.com/digikala-products/sample.jpg"],
+                    "default_variant": {
+                        "id": 84016750,
+                        "status": "marketable",
+                        "price": {
+                            "selling_price": 19_249_900,
+                            "rrp_price": 25_000_000,
+                        },
+                    },
+                    "variants": [{
+                        "id": 84016750,
+                        "status": "marketable",
+                        "price": {
+                            "selling_price": 19_249_900,
+                            "rrp_price": 25_000_000,
+                        },
+                    }],
+                    "rating": {"rate": 92.0, "count": 120},
+                    "comments_count": 83,
+                }
+            },
+        }
+        response = SimpleNamespace(
+            ok=True,
+            status_code=200,
+            headers={},
+            cookies={},
+            raise_for_status=lambda: None,
+            json=lambda: payload,
+        )
+        with patch("affilio_radar._digikala_get", return_value=response) as request, patch(
+            "affilio_radar.fetch_page"
+        ) as html_fetch:
+            record = fetch_product_record(url)
+        self.assertEqual(
+            request.call_args.args[0],
+            "https://api.digikala.com/product/v1/products/22104577/",
+        )
+        self.assertEqual(record["product_id"], "dkp-22104577")
+        self.assertEqual(record["current_price"], 1_924_990)
+        self.assertEqual(record["original_price"], 2_500_000)
+        self.assertEqual(record["availability"], "in_stock")
+        self.assertEqual(record["review_count"], 83)
+        self.assertTrue(record["image_url"].startswith("https://dkstatics-public.digikala.com/"))
+        html_fetch.assert_not_called()
+
+    def test_parse_product_api_rejects_mismatched_product_identity(self):
+        payload = {
+            "status": 200,
+            "data": {
+                "product": {
+                    "id": 22104578,
+                    "title_fa": "هدفون بلوتوثی دبلیو کی دیزاین مدل INAIR32",
+                    "default_variant": {
+                        "id": 84016750,
+                        "status": "marketable",
+                        "price": {"selling_price": 19_249_900},
+                    },
+                }
+            },
+        }
+        self.assertEqual(
+            parse_product_api(payload, "https://www.digikala.com/product/dkp-22104577/"),
+            {},
+        )
+
+    def test_live_price_verification_uses_current_product_detail_endpoint(self):
+        product = {
+            "product_id": "dkp-22104577",
+            "product_url": "https://www.digikala.com/product/dkp-22104577/",
+            "current_price": 1_924_990,
+        }
+        live_api = {
+            "product_id": "dkp-22104577",
+            "product_url": product["product_url"],
+            "current_price": 1_924_990,
+            "availability": "in_stock",
+        }
+        response = SimpleNamespace(ok=True, status_code=200, headers={}, cookies={}, json=lambda: {"status": 200})
+        with patch("affilio_radar._digikala_get", return_value=response) as request, patch(
+            "affilio_radar.parse_product_api", return_value=live_api
+        ), patch("affilio_radar.fetch_page") as html_fetch:
+            result = verify_live_page_price(product)
+        self.assertTrue(result["ok"])
+        self.assertEqual(
+            request.call_args.args[0],
+            "https://api.digikala.com/product/v1/products/22104577/",
+        )
+        self.assertEqual(result["price_source"], "digikala_live_api")
+        html_fetch.assert_not_called()
+
     def test_digikala_caption_uses_exact_digipay_installment_sentence(self):
         product_url = "https://www.digikala.com/product/dkp-990001/"
         product = {
