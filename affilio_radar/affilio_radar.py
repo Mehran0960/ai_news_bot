@@ -5194,6 +5194,12 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
     terminal_queue_statuses = {
         "published", "completed", "cancelled", "stale_selection", "rejected", "failed"
     }
+    terminal_channel_statuses = {"sent", "not_connected", "manual_review", "skipped_limit"}
+    # The dispatcher schedules the next *channel* publication, not unfinished video
+    # uploads or optional-messenger retries. Telegram and Bale are the core photo
+    # destinations; once both are terminal for an item, that item must not keep an
+    # already-published channel slot due in the past.
+    core_channel_destinations = ("telegram", "bale")
     if isinstance(state, dict):
         for collection_name in ("content_delivery_queue", "editorial_delivery_queue"):
             collection = state.get(collection_name)
@@ -5205,11 +5211,27 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                 status = str(entry.get("status") or "").strip().lower()
                 if status in terminal_queue_statuses:
                     continue
-                target = _parse_utc_datetime(
-                    entry.get("next_attempt_at") or entry.get("scheduled_at")
-                )
-                if target is not None:
-                    next_channel_due.append(target.astimezone(timezone.utc))
+                platforms = entry.get("platforms")
+                platforms = platforms if isinstance(platforms, dict) else {}
+                for destination in core_channel_destinations:
+                    target_state = platforms.get(destination)
+                    target_state = target_state if isinstance(target_state, dict) else {}
+                    channel_status = str(target_state.get("status") or "pending").strip().lower()
+                    if channel_status in terminal_channel_statuses:
+                        continue
+                    if channel_status == "sending":
+                        # An uncertain in-flight send is not immediately redispatched.
+                        # Recheck it when the publisher's 30-minute send watchdog expires.
+                        started_at = _parse_utc_datetime(target_state.get("attempt_started_at"))
+                        target = started_at + timedelta(minutes=30) if started_at else None
+                    elif channel_status in {"failed", "retry"}:
+                        target = _parse_utc_datetime(target_state.get("next_attempt_at")) or current
+                    else:
+                        target = _parse_utc_datetime(
+                            entry.get("next_attempt_at") or entry.get("scheduled_at")
+                        )
+                    if target is not None:
+                        next_channel_due.append(target.astimezone(timezone.utc))
     next_channel_due_at = (
         min(next_channel_due).isoformat() if next_channel_due else None
     )
