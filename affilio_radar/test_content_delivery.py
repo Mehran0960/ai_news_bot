@@ -1053,8 +1053,12 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
         self.assertEqual(sparse["estimated_clean_cycle_seconds"], cycle_seconds)
         self.assertLess(dense["interval_seconds"], sparse["interval_seconds"])
-        self.assertGreaterEqual(dense["interval_seconds"], 27 * 60)
-        self.assertGreater(sparse["interval_seconds"], 6 * 60 * 60)
+        self.assertGreater(dense["interval_seconds"], 0)
+        self.assertGreater(sparse["interval_seconds"], 0)
+        self.assertEqual(
+            sparse["interval_seconds"] * 5,
+            sparse["seconds_from_plan_anchor_to_next_scan"],
+        )
         expected_scan = current_scan_started + timedelta(seconds=cycle_seconds)
         self.assertEqual(
             sparse["estimated_next_clean_scan_at"],
@@ -1065,13 +1069,13 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             sparse["interval_seconds"],
         )
 
-    def test_product_cadence_uses_safe_default_when_no_product_is_eligible(self):
+    def test_product_cadence_has_no_default_interval_when_no_product_or_scan_eta_exists(self):
         result = calculate_product_publication_cadence(
             {}, {}, 0, now=self.now, max_daily_posts=72
         )
         self.assertEqual(result["candidate_count"], 0)
         self.assertEqual(result["planned_product_slots"], 0)
-        self.assertEqual(result["interval_seconds"], 27 * 60)
+        self.assertEqual(result["interval_seconds"], 0)
 
 
     def test_product_cadence_is_not_capped_at_six_hours_for_sparse_cycles(self):
@@ -1128,9 +1132,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
 
         expected_next_scan = current_scan_started + timedelta(seconds=cycle_seconds)
-        expected_interval = int(math.ceil(
-            (expected_next_scan - last_product).total_seconds() / 5
-        ))
+        expected_interval = (expected_next_scan - last_product).total_seconds() / 4
         self.assertEqual(result["plan_anchor_kind"], "last_product")
         self.assertEqual(result["plan_anchor_at"], last_product.isoformat())
         self.assertEqual(result["estimated_next_clean_scan_at"], expected_next_scan.isoformat())
@@ -1166,6 +1168,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(
             [(ordered[i + 1] - ordered[i]).total_seconds() for i in range(2)],
             [3600, 3600],
+        )
+        self.assertEqual(
+            (ordered[-1] - last_product).total_seconds(),
+            3 * 3600,
         )
 
 if __name__ == "__main__":
