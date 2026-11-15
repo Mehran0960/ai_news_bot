@@ -2753,15 +2753,15 @@ class AffilioRadarTests(unittest.TestCase):
 
         now = first_at + timedelta(hours=2)
         candidate = {
-            "product_id": "dkp-sony-speaker",
-            "title": "اسپیکر قابل حمل مدل تازه",
+            "product_id": "dkp-sony-laptop",
+            "title": "لپ تاپ قابل حمل مدل تازه",
             "brand": "Sony",
             "discount_percent": 90,
             "savings_toman": 1_000_000,
         }
         another_brand = {
-            "product_id": "dkp-other-speaker",
-            "title": "اسپیکر قابل حمل برند دیگر",
+            "product_id": "dkp-other-laptop",
+            "title": "لپ تاپ قابل حمل برند دیگر",
             "brand": "Anker",
             "discount_percent": 80,
             "savings_toman": 800_000,
@@ -2773,7 +2773,7 @@ class AffilioRadarTests(unittest.TestCase):
             queue, eligible, now, published={}, recent_publications=history
         )
 
-        self.assertEqual([item["product_id"] for item in selected], ["dkp-other-speaker"])
+        self.assertEqual([item["product_id"] for item in selected], ["dkp-other-laptop"])
 
 
     def test_repeat_product_requires_real_price_drop_to_bypass_product_cooldown(self):
