@@ -1357,3 +1357,8 @@ PR validation در workflow اسکن کاتالوگ از گروه concurrency م
 - نام، شناسه، parent و depth دسته‌های به‌دست‌آمده از پاسخ زنده در cache موجود merge می‌شوند؛ در صورت برخورد شناسه، اطلاعات زنده جایگزین نام/ساختار stale می‌شود. taxonomy ذخیره‌شده صرفاً به‌دلیل محدود بودن query-scoped IDs حذف نمی‌شود.
 - preflight نیز category facets را بر query-scoped IDs مقدم می‌داند و نمونه‌های categoryها و category رشتهٔ محصولاتِ probe را log می‌کند تا انتساب اشتباه قابل تشخیص باشد.
 - فایل‌های تغییرکرده: `affilio_radar/catalog_sweep.py` و `affilio_radar/test_catalog_sweep.py`.
+
+ 
+### اصلاح تکمیلی ۱۵ نوامبر — برچسب منبع taxonomy
+ 
+منبع ردیف‌هایی که از پاسخ Search API استخراج می‌شوند با برچسب دقیق‌تر `digikala_discovery_api_v1_search_taxonomy` ثبت می‌شود؛ چون parser هم category filters/tree و هم شناسه‌های query metadata را از همان پاسخ زنده می‌خواند. این فقط برچسب منشأ داده را دقیق می‌کند و منطق استخراج/اولویت cache را تغییر نمی‌دهد.
