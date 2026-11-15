@@ -8,8 +8,10 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 try:
+    from . import catalog_sweep as catalog
     from . import parallel_catalog_sweep as sweep
 except ImportError:  # unittest discovery from the workflow's affilio_radar working directory
+    import catalog_sweep as catalog
     import parallel_catalog_sweep as sweep
 
 
@@ -58,7 +60,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         args, kwargs = session.get.call_args
         self.assertIn("/v2/category/77/", args[0])
         self.assertEqual(kwargs["params"], {
-            "q": "گوشی سامسونگ", "page": 3, "sort": 7
+            "q": "گوشی سامسونگ", "page": 3, "sort": catalog.BEST_SELLING_SORT_VALUE
         })
 
     def test_legacy_worker_checkpoint_is_normalized_to_the_first_trial_level_once(self):
