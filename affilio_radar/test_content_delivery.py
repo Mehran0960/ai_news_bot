@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 import math
 from datetime import datetime, timedelta, timezone
@@ -19,6 +20,14 @@ from publisher import (
 class ContentDeliveryQueueTests(unittest.TestCase):
     def setUp(self):
         self.now = datetime(2026, 10, 25, 12, 0, tzinfo=timezone.utc)
+
+    def test_publication_workflow_has_no_fixed_post_interval_setting(self):
+        workflow = (
+            Path(__file__).resolve().parents[1]
+            / ".github" / "workflows" / "affilio-radar.yml"
+        )
+        self.assertTrue(workflow.is_file())
+        self.assertNotIn("AFFILIO_MIN_POST_INTERVAL_HOURS", workflow.read_text(encoding="utf-8"))
 
     def item(self, product_id="dkp-123", price=100_000, demand=50, deadline=None):
         return {
