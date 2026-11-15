@@ -955,7 +955,7 @@ def search_digikala_v2_product_urls(query: str, session=None, category_limit: in
         category_id = category["id"]
         search_response = http.get(
             f"https://api.digikala.com/v2/category/{category_id}/",
-            params={"q": category["query"], "page": 1, "sort": 7},
+            params={"q": category["query"], "page": 1, "sort": BEST_SELLING_SORT_VALUE},
             timeout=HTTP_TIMEOUT,
         )
         search_response.raise_for_status()
