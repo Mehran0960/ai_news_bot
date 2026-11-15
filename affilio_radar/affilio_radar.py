@@ -313,12 +313,101 @@ MAX_INCREDIBLE_OFFER_CANDIDATES = max(
     1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "250")))
 )
 SESSION = requests.Session()
-SESSION.headers.update({
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8",
+DIGIKALA_BROWSER_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+    "Accept": "application/json, text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
     "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.7",
+    "Origin": "https://www.digikala.com",
     "Referer": "https://www.digikala.com/",
-})
+    "X-Web-Client-Id": "web",
+    "X-Web-Client": "desktop",
+    "X-Web-Optimize-Response": "1",
+    "sec-ch-ua": '"Google Chrome";v="143", "Chromium";v="143", "Not A(Brand";v="24"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"Linux"',
+}
+SESSION.headers.update(DIGIKALA_BROWSER_HEADERS)
+
+DIGIKALA_DISCOVERY_SEARCH_URL = "https://api.digikala.com/discovery/api/v1/search"
+DIGIKALA_DISCOVERY_AUTOCOMPLETE_URL = "https://api.digikala.com/discovery/api/v1/autocomplete"
+
+
+def _digikala_get(url: str, params=None, timeout=None, session=None):
+    """GET a DigiKala web/API URL with the current browser headers and one safe CDN-cookie retry.
+
+    DigiKala can answer a first request with HTTP 307 and set a digicdn_cookie.
+    In that case, retry the *same* URL once with the cookie. Never loop on redirects
+    or forward the CDN cookie to a non-DigiKala host.
+    """
+    http = session or SESSION
+    headers = dict(DIGIKALA_BROWSER_HEADERS)
+    request_timeout = timeout if timeout is not None else HTTP_TIMEOUT
+    current_url = str(url)
+    for redirect_count in range(6):
+        response = http.get(
+            current_url,
+            params=params if current_url == str(url) else None,
+            timeout=request_timeout,
+            allow_redirects=False,
+            headers=headers,
+        )
+        status = int(getattr(response, "status_code", 0) or 0)
+        response_headers = getattr(response, "headers", {}) or {}
+
+        if status == 307:
+            cookie = ""
+            response_cookies = getattr(response, "cookies", None)
+            if response_cookies is not None:
+                try:
+                    cookie = str(response_cookies.get("digicdn_cookie") or "")
+                except Exception:
+                    cookie = ""
+            if not cookie:
+                set_cookie = str(
+                    response_headers.get("Set-Cookie")
+                    or response_headers.get("set-cookie")
+                    or ""
+                )
+                match = re.search(r"(?:^|[,;]\\s*)digicdn_cookie=([^;,\\s]+)", set_cookie)
+                cookie = match.group(1) if match else ""
+            if not cookie:
+                raise RuntimeError("digikala_cdn_307_without_digicdn_cookie")
+            headers["Cookie"] = f"digicdn_cookie={cookie}"
+            response = http.get(
+                str(url),
+                params=params,
+                timeout=request_timeout,
+                allow_redirects=False,
+                headers=headers,
+            )
+            if int(getattr(response, "status_code", 0) or 0) == 307:
+                raise RuntimeError("digikala_cdn_307_retry_loop")
+            response.raise_for_status()
+            return response
+
+        if status in (301, 302, 303, 308):
+            location = str(
+                response_headers.get("Location")
+                or response_headers.get("location")
+                or ""
+            ).strip()
+            if not location:
+                response.raise_for_status()
+                raise RuntimeError("digikala_redirect_missing_location")
+            if redirect_count >= 5:
+                raise RuntimeError("digikala_redirect_limit_exceeded")
+            next_url = urljoin(current_url, location)
+            original_host = (urlsplit(str(url)).hostname or "").lower()
+            next_host = (urlsplit(next_url).hostname or "").lower()
+            if next_host != original_host:
+                headers.pop("Cookie", None)
+            current_url = next_url
+            continue
+
+        response.raise_for_status()
+        return response
+
+    raise RuntimeError("digikala_redirect_limit_exceeded")
 
 SNAPPSHOP_API_BASE_URL = "https://apix.snappshop.ir"
 SNAPPSHOP_HTTP_TIMEOUT = max(3, min(8, int(os.getenv("AFFILIO_SNAPPSHOP_HTTP_TIMEOUT", "6"))))
@@ -841,8 +930,7 @@ def parse_product_page(url: str, page_html: str) -> dict:
 
 
 def fetch_page(url: str):
-    response = SESSION.get(url, timeout=HTTP_TIMEOUT, allow_redirects=True)
-    response.raise_for_status()
+    response = _digikala_get(url, timeout=HTTP_TIMEOUT)
     if len(response.content) > 5_000_000:
         raise RuntimeError("Page exceeded 5 MB safety limit")
     return response.url, response.text
@@ -935,45 +1023,37 @@ def _autocomplete_category_queries(payload: dict, query: str, limit: int = 2) ->
 
 
 def search_digikala_v2_product_urls(query: str, session=None, category_limit: int = 2) -> tuple[list[str], list[dict]]:
-    """Resolve a query with public autocomplete, then Search API v2 category listings."""
+    """Discover marketable product URLs through DigiKala's current Discovery Search API.
+
+    Product-card values are used only to find canonical URLs. Downstream product
+    detail, price, stock, discount, affiliate, demand and expiry gates still run
+    before a candidate can be selected or published.
+    """
     http = session or SESSION
-    response = http.get(
-        "https://api.digikala.com/v1/autocomplete/",
-        params={"q": query},
+    search_query = str(query or "").strip()
+    if not search_query:
+        return [], [{"query": "", "products_found": 0, "status": "empty_query"}]
+    response = _digikala_get(
+        DIGIKALA_DISCOVERY_SEARCH_URL,
+        params={"q": search_query, "page": 1, "sort": 7},
         timeout=HTTP_TIMEOUT,
+        session=http,
     )
-    response.raise_for_status()
-    if len(response.content) > 4_000_000:
-        raise RuntimeError("autocomplete API response exceeded 4 MB")
-    autocomplete = response.json()
-    categories = _autocomplete_category_queries(autocomplete, query, category_limit)
-    found = []
-    diagnostics = []
-    for category in categories:
-        category_id = category["id"]
-        search_response = http.get(
-            f"https://api.digikala.com/v2/category/{category_id}/",
-            params={"q": category["query"], "page": 1, "sort": 7},
-            timeout=HTTP_TIMEOUT,
-        )
-        search_response.raise_for_status()
-        if len(search_response.content) > 8_000_000:
-            raise RuntimeError("category search API response exceeded 8 MB")
-        payload = search_response.json()
-        rows = api_search_product_urls(payload)
-        diagnostics.append({
-            "category_id": category_id,
-            "category": category["name"],
-            "products_found": len(rows),
-            "status": search_response.status_code,
-        })
-        for url in rows:
-            if url not in found:
-                found.append(url)
-            if len(found) >= MAX_PER_QUERY:
-                break
-        if len(found) >= MAX_PER_QUERY:
-            break
+    if len(response.content) > 8_000_000:
+        raise RuntimeError("DigiKala Discovery search response exceeded 8 MB")
+    payload = response.json()
+    found = api_search_product_urls(payload)
+    data = payload.get("data", {}) if isinstance(payload, dict) else {}
+    query_attributes = data.get("query_attributes", {}) if isinstance(data, dict) else {}
+    category_ids = query_attributes.get("category_ids", []) if isinstance(query_attributes, dict) else []
+    diagnostics = [{
+        "query": search_query,
+        "source": "digikala_discovery_api_v1_search",
+        "category_ids_found": len(category_ids) if isinstance(category_ids, list) else 0,
+        "products_found": len(found),
+        "status": response.status_code,
+        "sort": 7,
+    }]
     return found[:MAX_PER_QUERY], diagnostics
 
 
@@ -1441,10 +1521,9 @@ def verify_live_page_price(product: dict) -> dict:
     if numeric_id.isdigit():
         for api_version in ("v2", "v1"):
             try:
-                response = SESSION.get(
+                response = _digikala_get(
                     f"https://api.digikala.com/{api_version}/product/{numeric_id}/",
                     timeout=HTTP_TIMEOUT,
-                    allow_redirects=True,
                 )
                 if not response.ok:
                     api_errors.append(f"{api_version}_http_{response.status_code}")
@@ -1747,7 +1826,7 @@ def fetch_product_record(url: str) -> dict:
         for api_version in ("v2", "v1"):
             api_url = f"https://api.digikala.com/{api_version}/product/{pid}/"
             try:
-                response = SESSION.get(api_url, timeout=HTTP_TIMEOUT, allow_redirects=True)
+                response = _digikala_get(api_url, timeout=HTTP_TIMEOUT)
                 if not response.ok:
                     print(
                         f"PRODUCT_API_HTTP id={product_id(url)} version={api_version} "
@@ -4514,13 +4593,13 @@ def discover_product_urls(
                 term, session=SESSION, category_limit=2
             )
             print(
-                f"SEARCH_API_V2 term={term!r} categories={len(category_diagnostics)} "
+                f"DISCOVERY_SEARCH_API term={term!r} categories={len(category_diagnostics)} "
                 f"category_results={json.dumps(category_diagnostics, ensure_ascii=False)[:900]}"
             )
             if local:
                 diagnostics.append({
                     "term": term, "ok": True, "products_found": len(local),
-                    "source": "digikala_autocomplete_category_v2", "status": "ok",
+                    "source": "digikala_discovery_api_v1_search", "status": "ok",
                     "categories": category_diagnostics,
                 })
             else:
@@ -4528,7 +4607,7 @@ def discover_product_urls(
         except Exception as exc:
             api_error = type(exc).__name__
             print(
-                f"SEARCH_API_V2_FAILED term={term!r} error={type(exc).__name__} "
+                f"DISCOVERY_SEARCH_API_FAILED term={term!r} error={type(exc).__name__} "
                 f"detail={str(exc)[:220]!r}"
             )
 
