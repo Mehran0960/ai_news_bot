@@ -80,9 +80,19 @@ def render_editorial_poster(item: dict, output_path: str | Path | None = None) -
     _draw_centered(draw, "آفِرچین | راهنمای کاربردی", 91, _font(34, True), TEXT)
     draw.rounded_rectangle((WIDTH // 2 - 84, 184, WIDTH // 2 + 84, 194), radius=5, fill=ACCENT)
 
+    source_image = _load_reviewed_source_image(item)
+    if source_image is not None:
+        image_left, image_top = 70, 220
+        canvas.paste(source_image, (image_left, image_top))
+        mask = Image.new("L", source_image.size, 0)
+        ImageDraw.Draw(mask).rounded_rectangle((0, 0, source_image.width - 1, source_image.height - 1), radius=22, fill=255)
+        canvas.paste(source_image, (image_left, image_top), mask)
+        title_y, title_max_lines, body_max_lines = 510, 2, 6
+    else:
+        title_y, title_max_lines, body_max_lines = 244, 3, 11
+
     title_font = _title_font(48)
-    title_lines = _wrap_rtl_text(draw, title, title_font, WIDTH - 140, max_lines=3)
-    title_y = 244
+    title_lines = _wrap_rtl_text(draw, title, title_font, WIDTH - 140, max_lines=title_max_lines)
     for line in title_lines:
         shaped = _shape_rtl(line)
         bbox = draw.textbbox((0, 0), shaped, font=title_font, **_rtl_layout_kwargs())
@@ -91,8 +101,8 @@ def render_editorial_poster(item: dict, output_path: str | Path | None = None) -
         title_y += 66
 
     body_font = _font(29, False)
-    body_lines = _wrap_rtl_text(draw, body, body_font, WIDTH - 140, max_lines=11)
-    body_y = max(470, title_y + 28)
+    body_lines = _wrap_rtl_text(draw, body, body_font, WIDTH - 140, max_lines=body_max_lines)
+    body_y = max(675 if source_image is not None else 470, title_y + 28)
     for line in body_lines:
         shaped = _shape_rtl(line)
         bbox = draw.textbbox((0, 0), shaped, font=body_font, **_rtl_layout_kwargs())
