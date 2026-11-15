@@ -2706,7 +2706,7 @@ class AffilioRadarTests(unittest.TestCase):
             "original_price": 17_500_000,
             "availability": "in_stock",
         }
-        response = SimpleNamespace(ok=True, status_code=200, json=lambda: {"product": "fresh"})
+        response = SimpleNamespace(ok=True, status_code=200, headers={}, cookies={}, raise_for_status=lambda: None, json=lambda: {"product": "fresh"})
         with patch("affilio_radar.SESSION.get", return_value=response), patch(
             "affilio_radar.parse_product_api", return_value=live_api
         ), patch("affilio_radar.fetch_page") as html_fetch:
@@ -2727,7 +2727,7 @@ class AffilioRadarTests(unittest.TestCase):
             "current_price": 2_500_000,
             "availability": "in_stock",
         }
-        response = SimpleNamespace(ok=True, status_code=200, json=lambda: {"product": "fresh"})
+        response = SimpleNamespace(ok=True, status_code=200, headers={}, cookies={}, raise_for_status=lambda: None, json=lambda: {"product": "fresh"})
         with patch("affilio_radar.SESSION.get", return_value=response), patch(
             "affilio_radar.parse_product_api", return_value=live_api
         ), patch("affilio_radar.fetch_page") as html_fetch:
@@ -2749,7 +2749,7 @@ class AffilioRadarTests(unittest.TestCase):
             "current_price": 1_924_990,
             "availability": "out_of_stock",
         }
-        response = SimpleNamespace(ok=True, status_code=200, json=lambda: {"product": "fresh"})
+        response = SimpleNamespace(ok=True, status_code=200, headers={}, cookies={}, raise_for_status=lambda: None, json=lambda: {"product": "fresh"})
         with patch("affilio_radar.SESSION.get", return_value=response), patch(
             "affilio_radar.parse_product_api", return_value=live_api
         ):
