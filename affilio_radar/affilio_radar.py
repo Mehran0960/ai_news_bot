@@ -23,6 +23,10 @@ from pathlib import Path
 from urllib.parse import parse_qs, quote, urlencode, urljoin, urlsplit, urlunsplit
 
 import requests
+try:
+    from .digikala_http import new_digikala_session
+except ImportError:
+    from digikala_http import new_digikala_session
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from product_quality import is_prohibited_product_title, is_publishable_product_title
 try:
@@ -315,6 +319,7 @@ MAX_INCREDIBLE_OFFER_CANDIDATES = max(
     1, min(MAX_PRODUCT_CHECKS, int(os.getenv("AFFILIO_MAX_INCREDIBLE_OFFER_CANDIDATES", "250")))
 )
 SESSION = requests.Session()
+DIGIKALA_SESSION = new_digikala_session()
 SESSION.headers.update({
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8",
@@ -937,102 +942,55 @@ def _autocomplete_category_queries(payload: dict, query: str, limit: int = 2) ->
 
 
 def search_digikala_v2_product_urls(query: str, session=None, category_limit: int = 2) -> tuple[list[str], list[dict]]:
-    """Resolve a query with autocomplete and resilient public category-search routes."""
-    http = session or SESSION
-    response = http.get(
-        "https://api.digikala.com/v1/autocomplete/",
-        params={"q": query},
-        timeout=HTTP_TIMEOUT,
-    )
-    if response.status_code == 429:
-        raise RuntimeError("DigiKala autocomplete rate limited")
+    """Discover currently marketable DigiKala products through the live discovery search API."""
+    del category_limit  # Kept for call-site compatibility; the live endpoint is query-scoped.
+    http = session or DIGIKALA_SESSION
+    search_url = "https://api.digikala.com/discovery/api/v2/search"
+    params = {
+        "q": str(query or "").strip(),
+        "page": 1,
+        "sort": 7,  # Live category/search API reports 7 as bestseller order.
+        "has_selling_stock": 1,
+    }
+    response = http.get(search_url, params=params, timeout=HTTP_TIMEOUT)
+    status = int(getattr(response, "status_code", 0) or 0)
+    if status == 429:
+        raise RuntimeError("DigiKala discovery search rate limited")
     response.raise_for_status()
-    if len(response.content) > 4_000_000:
-        raise RuntimeError("autocomplete API response exceeded 4 MB")
-    autocomplete = response.json()
-    categories = _autocomplete_category_queries(autocomplete, query, category_limit)
-    found = []
-    diagnostics = []
-    for category in categories:
-        category_id = str(category["id"])
-        category_query = str(category.get("query") or query)
-        route_specs = [
-            (
-                "search_api_v2_category",
-                f"https://api.digikala.com/v2/category/{category_id}/",
-                {"q": category_query, "page": 1, "sort": BEST_SELLING_SORT_VALUE},
-            ),
-            (
-                "discovery_api_v2_category_products",
-                f"https://api.digikala.com/discovery/api/v2/categories/{category_id}/products/",
-                {"page": 1, "sort": BEST_SELLING_SORT_VALUE, "q": category_query},
-            ),
-            (
-                "legacy_search_api_v1",
-                "https://api.digikala.com/v1/search/",
-                {"categories[]": category_id, "page": 1, "sort": BEST_SELLING_SORT_VALUE},
-            ),
-        ]
-        route_errors = []
-        category_rows = []
-        category_diagnostic = {
-            "category_id": category_id,
-            "category": category.get("name", category_id),
-            "requested_sort": BEST_SELLING_SORT_VALUE,
-        }
-        for source, url, params in route_specs:
-            try:
-                search_response = http.get(url, params=params, timeout=HTTP_TIMEOUT)
-                status = int(getattr(search_response, "status_code", 0) or 0)
-                if status == 429:
-                    raise RuntimeError(f"{source}_rate_limited")
-                if status in (400, 403, 404):
-                    body = re.sub(r"\s+", " ", str(getattr(search_response, "text", "") or ""))[:180]
-                    route_errors.append(f"{source}_http_{status}:{body}")
-                    continue
-                search_response.raise_for_status()
-                if len(search_response.content) > 8_000_000:
-                    route_errors.append(f"{source}_response_exceeded_8mb")
-                    continue
-                try:
-                    payload = search_response.json()
-                except ValueError:
-                    route_errors.append(f"{source}_non_json")
-                    continue
-                category_rows = api_search_product_urls(payload)
-                data_block = payload.get("data", {}) if isinstance(payload, dict) else {}
-                observed_sort_options = data_block.get("sort_options") if isinstance(data_block, dict) else None
-                category_diagnostic.update({
-                    "source": source,
-                    "status": status,
-                    "products_found": len(category_rows),
-                    "route_errors": route_errors,
-                    "observed_sort_options": observed_sort_options if isinstance(observed_sort_options, list) else None,
-                })
-                if isinstance(observed_sort_options, list):
-                    print(
-                        "DIGIKALA_SEARCH_API_V2_SORT_OPTIONS "
-                        f"category={category_id} requested_sort={BEST_SELLING_SORT_VALUE} "
-                        f"observed={json.dumps(observed_sort_options, ensure_ascii=False, separators=(',', ':'))[:1400]}"
-                    )
-                if category_rows:
-                    break
-                route_errors.append(f"{source}_empty_product_list")
-            except Exception as exc:
-                if isinstance(exc, RuntimeError) and "rate_limited" in str(exc):
-                    raise
-                status = getattr(getattr(exc, "response", None), "status_code", None)
-                route_errors.append(f"{source}_{type(exc).__name__}" + (f"_{status}" if status else ""))
-        category_diagnostic["route_errors"] = route_errors[-6:]
-        diagnostics.append(category_diagnostic)
-        for url in category_rows:
-            if url not in found:
-                found.append(url)
-            if len(found) >= MAX_PER_QUERY:
-                break
-        if len(found) >= MAX_PER_QUERY:
-            break
+    if len(response.content) > 8_000_000:
+        raise RuntimeError("DigiKala discovery search response exceeded 8 MB")
+    payload = response.json()
+    found = api_search_product_urls(payload)
+    data = payload.get("data") if isinstance(payload, dict) else {}
+    widgets = data.get("widgets") if isinstance(data, dict) else []
+    listing = next(
+        (
+            widget.get("data", {})
+            for widget in widgets if isinstance(widget, dict)
+            and widget.get("type") == "vertical_product_listing"
+            and isinstance(widget.get("data"), dict)
+        ),
+        {},
+    ) if isinstance(widgets, list) else {}
+    pager = listing.get("pager") if isinstance(listing, dict) else None
+    diagnostics = [{
+        "term": params["q"],
+        "ok": status == 200 and bool(found),
+        "products_found": len(found),
+        "source": "digikala_discovery_api_v2_search",
+        "status": "ok" if found else "empty_product_list",
+        "http_status": status,
+        "sort": params["sort"],
+        "pager": pager if isinstance(pager, dict) else {},
+    }]
+    print(
+        "DIGIKALA_DISCOVERY_SEARCH "
+        f"status={status} query={params['q'][:70]!r} sort={params['sort']} "
+        f"has_selling_stock=1 products={len(found)} "
+        f"total_items={pager.get('total_items') if isinstance(pager, dict) else 'unknown'}"
+    )
     return found[:MAX_PER_QUERY], diagnostics
+
 
 def _offer_discount_percent(obj: dict) -> int:
     """Get the retailer-declared discount or derive one from current/list prices."""
@@ -1496,26 +1454,25 @@ def verify_live_page_price(product: dict) -> dict:
     api_errors = []
     numeric_id = expected_id.replace("dkp-", "")
     if numeric_id.isdigit():
-        for api_version in ("v2", "v1"):
-            try:
-                response = SESSION.get(
-                    f"https://api.digikala.com/{api_version}/product/{numeric_id}/",
-                    timeout=HTTP_TIMEOUT,
-                    allow_redirects=True,
-                )
-                if not response.ok:
-                    api_errors.append(f"{api_version}_http_{response.status_code}")
-                    continue
+        try:
+            response = DIGIKALA_SESSION.get(
+                f"https://api.digikala.com/product/v1/products/{numeric_id}/",
+                timeout=HTTP_TIMEOUT,
+                allow_redirects=True,
+            )
+            if not response.ok:
+                api_errors.append(f"product_detail_http_{response.status_code}")
+            else:
                 candidate = parse_product_api(response.json(), url)
-                if candidate and product_id(candidate.get("product_url") or url) != expected_id:
-                    api_errors.append(f"{api_version}_product_identity_mismatch")
-                    continue
-                if candidate.get("current_price"):
+                candidate_id = product_id(candidate.get("product_url") or url) if candidate else ""
+                if candidate and candidate_id != expected_id:
+                    api_errors.append("product_detail_identity_mismatch")
+                elif candidate.get("current_price"):
                     live = candidate
-                    break
-                api_errors.append(f"{api_version}_price_unavailable")
-            except Exception as exc:
-                api_errors.append(f"{api_version}_{type(exc).__name__}")
+                else:
+                    api_errors.append("product_detail_price_unavailable")
+        except Exception as exc:
+            api_errors.append(f"product_detail_{type(exc).__name__}")
 
     price_source = "digikala_live_api" if live.get("current_price") else ""
     if live.get("availability") == "out_of_stock":
@@ -1801,30 +1758,33 @@ def fetch_product_record(url: str) -> dict:
     pid = product_id(url).replace("dkp-", "")
     api_product = {}
     if pid.isdigit():
-        for api_version in ("v2", "v1"):
-            api_url = f"https://api.digikala.com/{api_version}/product/{pid}/"
-            try:
-                response = SESSION.get(api_url, timeout=HTTP_TIMEOUT, allow_redirects=True)
-                if not response.ok:
-                    print(
-                        f"PRODUCT_API_HTTP id={product_id(url)} version={api_version} "
-                        f"status={response.status_code}"
-                    )
-                    continue
+        api_url = f"https://api.digikala.com/product/v1/products/{pid}/"
+        try:
+            response = DIGIKALA_SESSION.get(api_url, timeout=HTTP_TIMEOUT, allow_redirects=True)
+            if not response.ok:
+                print(
+                    f"PRODUCT_API_HTTP id={product_id(url)} endpoint=product_v1 "
+                    f"status={response.status_code}"
+                )
+            else:
                 payload = response.json()
                 api_product = parse_product_api(payload, url)
                 if not api_product:
                     data_node = payload.get("data") if isinstance(payload, dict) else None
                     print(
-                        f"PRODUCT_API_PARSE_EMPTY id={product_id(url)} version={api_version} "
+                        f"PRODUCT_API_PARSE_EMPTY id={product_id(url)} endpoint=product_v1 "
                         f"root_keys={','.join(sorted(payload.keys())[:12]) if isinstance(payload, dict) else 'non_object'} "
                         f"data_keys={','.join(sorted(data_node.keys())[:12]) if isinstance(data_node, dict) else 'none'}"
                     )
                 if api_product.get("title") or api_product.get("current_price") or api_product.get("availability") == "in_stock":
-                    print(f"PRODUCT_API id={product_id(url)} version={api_version} title={bool(api_product.get('title'))} price={bool(api_product.get('current_price'))} stock={api_product.get('availability')}")
-                    break
-            except Exception as exc:
-                print(f"PRODUCT_API_FAILED id={product_id(url)} version={api_version} error={type(exc).__name__}")
+                    print(
+                        f"PRODUCT_API id={product_id(url)} endpoint=product_v1 "
+                        f"title={bool(api_product.get('title'))} "
+                        f"price={bool(api_product.get('current_price'))} "
+                        f"stock={api_product.get('availability')}"
+                    )
+        except Exception as exc:
+            print(f"PRODUCT_API_FAILED id={product_id(url)} endpoint=product_v1 error={type(exc).__name__}")
 
     needs_html = (
         not is_publishable_product_title(api_product.get("title"))
@@ -3964,9 +3924,9 @@ def discover_product_urls(
     mcp_card_expiries: dict[str, str] = {}
     for page_number in range(1, DEAL_LIST_PAGES + 1):
         try:
-            response = SESSION.get(
+            response = DIGIKALA_SESSION.get(
                 "https://api.digikala.com/v1/incredible-offers/products/",
-                params={"page": page_number, "q": ""},
+                params={"page": page_number, "sort": 26, "q": ""},
                 timeout=HTTP_TIMEOUT,
             )
             response.raise_for_status()
