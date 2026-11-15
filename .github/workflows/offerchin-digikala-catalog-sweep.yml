@@ -42,7 +42,7 @@ jobs:
   validate-pr:
     if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - name: Check out the pull request source
         uses: actions/checkout@v4
@@ -50,12 +50,82 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install lightweight crawler dependency
-        run: python -m pip install --disable-pip-version-check requests
+      - name: Install catalog and product-parser dependencies
+        run: python -m pip install --disable-pip-version-check -r affilio_radar/requirements.txt
       - name: Validate catalog scanner and status snapshot
         run: |
           python -m py_compile affilio_radar/catalog_sweep.py affilio_radar/catalog_status_snapshot.py affilio_radar/parallel_catalog_sweep.py affilio_radar/catalog_sweep_batch_window.py affilio_radar/product_quality.py
           python -m unittest affilio_radar.test_catalog_sweep affilio_radar.test_catalog_status_snapshot affilio_radar.test_parallel_catalog_sweep affilio_radar.test_catalog_sweep_batch_window -v
+
+      - name: Read-only smoke test for live DigiKala product details
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          PYTHONPATH=affilio_radar python - <<'PY'
+          import time
+          import affilio_radar as radar
+
+          # IDs were returned by today's read-only publisher discovery run.
+          candidate_ids = [
+              "23035367", "23028678", "23026530", "22917067", "22902723",
+              "22895145", "22740975", "22630463", "22527108", "22485094",
+          ]
+          verified = []
+          failures = []
+
+          for numeric_id in candidate_ids:
+              product_id = f"dkp-{numeric_id}"
+              product_url = f"https://www.digikala.com/product/{product_id}/"
+              endpoint = radar.DIGIKALA_PRODUCT_DETAIL_API_URL.format(product_id=numeric_id)
+              try:
+                  response = radar._digikala_get(endpoint, timeout=15)
+                  if not response.ok:
+                      status = int(getattr(response, "status_code", 0) or 0)
+                      failures.append(f"{product_id}:http_{status}")
+                      print(f"DETAIL_SMOKE_HTTP product={product_id} status={status}")
+                      time.sleep(0.3)
+                      continue
+
+                  record = radar.parse_product_api(response.json(), product_url)
+                  identity_ok = record.get("product_id") == product_id
+                  title_ok = radar.is_publishable_product_title(record.get("title"))
+                  price_ok = int(record.get("current_price") or 0) > 0
+                  stock = record.get("availability")
+                  stock_ok = stock in {"in_stock", "out_of_stock"}
+                  if identity_ok and title_ok and price_ok and stock_ok:
+                      verified.append(product_id)
+                      print(
+                          f"DETAIL_SMOKE_VERIFIED product={product_id} "
+                          f"price_present=true stock={stock} "
+                          f"review_count={record.get('review_count', 0)}"
+                      )
+                      break
+
+                  failures.append(
+                      f"{product_id}:unusable identity={identity_ok} "
+                      f"title={title_ok} price={price_ok} stock={stock}"
+                  )
+                  print(
+                      f"DETAIL_SMOKE_UNUSABLE product={product_id} "
+                      f"identity={identity_ok} title={title_ok} "
+                      f"price={price_ok} stock={stock}"
+                  )
+              except Exception as exc:
+                  failures.append(f"{product_id}:{type(exc).__name__}")
+                  print(f"DETAIL_SMOKE_ERROR product={product_id} error={type(exc).__name__}")
+              time.sleep(0.3)
+
+          print(
+              f"DETAIL_SMOKE_SUMMARY verified={len(verified)} "
+              f"attempted={len(candidate_ids)}"
+          )
+          if not verified:
+              print("DETAIL_SMOKE_FAILURES " + ";".join(failures))
+              raise SystemExit(
+                  "No current product detail response passed exact SKU, title, price "
+                  "and stock checks. Publication must remain fail-closed."
+              )
+          PY
 
   catalog-sweep:
     if: ${{ github.event_name != 'pull_request' }}
