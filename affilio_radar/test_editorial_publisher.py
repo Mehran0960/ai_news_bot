@@ -288,7 +288,11 @@ class EditorialPublisherTests(unittest.TestCase):
         state = {}
         entry = {
             "content_id": "editorial:test-guide",
-            "payload": {"editorial_id": "test-guide", "topic": "test-topic"},
+            "payload": {
+                "content_id": "editorial:test-guide",
+                "editorial_id": "test-guide",
+                "topic": "test-topic",
+            },
             "platforms": {},
         }
         with patch("editorial_publisher._destination_ready", return_value=(True, "")), \
