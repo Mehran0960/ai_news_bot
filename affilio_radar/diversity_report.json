@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-15T20:42:48.938169+00:00",
+  "generated_at": "2026-11-15T20:51:43.637085+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -258,7 +258,6 @@
       "لپه": 1,
       "متر": 1,
       "مجموعه شمش و پلاک طلا و نقره": 1,
-      "مکمل غذایی": 1,
       "نخود": 1,
       "نشانگر کتاب": 1,
       "نظافت و نگهداری خودرو": 1,
@@ -316,7 +315,7 @@
       "large_appliances": 2,
       "lighting": 2,
       "mobile_devices": 3,
-      "other": 53,
+      "other": 52,
       "personal_care": 29,
       "power_backup": 2,
       "sports_outdoor": 7
@@ -325,33 +324,33 @@
       "audio_wearables": 2.8,
       "automotive": 1.4,
       "beauty_fragrance": 2.1,
-      "books_stationery": 4.9,
+      "books_stationery": 5.0,
       "digital_accessories": 0.7,
-      "fashion": 7.0,
-      "grocery_food": 5.6,
-      "home": 4.2,
+      "fashion": 7.1,
+      "grocery_food": 5.7,
+      "home": 4.3,
       "kids_sports": 2.1,
       "large_appliances": 1.4,
       "lighting": 1.4,
       "mobile_devices": 2.1,
-      "other": 37.3,
-      "personal_care": 20.4,
+      "other": 36.9,
+      "personal_care": 20.6,
       "power_backup": 1.4,
-      "sports_outdoor": 4.9
+      "sports_outdoor": 5.0
     },
-    "distinct_catalog_categories": 102,
+    "distinct_catalog_categories": 101,
     "distinct_categories": 16,
-    "distinct_families": 120,
+    "distinct_families": 119,
     "distinct_retailers": 1,
     "distinct_use_cases": 19,
     "known_brand_posts": 7,
-    "posts": 142,
+    "posts": 141,
     "repeated_brand_count": 1,
     "repeated_brands": {
       "habsan": 2
     },
     "retailer_post_counts": {
-      "digikala": 142
+      "digikala": 141
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -365,7 +364,7 @@
       "fashion_lifestyle": 5,
       "general": 12,
       "grocery_food": 5,
-      "health_wellness": 2,
+      "health_wellness": 1,
       "home_cleaning": 2,
       "home_living": 3,
       "kitchen_food": 6,
@@ -392,47 +391,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1332,
+    "all_time_count": 1334,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 484,
+      "family_repeat": 483,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-14T13:31:31.947911+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-13862261",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "اسپری ضدآفتاب بدون رنگ ویتالیر SPF50 مدل Vitamine C ‌مناسب برای انواع پوست، حجم 150 میلی‌لیتر",
-        "use_case": "personal_care"
-      },
-      {
-        "at": "2026-11-14T13:39:40.485617+00:00",
-        "brand": "",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-4623902",
-        "family": "personal_care:skincare",
-        "product_id": "dkp-714799",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کرم مرطوب‌کننده و آبرسان دست و صورت لافارر مدل 04 مناسب پوست‌های حساس حجم 75 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-14T13:39:40.485617+00:00",
         "brand": "",
@@ -733,6 +698,39 @@
         ],
         "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
         "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-15T20:51:43.637085+00:00",
+        "brand": "",
+        "catalog_category_id": "9224",
+        "catalog_category_name": "گوشت گوسفند",
+        "category": "other",
+        "compared_to_product_id": "dkp-20502655",
+        "family": "digikala_category:9224",
+        "product_id": "dkp-21586430",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-15T20:51:43.637085+00:00",
+        "brand": "",
+        "catalog_category_id": "9371",
+        "catalog_category_name": "کفش پاشنه دار زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-6223366",
+        "family": "digikala_category:9371",
+        "product_id": "dkp-3584477",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش زنانه پاتکان کد NIC829",
+        "use_case": "fashion_lifestyle"
       }
     ]
   }
