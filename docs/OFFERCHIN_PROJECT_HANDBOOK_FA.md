@@ -1469,3 +1469,9 @@ PR validation در workflow اسکن کاتالوگ از گروه concurrency م
 
 
 **Regression guard:** تست `test_empty_video_projection_releases_shared_publisher_lock_before_setup` در `test_shared_selection_media_routing.py` بررسی می‌کند که gate پیش از راه‌اندازی Python قرار گرفته و تمام مراحل هزینه‌بر/ارسال برای projection خالی skip می‌شوند؛ قفل مشترک و مسیر non-empty همچنان حفظ می‌شوند.
+
+
+## ثبت تکمیلی handoff شواهد تقاضا — ۱۵ نوامبر ۲۰۲۶
+
+در پیاده‌سازی `catalog_handoff_fingerprint()`، کلیدهای `catalog_sort_mode`، `catalog_best_selling_rank`، `catalog_best_selling_category_id`، `catalog_best_selling_category_name`، `catalog_best_selling_ranks_by_category` و `catalog_rank_observed_at` بخشی از fingerprint هستند. به این ترتیب، تغییر رتبه یا زمان مشاهدهٔ تازهٔ دیجی‌کالا بدون تغییر قیمت نیز برای بررسی مجدد به ناشر handoff می‌شود. این تغییر فقط تازگی مدرک تقاضا را حفظ می‌کند و به‌هیچ‌وجه مجوز انتشار بدون کنترل زنده یا کاهش گیت‌های اصلی نیست.
+
