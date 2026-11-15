@@ -211,9 +211,9 @@ export function isInitialCatalogWarmup(status) {
   return Number(status.completed_cycles) === 0;
 }
 
-export const PUBLISHER_INTERVAL_MS = 27 * 60 * 1000;
-export const PUBLISHER_STANDALONE_EDITORIAL_GAP_MS = 55 * 60 * 1000;
-const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
+// This throttle schedules discovery retries only when no content slot exists.
+// It is never applied to a product or editorial publication timestamp.
+export const PUBLISHER_DISCOVERY_RETRY_MS = 3 * 60 * 1000;
 
 export function isEmergencyContinuityAvailable(state, now = Date.now()) {
   const expiresAt = Date.parse(String(state && state.emergency_continuity_expires_at || ""));
@@ -227,32 +227,12 @@ export function isEmergencyContinuityAvailable(state, now = Date.now()) {
   );
 }
 
-export function nextPublisherDueAt(state, lastPublishedAt, options = {}) {
+export function nextPublisherDueAt(state) {
   const scheduledAt = Date.parse(String(state && state.next_channel_content_due_at || ""));
   const editorialPlanningAt = Date.parse(String(state && state.next_editorial_planning_at || ""));
-  const lastPost = Number.isFinite(lastPublishedAt) ? lastPublishedAt : null;
-
-  // While the pinned emergency snapshot is being consumed, an empty queue is a
-  // discovery problem, not a reason to wait for the slower standalone editorial slot.
-  // Re-run selection on the normal retry cadence, while preserving the hard minimum
-  // gap after the last confirmed public post. Any queued product/editorial slot wins.
-  if (options.emergencyContinuityFallback === true && !Number.isFinite(scheduledAt)) {
-    return lastPost !== null
-      ? lastPost + PUBLISHER_INTERVAL_MS
-      : null;
-  }
-
   const plannedTimes = [scheduledAt, editorialPlanningAt].filter(Number.isFinite);
-  let dueAt = plannedTimes.length
-    ? Math.min(...plannedTimes)
-    : lastPost !== null
-      ? lastPost + PUBLISHER_STANDALONE_EDITORIAL_GAP_MS
-      : null;
-
-  if (dueAt !== null && lastPost !== null) {
-    dueAt = Math.max(dueAt, lastPost + PUBLISHER_INTERVAL_MS);
-  }
-  return dueAt;
+  // Public posting is event/queue driven. No last-post cooldown is applied here.
+  return plannedTimes.length ? Math.min(...plannedTimes) : null;
 }
 
 async function readOfferChinState(token) {
@@ -382,7 +362,7 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     }
   } else {
     // Reuse the last immutable clean snapshot while the next full scan runs.
-    // A new full scan is not required between two 27-minute publication slots.
+    // A new full scan is not required between already scheduled product slots.
     console.log(
       "OFFERCHIN_PUBLISHER_USING_CLEAN_SNAPSHOT cycle=" +
       String(catalogStatus.last_clean_cycle_completed_at) +
@@ -392,9 +372,9 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     );
   }
   const now = tick.getTime();
-  const nextDueAt = nextPublisherDueAt(state, lastPublishedAt, {
-    emergencyContinuityFallback,
-  });
+  const nextDueAt = nextPublisherDueAt(state);
+  const hasScheduledContent = Number.isFinite(Date.parse(String(state.next_channel_content_due_at || ""))) ||
+    Number.isFinite(Date.parse(String(state.next_editorial_planning_at || "")));
   const latestCleanCycleAt = Date.parse(String(
     catalogStatus && catalogStatus.last_clean_cycle_completed_at || ""
   ));
@@ -417,21 +397,16 @@ async function dispatchPublisherWhenDue(env, tick, state) {
       " next_content_due_at=" + new Date(nextDueAt).toISOString());
     return;
   }
-  // New-scan refreshes may happen before a product slot, but never bypass the
-  // hard minimum spacing between two public channel posts.
-  if (lastPublishedAt !== null && now - lastPublishedAt < PUBLISHER_INTERVAL_MS) {
-    console.log("OFFERCHIN_PUBLISHER_MINIMUM_GAP seconds_remaining=" +
-      Math.ceil((PUBLISHER_INTERVAL_MS - (now - lastPublishedAt)) / 1000));
-    return;
-  }
-
+  // A discovery retry is throttled only while no product/editorial slot exists.
+  // Once a slot is scheduled, it is dispatched at its exact timestamp regardless
+  // of how recently the previous public post happened.
   const attemptAt = Date.parse(String(
     latestAttempt && (latestAttempt.updated_at || latestAttempt.run_started_at || latestAttempt.created_at) || ""
   ));
-  const retryGap = degradedLiveFallback ? PUBLISHER_INTERVAL_MS : PUBLISHER_RETRY_GAP_MS;
-  if (Number.isFinite(attemptAt) && now - attemptAt < retryGap) {
-    console.log("OFFERCHIN_PUBLISHER_RETRY_WINDOW seconds_remaining=" +
-      Math.ceil((retryGap - (now - attemptAt)) / 1000));
+  if (!hasScheduledContent && !newCleanCycleReady &&
+      Number.isFinite(attemptAt) && now - attemptAt < PUBLISHER_DISCOVERY_RETRY_MS) {
+    console.log("OFFERCHIN_DISCOVERY_RETRY_WINDOW seconds_remaining=" +
+      Math.ceil((PUBLISHER_DISCOVERY_RETRY_MS - (now - attemptAt)) / 1000));
     return;
   }
 
@@ -639,18 +614,28 @@ async function runScheduledCheck(env, scheduledTime) {
   if (!hasOfferChinToken) return;
   const state = await readOfferChinState(env.GITHUB_TOKEN);
 
-  // Check the catalog workflow on every one-minute tick. The idle/stale-run
-  // guard below prevents overlap; dispatching only at offset 1 used to leave
-  // several minutes of avoidable idle time after a short successful batch.
+  // Continue persisted catalog pages on every tick. If category discovery is in
+  // backoff and no work remains, wait for its retry_after rather than launching a
+  // failing full workflow every minute.
   try {
-    await dispatchWorkflowIfIdle(
-      CATALOG_API,
-      env.GITHUB_TOKEN,
-      CATALOG_WORKFLOW,
-      18,
-      8,
-      { ignoreOrphanedNoJobs: true }
-    );
+    const catalogStatusForDispatch = await readCatalogSweepStatus(env.GITHUB_TOKEN);
+    const categoryRetryAt = Date.parse(String(
+      catalogStatusForDispatch && catalogStatusForDispatch.category_discovery_retry_after || ""
+    ));
+    const pendingPages = Math.max(0, Number(catalogStatusForDispatch && catalogStatusForDispatch.pending_page_count || 0));
+    if (Number.isFinite(categoryRetryAt) && categoryRetryAt > tick.getTime() && pendingPages === 0) {
+      console.log("OFFERCHIN_CATALOG_DISCOVERY_BACKOFF seconds_remaining=" +
+        Math.ceil((categoryRetryAt - tick.getTime()) / 1000));
+    } else {
+      await dispatchWorkflowIfIdle(
+        CATALOG_API,
+        env.GITHUB_TOKEN,
+        CATALOG_WORKFLOW,
+        18,
+        8,
+        { ignoreOrphanedNoJobs: true }
+      );
+    }
   } catch (error) {
     console.error("OFFERCHIN_CATALOG_SWEEP_DISPATCH_FAILED", String(error).slice(0, 900));
   }
