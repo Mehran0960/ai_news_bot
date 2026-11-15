@@ -555,7 +555,7 @@ def discover_categories(session: requests.Session | None = None) -> list[dict]:
                 row = {
                     **row,
                     "query": seed,
-                    "source": "digikala_discovery_api_v1_search_filters",
+                    "source": "digikala_discovery_api_v1_search_taxonomy",
                 }
                 discovered[row["id"]] = row
             for row in extract_autocomplete_categories(payload, seed):
