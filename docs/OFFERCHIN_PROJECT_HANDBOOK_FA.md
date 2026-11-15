@@ -1339,3 +1339,12 @@ PR validation در workflow اسکن کاتالوگ از گروه concurrency م
 - فقط محصولی وارد candidate extraction می‌شود که `product.status=marketable` یا variant آن صریحاً `marketable/in_stock` باشد. وضعیت `not_marketable`، `out_of_stock` یا مقدار نامعلوم بدون شاهد موجودی، محصول را واجد ورود به صف نمی‌کند.
 - وضعیت نامعلوم هرگز به‌صورت پیش‌فرض «موجود» فرض نمی‌شود. کنترل نهایی قیمت، موجودی و تخفیف زنده در ناشر/ممیزی مستقل به قوت خود باقی است.
 - فایل‌های اصلاح‌شده: `affilio_radar/catalog_sweep.py` و `affilio_radar/test_catalog_sweep.py`. آزمون variant-level marketability در regression کاتالوگ اضافه شده است.
+
+
+## ۲۰۲۶-۱۱-۱۵ — گیت سخت‌گیرانهٔ پیش‌بررسی کاتالوگ
+
+- پاسخ HTTP 200 یا payload دارای widget خالی برای شروع پیمایش کافی نیست.
+- پیش‌بررسی باید در اجرای زنده حداقل یک محصول بازارپذیر از جست‌وجوی عمومی استخراج کند، حداقل یک category ID معتبر از metadata یا autocomplete به‌دست آورد، و با همان ID در پارامتر `categories[0]` حداقل یک محصول بازارپذیر دیگر یا همان محصول را از پاسخ دسته‌ای استخراج کند.
+- اگر هر کدام از این مراحل خالی/نامعتبر باشد، preflight با خطای مشخص fail-closed می‌شود و نباید cursor یا صف کاتالوگ را جلو ببرد.
+- آزمون‌های `test_discovery_preflight_requires_search_and_category_scoped_products` و `test_discovery_preflight_rejects_http_200_with_no_marketable_products` این قرارداد را پوشش می‌دهند.
+- قیمت و موجودی نامعلوم همچنان به‌معنی واجد شرایط بودن نیست؛ کنترل زندهٔ کامل پیش از انتشار پابرجاست.
