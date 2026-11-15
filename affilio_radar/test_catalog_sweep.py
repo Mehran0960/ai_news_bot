@@ -158,6 +158,43 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertTrue(session.calls[0][0].endswith("/discovery/api/v1/search"))
         self.assertEqual(session.calls[0][1]["q"], "گوشی")
 
+    def test_discover_categories_prefers_live_search_filter_taxonomy(self):
+        payload = {
+            "data": {
+                "filters": [{
+                    "key": "categories",
+                    "name": "دسته‌بندی",
+                    "values": [{
+                        "id": 100,
+                        "title_fa": "تجهیزات دیجیتال",
+                        "slug": "digital",
+                        "children": [{
+                            "id": 101,
+                            "title_fa": "گوشی موبایل",
+                            "slug": "mobile",
+                        }],
+                    }],
+                }],
+                "query_attributes": {
+                    "category_ids": [{"id": 999, "title_fa": "دستهٔ مرتبط با عبارت"}]
+                },
+            }
+        }
+        empty = {"data": {"filters": [], "query_attributes": {"category_ids": []}}}
+        session = FakeSession([payload] + [empty] * 14)
+
+        categories = discover_categories(session)
+
+        by_id = {row["id"]: row for row in categories}
+        self.assertIn("100", by_id)
+        self.assertIn("101", by_id)
+        self.assertEqual(by_id["100"]["name"], "تجهیزات دیجیتال")
+        self.assertEqual(by_id["101"]["parent_id"], "100")
+        self.assertEqual(
+            by_id["100"]["source"], "digikala_discovery_api_v1_search_filters"
+        )
+        self.assertIn("999", by_id)
+
     def test_discover_categories_reads_category_ids_from_discovery_api(self):
         discovered = {
             "data": {"query_attributes": {"category_ids": [{
