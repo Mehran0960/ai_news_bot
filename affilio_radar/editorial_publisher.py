@@ -32,8 +32,7 @@ CHANNEL_DESTINATIONS = ("telegram", "bale", "rubika", "eitaa")
 VIDEO_DESTINATIONS = ("youtube", "aparat", "filo")
 TERMINAL = {"sent", "not_connected", "manual_review", "skipped_limit"}
 RETRYABLE = {"pending", "failed", "retry"}
-STANDALONE_EDITORIAL_GAP_MINUTES = max(50, min(59, int(os.getenv("OFFERCHIN_EDITORIAL_GAP_MINUTES", "55"))))
-MINIMUM_PRODUCT_GAP_MINUTES = 27
+# Editorial is only a midpoint item between two selected product slots; it has no standalone cadence.
 RETRY_BASE_SECONDS = max(60, min(1800, int(os.getenv("OFFERCHIN_EDITORIAL_RETRY_SECONDS", "300"))))
 MAX_ATTEMPTS = max(1, min(5, int(os.getenv("OFFERCHIN_EDITORIAL_MAX_ATTEMPTS", "3"))))
 
@@ -211,30 +210,18 @@ def queue_editorial_if_due(
             return None
 
         gap_seconds = int((product_at - anchor).total_seconds())
-        minimum_gap = MINIMUM_PRODUCT_GAP_MINUTES * 60
-        if gap_seconds < 2 * minimum_gap:
-            print(
-                "EDITORIAL_FALLBACK_NO_ROOM "
-                f"product_id={related_product_id} gap_minutes={round(gap_seconds / 60, 1)}"
-            )
+        if gap_seconds <= 0 or product_at <= current:
+            print(f"EDITORIAL_FALLBACK_NO_ROOM product_id={related_product_id} reason=product_slot_not_in_future")
             return None
-        scheduled_at = anchor + timedelta(seconds=gap_seconds // 2)
-        if scheduled_at < current:
-            scheduled_at = current
-        if (scheduled_at - anchor).total_seconds() < minimum_gap or (
-            product_at - scheduled_at
-        ).total_seconds() < minimum_gap:
+        midpoint_at = anchor + timedelta(seconds=gap_seconds // 2)
+        scheduled_at = max(current, midpoint_at)
+        if scheduled_at >= product_at:
+            print(f"EDITORIAL_FALLBACK_NO_ROOM product_id={related_product_id} reason=product_slot_due")
             return None
     else:
-        # When no product is waiting, use the reviewed bank at a slower standalone pace.
-        if anchor and current - anchor < timedelta(minutes=STANDALONE_EDITORIAL_GAP_MINUTES):
-            remaining = max(
-                0,
-                int((timedelta(minutes=STANDALONE_EDITORIAL_GAP_MINUTES) - (current - anchor)).total_seconds()),
-            )
-            print(f"EDITORIAL_FALLBACK_NOT_DUE remaining_seconds={remaining}")
-            return None
-        scheduled_at = current
+        # Editorial is a gap-filler, never a standalone replacement for missing products.
+        print("EDITORIAL_FALLBACK_WAIT reason=no_future_product_slot")
+        return None
 
     if radar.daily_channel_posts_count(state, current) >= radar.MAX_DAILY_CHANNEL_POSTS:
         print(
@@ -288,44 +275,90 @@ def queue_editorial_if_due(
 
 
 def _format_message(item: dict) -> str:
-    lines = [
-        "🧭 راهنمای کاربردی آفِرچین",
-        "",
-        str(item.get("title") or "").strip(),
-        "",
-        str(item.get("body") or "").strip(),
-        "",
-        "منابع:",
-    ]
+    topic = str(item.get("topic") or "").strip().lower()
+    topic_emoji = {
+        "purchase-planning": "🛍️",
+        "review-literacy": "⭐",
+        "seller-check": "🛡️",
+        "device-compatibility": "📱",
+        "price-comparison": "💰",
+        "returns-and-warranty": "📦",
+        "fit-and-size": "📏",
+        "home-safety": "🏠",
+    }.get(topic, "💡")
+    title = str(item.get("title") or "").strip()
+    body = "\n\n".join(
+        part.strip() for part in str(item.get("body") or "").replace("\r", "").split("\n\n")
+        if part.strip()
+    )
+    source_blocks = []
     for source in item.get("sources") or []:
-        if isinstance(source, dict):
-            title = str(source.get("title") or "منبع")
-            url = str(source.get("url") or "")
-            if url.startswith("https://"):
-                lines.append(f"• {title}: {url}")
-    lines.extend(["", "آفِرچین | t.me/OfferChin"])
-    message = "\n".join(lines)
-    return message[:3900]
+        if not isinstance(source, dict):
+            continue
+        url = str(source.get("url") or "").strip()
+        if not url.startswith("https://"):
+            continue
+        source_title = str(source.get("title") or "منبع").strip()
+        source_origin = str(source.get("publisher") or source.get("source") or "").strip()
+        if not source_origin:
+            from urllib.parse import urlsplit
+            host = (urlsplit(url).hostname or "").lower()
+            source_origin = (
+                "کمیسیون تجارت فدرال آمریکا (FTC)" if host.endswith("consumer.ftc.gov")
+                else "دیجی‌کالا مگ" if host in {"digikala.com", "www.digikala.com"} and "/mag/" in url
+                else host
+            )
+        if source_origin and source_origin.casefold() not in source_title.casefold():
+            source_title = f"{source_title} — {source_origin}"
+        source_blocks.append(f"• {source_title}:\n  {url}")
+        if len(source_blocks) >= 3:
+            break
+    header = f"🧭 راهنمای کاربردی آفِرچین\n\n{topic_emoji} {title}\n\n"
+    source_text = "\n\n".join(source_blocks) if source_blocks else "منبع معتبر برای این مطلب ثبت نشده است."
+    footer = "\n\n🔔 برای دیدن راهنماهای بعدی، دکمهٔ عضویت در پایین پیام را بزن."
+    body_prefix = "💡 "
+    fixed_length = len(header) + len("\n\n🔎 منابع:\n") + len(source_text) + len(footer)
+    body_budget = max(80, 1000 - fixed_length - len(body_prefix))
+    if len(body) > body_budget:
+        body = body[:max(0, body_budget - 1)].rsplit(" ", 1)[0].rstrip() + "…"
+    message = (
+        header + body_prefix + body +
+        "\n\n🔎 منابع:\n" + source_text + footer
+    )
+    return message[:1024]
 
 
-def _send_bot_message(platform: str, message: str) -> dict:
+def _send_bot_message(platform: str, message: str, image_bytes: bytes = b"") -> dict:
     if platform == "telegram":
         token = radar.BOT_TOKEN
         chat_id = radar.TARGET_CHAT
-        endpoint = f"https://api.telegram.org/bot{token}/sendMessage"
+        endpoint = f"https://api.telegram.org/bot{token}/sendPhoto" if image_bytes else f"https://api.telegram.org/bot{token}/sendMessage"
+        join_url = "https://t.me/OfferChin"
     elif platform == "bale":
         token = radar.BALE_BOT_TOKEN
         chat_id = radar.BALE_CHANNEL_ID
-        endpoint = f"https://tapi.bale.ai/bot{token}/sendMessage"
+        endpoint = f"https://tapi.bale.ai/bot{token}/sendPhoto" if image_bytes else f"https://tapi.bale.ai/bot{token}/sendMessage"
+        join_url = "https://ble.ir/OfferChin"
     else:
         raise ValueError("unsupported_bot_message_destination")
     if not token or not chat_id:
         raise RuntimeError("destination_credentials_missing")
-    response = requests.post(
-        endpoint,
-        data={"chat_id": chat_id, "text": message, "disable_web_page_preview": "true"},
-        timeout=(15, 45),
-    )
+    reply_markup = json.dumps({
+        "inline_keyboard": [[{"text": "🔔 عضویت در آفِرچین", "url": join_url}]]
+    }, ensure_ascii=False)
+    if image_bytes:
+        response = requests.post(
+            endpoint,
+            data={"chat_id": chat_id, "caption": message, "reply_markup": reply_markup},
+            files={"photo": ("offerchin-editorial.png", image_bytes, "image/png")},
+            timeout=(15, 90),
+        )
+    else:
+        response = requests.post(
+            endpoint,
+            data={"chat_id": chat_id, "text": message, "reply_markup": reply_markup, "disable_web_page_preview": "true"},
+            timeout=(15, 45),
+        )
     response.raise_for_status()
     payload = response.json()
     if payload.get("ok") is not True or not isinstance(payload.get("result"), dict):
@@ -568,7 +601,7 @@ def _handle_channel_destination(
     _save(state)
     try:
         if destination in {"telegram", "bale"}:
-            receipt = _send_bot_message(destination, message)
+            receipt = _send_bot_message(destination, message, image_bytes)
         elif destination == "rubika":
             receipt = _send_rubika_image(image_bytes, message)
         else:
@@ -792,9 +825,7 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
     anchor = _recent_attempt_anchor(shadow_state_for_anchor)
     elapsed = (current - anchor) if anchor else None
     remaining = (
-        max(0, int((timedelta(minutes=STANDALONE_EDITORIAL_GAP_MINUTES) - elapsed).total_seconds()))
-        if elapsed is not None and elapsed < timedelta(minutes=STANDALONE_EDITORIAL_GAP_MINUTES)
-        else 0
+        0
     )
 
     destination_config = {
@@ -860,7 +891,7 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         "decision": decision,
         "would_select_content_id": item_id,
         "would_allocate_sequence_number": sequence,
-        "fallback_interval_minutes": STANDALONE_EDITORIAL_GAP_MINUTES,
+        "editorial_requires_future_product_slot": True,
         "seconds_until_fallback_due": remaining,
         "editorial_bank_total": len(bank),
         "editorial_bank_valid": len(valid_items),
