@@ -18,6 +18,10 @@ from pathlib import Path
 from typing import Any
 
 import requests
+try:
+    from .digikala_http import new_digikala_session
+except ImportError:
+    from digikala_http import new_digikala_session
 
 try:
     from .offerchin_four_factor import (
@@ -53,10 +57,11 @@ CANDIDATES_PATH = ROOT / "catalog_sweep_candidates.json"
 PUBLISHER_STATE_PATH = ROOT / "state.json"
 
 API_ROOT = "https://api.digikala.com"
+CATEGORY_TREE_URL = f"{API_ROOT}/v1/category-tree/"
 DICTIONARY_URL = f"{API_ROOT}/v1/dictionaries/"
 AUTOCOMPLETE_URL = f"{API_ROOT}/v1/autocomplete/"
 SEARCH_URL = f"{API_ROOT}/v1/search/"  # Legacy endpoint retained for compatibility tests only.
-CATEGORY_SEARCH_URL = f"{API_ROOT}/v2/category/{{category_id}}/"
+CATEGORY_SEARCH_URL = f"{API_ROOT}/v1/categories/{{category_code}}/search/"
 REQUEST_TIMEOUT = (5, 18)
 CATEGORY_REFRESH_HOURS = 24
 # A verified taxonomy may bridge a temporary API change long enough to refresh it.
@@ -81,14 +86,7 @@ PERSIAN_DIGITS = str.maketrans(
     "01234567890123456789,.",
 )
 
-SESSION = requests.Session()
-SESSION.headers.update({
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                  "(KHTML, like Gecko) Chrome/128 Safari/537.36",
-    "Accept": "application/json,text/plain,*/*",
-    "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.7",
-    "Referer": "https://www.digikala.com/",
-})
+SESSION = new_digikala_session()
 
 
 class CatalogSweepError(RuntimeError):
@@ -198,8 +196,37 @@ def sort_categories_for_sweep(categories: Any) -> list[dict]:
 
 
 def extract_categories(payload: Any) -> list[dict]:
-    """Extract category nodes from category_tree/mega_menu or search filters."""
+    """Extract DigiKala's flat category-tree records, retaining API category codes."""
     found: dict[str, dict] = {}
+    data = payload.get("data") if isinstance(payload, dict) else None
+    direct = data.get("categories") if isinstance(data, dict) else None
+    if isinstance(direct, list):
+        for item in direct:
+            if not isinstance(item, dict):
+                continue
+            category = item.get("category") if isinstance(item.get("category"), dict) else item
+            category_id = str(category.get("id") or category.get("category_id") or "").strip()
+            name = str(
+                category.get("title_fa") or category.get("title")
+                or category.get("name_fa") or category.get("name") or ""
+            ).strip()
+            code = str(category.get("code") or category.get("slug") or "").strip()
+            parent_id = str(item.get("parent_id") or category.get("parent_id") or "").strip()
+            if not category_id.isdigit() or not name:
+                continue
+            found[category_id] = {
+                "id": category_id,
+                "name": re.sub(r"\\s+", " ", name)[:120],
+                "code": code[:160],
+                "slug": code[:160],
+                "parent_id": parent_id if parent_id.isdigit() else "",
+                "depth": 1 if parent_id.isdigit() else 0,
+                "source": "digikala_v1_category_tree",
+            }
+        if found:
+            return sort_categories_for_sweep(found.values())
+
+    # Compatibility parser for previously cached dictionary/mega-menu payloads.
     child_keys = {
         "children", "childs", "categories", "sub_categories", "subcategories",
         "items", "nodes", "category_tree", "mega_menu",
@@ -221,24 +248,24 @@ def extract_categories(payload: Any) -> list[dict]:
         looks_like_category = bool(
             candidate_id and candidate_name and (
                 category_context or has_child_container
-                or any(key in value for key in ("slug", "category_slug", "url", "uri"))
+                or any(key in value for key in ("slug", "category_slug", "code", "url", "uri"))
             )
         )
 
         next_parent = parent_id
         next_depth = depth
         if looks_like_category:
+            code = str(value.get("code") or value.get("slug") or value.get("category_slug") or "").strip()
             record = {
                 "id": candidate_id,
                 "name": candidate_name,
-                "parent_id": parent_id,
+                "code": code[:160],
+                "parent_id": str(value.get("parent_id") or parent_id or ""),
                 "depth": depth,
-                "slug": str(value.get("slug") or value.get("category_slug") or "")[:160],
+                "slug": code[:160],
             }
             previous = found.get(candidate_id)
-            if previous is None or (
-                previous.get("parent_id") in ("", None) and parent_id
-            ):
+            if previous is None or (not previous.get("code") and code):
                 found[candidate_id] = record
             next_parent = candidate_id
             next_depth = depth + 1
@@ -253,7 +280,6 @@ def extract_categories(payload: Any) -> list[dict]:
 
     visit(payload)
 
-    # Some search API versions expose category facets instead of a tree.
     if not found:
         for node in _walk_dicts(payload):
             key = str(node.get("key") or node.get("name") or node.get("slug") or "").lower()
@@ -269,12 +295,12 @@ def extract_categories(payload: Any) -> list[dict]:
                     cid = _category_id(item)
                     name = _category_name(item)
                     if cid and name:
+                        code = str(item.get("code") or item.get("slug") or "").strip()
                         found.setdefault(cid, {
-                            "id": cid, "name": name, "parent_id": "",
-                            "depth": 0,
-                            "slug": str(item.get("slug") or "")[:160],
+                            "id": cid, "name": name, "code": code[:160],
+                            "parent_id": str(item.get("parent_id") or ""),
+                            "depth": 0, "slug": code[:160],
                         })
-
     return sort_categories_for_sweep(found.values())
 
 
@@ -410,43 +436,41 @@ def _v2_image_url(product: dict) -> str:
 
 
 def discover_categories(session: requests.Session | None = None) -> list[dict]:
-    """Refresh category IDs from DigiKala's public dictionaries, then search facets."""
+    """Load DigiKala's current complete category taxonomy, preserving category codes."""
     http = session or SESSION
-    dictionary_types = (
-        "states", "cities", "user_jobs", "mega_menu", "universal",
-        "category_tree", "districts", "seo_content", "superapp_services",
-    )
-    params = []
-    for index, kind in enumerate(dictionary_types):
-        params.append((f"types[{index}]", kind))
-        params.append((f"hashes[{index}]", ""))
-
     errors = []
     try:
-        payload = _request_json(http, DICTIONARY_URL, params=params)
+        payload = _request_json(http, CATEGORY_TREE_URL)
         categories = extract_categories(payload)
         if categories:
+            coded = sum(bool(str(row.get("code") or "").strip()) for row in categories)
+            print(
+                "CATALOG_CATEGORY_TREE_API "
+                f"categories={len(categories)} coded={coded} "
+                f"source=digikala_v1_category_tree"
+            )
             return categories
-        errors.append("dictionaries_no_category_nodes")
+        errors.append("category_tree_no_category_nodes")
+    except Exception as exc:
+        errors.append(_category_discovery_error_label("category_tree", exc))
+
+    # Older dictionaries are only a fallback; the current endpoint above is
+    # the only source expected to return the complete coded taxonomy.
+    try:
+        payload = _request_json(http, DICTIONARY_URL, params=[
+            pair
+            for index, kind in enumerate((
+                "states", "cities", "user_jobs", "mega_menu", "universal",
+                "category_tree", "districts", "seo_content", "superapp_services",
+            ))
+            for pair in ((f"types[{index}]", kind), (f"hashes[{index}]", ""))
+        ])
+        categories = extract_categories(payload)
+        if categories and any(row.get("code") for row in categories):
+            return categories
+        errors.append("dictionaries_no_coded_category_nodes")
     except Exception as exc:
         errors.append(_category_discovery_error_label("dictionaries", exc))
-
-    autocomplete_categories: dict[str, dict] = {}
-    autocomplete_errors = []
-    # Search API v2 requires a category ID; discover those IDs from the public
-    # autocomplete endpoint instead of the retired v1 /search/ facets endpoint.
-    for seed in CATEGORY_AUTOCOMPLETE_SEEDS:
-        try:
-            payload = _request_json(http, AUTOCOMPLETE_URL, params={"q": seed})
-            for row in extract_autocomplete_categories(payload, seed):
-                previous = autocomplete_categories.get(row["id"])
-                if previous is None or not previous.get("query"):
-                    autocomplete_categories[row["id"]] = row
-        except Exception as exc:
-            autocomplete_errors.append(_category_discovery_error_label("autocomplete", exc))
-    if autocomplete_categories:
-        return sort_categories_for_sweep(autocomplete_categories.values())
-    errors.extend(autocomplete_errors or ["autocomplete_no_category_nodes"])
     raise CatalogSweepError("category_discovery_failed:" + ",".join(errors))
 
 
@@ -837,11 +861,22 @@ def retain_diverse_candidates(
     ranked = sorted(eligible, key=catalog_candidate_sort_key, reverse=True)
     return ranked[:cap]
 
-def _category_page_url(category_id: str, page: int, category_name: str = "") -> tuple[str, dict]:
-    return CATEGORY_SEARCH_URL.format(category_id=str(category_id)), {
-        "q": str(category_name or category_id),
-        "page": int(page),
-        "sort": BEST_SELLING_SORT_VALUE,
+def _category_page_url(
+    category_id: str,
+    page: int,
+    category_name: str = "",
+    category_code: str = "",
+) -> tuple[str, dict]:
+    """Build the current category-code listing route; numeric IDs are never substituted for slugs."""
+    code = str(category_code or "").strip()
+    if not code:
+        raise CatalogSweepError(f"category_code_missing:{category_id}")
+    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", code):
+        raise CatalogSweepError(f"category_code_invalid:{category_id}")
+    return CATEGORY_SEARCH_URL.format(category_code=code), {
+        "page": max(1, int(page)),
+        "sort": 7,
+        "has_selling_stock": 1,
     }
 
 
@@ -1260,7 +1295,11 @@ def refresh_categories(state: dict, session: requests.Session, force: bool = Fal
     refreshed = state.get("categories_refreshed_at")
     age_hours = _category_cache_age_hours(refreshed, now)
     stale = age_hours is None or age_hours >= CATEGORY_REFRESH_HOURS
-    if current and not force and not stale:
+    taxonomy_has_codes = any(
+        isinstance(row, dict) and bool(str(row.get("code") or row.get("slug") or "").strip())
+        for row in (current if isinstance(current, list) else [])
+    )
+    if current and not force and not stale and taxonomy_has_codes:
         return
 
     retry_after = None
@@ -1423,7 +1462,17 @@ def run_sweep(
             _write_json(state_path, state)
             continue
 
-        url, params = _category_page_url(category_id, page)
+        category_code = str(category.get("code") or category.get("slug") or "").strip()
+        try:
+            url, params = _category_page_url(category_id, page, category_name, category_code)
+        except CatalogSweepError as exc:
+            stats["api_failures_total"] += 1
+            state["last_error"] = f"category={category_id}:page={page}:{str(exc)[:120]}"
+            state["last_error_at"] = iso_now()
+            state["stats"] = stats
+            _write_json(state_path, state)
+            print(f"CATALOG_SWEEP_CATEGORY_CODE_MISSING id={category_id} page={page}")
+            return 1
         try:
             payload = _request_json(http, url, params=params)
             product_rows = extract_product_rows(payload)
@@ -1495,6 +1544,7 @@ def run_sweep(
                 "first_seen_at": first_seen,
                 "catalog_category_id": category_id,
                 "catalog_category_name": category_name,
+                "catalog_category_code": category_code,
                 "catalog_category_ids": sorted(category_ids, key=lambda value: int(value)),
                 "catalog_sort_mode": "best_selling",
                 "catalog_best_selling_ranks_by_category": ranks_by_category,
