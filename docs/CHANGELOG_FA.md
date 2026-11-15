@@ -2250,3 +2250,20 @@
 **ریسک/بازگشت:** اگر Discovery API پاسخ معتبر ندهد، preflight باید اسکن را متوقف کند و state صف/ناشر را دست‌نخورده نگه دارد. بازگشت کد با revert commitهای اسکنر ممکن است، اما endpointهای قدیمی همچنان حذف‌شده‌اند؛ بنابراین rollback به مسیر قبلی راه‌حل عملی نیست. در صورت شکست endpoint جدید، اسکن متوقف و سازگاری با قرارداد جدید دوباره بررسی شود؛ از دور زدن گیت‌ها یا انتشار کاندیدای تأییدنشده خودداری شود.
 
 **وضعیت:** اصلاح کد و تست ثبت شده؛ اجرای زنده و نتیجهٔ نهایی CI در انتظار.
+
+
+## ۲۰۲۶-۱۱-۱۵ — تصحیح مسیرهای عملیاتی Discovery API
+
+**علت:** preflight زنده روی GitHub Runner نشان داد URL ریشهٔ `/discovery/api/v1/` پاسخ 404 می‌دهد؛ بنابراین صرفاً جایگزین کردن پیشوند API کافی نبود. اسناد نسخهٔ 0.9.1 و 0.9.2 سرویس مرجع، جابه‌جایی جست‌وجو و autocomplete به namespace جدید و پارامتر `categories[0]` را تأیید می‌کنند. پیاده‌سازی مرجع قبلی نیز عملیات را به‌صورت مسیرهای جداگانهٔ search و autocomplete مصرف می‌کند.
+
+**تغییر/اقدام:** مسیرها به `/discovery/api/v1/search` و `/discovery/api/v1/autocomplete` تفکیک شدند؛ headerهای `Origin` و `X-Web-Optimize-Response: 1` افزوده شدند؛ parser شناسه‌های دسته حالا metadata تو‌در‌توی `vertical_product_listing` و پاسخ `data.auto_complete` را نیز می‌خواند. نسخهٔ route policy تغییر کرد تا صف کامل کاتالوگ از صفحهٔ اول دوباره ساخته شود، بدون حذف تاریخچه و state ناشر.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/catalog_sweep.py`، `affilio_radar/parallel_catalog_sweep.py`، `affilio_radar/test_catalog_sweep.py`، `affilio_radar/test_parallel_catalog_sweep.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
+
+**آزمون و نتیجه:** تست‌های قرارداد endpoint، parser metadata تو‌در‌تو، پاسخ autocomplete و headerها افزوده/به‌روزرسانی شدند. preflight زنده پس از این اصلاح هنوز باید اجرا شود؛ تا وقتی پاسخ واقعی HTTP 200 و ردیف‌های محصول از GitHub Runner تأیید نشده، اسکن جامع و انتشار محصول موفق اعلام نمی‌شوند.
+
+**شواهد/شناسه:** endpoint/code: `6f5a11df1602cb9160a7af2ba36059970de2cccb`، route migration: `6313deddee3e407fce6f8c0afec46f9d6c0afc20`، nested parser: `87e8bd4de3d709de59bf8b273594cf1e3134fc90`، tests: `27f4c3c5437f53d205ba680cb74b0d101a6adc4b` و `b5a89271a46be8682ff69f4d96f55724e4a9e8f1`.
+
+**ریسک/بازگشت:** اگر مسیرهای جدید نیز 404 یا ساختار payload ناشناخته برگردانند، preflight اسکن را متوقف نگه می‌دارد. از بازگرداندن routeهای قدیمی یا تضعیف گیت‌های تقاضا/تخفیف خودداری شود.
+
+**وضعیت:** مسیرها و parser اصلاح شده‌اند؛ CI و راستی‌آزمایی endpoint زنده در انتظار.
