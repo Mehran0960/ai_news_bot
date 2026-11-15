@@ -207,42 +207,39 @@ def sort_categories_for_sweep(categories: Any) -> list[dict]:
 
 
 def extract_categories(payload: Any) -> list[dict]:
-    """Extract category nodes from category_tree/mega_menu or search filters."""
-    found: dict[str, dict] = {}
-    child_keys = {
-        "children", "childs", "categories", "sub_categories", "subcategories",
-        "items", "nodes", "category_tree", "mega_menu",
-    }
+    """Extract categories only from explicit category trees or category filter groups.
 
-    def visit(value: Any, parent_id: str = "", depth: int = 0, category_context: bool = False):
+    Discovery search responses contain many unrelated facets (sellers, brands,
+    delivery options, etc.). A generic recursive walk over every object that has
+    an id/name/children shape is unsafe: it can mislabel seller names as product
+    categories. Only enter roots whose API field explicitly identifies taxonomy.
+    """
+    data = payload.get("data") if isinstance(payload, dict) else None
+    if not isinstance(data, dict):
+        return []
+
+    found: dict[str, dict] = {}
+    child_keys = ("children", "childs", "sub_categories", "subcategories")
+
+    def add_node(value: Any, parent_id: str = "", depth: int = 0) -> None:
         if isinstance(value, list):
             for child in value:
-                visit(child, parent_id, depth, category_context)
+                add_node(child, parent_id, depth)
             return
         if not isinstance(value, dict):
             return
 
         candidate_id = _category_id(value)
         candidate_name = _category_name(value)
-        has_child_container = any(
-            isinstance(value.get(key), (list, dict)) for key in child_keys
-        )
-        looks_like_category = bool(
-            candidate_id and candidate_name and (
-                category_context or has_child_container
-                or any(key in value for key in ("slug", "category_slug", "url", "uri"))
-            )
-        )
-
         next_parent = parent_id
         next_depth = depth
-        if looks_like_category:
+        if candidate_id and candidate_name:
             record = {
                 "id": candidate_id,
                 "name": candidate_name,
                 "parent_id": parent_id,
                 "depth": depth,
-                "slug": str(value.get("slug") or value.get("category_slug") or "")[:160],
+                "slug": str(value.get("slug") or value.get("category_slug") or value.get("code") or "")[:160],
             }
             previous = found.get(candidate_id)
             if previous is None or (
@@ -252,37 +249,61 @@ def extract_categories(payload: Any) -> list[dict]:
             next_parent = candidate_id
             next_depth = depth + 1
 
-        for key, child in value.items():
-            key_lower = str(key).lower()
-            next_context = category_context or (
-                "categor" in key_lower or "mega_menu" in key_lower or key_lower == "children"
-            )
+        # Children are traversed only after entering a known category tree/facet.
+        for key in child_keys:
+            child = value.get(key)
             if isinstance(child, (dict, list)):
-                visit(child, next_parent, next_depth, next_context)
+                add_node(child, next_parent, next_depth)
 
-    visit(payload)
+    # These are dedicated category-tree fields; never search products or sellers
+    # for similarly-shaped nested objects.
+    for key in ("category_tree", "categoryTree", "mega_menu", "megaMenu"):
+        root = data.get(key)
+        if isinstance(root, (dict, list)):
+            add_node(root)
 
-    # Some search API versions expose category facets instead of a tree.
-    if not found:
-        for node in _walk_dicts(payload):
-            key = str(node.get("key") or node.get("name") or node.get("slug") or "").lower()
-            if "categor" not in key and "دسته" not in key:
-                continue
-            for list_key in ("values", "options", "items", "children"):
-                values = node.get(list_key)
-                if not isinstance(values, list):
-                    continue
-                for item in values:
-                    if not isinstance(item, dict):
-                        continue
-                    cid = _category_id(item)
-                    name = _category_name(item)
-                    if cid and name:
-                        found.setdefault(cid, {
-                            "id": cid, "name": name, "parent_id": "",
-                            "depth": 0,
-                            "slug": str(item.get("slug") or "")[:160],
-                        })
+    filters = data.get("filters")
+    if isinstance(filters, dict):
+        filter_groups = list(filters.values())
+    elif isinstance(filters, list):
+        filter_groups = filters
+    else:
+        filter_groups = []
+
+    category_keys = {
+        "category", "categories", "category_id", "category_ids",
+        "category_filter", "category_filters",
+    }
+    category_names = {"دسته", "دسته بندی", "دسته‌بندی", "دسته کالا", "دسته‌بندی کالا"}
+
+    for group in filter_groups:
+        if not isinstance(group, dict):
+            continue
+        raw_key = str(
+            group.get("key") or group.get("filter_key") or group.get("slug")
+            or group.get("param") or ""
+        ).strip().lower()
+        normalized_key = re.sub(r"\[.*?\]$", "", raw_key).replace("-", "_")
+        display_name = str(
+            group.get("title_fa") or group.get("title") or group.get("name_fa")
+            or group.get("name") or group.get("label") or ""
+        ).strip().lower()
+        declared_type = str(group.get("type") or group.get("kind") or "").strip().lower()
+        is_category_group = (
+            normalized_key in category_keys
+            or display_name in category_names
+            or declared_type in {"category", "categories", "category_filter"}
+        )
+        if not is_category_group:
+            continue
+
+        values = None
+        for key in ("values", "options", "items", "children", "categories"):
+            if isinstance(group.get(key), (dict, list)):
+                values = group.get(key)
+                break
+        if values is not None:
+            add_node(values)
 
     return sort_categories_for_sweep(found.values())
 
@@ -925,16 +946,50 @@ def _catalog_live_demand_score(row: dict) -> float:
     return round(min(100.0, (base_score + coverage_bonus) * freshness), 2)
 
 
-def catalog_category_is_consistent(row: dict, catalog_category_name: object) -> bool:
-    """Reject a bestseller rank when product taxonomy and scanned category conflict.
+def _specific_catalog_topic(value: object) -> str:
+    """Return a conservative, fine-grained topic for taxonomy cross-checking."""
+    text = " ".join(str(value or "").lower().replace("\u200c", " ").split())
+    text = text.replace("ي", "ی").replace("ك", "ک")
+    text = re.sub(r"[\u064b-\u065f\u0670ـ]", "", text)
+    patterns = (
+        ("tablet_accessory", r"لوازم جانبی.{0,24}(?:تبلت|موبایل)|قطعات.{0,24}(?:تبلت|موبایل)"),
+        ("smart_watch", r"ساعت هوشمند|اپل واچ|apple watch|watch ultra"),
+        ("smartphone", r"گوشی موبایل|گوشی هوشمند|گوشی|موبایل"),
+        ("computer_storage", r"تجهیزات ذخیره سازی|ذخیره سازی اطلاعات|فلش مموری|حافظه|هارد|ssd"),
+        ("computer_peripheral", r"لوازم جانبی کامپیوتر|ماوس|موس|کیبورد|صفحه کلید|وبکم"),
+        ("computer_display", r"نمایشگر|مانیتور|monitor"),
+        ("network_equipment", r"تجهیزات شبکه|شبکه اکتیو|شبکه پسیو|مودم|روتر|سوئیچ شبکه|آنتن مودم"),
+        ("camera_equipment", r"دوربین|تجهیزات امنیتی|لوازم جانبی دوربین"),
+        ("computer_component", r"قطعات کامپیوتر|کارت گرافیک|مادربرد|پردازنده|cpu|ram"),
+        ("office_printing", r"ماشین های اداری|ماشین اداری|پرینتر|چاپگر|لیبل زن|لوازم اداری و فروشگاهی"),
+        ("jewelry", r"طلا|جواهر|انگشتر|گردنبند|زیورآلات|دستبند"),
+        ("fashion", r"پوشاک|لباس|کلاه|شلوار|پیراهن|بلوز|شومیز|کفش|عینک مردانه|عینک زنانه"),
+        ("cable_adapter", r"کابل و مبدل|کابل usb|کابل پرینتر|مبدل"),
+        ("audio_device", r"هدفون|هدست|هندزفری|اسپیکر|میکروفن|میکروفون"),
+    )
+    for topic, pattern in patterns:
+        if re.search(pattern, text, re.I):
+            return topic
+    return ""
 
-    A missing/unknown taxonomy is not treated as a mismatch. A rejection only
-    occurs when both the product's own data_layer category and the scanned
-    category are confidently classified into different semantic groups.
+
+def catalog_category_is_consistent(row: dict, catalog_category_name: object) -> bool:
+    """Reject a bestseller rank if fine-grained product and category taxonomies conflict.
+
+    Broad use-case groups remain a fallback for categories that cannot be
+    classified more precisely. Missing taxonomy is not treated as proof of a
+    mismatch, but a known mouse/storage/display/network product cannot inherit
+    a smartphone or jewellery bestseller rank.
     """
     if not isinstance(row, dict):
         return True
-    product_group = _infer_use_case_group("", row.get("category") or "")
+    product_text = row.get("category") or row.get("title") or ""
+    product_topic = _specific_catalog_topic(product_text)
+    scanned_topic = _specific_catalog_topic(catalog_category_name)
+    if product_topic and scanned_topic:
+        return product_topic == scanned_topic
+
+    product_group = _infer_use_case_group("", row.get("category") or row.get("title") or "")
     scanned_group = _infer_use_case_group("", catalog_category_name or "")
     return (
         product_group == "unknown"
