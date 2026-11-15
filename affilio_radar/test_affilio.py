@@ -1788,6 +1788,27 @@ class AffilioRadarTests(unittest.TestCase):
             (now + timedelta(seconds=30)).isoformat(),
         )
 
+    def test_video_dispatch_state_keeps_a_missed_wakeup_due_while_delivery_window_is_open(self):
+        now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        product_at = now + timedelta(minutes=2)
+        state = {
+            "last_channel_published_at": (now - timedelta(minutes=2)).isoformat(),
+            "content_delivery_queue": {
+                "dkp-missed-wakeup": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": product_at.isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                },
+            },
+            "published": {},
+        }
+        compact = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertEqual(compact["next_editorial_planning_at"], now.isoformat())
+
     def test_video_dispatch_state_skips_editorial_when_dispatch_runway_cannot_fit(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
         product_at = now + timedelta(seconds=75)
