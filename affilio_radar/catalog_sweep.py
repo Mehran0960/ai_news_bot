@@ -302,10 +302,11 @@ def _request_json(session: requests.Session, url: str, params=None) -> dict:
 
 
 def validate_discovery_api(session: requests.Session | None = None) -> dict:
-    """Fail closed unless the current Discovery API returns a recognized search shape.
+    """Prove that search, taxonomy extraction and category-scoped listings all work.
 
-    This probe runs before a production sweep so a global route or schema break
-    cannot classify thousands of categories as individually invalid.
+    A generic HTTP 200 or an empty widgets envelope is not sufficient: the
+    production crawler must be able to extract a marketable product, obtain a
+    real category ID, and use that ID to retrieve a category-scoped product page.
     """
     http = session or SESSION
     payload = _request_json(
@@ -316,26 +317,35 @@ def validate_discovery_api(session: requests.Session | None = None) -> dict:
     data = payload.get("data")
     if not isinstance(data, dict):
         raise CatalogSweepError("discovery_api_missing_data_object")
-    has_listing_shape = (
-        isinstance(data.get("products"), list)
-        or isinstance(data.get("widgets"), list)
-        or isinstance(data.get("query_attributes"), dict)
-        or isinstance(payload.get("pager"), dict)
-        or isinstance(data.get("pager"), dict)
-    )
-    if not has_listing_shape:
-        raise CatalogSweepError(
-            "discovery_api_unrecognized_payload:"
-            + ",".join(sorted(str(key) for key in data.keys())[:20])
-        )
-    rows = extract_product_rows(payload) if (
-        isinstance(data.get("products"), list) or isinstance(data.get("widgets"), list)
-    ) else []
+
+    rows = extract_product_rows(payload)
+    if not rows:
+        raise CatalogSweepError("discovery_api_search_returned_zero_marketable_products")
+
     categories = extract_autocomplete_categories(payload, "گوشی")
+    if not categories:
+        autocomplete_payload = _request_json(
+            http, DISCOVERY_AUTOCOMPLETE_URL, params={"q": "گوشی"}
+        )
+        categories = extract_autocomplete_categories(autocomplete_payload, "گوشی")
+    if not categories:
+        raise CatalogSweepError("discovery_api_returned_no_category_ids")
+
+    category_url, category_params = category_search_request(categories[0], 1)
+    category_payload = _request_json(http, category_url, params=category_params)
+    category_rows = extract_product_rows(category_payload)
+    if not category_rows:
+        raise CatalogSweepError(
+            "discovery_api_category_filter_returned_zero_marketable_products:"
+            + str(categories[0].get("id") or "")
+        )
+
     print(
         "DIGIKALA_DISCOVERY_API_PREFLIGHT_OK "
-        f"status=200 products={len(rows)} category_ids={len(categories)} "
-        f"data_keys={','.join(sorted(str(key) for key in data.keys())[:20])}"
+        f"status=200 search_products={len(rows)} "
+        f"category_ids={len(categories)} category_probe_products={len(category_rows)} "
+        f"category_probe_id={categories[0]['id']} "
+        f"search_path={DISCOVERY_SEARCH_URL} autocomplete_path={DISCOVERY_AUTOCOMPLETE_URL}"
     )
     return payload
 
