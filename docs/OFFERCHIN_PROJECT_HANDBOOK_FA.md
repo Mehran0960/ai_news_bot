@@ -1457,3 +1457,6 @@ PR validation در workflow اسکن کاتالوگ از گروه concurrency م
 ## کاهش زمان قفل مشترک ناشر برای صف ویدئوی خالی — ۱۵ نوامبر ۲۰۲۶
 
 ناشر کانال و ناشر ویدئو به‌دلیل نوشتن وضعیت مشترک در `state.json` همچنان از یک concurrency group استفاده می‌کنند؛ این قفل نباید حذف شود، چون می‌تواند باعث بازنویسی/گم‌شدن رسیدها و وضعیت FIFO شود. بااین‌حال workflow ویدئو اکنون بلافاصله پس از checkout، فایل projection `video_upload_dispatch_state.json` را می‌خواند. اگر آبجکت `published` خالی باشد، تمام مراحل نصب Python/Playwright، ورود Filo، رندر و ارسال ویدئو skip می‌شوند و قفل ناشر آزاد می‌شود. اگر projection غیرخالی باشد، مسیر کامل قبلی بدون تغییر اجرا می‌شود. این gate هیچ رکوردی را حذف، تغییر یا به‌عنوان منتشرشده علامت نمی‌زند؛ فقط اجرای بدون کار را کوتاه می‌کند.
+
+
+**Regression guard:** تست `test_empty_video_projection_releases_shared_publisher_lock_before_setup` در `test_shared_selection_media_routing.py` بررسی می‌کند که gate پیش از راه‌اندازی Python قرار گرفته و تمام مراحل هزینه‌بر/ارسال برای projection خالی skip می‌شوند؛ قفل مشترک و مسیر non-empty همچنان حفظ می‌شوند.
