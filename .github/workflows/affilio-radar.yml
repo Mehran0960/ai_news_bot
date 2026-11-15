@@ -133,6 +133,70 @@ jobs:
           done
           exit 1
 
+      - name: Diagnose live DigiKala API routes (non-main branch only)
+        if: ${{ github.event_name == 'push' && github.ref != 'refs/heads/main' }}
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          import requests
+          from urllib.parse import urlsplit
+
+          headers = {
+              "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128 Safari/537.36",
+              "Accept": "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8",
+              "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.7",
+              "Referer": "https://www.digikala.com/",
+          }
+          session = requests.Session()
+          session.headers.update(headers)
+          pid = "10052796"
+          probes = [
+              ("product_v2", f"https://api.digikala.com/v2/product/{pid}/", {}),
+              ("product_v1", f"https://api.digikala.com/v1/product/{pid}/", {}),
+              ("product_discovery_singular", f"https://api.digikala.com/discovery/api/v2/product/{pid}/", {}),
+              ("product_discovery_plural", f"https://api.digikala.com/discovery/api/v2/products/{pid}/", {}),
+              ("category_v2_sort5", "https://api.digikala.com/v2/category/77/", {"page": 1, "sort": 5}),
+              ("category_v2_sort7", "https://api.digikala.com/v2/category/77/", {"page": 1, "sort": 7}),
+              ("category_discovery_v2", "https://api.digikala.com/discovery/api/v2/categories/77/products/", {"page": 1}),
+              ("autocomplete_v1", "https://api.digikala.com/v1/autocomplete/", {"q": "گوشی"}),
+              ("product_page_html", f"https://www.digikala.com/product/dkp-{pid}/", {}),
+          ]
+          for name, url, params in probes:
+              try:
+                  response = session.get(url, params=params, timeout=(8, 18), allow_redirects=True)
+                  content = response.text[:2_000_000]
+                  summary = {
+                      "probe": name,
+                      "status": response.status_code,
+                      "content_type": response.headers.get("content-type", ""),
+                      "bytes": len(response.content),
+                      "final_host": urlsplit(response.url).netloc,
+                      "final_path": urlsplit(response.url).path[:140],
+                      "is_json": "json" in response.headers.get("content-type", "").lower(),
+                      "has_product_schema": "application/ld+json" in content.lower(),
+                      "has_default_variant": "default_variant" in content.lower(),
+                      "has_selling_price": "selling_price" in content.lower(),
+                      "has_marketable": "marketable" in content.lower(),
+                      "challenge_marker": any(x in content.lower() for x in ("captcha", "challenge-platform", "cloudflare", "access denied")),
+                  }
+                  if summary["is_json"]:
+                      try:
+                          payload = response.json()
+                          summary["root_keys"] = sorted(payload.keys())[:18] if isinstance(payload, dict) else type(payload).__name__
+                          data = payload.get("data") if isinstance(payload, dict) else None
+                          summary["data_keys"] = sorted(data.keys())[:18] if isinstance(data, dict) else None
+                          if isinstance(data, dict) and isinstance(data.get("sort_options"), list):
+                              summary["sort_options"] = data["sort_options"][:12]
+                      except Exception:
+                          summary["json_parse"] = "failed"
+                  print("DIGIKALA_LIVE_ROUTE_PROBE " + json.dumps(summary, ensure_ascii=False, separators=(",", ":")))
+              except Exception as exc:
+                  print("DIGIKALA_LIVE_ROUTE_PROBE " + json.dumps({
+                      "probe": name, "error": type(exc).__name__, "detail": str(exc)[:160]
+                  }, ensure_ascii=False, separators=(",", ":")))
+          PY
+
       - name: Stage official DigiPay logo for video cards
         continue-on-error: true
         run: |
