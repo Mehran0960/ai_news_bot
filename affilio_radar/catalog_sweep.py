@@ -55,9 +55,11 @@ PUBLISHER_STATE_PATH = ROOT / "state.json"
 API_ROOT = "https://api.digikala.com"
 # DigiKala retired /v1/search/, /v1/autocomplete/ and /v2/category/{id}/ on
 # 2026-11-13. Search, autocomplete and category-scoped listing now use this route.
-DISCOVERY_SEARCH_URL = f"{API_ROOT}/discovery/api/v1/"
-DICTIONARY_URL = f"{API_ROOT}/v1/dictionaries/"  # Legacy only; no longer used for discovery.
-AUTOCOMPLETE_URL = DISCOVERY_SEARCH_URL
+# DigiKala exposes separate search/autocomplete operations below the new v1 namespace.
+DISCOVERY_SEARCH_URL = f"{API_ROOT}/discovery/api/v1/search"
+DISCOVERY_AUTOCOMPLETE_URL = f"{API_ROOT}/discovery/api/v1/autocomplete"
+DICTIONARY_URL = f"{API_ROOT}/v1/dictionaries/"  # Legacy taxonomy fallback only.
+AUTOCOMPLETE_URL = DISCOVERY_AUTOCOMPLETE_URL
 SEARCH_URL = DISCOVERY_SEARCH_URL
 CATEGORY_SEARCH_URL = DISCOVERY_SEARCH_URL
 REQUEST_TIMEOUT = (5, 18)
@@ -92,7 +94,9 @@ SESSION.headers.update({
                   "(KHTML, like Gecko) Chrome/128 Safari/537.36",
     "Accept": "application/json,text/plain,*/*",
     "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.7",
+    "Origin": "https://www.digikala.com",
     "Referer": "https://www.digikala.com/",
+    "X-Web-Optimize-Response": "1",
 })
 
 
@@ -513,6 +517,19 @@ def discover_categories(session: requests.Session | None = None) -> list[dict]:
                     discovered[row["id"]] = row
         except Exception as exc:
             errors.append(_category_discovery_error_label("discovery_search", exc))
+
+    # Search carries query_attributes.category_ids. If no seed query returned
+    # taxonomy metadata, use the separately documented autocomplete operation.
+    if not discovered:
+        autocomplete_errors = []
+        for seed in CATEGORY_AUTOCOMPLETE_SEEDS:
+            try:
+                payload = _request_json(http, DISCOVERY_AUTOCOMPLETE_URL, params={"q": seed})
+                for row in extract_autocomplete_categories(payload, seed):
+                    discovered.setdefault(row["id"], row)
+            except Exception as exc:
+                autocomplete_errors.append(_category_discovery_error_label("discovery_autocomplete", exc))
+        errors.extend(autocomplete_errors)
 
     if discovered:
         return sort_categories_for_sweep(discovered.values())
