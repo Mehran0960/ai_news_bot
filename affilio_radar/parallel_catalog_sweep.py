@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import math
+import re
 import sys
 import threading
 import time
@@ -216,6 +217,7 @@ def _fetch_page(task: dict) -> dict:
         return timed_result(
             "terminal", status_code=seen_statuses[-1], rows=[],
             error="all_category_routes_not_found", route_errors=route_errors,
+            route_diagnostics=route_diagnostics,
         )
     return timed_result(
         "retry", rows=[], error=";".join(route_errors[-3:]) or "category_routes_failed",
