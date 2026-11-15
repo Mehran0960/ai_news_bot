@@ -342,7 +342,10 @@ class AffilioRadarTests(unittest.TestCase):
         payload = {
             "data": {
                 "id": "42yeLw",
-                "content": {"title_fa": "گوشی نمونه"},
+                "content": {
+                    "title_fa": "گوشی نمونه",
+                    "brand": {"title_fa": "سامسونگ", "title_en": "Samsung"},
+                },
                 "images": ["https://cdn.snappshop.ir/products/phone-main.webp"],
                 "variants": [{
                     "vendor": [{
@@ -802,6 +805,8 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(parsed["current_price"], 3_398_000)
         self.assertEqual(parsed["original_price"], 4_900_000)
         self.assertEqual(parsed["availability"], "in_stock")
+        self.assertEqual(parsed["brand"], "سامسونگ")
+        self.assertEqual(parsed["brand_name"], "سامسونگ")
         self.assertIn("cdn.snappshop.ir", parsed["image_url"])
         self.assertEqual(parsed["expiry_source"], "snappshop_no_confirmed_expiry")
 
