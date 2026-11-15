@@ -150,12 +150,20 @@ def _fetch_page(task: dict) -> dict:
 
     http = _session()
     route_errors = []
+    route_diagnostics = []
     seen_statuses = []
     for source, search_url, params in route_specs:
         try:
             response = http.get(search_url, params=params, timeout=base.REQUEST_TIMEOUT)
             status_code = int(getattr(response, "status_code", 0) or 0)
             seen_statuses.append(status_code)
+            response_url = str(getattr(response, "url", search_url) or search_url)
+            if status_code in (400, 403, 404):
+                body_excerpt = re.sub(r"\\s+", " ", str(getattr(response, "text", "") or ""))[:180]
+                route_diagnostics.append({
+                    "source": source, "status": status_code,
+                    "url": response_url[:260], "body": body_excerpt,
+                })
             if status_code == 429:
                 return timed_result(
                     "retry", status_code=429, rows=[], error="rate_limited",
@@ -176,6 +184,8 @@ def _fetch_page(task: dict) -> dict:
             if not isinstance(payload, dict):
                 route_errors.append(f"{source}_payload_not_object")
                 continue
+            data_block = payload.get("data", {}) if isinstance(payload, dict) else {}
+            sort_options = data_block.get("sort_options") if isinstance(data_block, dict) else None
             try:
                 rows = base.extract_product_rows(payload)
             except Exception as exc:
@@ -185,6 +195,7 @@ def _fetch_page(task: dict) -> dict:
             return timed_result(
                 "ok", rows=rows, total_pages=total_pages, status_code=status_code,
                 source=source, route_errors=route_errors,
+                sort_options=sort_options if isinstance(sort_options, list) else None,
             )
         except Exception as exc:
             status = getattr(getattr(exc, "response", None), "status_code", None)
@@ -209,6 +220,7 @@ def _fetch_page(task: dict) -> dict:
     return timed_result(
         "retry", rows=[], error=";".join(route_errors[-3:]) or "category_routes_failed",
         status_code=seen_statuses[-1] if seen_statuses else None, route_errors=route_errors,
+        route_diagnostics=route_diagnostics,
     )
 
 
@@ -674,10 +686,19 @@ def run_parallel_sweep(
                 "PARALLEL_CATALOG_PAGE_UNQUERYABLE "
                 f"category={category_id} page={page} status={result.get('status_code', 'unknown')} "
                 f"routes={','.join(result.get('route_errors') or [])[:420]} "
+                f"route_details={json.dumps(result.get('route_diagnostics') or [], ensure_ascii=False, separators=(',', ':'))[:900]} "
                 f"error={str(result.get('error') or '')[:160]}"
             )
             continue
 
+        observed_sort_options = result.get("sort_options")
+        if page == 1 and isinstance(observed_sort_options, list) and not state.get("parallel_sort_options_logged_at"):
+            print(
+                "DIGIKALA_SEARCH_API_V2_SORT_OPTIONS "
+                f"requested_sort={base.BEST_SELLING_SORT_VALUE} "
+                f"observed={json.dumps(observed_sort_options, ensure_ascii=False, separators=(',', ':'))[:1400]}"
+            )
+            state["parallel_sort_options_logged_at"] = base.iso_now()
         total_pages = result.get("total_pages")
         total_pages = max(1, int(total_pages)) if total_pages is not None else None
         state["parallel_cycle_pages_success"] = max(0, base._normal_int(state.get("parallel_cycle_pages_success"))) + 1
