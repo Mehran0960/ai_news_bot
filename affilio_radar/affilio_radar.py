@@ -82,6 +82,7 @@ from offerchin_copy import (
     normalize_brand_display_name,
 )
 from integrity_audit_state import apply_integrity_audit_ledger
+from content_delivery import editorial_dispatch_runway_seconds
 import arabic_reshaper
 from bidi.algorithm import get_display
 
@@ -765,6 +766,29 @@ def _clean_title(value):
     return value[:180]
 
 
+def _extract_brand_name(value) -> str:
+    """Read a brand's own display name from DigiKala product metadata, not its seller."""
+    if isinstance(value, str):
+        candidate = _clean_title(value)
+        return candidate[:80] if candidate and not candidate.isdigit() else ""
+    if isinstance(value, list):
+        for item in value:
+            extracted = _extract_brand_name(item)
+            if extracted:
+                return extracted
+        return ""
+    if not isinstance(value, dict):
+        return ""
+    for key in (
+        "name_fa", "title_fa", "brand_name", "brand_fa",
+        "name", "title", "label", "name_en", "title_en", "brand_en",
+    ):
+        raw = value.get(key)
+        if isinstance(raw, str) and raw.strip():
+            return _extract_brand_name(raw)
+    return ""
+
+
 def _availability_from_page(soup, product_obj=None):
     # Structured product/offer fields are more reliable than generic page text.
     for obj in [product_obj] if isinstance(product_obj, dict) else []:
@@ -917,6 +941,8 @@ def parse_product_page(url: str, page_html: str) -> dict:
         "product_id": product_id(url),
         "product_url": safe_product_url(url),
         "title": title,
+        "brand": brand,
+        "brand_name": brand,
         "image_url": image,
         "current_price": current_price,
         "original_price": original_price,
@@ -1376,6 +1402,12 @@ def parse_product_api(payload: dict, url: str, now: datetime | None = None) -> d
 
     candidates.sort(key=lambda item: item[0], reverse=True)
     _, product_obj, title = candidates[0]
+    brand = _extract_brand_name(
+        product_obj.get("brand")
+        or product_obj.get("brand_name")
+        or product_obj.get("brand_fa")
+        or product_obj.get("brand_title")
+    )
     variants = product_obj.get("variants")
     if isinstance(variants, dict):
         variants = list(variants.values())
