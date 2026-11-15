@@ -54,16 +54,7 @@ def _session() -> requests.Session:
     """Give each worker its own HTTP session; never share mutable sessions."""
     session = getattr(_thread_local, "session", None)
     if session is None:
-        session = requests.Session()
-        session.headers.update({
-            "User-Agent": (
-                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                "(KHTML, like Gecko) Chrome/128 Safari/537.36"
-            ),
-            "Accept": "application/json,text/plain,*/*",
-            "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.7",
-            "Referer": "https://www.digikala.com/",
-        })
+        session = base.new_digikala_session()
         _thread_local.session = session
     return session
 
