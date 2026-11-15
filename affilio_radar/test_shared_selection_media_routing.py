@@ -37,7 +37,7 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
         self.assertLess(due_gate, discovery)
         self.assertIn("--queue-state-path affilio_radar/state.json", workflow)
         self.assertIn("fetch-depth: 20", workflow)
-        self.assertEqual(workflow.count("if: ${{ github.event_name == 'push' }}"), 2)
+        self.assertEqual(workflow.count("\\n        if: ${{ github.event_name == 'push' }}"), 2)
 
     def test_empty_video_projection_releases_shared_publisher_lock_before_setup(self):
         workflow = (
