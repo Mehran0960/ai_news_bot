@@ -1475,3 +1475,8 @@ PR validation در workflow اسکن کاتالوگ از گروه concurrency م
 
 در پیاده‌سازی `catalog_handoff_fingerprint()`، کلیدهای `catalog_sort_mode`، `catalog_best_selling_rank`، `catalog_best_selling_category_id`، `catalog_best_selling_category_name`، `catalog_best_selling_ranks_by_category` و `catalog_rank_observed_at` بخشی از fingerprint هستند. به این ترتیب، تغییر رتبه یا زمان مشاهدهٔ تازهٔ دیجی‌کالا بدون تغییر قیمت نیز برای بررسی مجدد به ناشر handoff می‌شود. این تغییر فقط تازگی مدرک تقاضا را حفظ می‌کند و به‌هیچ‌وجه مجوز انتشار بدون کنترل زنده یا کاهش گیت‌های اصلی نیست.
 
+
+
+## سقف بررسی زندهٔ هر اجرای ناشر — ۱۵ نوامبر ۲۰۲۶
+
+در workflow اصلی ناشر، `AFFILIO_MAX_PRODUCT_CHECKS` و `AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS` هرکدام ۱۰۰ هستند. سقف `AFFILIO_CATALOG_SWEEP_HANDOFF_PER_RUN` برابر ۲۵۰ باقی می‌ماند؛ بنابراین نامزدهای باقیمانده حذف نمی‌شوند و در صف پایدار منتظر اجراهای بعدی می‌مانند. این اعداد صرفاً بودجهٔ پردازش هر اجرا هستند و فاصلهٔ زمانی انتشار ایجاد نمی‌کنند. زمان محصولات همچنان از توزیع مساوی تا اسکن کامل بعدی محاسبه می‌شود و تحریریه فقط در نقطهٔ میانی اسلات‌های محصول قرار می‌گیرد.
