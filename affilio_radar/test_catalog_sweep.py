@@ -42,6 +42,7 @@ except ImportError:
         refresh_categories,
         CatalogSweepError,
         extract_categories,
+        extract_autocomplete_categories,
         extract_product_rows,
         extract_total_pages,
         _category_page_url,
