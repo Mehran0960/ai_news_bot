@@ -2576,3 +2576,20 @@
 
 **وضعیت:** اصلاح کد و تست انجام‌شده؛ ادغام پس از موفقیت مجدد Documentation Gate.
 
+
+
+## ۲۰۲۶-۱۱-۱۵ — مسیر سریع برای اسلات‌های موعدرسیدهٔ انتشار
+
+**هدف:** جلوگیری از اشغال اجرای ناشر با اسکن و بررسی کاتالوگ در زمانی که صف محصول یا نقطهٔ میانی تحریریه آمادهٔ انتشار است.
+
+**تغییر/اقدام:** ابزار fail-open `publication_due_gate.py` از projection کوچک dispatch، موعد اسلات محصول و تحریریه را تشخیص می‌دهد. اگر اسلاتی موعدرسیده باشد، مرحلهٔ discovery در workflow ناشر skip می‌شود و اجرای ناشر مستقیم سراغ صف پایدار می‌رود. هر اجرا حداکثر سه محصول موعدرسیده را به‌ترتیب صف تحویل می‌دهد. سقف واکشی زندهٔ جزئیات و صف discovery در اجرای عادی بدون اسلات موعدرسیده به ۱۰۰ کاهش یافته و نامزدهای بررسی‌نشده در صف پایدار باقی می‌مانند. projection dispatch در صورت تغییر state نیز برای GitHub Worker ذخیره می‌شود.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/publication_due_gate.py`، `affilio_radar/test_publication_due_gate.py`، `.github/workflows/offerchin-publisher.yml`، `.github/workflows/offerchin-top100-digipay-tests.yml`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
+
+**آزمون و نتیجه:** شش regression برای اسلات محصول موعدرسیده، midpoint تحریریه، زمان آینده، اولویت اسلات، fail-open بودن projection نامعتبر و timestamp بدون timezone اضافه شده‌اند. اجراهای Catalog/Ranking/DigiPay/Video/Documentation در PR پس از push باید بررسی شوند؛ نتیجهٔ نهایی هنوز در انتظار CI است.
+
+**شواهد/شناسه:** شاخهٔ `fix/offerchin-due-slot-fast-publish-20261115`؛ workflow ناشر و تست regression به‌روزرسانی شده‌اند. هیچ پیام عمومی بدون شناسهٔ مقصد، منتشرشده تلقی نمی‌شود.
+
+**ریسک/بازگشت:** اگر projection خوانده نشود، گیت fail-open است و discovery اجرا می‌شود؛ در نتیجه محتوا به‌خاطر sidecar خراب مسدود نمی‌شود. ارسال هر محصول همچنان قیمت، موجودی، هویت، تخفیف، تقاضا، لینک افیلیت، انقضا و ضدتکرار را زنده بررسی می‌کند. سقف سه محصول فقط برای آیتم‌های موعدرسیده است و ترتیب FIFO حفظ می‌شود. بازگشت با revert گیت و تغییر batch ممکن است؛ صف یا state زنده نباید reset شود.
+
+**وضعیت:** تغییر کد، workflow و مستندات انجام‌شده؛ در انتظار CI و ادغام.

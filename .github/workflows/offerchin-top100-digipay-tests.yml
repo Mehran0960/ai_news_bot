@@ -10,6 +10,8 @@ on:
       - "affilio_radar/affiliate-deal-radar-worker.js"
       - "affilio_radar/test_affiliate_deal_radar_worker.mjs"
       - "affilio_radar/test_selection_evidence.py"
+      - "affilio_radar/publication_due_gate.py"
+      - "affilio_radar/test_publication_due_gate.py"
       - "affilio_radar/catalog_sweep.py"
       - "affilio_radar/test_affilio.py"
       - ".github/workflows/offerchin-publisher.yml"
@@ -45,6 +47,7 @@ jobs:
             affilio_radar/catalog_sweep.py \
             affilio_radar/parallel_catalog_sweep.py \
             affilio_radar/publisher.py \
+            affilio_radar/publication_due_gate.py \
             affilio_radar/short_video.py
       - name: Validate DigiPay artwork and caption integration
         working-directory: affilio_radar
@@ -67,7 +70,7 @@ jobs:
           PY
       - name: Run OfferChin regression suite
         working-directory: affilio_radar
-        run: python -m unittest -v test_affilio test_content_delivery test_selection_evidence
+        run: python -m unittest -v test_affilio test_content_delivery test_selection_evidence test_publication_due_gate
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
