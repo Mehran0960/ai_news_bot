@@ -149,7 +149,7 @@ class CatalogSweepTests(unittest.TestCase):
         session = FakeSession([payload] + [empty] * 14)
         categories = discover_categories(session)
         self.assertEqual(categories[0]["id"], "5")
-        self.assertIn("/discovery/api/v1/", session.calls[0][0])
+        self.assertTrue(session.calls[0][0].endswith("/discovery/api/v1/search"))
         self.assertEqual(session.calls[0][1]["q"], "گوشی")
 
     def test_discover_categories_reads_category_ids_from_discovery_api(self):
@@ -165,7 +165,7 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(mobile["name"], "موبایل")
         self.assertEqual(mobile["query"], "گوشی")
         self.assertEqual(mobile["source"], "digikala_discovery_api_v1_query_categories")
-        self.assertIn("/discovery/api/v1/", session.calls[0][0])
+        self.assertTrue(session.calls[0][0].endswith("/discovery/api/v1/search"))
         self.assertEqual(dict(session.calls[0][1])["q"], "گوشی")
 
     def test_discover_categories_reports_discovery_api_http_errors(self):
@@ -369,7 +369,7 @@ class CatalogSweepTests(unittest.TestCase):
 
     def test_category_search_requests_current_discovery_api_category_filter(self):
         url, params = _category_page_url("123", 2, "گوشی موبایل")
-        self.assertIn("/discovery/api/v1/", url)
+        self.assertTrue(url.endswith("/discovery/api/v1/search"))
         self.assertEqual(params["categories[0]"], "123")
         self.assertEqual(params["page"], 2)
         self.assertEqual(params["sort"], 7)
