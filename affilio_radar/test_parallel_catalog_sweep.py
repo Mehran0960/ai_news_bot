@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 try:
     from . import parallel_catalog_sweep as sweep
@@ -14,6 +14,51 @@ except ImportError:  # unittest discovery from the workflow's affilio_radar work
 
 
 class ParallelCatalogSweepTests(unittest.TestCase):
+    def test_fetch_page_uses_v2_category_endpoint_and_marketable_widget_parser(self):
+        payload = {
+            "data": {
+                "widgets": [{
+                    "type": "vertical_product_listing",
+                    "data": {"widgets": [{
+                        "type": "product",
+                        "data": {
+                            "id": 12345,
+                            "title_fa": "گوشی هوشمند نمونه",
+                            "url": {"uri": "/product/dkp-12345/sample/"},
+                            "status": "marketable",
+                            "default_variant": {"price": {
+                                "selling_price": 10_000_000,
+                                "rrp_price": 12_000_000,
+                                "discount_percent": 17,
+                            }},
+                        },
+                    }]},
+                }],
+                "pager": {"total_pages": 9},
+            }
+        }
+        response = Mock()
+        response.status_code = 200
+        response.content = b"{}"
+        response.json.return_value = payload
+        session = Mock()
+        session.get.return_value = response
+
+        with patch.object(sweep, "_session", return_value=session):
+            result = sweep._fetch_page({
+                "category_id": "77",
+                "category_name": "موبایل",
+                "category_query": "گوشی سامسونگ",
+                "page": 3,
+            })
+
+        self.assertEqual(result["kind"], "ok")
+        self.assertEqual(result["rows"][0]["product_id"], "dkp-12345")
+        self.assertEqual(result["total_pages"], 9)
+        args, kwargs = session.get.call_args
+        self.assertIn("/v2/category/77/", args[0])
+        self.assertEqual(kwargs["params"], {"q": "گوشی سامسونگ", "page": 3, "sort": 5})
+
     def test_legacy_worker_checkpoint_is_normalized_to_the_first_trial_level_once(self):
         legacy = {}
         self.assertEqual(sweep._apply_worker_ramp_policy(legacy, 13, 16), 12)
