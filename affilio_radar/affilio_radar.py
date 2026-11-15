@@ -47,6 +47,7 @@ try:
         acknowledge_catalog_candidates_handoff,
         defer_catalog_candidates_handoff,
         catalog_handoff_fingerprint,
+        BEST_SELLING_SORT_VALUE,
     )
 except ImportError:
     from catalog_sweep import (
@@ -54,6 +55,7 @@ except ImportError:
         acknowledge_catalog_candidates_handoff,
         defer_catalog_candidates_handoff,
         catalog_handoff_fingerprint,
+        BEST_SELLING_SORT_VALUE,
     )
 
 try:
