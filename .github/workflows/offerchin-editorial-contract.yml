@@ -79,7 +79,10 @@ jobs:
           radar = Path("affilio_radar/affilio_radar.py").read_text(encoding="utf-8")
           assert channel.count(enabled) == 2
           assert enabled in video
-          assert "OFFERCHIN_EDITORIAL_GAP_MINUTES" not in channel + video
+          assert "OFFERCHIN_EDITORIAL_GAP_MINUTES" not in channel + video + shadow
+          delivery = Path("affilio_radar/content_delivery.py").read_text(encoding="utf-8")
+          assert "interval_seconds = remaining_seconds / candidates" in delivery
+          assert "equal_spacing_pending_selected_products_across_time_until_next_clean_catalog_scan" in delivery
           assert "if not next_product:" in publisher
           assert "No product slot means no editorial wake-up" in radar
           assert "EDITORIAL_SHADOW_ONLY_PUBLIC_PUBLISH_DISABLED" in channel
