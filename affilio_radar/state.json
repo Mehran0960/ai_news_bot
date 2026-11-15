@@ -1,6 +1,6 @@
 {
   "aparat_last_upload_attempt_at": "2026-11-14T17:19:55.882293+00:00",
-  "aparat_last_upload_success_at": "2026-11-15T01:10:01.478093+00:00",
+  "aparat_last_upload_success_at": "2026-11-15T02:56:46.324113+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-13T10:31:20.893746+00:00",
@@ -345619,6 +345619,21 @@
         "youtube": "sent"
       },
       "updated_at": "2026-11-15T02:23:00.298183+00:00"
+    },
+    {
+      "content_id": "editorial:keep-purchase-records",
+      "sequence_number": 33,
+      "status": "completed",
+      "terminal_summary": {
+        "aparat": "sent",
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "filo": "manual_review",
+        "rubika": "sent",
+        "telegram": "sent",
+        "youtube": "sent"
+      },
+      "updated_at": "2026-11-15T02:57:15.793037+00:00"
     }
   ],
   "editorial_delivery_history": [
@@ -346112,8 +346127,12 @@
       "content_id": "editorial:keep-purchase-records",
       "destinations": {
         "aparat": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-15T02:56:41.256881+00:00",
+          "attempts": 1,
+          "message_id": "tomif34",
+          "status": "sent",
+          "updated_at": "2026-11-15T02:56:46.324073+00:00",
+          "url": "https://www.aparat.com/v/tomif34"
         },
         "bale": {
           "attempt_started_at": "2026-11-15T02:54:20.741302+00:00",
@@ -346129,8 +346148,12 @@
           "updated_at": "2026-11-15T02:54:27.357409+00:00"
         },
         "filo": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-15T02:56:46.723374+00:00",
+          "attempts": 1,
+          "last_error": "filo_submitted_pending_approval_not_public",
+          "status": "manual_review",
+          "updated_at": "2026-11-15T02:57:15.377622+00:00",
+          "url": "https://ifilo.net/v/HjOsCbk"
         },
         "rubika": {
           "attempt_started_at": "2026-11-15T02:54:22.490994+00:00",
@@ -346147,8 +346170,12 @@
           "updated_at": "2026-11-15T02:54:20.224122+00:00"
         },
         "youtube": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-15T02:56:39.053938+00:00",
+          "attempts": 1,
+          "message_id": "NHzzrkzSDi8",
+          "status": "sent",
+          "updated_at": "2026-11-15T02:56:40.860982+00:00",
+          "url": "https://www.youtube.com/shorts/NHzzrkzSDi8"
         }
       },
       "editorial_id": "keep-purchase-records",
@@ -346158,87 +346185,7 @@
       "topic": "purchase-records"
     }
   ],
-  "editorial_delivery_queue": {
-    "editorial:keep-purchase-records": {
-      "attempt_count": 0,
-      "content_id": "editorial:keep-purchase-records",
-      "content_type": "editorial",
-      "next_attempt_at": "2026-11-15T02:54:18.510974+00:00",
-      "payload": {
-        "body": "بعد از خرید، نام فروشگاه، نشانی صفحه کالا، تاریخ سفارش، مبلغ پرداختی، شرایط ارسال و مرجوعی و پیام‌های ردوبدل‌شده را نگه دار. تصویر یا نسخه رسید و تأیید سفارش را در جایی امن ذخیره کن. این سوابق هنگام پیگیری مغایرت سفارش یا گفت‌وگو با پشتیبانی به کارت می‌آیند.",
-        "content_id": "editorial:keep-purchase-records",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 1,
-        "editorial_id": "keep-purchase-records",
-        "idempotency_key": "2f7715fa7a41a51c",
-        "related_product_id": "",
-        "review_due_at": "2027-02-10T18:00:00Z",
-        "reviewed_at": "2026-11-12T18:00:00Z",
-        "sequence_number": 33,
-        "sources": [
-          {
-            "source_id": "ftc-online-shopping",
-            "title": "Online Shopping – Consumer Advice",
-            "url": "https://consumer.ftc.gov/articles/online-shopping"
-          },
-          {
-            "source_id": "ftc-marketplace",
-            "title": "Buying From an Online Marketplace – Consumer Advice",
-            "url": "https://consumer.ftc.gov/articles/buying-online-marketplace"
-          }
-        ],
-        "title": "رسید خرید را دور نریز؛ این اطلاعات را نگه دار",
-        "topic": "purchase-records"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-15T02:54:20.741302+00:00",
-          "attempts": 1,
-          "message_id": "1973",
-          "status": "sent",
-          "updated_at": "2026-11-15T02:54:21.963868+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "eitaa_not_enabled_or_credentials_missing",
-          "status": "not_connected",
-          "updated_at": "2026-11-15T02:54:27.357409+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-15T02:54:22.490994+00:00",
-          "attempts": 1,
-          "message_id": "1972327796297588651",
-          "status": "sent",
-          "updated_at": "2026-11-15T02:54:26.820638+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-15T02:54:19.314295+00:00",
-          "attempts": 1,
-          "message_id": "1485",
-          "status": "sent",
-          "updated_at": "2026-11-15T02:54:20.224122+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "related_product_id": "",
-      "scheduled_at": "2026-11-15T02:54:18.510974+00:00",
-      "selected_at": "2026-11-15T02:54:18.510974+00:00",
-      "sequence_number": 33,
-      "status": "partial"
-    }
-  },
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -346264,8 +346211,9 @@
   },
   "filo_last_upload_attempt_at": "2026-11-14T17:20:05.324497+00:00",
   "filo_last_upload_success_at": "2026-11-14T17:20:43.441934+00:00",
-  "filo_login_verification_attempted_at": "2026-11-15T02:22:54.631173+00:00",
-  "filo_login_verification_status": "failed",
+  "filo_login_verification_attempted_at": "2026-11-15T02:56:35.621246+00:00",
+  "filo_login_verification_status": "verified",
+  "filo_login_verified_at": "2026-11-15T02:56:35.621246+00:00",
   "filo_upload_interval_policy_version": 3,
   "growth_tracking": {
     "daily_member_counts": {
@@ -346534,7 +346482,7 @@
   "last_channel_published_at": "2026-11-15T02:54:21.963868+00:00",
   "last_content_selection_at": "2026-11-13T22:13:58.676719+00:00",
   "last_editorial_attempt_at": "2026-11-15T02:54:18.510974+00:00",
-  "last_editorial_confirmed_at": "2026-11-15T02:54:26.820638+00:00",
+  "last_editorial_confirmed_at": "2026-11-15T02:56:46.324073+00:00",
   "last_product_channel_published_at": "2026-11-13T22:14:18.640320+00:00",
   "last_published_at": "2026-11-15T02:54:21.963868+00:00",
   "market_price_api_checks": {
@@ -523743,6 +523691,6 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 17,
   "snappshop_retry_after": "2026-11-15T10:36:57.728076+00:00",
-  "youtube_last_upload_success_at": "2026-11-15T01:09:55.443322+00:00",
+  "youtube_last_upload_success_at": "2026-11-15T02:56:40.861027+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
