@@ -64,6 +64,8 @@ SEARCH_URL = DISCOVERY_SEARCH_URL
 CATEGORY_SEARCH_URL = DISCOVERY_SEARCH_URL
 REQUEST_TIMEOUT = (5, 18)
 CATEGORY_REFRESH_HOURS = 24
+# Cached category IDs/names are trusted only when produced by this restricted parser.
+CATEGORY_TAXONOMY_POLICY_VERSION = "discovery_explicit_category_roots_v2"
 # A verified taxonomy may bridge a temporary API change long enough to refresh it.
 CATEGORY_CACHE_MAX_FALLBACK_AGE_HOURS = 168
 CATEGORY_DISCOVERY_RETRY_MINUTES = 60
@@ -1486,6 +1488,21 @@ def refresh_categories(state: dict, session: requests.Session, force: bool = Fal
     refreshed = state.get("categories_refreshed_at")
     age_hours = _category_cache_age_hours(refreshed, now)
     stale = age_hours is None or age_hours >= CATEGORY_REFRESH_HOURS
+    taxonomy_policy_changed = (
+        state.get("category_taxonomy_policy_version") != CATEGORY_TAXONOMY_POLICY_VERSION
+    )
+
+    # A cache produced by the previous permissive recursive parser is not a
+    # "verified taxonomy". Force a live rebuild and never use that cache as a
+    # fallback until the new parser has succeeded at least once.
+    if taxonomy_policy_changed:
+        force = True
+        if state.get("category_taxonomy_migration_pending_policy") != CATEGORY_TAXONOMY_POLICY_VERSION:
+            state["category_taxonomy_migration_pending_policy"] = CATEGORY_TAXONOMY_POLICY_VERSION
+            # A retry timer from the old parser must not delay the first attempt
+            # to establish the restricted taxonomy.
+            state.pop("category_discovery_retry_after", None)
+
     if current and not force and not stale:
         return
 
@@ -1500,7 +1517,19 @@ def refresh_categories(state: dict, session: requests.Session, force: bool = Fal
     except (TypeError, ValueError, OverflowError):
         retry_after = None
 
-    cache_usable = _category_cache_is_usable(current, age_hours)
+    cache_usable = bool(
+        not taxonomy_policy_changed and _category_cache_is_usable(current, age_hours)
+    )
+    if taxonomy_policy_changed and retry_after is not None and retry_after > now:
+        state["category_discovery_fallback_used"] = False
+        state["category_taxonomy_migration_blocked"] = True
+        print(
+            "CATALOG_CATEGORY_TAXONOMY_MIGRATION_BLOCKED "
+            f"policy={CATEGORY_TAXONOMY_POLICY_VERSION} retry_after={retry_after.isoformat()} "
+            "reason=live_refresh_required_legacy_cache_rejected=true"
+        )
+        raise CatalogSweepError("category_taxonomy_migration_waiting_for_live_refresh")
+
     if (
         cache_usable and not force and retry_after is not None and retry_after > now
     ):
@@ -1516,12 +1545,24 @@ def refresh_categories(state: dict, session: requests.Session, force: bool = Fal
         if not categories:
             raise CatalogSweepError("category_tree_empty")
     except Exception as exc:
+        retry_minutes = _category_discovery_retry_minutes(exc)
+        retry_at = now + timedelta(minutes=retry_minutes)
+        state["category_discovery_last_failed_at"] = now.isoformat()
+        state["category_discovery_last_error"] = str(exc)[:220]
+        state["category_discovery_retry_after"] = retry_at.isoformat()
+        if taxonomy_policy_changed:
+            state["category_discovery_fallback_used"] = False
+            state["category_taxonomy_migration_blocked"] = True
+            print(
+                "CATALOG_CATEGORY_TAXONOMY_MIGRATION_BLOCKED "
+                f"policy={CATEGORY_TAXONOMY_POLICY_VERSION} reason={str(exc)[:180]!r} "
+                f"retry_minutes={retry_minutes} legacy_cache_rejected=true"
+            )
+            raise CatalogSweepError(
+                "category_taxonomy_migration_requires_live_refresh:"
+                + str(exc)[:160]
+            ) from exc
         if cache_usable:
-            retry_minutes = _category_discovery_retry_minutes(exc)
-            retry_at = now + timedelta(minutes=retry_minutes)
-            state["category_discovery_last_failed_at"] = now.isoformat()
-            state["category_discovery_last_error"] = str(exc)[:220]
-            state["category_discovery_retry_after"] = retry_at.isoformat()
             state["category_discovery_fallback_used"] = True
             print(
                 "CATALOG_CATEGORY_DISCOVERY_FALLBACK "
@@ -1538,9 +1579,8 @@ def refresh_categories(state: dict, session: requests.Session, force: bool = Fal
     if old_index < len(old_categories) and isinstance(old_categories[old_index], dict):
         previous_id = str(old_categories[old_index].get("id") or "")
 
-    # Autocomplete is query-scoped, not a complete taxonomy tree. When a recent
-    # verified tree is available, merge discovered IDs into it instead of replacing
-    # the full catalog with the handful of categories returned for seed queries.
+    # Merge query-scoped discoveries into a cache only when that cache has
+    # already been certified by the same restricted taxonomy policy.
     if cache_usable:
         merged = {
             str(row.get("id")): dict(row)
@@ -1562,6 +1602,9 @@ def refresh_categories(state: dict, session: requests.Session, force: bool = Fal
 
     state["categories"] = categories
     state["categories_refreshed_at"] = now.isoformat()
+    state["category_taxonomy_policy_version"] = CATEGORY_TAXONOMY_POLICY_VERSION
+    state.pop("category_taxonomy_migration_pending_policy", None)
+    state.pop("category_taxonomy_migration_blocked", None)
     ids = [str(row["id"]) for row in categories]
     state["category_count"] = len(categories)
     state["category_ids_hash"] = str(hash(tuple(ids)))
