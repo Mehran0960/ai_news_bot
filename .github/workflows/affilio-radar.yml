@@ -223,7 +223,9 @@ jobs:
               ])
           probes.extend([
               ("search_v3", "https://api.digikala.com/v3/search/", {"q": "گوشی موبایل", "page": 1}),
-              ("search_text_lenz_v1", "https://api.digikala.com/v1/search/text-lenz/", {"q": "گوشی موبایل"}),
+              ("search_text_lenz_v1", "https://api.digikala.com/v1/search/text-lenz/", {"q": "گوشی موبایل", "page": 1}),
+              ("search_text_lenz_sort5", "https://api.digikala.com/v1/search/text-lenz/", {"q": "گوشی موبایل", "page": 1, "sort": 5}),
+              ("search_text_lenz_sort7", "https://api.digikala.com/v1/search/text-lenz/", {"q": "گوشی موبایل", "page": 1, "sort": 7}),
               ("category_v3", "https://api.digikala.com/v3/category/77/", {"page": 1}),
               ("product_html_current", "https://www.digikala.com/product/dkp-10052796/", {}),
               ("product_html_legacy_known", "https://www.digikala.com/product/dkp-16598762/", {}),
@@ -245,8 +247,39 @@ jobs:
                           summary["root_keys"] = sorted(payload.keys())[:20] if isinstance(payload, dict) else type(payload).__name__
                           data = payload.get("data") if isinstance(payload, dict) else None
                           summary["data_keys"] = sorted(data.keys())[:24] if isinstance(data, dict) else None
-                          if isinstance(data, dict) and isinstance(data.get("sort_options"), list):
-                              summary["sort_options"] = data["sort_options"][:12]
+                          if isinstance(data, dict):
+                              summary["sort_options"] = data.get("sort_options") if isinstance(data.get("sort_options"), list) else None
+                              summary["sort"] = data.get("sort")
+                              summary["result_type"] = data.get("result_type")
+                              summary["search_method"] = data.get("search_method")
+                              summary["search_version"] = data.get("search_version")
+                              page_info = data.get("pager")
+                              summary["pager"] = page_info if isinstance(page_info, dict) else None
+                              products = data.get("products")
+                              if isinstance(products, list):
+                                  summary["products_count"] = len(products)
+                                  examples = []
+                                  for product in products[:4]:
+                                      if not isinstance(product, dict):
+                                          continue
+                                      variant = product.get("default_variant") if isinstance(product.get("default_variant"), dict) else {}
+                                      price = variant.get("price") if isinstance(variant.get("price"), dict) else {}
+                                      examples.append({
+                                          "id": product.get("id"),
+                                          "title_fa": product.get("title_fa"),
+                                          "url": product.get("url"),
+                                          "status": product.get("status"),
+                                          "product_keys": sorted(product.keys())[:35],
+                                          "variant_keys": sorted(variant.keys())[:24],
+                                          "variant_status": variant.get("status"),
+                                          "price": {
+                                              key: price.get(key) for key in ("selling_price", "rrp_price", "discount_percent")
+                                              if key in price
+                                          },
+                                          "availability": variant.get("availability"),
+                                          "rating": product.get("rating"),
+                                      })
+                                  summary["product_examples"] = examples
                       except Exception:
                           summary["json_parse"] = "failed"
                   if name.startswith("product_html"):
