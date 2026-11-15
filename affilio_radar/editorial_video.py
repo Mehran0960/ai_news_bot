@@ -6,8 +6,10 @@ import tempfile
 from io import BytesIO
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
-from PIL import Image, ImageDraw
+import requests
+from PIL import Image, ImageDraw, ImageEnhance, ImageOps
 
 from offerchin_audio import write_original_soundtrack
 from short_video import (
@@ -30,13 +32,63 @@ def _draw_centered(draw: ImageDraw.ImageDraw, text: str, y: int, font, fill) -> 
     draw.text(((WIDTH - width) // 2, y), shaped, font=font, fill=fill, **_rtl_layout_kwargs())
 
 
+def _load_related_product_image(item: dict) -> Image.Image | None:
+    """Fetch only a verified DigiKala product photo for a related editorial card."""
+    value = str(item.get("related_product_image_url") or "").strip()
+    if not value:
+        return None
+    try:
+        parsed = urlsplit(value)
+        host = (parsed.hostname or "").lower()
+        allowed = (
+            host == "digikala.com"
+            or host.endswith(".digikala.com")
+            or host == "dkstatics-public.digikala.com"
+        )
+        if parsed.scheme != "https" or not allowed or parsed.username or parsed.password:
+            return None
+        response = requests.get(
+            value,
+            headers={"User-Agent": "Mozilla/5.0 OfferChinEditorial/1.0", "Accept": "image/avif,image/webp,image/png,image/jpeg"},
+            timeout=(5, 12),
+            allow_redirects=True,
+            stream=True,
+        )
+        response.raise_for_status()
+        final = urlsplit(response.url)
+        final_host = (final.hostname or "").lower()
+        if final.scheme != "https" or not (final_host == "digikala.com" or final_host.endswith(".digikala.com")):
+            return None
+        content_type = str(response.headers.get("Content-Type") or "").lower()
+        if not content_type.startswith("image/"):
+            return None
+        declared = int(response.headers.get("Content-Length") or 0)
+        if declared > 6_000_000:
+            return None
+        data = bytearray()
+        for chunk in response.iter_content(64_000):
+            if not chunk:
+                continue
+            data.extend(chunk)
+            if len(data) > 6_000_000:
+                return None
+        image = Image.open(BytesIO(bytes(data)))
+        image.load()
+        if image.width < 180 or image.height < 120:
+            return None
+        return image.convert("RGB")
+    except Exception:
+        return None
+
+
 def render_editorial_poster(item: dict, output_path: str | Path | None = None) -> bytes:
-    """Create a Persian, non-product poster; never display DigiKala/DigiPay offer marks."""
+    """Create a Persian editorial card; use the upcoming product's verified image when available."""
     title = str(item.get("title") or "").strip()
     body = str(item.get("body") or "").strip()
     if not title or not body:
         raise ValueError("editorial_title_and_body_required")
 
+    related_image = _load_related_product_image(item)
     canvas = Image.new("RGB", (WIDTH, HEIGHT), BACKGROUND)
     draw = ImageDraw.Draw(canvas)
     draw.rounded_rectangle((34, 42, WIDTH - 34, HEIGHT - 42), radius=34, fill=PANEL)
@@ -44,25 +96,51 @@ def render_editorial_poster(item: dict, output_path: str | Path | None = None) -
     _draw_centered(draw, "آفِرچین | راهنمای کاربردی", 91, _font(34, True), TEXT)
     draw.rounded_rectangle((WIDTH // 2 - 84, 184, WIDTH // 2 + 84, 194), radius=5, fill=ACCENT)
 
-    title_font = _title_font(48)
-    title_lines = _wrap_rtl_text(draw, title, title_font, WIDTH - 140, max_lines=3)
-    title_y = 244
+    if related_image is not None:
+        photo_box = (72, 220, WIDTH - 72, 545)
+        photo = ImageOps.fit(
+            related_image,
+            (photo_box[2] - photo_box[0], photo_box[3] - photo_box[1]),
+            method=Image.Resampling.LANCZOS,
+            centering=(0.5, 0.5),
+        )
+        photo = ImageEnhance.Color(photo).enhance(0.88)
+        photo = ImageEnhance.Contrast(photo).enhance(1.06)
+        canvas.paste(photo, (photo_box[0], photo_box[1]))
+        draw = ImageDraw.Draw(canvas)
+        draw.rounded_rectangle(photo_box, radius=26, outline=ACCENT, width=4)
+        title_y = 586
+        title_font = _title_font(43)
+        max_body_lines = 5
+        body_y = 738
+        body_line_gap = 48
+    else:
+        title_y = 244
+        title_font = _title_font(48)
+        max_body_lines = 9
+        body_y = None
+        body_line_gap = 54
+
+    title_lines = _wrap_rtl_text(draw, title, title_font, WIDTH - 140, max_lines=2 if related_image else 3)
     for line in title_lines:
         shaped = _shape_rtl(line)
         bbox = draw.textbbox((0, 0), shaped, font=title_font, **_rtl_layout_kwargs())
         draw.text(((WIDTH - (bbox[2] - bbox[0])) // 2, title_y), shaped,
                   font=title_font, fill=ACCENT, **_rtl_layout_kwargs())
-        title_y += 66
+        title_y += 58 if related_image else 66
 
-    body_font = _font(29, False)
-    body_lines = _wrap_rtl_text(draw, body, body_font, WIDTH - 140, max_lines=11)
-    body_y = max(470, title_y + 28)
+    body_font = _font(27 if related_image else 29, False)
+    body_lines = _wrap_rtl_text(
+        draw, body, body_font, WIDTH - 140, max_lines=max_body_lines
+    )
+    if body_y is None:
+        body_y = max(470, title_y + 28)
     for line in body_lines:
         shaped = _shape_rtl(line)
         bbox = draw.textbbox((0, 0), shaped, font=body_font, **_rtl_layout_kwargs())
         draw.text(((WIDTH - (bbox[2] - bbox[0])) // 2, body_y), shaped,
                   font=body_font, fill=TEXT, **_rtl_layout_kwargs())
-        body_y += 54
+        body_y += body_line_gap
 
     source_count = len(item.get("sources") or [])
     _draw_centered(draw, f"مبنای مطلب: {source_count} منبع", HEIGHT - 218, _font(24, False), MUTED)
