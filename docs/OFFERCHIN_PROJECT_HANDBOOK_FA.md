@@ -1348,3 +1348,12 @@ PR validation در workflow اسکن کاتالوگ از گروه concurrency م
 - اگر هر کدام از این مراحل خالی/نامعتبر باشد، preflight با خطای مشخص fail-closed می‌شود و نباید cursor یا صف کاتالوگ را جلو ببرد.
 - آزمون‌های `test_discovery_preflight_requires_search_and_category_scoped_products` و `test_discovery_preflight_rejects_http_200_with_no_marketable_products` این قرارداد را پوشش می‌دهند.
 - قیمت و موجودی نامعلوم همچنان به‌معنی واجد شرایط بودن نیست؛ کنترل زندهٔ کامل پیش از انتشار پابرجاست.
+
+
+## ۲۰۲۶-۱۱-۱۵ — همگام‌سازی taxonomy از فیلترهای زندهٔ Discovery
+
+- برای refresh taxonomy، فقط `query_attributes.category_ids` کافی نیست؛ این فهرست query-scoped است و می‌تواند کوچک باشد.
+- اسکنر اکنون ابتدا `extract_categories()` را روی پاسخ جاری `/discovery/api/v1/search` اجرا می‌کند تا category filters/tree داخل `data.filters` را همراه parent/depth استخراج کند؛ سپس شناسه‌های query-matched و در صورت نیاز autocomplete را نیز ادغام می‌کند.
+- نام، شناسه، parent و depth دسته‌های به‌دست‌آمده از پاسخ زنده در cache موجود merge می‌شوند؛ در صورت برخورد شناسه، اطلاعات زنده جایگزین نام/ساختار stale می‌شود. taxonomy ذخیره‌شده صرفاً به‌دلیل محدود بودن query-scoped IDs حذف نمی‌شود.
+- preflight نیز category facets را بر query-scoped IDs مقدم می‌داند و نمونه‌های categoryها و category رشتهٔ محصولاتِ probe را log می‌کند تا انتساب اشتباه قابل تشخیص باشد.
+- فایل‌های تغییرکرده: `affilio_radar/catalog_sweep.py` و `affilio_radar/test_catalog_sweep.py`.
