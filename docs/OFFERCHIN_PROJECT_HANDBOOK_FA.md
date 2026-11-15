@@ -1475,3 +1475,12 @@ PR validation در workflow اسکن کاتالوگ از گروه concurrency م
 
 در پیاده‌سازی `catalog_handoff_fingerprint()`، کلیدهای `catalog_sort_mode`، `catalog_best_selling_rank`، `catalog_best_selling_category_id`، `catalog_best_selling_category_name`، `catalog_best_selling_ranks_by_category` و `catalog_rank_observed_at` بخشی از fingerprint هستند. به این ترتیب، تغییر رتبه یا زمان مشاهدهٔ تازهٔ دیجی‌کالا بدون تغییر قیمت نیز برای بررسی مجدد به ناشر handoff می‌شود. این تغییر فقط تازگی مدرک تقاضا را حفظ می‌کند و به‌هیچ‌وجه مجوز انتشار بدون کنترل زنده یا کاهش گیت‌های اصلی نیست.
 
+
+
+## مسیر سریع تحویل اسلات موعدرسیده — ۱۵ نوامبر ۲۰۲۶
+
+- `publication_due_gate.py` فقط projection کوچک `video_upload_dispatch_state.json` را می‌خواند و بررسی می‌کند آیا `next_channel_content_due_at` یا `next_editorial_planning_at` به زمان فعلی رسیده است.
+- اگر اسلاتی موعدرسیده باشد، workflow ناشر مرحلهٔ discovery/select-only را skip می‌کند و مستقیماً به ناشر صف پایدار می‌رسد. اگر projection وجود نداشته یا خراب باشد، گیت fail-open است و discovery را اجرا می‌کند.
+- هر اجرای ناشر حداکثر سه محصول موعدرسیده را به‌ترتیب صف می‌فرستد؛ محصولات آینده هرگز به‌دلیل این batch زودتر منتشر نمی‌شوند. سقف بررسی زندهٔ هر اجرای discovery، ۱۰۰ محصول و ۱۰۰ مورد صف کشف است؛ سقف handoff کاتالوگ ۲۵۰ باقی می‌ماند و موارد باقی‌مانده در صف پایدار حذف نمی‌شوند.
+- وقتی state از طریق `radar.save_json` ذخیره می‌شود، `build_video_upload_dispatch_state` projection کوچک را تازه می‌کند؛ workflow آن را همراه state و گزارش‌ها persist می‌کند. در نتیجه پس از پایان صف موعدرسیده، Worker از timestamp قدیمی برای skip کردن discovery استفاده نمی‌کند.
+- این گیت فاصلهٔ انتشار تعیین نمی‌کند. فاصلهٔ محصولات فقط از توزیع برابر محصولات منتخب تا اسکن کامل بعدی می‌آید و تحریریه فقط در midpoint اسلات محصول قرار می‌گیرد.
