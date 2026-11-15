@@ -379,9 +379,17 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         )
         self.assertEqual(state["parallel_leaf_category_count"], 1)
 
-    def test_next_page_only_when_more_product_pages_exist(self):
-        task = {"category_id": "12", "category_name": "x", "page": 2}
-        self.assertEqual(sweep._next_page_task(task, total_pages=4, product_count=20)["page"], 3)
+    def test_next_page_preserves_original_query_and_pagination(self):
+        task = {
+            "category_id": "12",
+            "category_name": "موبایل",
+            "category_query": "گوشی سامسونگ",
+            "page": 2,
+        }
+        next_task = sweep._next_page_task(task, total_pages=4, product_count=20)
+        self.assertEqual(next_task["page"], 3)
+        self.assertEqual(next_task["category_query"], "گوشی سامسونگ")
+        self.assertEqual(next_task["category_name"], "موبایل")
         self.assertIsNone(sweep._next_page_task(task, total_pages=2, product_count=20))
         self.assertIsNone(sweep._next_page_task(task, total_pages=4, product_count=0))
         self.assertEqual(sweep._next_page_task({"category_id": "12", "page": 5000}, None, 20)["page"], 5001)

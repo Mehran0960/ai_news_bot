@@ -209,7 +209,7 @@ class CatalogSweepTests(unittest.TestCase):
         mobile = next(row for row in categories if row["id"] == "77")
         self.assertEqual(mobile["name"], "موبایل")
         self.assertEqual(mobile["query"], "گوشی")
-        self.assertEqual(mobile["source"], "digikala_discovery_api_v1_query_categories")
+        self.assertEqual(mobile["source"], "digikala_discovery_api_v1_search_taxonomy")
         self.assertTrue(session.calls[0][0].endswith("/discovery/api/v1/search"))
         self.assertEqual(dict(session.calls[0][1])["q"], "گوشی")
 
