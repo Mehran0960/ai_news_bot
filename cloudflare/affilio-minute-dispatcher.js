@@ -211,8 +211,7 @@ export function isInitialCatalogWarmup(status) {
   return Number(status.completed_cycles) === 0;
 }
 
-export const PUBLISHER_INTERVAL_MS = 27 * 60 * 1000;
-export const PUBLISHER_STANDALONE_EDITORIAL_GAP_MS = 55 * 60 * 1000;
+// This is an internal discovery/dispatch retry only, never a public-post interval.
 const PUBLISHER_RETRY_GAP_MS = 3 * 60 * 1000;
 
 export function isEmergencyContinuityAvailable(state, now = Date.now()) {
@@ -227,32 +226,13 @@ export function isEmergencyContinuityAvailable(state, now = Date.now()) {
   );
 }
 
-export function nextPublisherDueAt(state, lastPublishedAt, options = {}) {
+export function nextPublisherDueAt(state, _lastPublishedAt = null, _options = {}) {
   const scheduledAt = Date.parse(String(state && state.next_channel_content_due_at || ""));
   const editorialPlanningAt = Date.parse(String(state && state.next_editorial_planning_at || ""));
-  const lastPost = Number.isFinite(lastPublishedAt) ? lastPublishedAt : null;
-
-  // While the pinned emergency snapshot is being consumed, an empty queue is a
-  // discovery problem, not a reason to wait for the slower standalone editorial slot.
-  // Re-run selection on the normal retry cadence, while preserving the hard minimum
-  // gap after the last confirmed public post. Any queued product/editorial slot wins.
-  if (options.emergencyContinuityFallback === true && !Number.isFinite(scheduledAt)) {
-    return lastPost !== null
-      ? lastPost + PUBLISHER_INTERVAL_MS
-      : null;
-  }
-
+  // Public posts are controlled only by product slots and their editorial midpoints.
+  // An empty schedule is a discovery retry, not a reason to invent an editorial slot.
   const plannedTimes = [scheduledAt, editorialPlanningAt].filter(Number.isFinite);
-  let dueAt = plannedTimes.length
-    ? Math.min(...plannedTimes)
-    : lastPost !== null
-      ? lastPost + PUBLISHER_STANDALONE_EDITORIAL_GAP_MS
-      : null;
-
-  if (dueAt !== null && lastPost !== null) {
-    dueAt = Math.max(dueAt, lastPost + PUBLISHER_INTERVAL_MS);
-  }
-  return dueAt;
+  return plannedTimes.length ? Math.min(...plannedTimes) : null;
 }
 
 async function readOfferChinState(token) {
@@ -382,7 +362,7 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     }
   } else {
     // Reuse the last immutable clean snapshot while the next full scan runs.
-    // A new full scan is not required between two 27-minute publication slots.
+    // A new full scan is not required between two scheduled product slots.
     console.log(
       "OFFERCHIN_PUBLISHER_USING_CLEAN_SNAPSHOT cycle=" +
       String(catalogStatus.last_clean_cycle_completed_at) +
@@ -417,18 +397,12 @@ async function dispatchPublisherWhenDue(env, tick, state) {
       " next_content_due_at=" + new Date(nextDueAt).toISOString());
     return;
   }
-  // New-scan refreshes may happen before a product slot, but never bypass the
-  // hard minimum spacing between two public channel posts.
-  if (lastPublishedAt !== null && now - lastPublishedAt < PUBLISHER_INTERVAL_MS) {
-    console.log("OFFERCHIN_PUBLISHER_MINIMUM_GAP seconds_remaining=" +
-      Math.ceil((PUBLISHER_INTERVAL_MS - (now - lastPublishedAt)) / 1000));
-    return;
-  }
-
+  // This retry window throttles repeated discovery workflow invocations only. It
+  // does not constrain when a scheduled public product or editorial slot may post.
   const attemptAt = Date.parse(String(
     latestAttempt && (latestAttempt.updated_at || latestAttempt.run_started_at || latestAttempt.created_at) || ""
   ));
-  const retryGap = degradedLiveFallback ? PUBLISHER_INTERVAL_MS : PUBLISHER_RETRY_GAP_MS;
+  const retryGap = PUBLISHER_RETRY_GAP_MS;
   if (Number.isFinite(attemptAt) && now - attemptAt < retryGap) {
     console.log("OFFERCHIN_PUBLISHER_RETRY_WINDOW seconds_remaining=" +
       Math.ceil((retryGap - (now - attemptAt)) / 1000));
