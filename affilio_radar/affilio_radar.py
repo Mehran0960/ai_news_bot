@@ -899,6 +899,16 @@ def parse_product_page(url: str, page_html: str) -> dict:
                 review_count = 0
 
     title = title or _clean_title(meta.get("og:title") or meta.get("twitter:title") or meta.get("title") or "")
+    brand = _extract_brand_name(
+        (product_obj or {}).get("brand")
+        or (product_obj or {}).get("brand_name")
+        or (product_obj or {}).get("brand_fa")
+    )
+    if not brand:
+        brand = _extract_brand_name(
+            meta.get("product:brand") or meta.get("og:brand") or meta.get("brand")
+        )
+
     if not is_publishable_product_title(title):
         h1 = soup.find("h1")
         heading_title = _clean_title(h1.get_text(" ", strip=True) if h1 else "")
@@ -1535,6 +1545,8 @@ def parse_product_api(payload: dict, url: str, now: datetime | None = None) -> d
         "product_id": product_id(url),
         "product_url": safe_product_url(url),
         "title": title,
+        "brand": brand,
+        "brand_name": brand,
         "image_url": image,
         "current_price": current,
         "original_price": original,
@@ -1817,6 +1829,8 @@ def parse_snappshop_product_api(payload: dict, url: str, search_card: dict | Non
         "product_id": product_id(canonical),
         "product_url": canonical,
         "title": title,
+        "brand": brand,
+        "brand_name": brand,
         "image_url": image,
         "current_price": current_price,
         "original_price": original_price,
@@ -7898,7 +7912,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         ("asus", r"ایسوس|\bASUS\b"),
         ("lenovo", r"لنوو|\bLenovo\b"),
         ("hp", r"\bHP\b|اچ پی"),
-        ("dell", r"\bDell\b|دل"),
+        ("dell", r"\bDell\b|(?<![آ-ی])دل(?![آ-ی])"),
         ("sony", r"سونی|\bSony\b"),
         ("jbl", r"\bJBL\b"),
         ("anker", r"\bAnker\b|انکر"),
@@ -7963,8 +7977,9 @@ def _publication_category_guard_key(product_or_record) -> str:
         slug = re.sub(r"[^\w\u0600-\u06FF]+", "_", normalized).strip("_")
         if slug:
             return f"catalog_category_name:{slug}"
-    broad_category, _family, _brand = _publication_diversity_group(product_or_record)
-    return f"classified_category:{broad_category}" if broad_category and broad_category != "other" else ""
+    # Do not substitute a broad aisle (e.g. all audio or all personal care)
+    # for an exact category: that would block unrelated families for six hours.
+    return ""
 
 
 def _publication_retailer_group(product_or_record) -> str:
