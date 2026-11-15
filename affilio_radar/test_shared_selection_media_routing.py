@@ -86,6 +86,22 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             pending_core_deliveries({"content_delivery_queue": []})
 
+    def test_publisher_delivers_due_core_queue_before_discovery(self):
+        workflow = (
+            Path(__file__).resolve().parents[1]
+            / ".github"
+            / "workflows"
+            / "offerchin-publisher.yml"
+        ).read_text(encoding="utf-8")
+        product_publish = workflow.index("name: Publish due selections to Telegram and Bale only")
+        editorial_publish = workflow.index("name: Publish the same-sequence editorial fallback to photo channels")
+        discovery = workflow.index("name: Discover and queue the next verified selection")
+        self.assertLess(product_publish, editorial_publish)
+        self.assertLess(editorial_publish, discovery)
+        self.assertIn("channel_queue_gate.py", workflow)
+        self.assertIn("fetch-depth: 20", workflow)
+        self.assertEqual(workflow.count("if: ${{ github.event_name == 'push' }}"), 2)
+
     def test_empty_video_projection_releases_shared_publisher_lock_before_setup(self):
         workflow = (
             Path(__file__).resolve().parents[1]
