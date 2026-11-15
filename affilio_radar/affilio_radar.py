@@ -7892,7 +7892,6 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     brand_hints = [
         ("samsung", r"سامسونگ|\bSamsung\b|\bGalaxy\b"),
         ("apple", r"اپل|\bApple\b|\biPhone\b|\biPad\b|\bMacBook\b"),
-        ("xiaomi", r"شیائومی|\bXiaomi\b|\bRedmi\b|\bPOCO\b|\bPoco\b"),
         ("huawei", r"هواوی|\bHuawei\b|\bHonor\b|آنر"),
         ("asus", r"ایسوس|\bASUS\b"),
         ("lenovo", r"لنوو|\bLenovo\b"),
@@ -7960,8 +7959,10 @@ def _publication_category_guard_key(product_or_record) -> str:
         normalized = category_name.lower().replace("ي", "ی").replace("ك", "ک")
         normalized = normalized.replace("\u200c", " ")
         slug = re.sub(r"[^\w\u0600-\u06FF]+", "_", normalized).strip("_")
-        return f"catalog_category_name:{slug}" if slug else ""
-    return ""
+        if slug:
+            return f"catalog_category_name:{slug}"
+    broad_category, _family, _brand = _publication_diversity_group(product_or_record)
+    return f"classified_category:{broad_category}" if broad_category and broad_category != "other" else ""
 
 
 def _publication_retailer_group(product_or_record) -> str:
