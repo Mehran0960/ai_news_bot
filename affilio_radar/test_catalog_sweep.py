@@ -1176,5 +1176,58 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(diagnostics["selected"], 1)
 
 
+    def test_handoff_rechecks_fresh_bestseller_evidence_without_price_change(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "candidates.json"
+            now = datetime(2026, 11, 4, 0, 0, tzinfo=timezone.utc)
+            observed_at = (now - timedelta(hours=1)).isoformat()
+            original = {
+                "product_id": "dkp-55",
+                "product_url": "https://www.digikala.com/product/dkp-55/",
+                "title": "هدفون بلوتوثی نمونه",
+                "current_price": 500_000,
+                "original_price": 1_000_000,
+                "discount_percent": 50,
+                "savings_toman": 500_000,
+                "availability": "in_stock",
+                "catalog_sort_mode": "best_selling",
+                "catalog_best_selling_rank": 45,
+                "catalog_best_selling_category_id": "211",
+                "catalog_best_selling_category_name": "هدفون، هدست و هندزفری",
+                "catalog_best_selling_ranks_by_category": {
+                    "211": {"rank": 45, "observed_at": observed_at}
+                },
+                "catalog_rank_observed_at": observed_at,
+            }
+            state = {}
+            path.write_text(
+                json.dumps({"candidates": [original]}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            acknowledge_catalog_candidates_handoff(
+                state, ["dkp-55"], now=now, candidates=[original]
+            )
+
+            # A new full-catalog pass updates demand evidence while price/stock stay fixed.
+            refreshed_at = (now + timedelta(hours=2)).isoformat()
+            refreshed = {
+                **original,
+                "catalog_best_selling_rank": 5,
+                "catalog_best_selling_ranks_by_category": {
+                    "211": {"rank": 5, "observed_at": refreshed_at}
+                },
+                "catalog_rank_observed_at": refreshed_at,
+            }
+            path.write_text(
+                json.dumps({"candidates": [refreshed]}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            selected = load_catalog_candidates_for_handoff(
+                path, state, max_count=10, now=now + timedelta(hours=2, minutes=1)
+            )
+
+        self.assertEqual([row["product_id"] for row in selected], ["dkp-55"])
+
+
 if __name__ == "__main__":
     unittest.main()

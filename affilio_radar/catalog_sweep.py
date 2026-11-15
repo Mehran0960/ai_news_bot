@@ -1158,7 +1158,7 @@ def _catalog_handoff_deferred_at(value: object) -> str:
 
 
 def catalog_handoff_fingerprint(row: dict) -> str:
-    """Fingerprint listing price/discount/stock fields to detect material card changes."""
+    """Fingerprint live offer and fresh demand evidence to trigger needed rechecks."""
     row = row if isinstance(row, dict) else {}
     fields = (
         "current_price", "selling_price", "selling_price_toman",
@@ -1166,6 +1166,12 @@ def catalog_handoff_fingerprint(row: dict) -> str:
         "discount_percent", "availability", "in_stock", "is_in_stock",
         "stock", "stock_status", "stock_quantity", "available_quantity",
         "stock_count", "is_available", "catalog_cycle_completed_at",
+        # Bestseller evidence is part of the handoff identity. Without these fields,
+        # unchanged-price cards keep their old discovery record and never receive
+        # the refreshed demand proof produced by a new full-catalog cycle.
+        "catalog_sort_mode", "catalog_best_selling_rank",
+        "catalog_best_selling_category_id", "catalog_best_selling_category_name",
+        "catalog_best_selling_ranks_by_category", "catalog_rank_observed_at",
     )
     payload = {}
     for field in fields:
