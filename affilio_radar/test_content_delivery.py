@@ -1085,6 +1085,32 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             sparse["interval_seconds"],
         )
 
+    def test_product_cadence_replans_from_new_scan_when_previous_eta_has_passed(self):
+        clean_completed = self.now - timedelta(minutes=6)
+        clean_started = clean_completed - timedelta(minutes=30)
+        current_scan_started = self.now - timedelta(minutes=5)
+        previous_eta = self.now - timedelta(seconds=10)
+        status = {
+            "last_clean_cycle_started_at": clean_started.isoformat(),
+            "last_clean_cycle_completed_at": clean_completed.isoformat(),
+            "current_cycle_started_at": current_scan_started.isoformat(),
+            "estimated_next_clean_scan_at": previous_eta.isoformat(),
+            "last_cycle_status": "in_progress",
+        }
+        result = calculate_product_publication_cadence(
+            {}, status, 4, now=self.now, max_daily_posts=72
+        )
+        expected_next_scan = current_scan_started + timedelta(minutes=30)
+        self.assertGreater(expected_next_scan, self.now)
+        self.assertEqual(result["scan_eta_source"], "last_observed_full_cycle_duration")
+        self.assertEqual(result["estimated_next_clean_scan_at"], expected_next_scan.isoformat())
+        self.assertEqual(result["planned_product_slots"], 4)
+        self.assertGreater(result["interval_seconds"], 0)
+        self.assertAlmostEqual(
+            result["interval_seconds"],
+            (expected_next_scan - self.now).total_seconds() / 4,
+        )
+
     def test_product_cadence_has_no_default_interval_when_no_product_or_scan_eta_exists(self):
         result = calculate_product_publication_cadence(
             {}, {}, 0, now=self.now, max_daily_posts=72
