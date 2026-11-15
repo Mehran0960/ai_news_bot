@@ -53,21 +53,27 @@ CANDIDATES_PATH = ROOT / "catalog_sweep_candidates.json"
 PUBLISHER_STATE_PATH = ROOT / "state.json"
 
 API_ROOT = "https://api.digikala.com"
-DICTIONARY_URL = f"{API_ROOT}/v1/dictionaries/"
-AUTOCOMPLETE_URL = f"{API_ROOT}/v1/autocomplete/"
-SEARCH_URL = f"{API_ROOT}/v1/search/"  # Legacy endpoint retained for compatibility tests only.
-CATEGORY_SEARCH_URL = f"{API_ROOT}/v2/category/{{category_id}}/"
+# DigiKala retired /v1/search/, /v1/autocomplete/ and /v2/category/{id}/ on
+# 2026-11-13. Search, autocomplete and category-scoped listing now use this route.
+DISCOVERY_SEARCH_URL = f"{API_ROOT}/discovery/api/v1/"
+DICTIONARY_URL = f"{API_ROOT}/v1/dictionaries/"  # Legacy only; no longer used for discovery.
+AUTOCOMPLETE_URL = DISCOVERY_SEARCH_URL
+SEARCH_URL = DISCOVERY_SEARCH_URL
+CATEGORY_SEARCH_URL = DISCOVERY_SEARCH_URL
 REQUEST_TIMEOUT = (5, 18)
 CATEGORY_REFRESH_HOURS = 24
 # A verified taxonomy may bridge a temporary API change long enough to refresh it.
 CATEGORY_CACHE_MAX_FALLBACK_AGE_HOURS = 168
 CATEGORY_DISCOVERY_RETRY_MINUTES = 60
-CATEGORY_AUTOCOMPLETE_SEEDS = ("گوشی", "لپ تاپ", "خانه", "پوشاک", "کفش", "لوازم خانگی", "هدفون", "زیبایی")
+CATEGORY_AUTOCOMPLETE_SEEDS = (
+    "گوشی", "لپ تاپ", "خانه", "پوشاک", "کفش", "لوازم خانگی", "هدفون", "زیبایی",
+    "کتاب", "مواد غذایی", "خودرو", "اسباب بازی", "ورزش", "ابزار", "آرایشی",
+)
 CANDIDATE_TTL_HOURS = 72
 MIN_CANDIDATE_DISCOUNT = 1
 # DigiKala's live data.sort_options maps id=7 to پرفروش‌ترین and id=4 to پربازدیدترین.
-# This controls only upstream page order; it is not a page-depth or product eligibility limit.
-BEST_SELLING_SORT_VALUE = 5
+# A bestseller rank is trustworthy only when the upstream request uses that native sort.
+BEST_SELLING_SORT_VALUE = 7
 BEST_SELLING_PAGE_SIZE = 20
 BEST_SELLING_MAX_PAGES_PER_CATEGORY = 3
 BEST_SELLING_MAX_AGE_HOURS = 24
@@ -291,6 +297,45 @@ def _request_json(session: requests.Session, url: str, params=None) -> dict:
     return payload
 
 
+def validate_discovery_api(session: requests.Session | None = None) -> dict:
+    """Fail closed unless the current Discovery API returns a recognized search shape.
+
+    This probe runs before a production sweep so a global route or schema break
+    cannot classify thousands of categories as individually invalid.
+    """
+    http = session or SESSION
+    payload = _request_json(
+        http,
+        DISCOVERY_SEARCH_URL,
+        params={"q": "گوشی", "page": 1, "sort": BEST_SELLING_SORT_VALUE},
+    )
+    data = payload.get("data")
+    if not isinstance(data, dict):
+        raise CatalogSweepError("discovery_api_missing_data_object")
+    has_listing_shape = (
+        isinstance(data.get("products"), list)
+        or isinstance(data.get("widgets"), list)
+        or isinstance(data.get("query_attributes"), dict)
+        or isinstance(payload.get("pager"), dict)
+        or isinstance(data.get("pager"), dict)
+    )
+    if not has_listing_shape:
+        raise CatalogSweepError(
+            "discovery_api_unrecognized_payload:"
+            + ",".join(sorted(str(key) for key in data.keys())[:20])
+        )
+    rows = extract_product_rows(payload) if (
+        isinstance(data.get("products"), list) or isinstance(data.get("widgets"), list)
+    ) else []
+    categories = extract_autocomplete_categories(payload, "گوشی")
+    print(
+        "DIGIKALA_DISCOVERY_API_PREFLIGHT_OK "
+        f"status=200 products={len(rows)} category_ids={len(categories)} "
+        f"data_keys={','.join(sorted(str(key) for key in data.keys())[:20])}"
+    )
+    return payload
+
+
 def _category_discovery_error_label(source: str, exc: Exception) -> str:
     """Preserve HTTP status in bounded diagnostics without logging response bodies."""
     response = getattr(exc, "response", None)
@@ -309,43 +354,82 @@ def _category_discovery_error_label(source: str, exc: Exception) -> str:
 
 
 def extract_autocomplete_categories(payload: Any, query: str = "") -> list[dict]:
-    """Extract real category IDs and query terms from DigiKala's public autocomplete."""
-    data = payload.get("data") if isinstance(payload, dict) else None
-    items = data.get("categories") if isinstance(data, dict) else None
+    """Extract real category IDs from the current Discovery API query metadata.
+
+    The retired autocomplete route returned data.categories. The current
+    Discovery API exposes matched taxonomy IDs in query_attributes.category_ids.
+    Keep both shapes readable so cached fixtures and upstream rollbacks remain safe.
+    """
+    containers = []
+    if isinstance(payload, dict):
+        containers.append(payload)
+        data = payload.get("data")
+        if isinstance(data, dict):
+            containers.append(data)
+
+    items: list[Any] = []
+    for container in containers:
+        categories = container.get("categories")
+        if isinstance(categories, list):
+            items.extend(categories)
+        query_attributes = container.get("query_attributes")
+        if isinstance(query_attributes, dict):
+            category_ids = query_attributes.get("category_ids")
+            if isinstance(category_ids, list):
+                items.extend(category_ids)
+            elif isinstance(category_ids, dict):
+                items.extend(category_ids.values())
+
     rows = []
     seen = set()
-    for item in items if isinstance(items, list) else []:
-        if not isinstance(item, dict):
+    for item in items:
+        if isinstance(item, dict):
+            category = item.get("category") if isinstance(item.get("category"), dict) else item
+            category_id = str(
+                category.get("id") or category.get("category_id") or category.get("value") or ""
+            ).strip()
+            name = str(
+                category.get("title_fa") or category.get("title")
+                or category.get("name_fa") or category.get("name")
+                or category.get("label") or ""
+            ).strip()
+            keyword = str(item.get("keyword") or query or name).strip()
+            slug = str(category.get("code") or category.get("slug") or "")[:160]
+        else:
+            category_id = str(item or "").strip()
+            name = str(query or "").strip()
+            keyword = str(query or name).strip()
+            slug = ""
+        if not category_id.isdigit() or category_id in seen:
             continue
-        category = item.get("category") if isinstance(item.get("category"), dict) else item
-        category_id = str(category.get("id") or category.get("category_id") or "").strip()
-        name = str(category.get("title_fa") or category.get("title") or "").strip()
-        if not category_id.isdigit() or not name or category_id in seen:
-            continue
+        # Some Discovery API responses return IDs only. Keep the ID and query
+        # rather than discarding a genuine category match.
+        if not name:
+            name = f"دسته {category_id}"
+        if not keyword:
+            keyword = name
         seen.add(category_id)
-        keyword = str(item.get("keyword") or query or name).strip()
         rows.append({
             "id": category_id,
             "name": name[:120],
             "parent_id": "",
             "depth": 0,
-            "slug": str(category.get("code") or category.get("slug") or "")[:160],
+            "slug": slug,
             "query": keyword[:120],
-            "source": "digikala_v1_autocomplete",
+            "source": "digikala_discovery_api_v1_query_categories",
         })
     return rows
 
 
 def category_search_request(category: dict, page: int) -> tuple[str, dict]:
-    """Build DigiKala Search API v2 URL/params from a discovered category."""
+    """Build a complete category-scoped request for DigiKala Discovery API v1."""
     category_id = str(category.get("id") or "").strip()
     if not category_id.isdigit():
         raise CatalogSweepError("invalid_category_id")
-    keyword = str(category.get("query") or category.get("name") or category_id).strip()
-    return CATEGORY_SEARCH_URL.format(category_id=category_id), {
-        "q": keyword,
+    return CATEGORY_SEARCH_URL, {
+        "categories[0]": category_id,
         "page": max(1, int(page)),
-        "sort": BEST_SELLING_SORT_VALUE,  # DigiKala Search API v2 bestseller order.
+        "sort": BEST_SELLING_SORT_VALUE,
     }
 
 
@@ -409,43 +493,31 @@ def _v2_image_url(product: dict) -> str:
 
 
 def discover_categories(session: requests.Session | None = None) -> list[dict]:
-    """Refresh category IDs from DigiKala's public dictionaries, then search facets."""
+    """Discover category IDs through DigiKala's current public Discovery API."""
     http = session or SESSION
-    dictionary_types = (
-        "states", "cities", "user_jobs", "mega_menu", "universal",
-        "category_tree", "districts", "seo_content", "superapp_services",
-    )
-    params = []
-    for index, kind in enumerate(dictionary_types):
-        params.append((f"types[{index}]", kind))
-        params.append((f"hashes[{index}]", ""))
-
+    discovered: dict[str, dict] = {}
     errors = []
-    try:
-        payload = _request_json(http, DICTIONARY_URL, params=params)
-        categories = extract_categories(payload)
-        if categories:
-            return categories
-        errors.append("dictionaries_no_category_nodes")
-    except Exception as exc:
-        errors.append(_category_discovery_error_label("dictionaries", exc))
-
-    autocomplete_categories: dict[str, dict] = {}
-    autocomplete_errors = []
-    # Search API v2 requires a category ID; discover those IDs from the public
-    # autocomplete endpoint instead of the retired v1 /search/ facets endpoint.
     for seed in CATEGORY_AUTOCOMPLETE_SEEDS:
         try:
-            payload = _request_json(http, AUTOCOMPLETE_URL, params={"q": seed})
+            payload = _request_json(
+                http,
+                DISCOVERY_SEARCH_URL,
+                params={"q": seed, "page": 1, "sort": BEST_SELLING_SORT_VALUE},
+            )
             for row in extract_autocomplete_categories(payload, seed):
-                previous = autocomplete_categories.get(row["id"])
-                if previous is None or not previous.get("query"):
-                    autocomplete_categories[row["id"]] = row
+                previous = discovered.get(row["id"])
+                if previous is None or (
+                    previous.get("name", "").startswith("دسته ")
+                    and not row.get("name", "").startswith("دسته ")
+                ):
+                    discovered[row["id"]] = row
         except Exception as exc:
-            autocomplete_errors.append(_category_discovery_error_label("autocomplete", exc))
-    if autocomplete_categories:
-        return sort_categories_for_sweep(autocomplete_categories.values())
-    errors.extend(autocomplete_errors or ["autocomplete_no_category_nodes"])
+            errors.append(_category_discovery_error_label("discovery_search", exc))
+
+    if discovered:
+        return sort_categories_for_sweep(discovered.values())
+    if not errors:
+        errors.append("discovery_search_no_category_ids")
     raise CatalogSweepError("category_discovery_failed:" + ",".join(errors))
 
 
@@ -837,9 +909,11 @@ def retain_diverse_candidates(
     return ranked[:cap]
 
 def _category_page_url(category_id: str, page: int, category_name: str = "") -> tuple[str, dict]:
-    return CATEGORY_SEARCH_URL.format(category_id=str(category_id)), {
-        "q": str(category_name or category_id),
-        "page": int(page),
+    # DigiKala removed its category-page endpoint on 2026-11-13. Category
+    # browsing now uses the Discovery API's native categories[0] filter.
+    return CATEGORY_SEARCH_URL, {
+        "categories[0]": str(category_id),
+        "page": max(1, int(page)),
         "sort": BEST_SELLING_SORT_VALUE,
     }
 
@@ -1565,7 +1639,18 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Incremental DigiKala catalog page sweep")
     parser.add_argument("--pages-per-run", type=int, default=2)
     parser.add_argument("--refresh-categories", action="store_true")
+    parser.add_argument("--validate-api", action="store_true")
     args = parser.parse_args()
+    if args.validate_api:
+        try:
+            validate_discovery_api()
+            return 0
+        except Exception as exc:
+            print(
+                "DIGIKALA_DISCOVERY_API_PREFLIGHT_FAILED "
+                f"error={type(exc).__name__} detail={str(exc)[:220]!r}"
+            )
+            return 1
     return run_sweep(
         pages_per_run=args.pages_per_run,
         force_refresh=args.refresh_categories,
