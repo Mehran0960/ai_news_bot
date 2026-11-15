@@ -157,7 +157,7 @@ def _entry_image_url(node: ET.Element) -> str | None:
             candidates.extend([str(child.attrib.get("url") or ""), str(child.attrib.get("href") or "")])
         if tag == "encoded":
             html_text = "".join(child.itertext())
-            match = re.search(r"<img\\b[^>]*?\\bsrc=[\\"']([^\\"']+)", html_text, re.IGNORECASE)
+            match = re.search(r"<img\b[^>]*?\bsrc=['\"]([^'\"]+)", html_text, re.IGNORECASE)
             if match:
                 candidates.append(match.group(1))
     for candidate in candidates:
