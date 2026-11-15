@@ -4725,6 +4725,9 @@ def discover_product_urls(
 
 def classify_category(title: str) -> str:
     value = (title or "").lower().replace("\u200c", " ")
+    # Explicit, unambiguous leaf cues override broader device words in mixed titles.
+    if re.search(r"قلم\s*(?:لمسی|دیجیتال)|استایلوس|stylus", value, re.I):
+        return "digital_accessories"
     # Specific product families first; "other" should be the true fallback.
     patterns = [
         # Keep dedicated families ahead of broad matches; otherwise the rotation can't see them as distinct.
@@ -7674,6 +7677,8 @@ def _publication_use_case_group(product_or_title) -> str:
     # a fallback: broad parent labels must never override a more specific child.
     text = " ".join(part for part in (leaf_text, title_text) if part)
     patterns = (
+        ("baby_care", r"مکمل کمک درمانی کودک|مکمل کودک|نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک|غذای مادر و کودک|پوشک|اسباب بازی کودک|دهان شویه کودک|خمیردندان کودک"),
+        ("home_cleaning", r"اسکاچ|سیم ظرفشویی|اسفنج ظرفشویی|دستمال نظافت|دستکش نظافت|شوینده سطوح|نظافت خانه|نظافت|شستشو|شوینده|تمیزکننده|زمین شوی|بخارشوی|جارو"),
         ("automotive", r"خودرو|ماشین|موتور سیکلت|فندکی|داشبورد|لاستیک|تایر|فیلتر کابین|روغن موتور|ضد یخ خودرو|لوازم خودرو|جانبی خودرو|شارژر خودرو|کمپرسور باد"),
         ("outdoor_travel", r"کمپینگ|کوهنوردی|چادر مسافرتی|طبیعت گردی|لوازم سفر|مسافرت|ماهیگیری|لوازم ماهیگیری|کیف و کوله سفری|تجهیزات اسکان|چمدان"),
         ("tabletop_games", r"بوردگیم|بازی فکری|بازی رومیزی|اوریگامی"),
