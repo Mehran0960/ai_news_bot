@@ -737,6 +737,27 @@ def _product_has_core_photo_success(entry: dict) -> bool:
     )
 
 
+def _editorial_photo_delivery_started(editorial: dict) -> bool:
+    """Whether this editorial has already had its one midpoint photo-channel attempt."""
+    if editorial.get("photo_slot_attempted_at"):
+        return True
+    platforms = editorial.get("platforms") if isinstance(editorial.get("platforms"), dict) else {}
+    for name in PHOTO_PLATFORMS:
+        target = platforms.get(name)
+        if not isinstance(target, dict):
+            continue
+        status = str(target.get("status") or "").strip().lower()
+        if status not in {"", "pending"} or target.get("attempt_started_at"):
+            return True
+        try:
+            if int(target.get("attempts") or 0) > 0:
+                return True
+        except (TypeError, ValueError, OverflowError):
+            # Unknown attempt state is handled conservatively: do not block a product.
+            return True
+    return False
+
+
 def _due_editorial_precedes_product(
     state: dict,
     now: datetime,
@@ -759,7 +780,14 @@ def _due_editorial_precedes_product(
     if not active_editorials:
         return None
 
-    editorial = active_editorials[0]
+    # A midpoint is a one-time editorial slot, not an editorial retry lock.
+    # Retry photo destinations in the background, but never let that retry preempt a product.
+    editorial = next(
+        (row for row in active_editorials if not _editorial_photo_delivery_started(row)),
+        None,
+    )
+    if editorial is None:
+        return None
     editorial_at = _utc(editorial.get("scheduled_at"))
     retry_at = _utc(editorial.get("next_attempt_at")) or editorial_at
     if editorial_at is None or retry_at is None or editorial_at > now or retry_at > now:
@@ -818,6 +846,9 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
     due = due_content(state, now=now, limit=MAX_ITEMS_PER_RUN) if queue else []
     editorial_before_product = _due_editorial_precedes_product(state, now, due)
     if editorial_before_product is not None:
+        # Persist the one-time midpoint attempt before rendering or any outbound side effect.
+        # A render/API failure must not cause the same editorial to starve the product queue.
+        editorial_before_product["photo_slot_attempted_at"] = now.isoformat()
         _save(state)
         print(
             "PUBLISHER_EDITORIAL_SLOT_PRECEDES_PRODUCT "
