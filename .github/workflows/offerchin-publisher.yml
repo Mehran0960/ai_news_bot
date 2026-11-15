@@ -1,6 +1,7 @@
 # [publisher-run-now] Post-merge controlled recovery using the migrated live product-detail endpoint; preserve channel FIFO and all offer gates.
 # [publisher-run-now] One-time recovery: re-handoff unchanged-price cards when fresh bestseller evidence changes.
 name: OfferChin Selected Content Publisher
+# [publisher-run-now] Refresh the publication dispatch projection after core-channel completion fix.
 # [publisher-run-now] one-time controlled resume after PR #199 publisher HTTP migration; rebuild the selected-product queue with live checks.
 # [publisher-run-now] One-time controlled resume after emergency snapshot lead recovery; this marker does not define the ongoing publication cadence.
 # New posts use exhaustive DigiKala discovery and global market-demand-first ranking; live safety checks remain.
@@ -121,6 +122,8 @@ jobs:
             test_affilio.AffilioRadarTests.test_preferred_posting_windows_use_iran_local_time \
             test_affilio.AffilioRadarTests.test_video_dispatch_state_never_schedules_standalone_editorial_without_product_slot \
             test_affilio.AffilioRadarTests.test_video_dispatch_state_uses_midpoint_without_a_minimum_gap \
+            test_affilio.AffilioRadarTests.test_video_dispatch_state_does_not_keep_channel_slot_due_for_video_backlog \
+            test_affilio.AffilioRadarTests.test_video_dispatch_state_tracks_unsent_core_channel_retry_not_optional_backlog \
             test_affilio.AffilioRadarTests.test_video_upload_candidate_limit_covers_dispatch_sidecar \
             test_affilio.AffilioRadarTests.test_fresh_bestseller_rank_changes_demand_ranking_but_clicks_do_not \
             test_affilio.AffilioRadarTests.test_scoring_does_not_generate_popularity_or_demand_scores \
