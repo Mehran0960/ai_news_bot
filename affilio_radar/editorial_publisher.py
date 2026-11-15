@@ -195,15 +195,25 @@ def queue_editorial_if_due(
         for queued_editorial in active:
             related_id = str(queued_editorial.get("related_product_id") or "").strip()
             product_entry = active_products.get(related_id) if related_id else None
+            product_slot_at = (
+                _utc(product_entry.get("scheduled_at"))
+                if isinstance(product_entry, dict) else None
+            )
+            product_slot_is_due = product_slot_at is not None and product_slot_at <= current
             if (
                 isinstance(product_entry, dict)
                 and product_entry.get("status") not in {"published", "cancelled", "stale_selection"}
                 and not _product_has_core_channel_success(product_entry)
+                and not product_slot_is_due
             ):
                 valid_active.append(queued_editorial)
                 continue
             queued_editorial["status"] = "cancelled"
-            queued_editorial["last_detail"] = "editorial_requires_an_active_related_product_slot"
+            queued_editorial["last_detail"] = (
+                "editorial_midpoint_passed_related_product_due"
+                if product_slot_is_due
+                else "editorial_requires_an_active_related_product_slot"
+            )
             editorial_queue = state.get("editorial_delivery_queue")
             if isinstance(editorial_queue, dict):
                 editorial_queue.pop(str(queued_editorial.get("content_id") or ""), None)
