@@ -58,7 +58,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         args, kwargs = session.get.call_args
         self.assertTrue(args[0].endswith("/discovery/api/v1/search"))
         self.assertEqual(kwargs["params"], {
-            "categories[0]": "77", "page": 3, "sort": 7
+            "q": "گوشی سامسونگ", "categories[0]": "77", "page": 3, "sort": 7
         })
 
     def test_legacy_worker_checkpoint_is_normalized_to_the_first_trial_level_once(self):
@@ -316,7 +316,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         self.assertEqual(len(captured), 1)
         self.assertTrue(captured[0]["url"].endswith("/discovery/api/v1/search"))
         self.assertEqual(captured[0]["params"], {
-            "categories[0]": "123", "page": 2, "sort": 7
+            "q": "گوشی", "categories[0]": "123", "page": 2, "sort": 7
         })
 
     def test_fetch_page_closes_category_only_after_all_known_routes_return_not_found(self):
