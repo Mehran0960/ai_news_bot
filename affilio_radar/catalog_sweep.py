@@ -364,18 +364,23 @@ def extract_autocomplete_categories(payload: Any, query: str = "") -> list[dict]
     Discovery API exposes matched taxonomy IDs in query_attributes.category_ids.
     Keep both shapes readable so cached fixtures and upstream rollbacks remain safe.
     """
-    containers = []
-    if isinstance(payload, dict):
-        containers.append(payload)
-        data = payload.get("data")
-        if isinstance(data, dict):
-            containers.append(data)
-
+    # The current Search API nests query_attributes in the vertical listing
+    # widget; autocomplete returns category suggestions in data.auto_complete.
+    # Walk all payload dictionaries so both response envelopes are handled.
+    containers = list(_walk_dicts(payload)) if isinstance(payload, (dict, list)) else []
     items: list[Any] = []
     for container in containers:
         categories = container.get("categories")
         if isinstance(categories, list):
             items.extend(categories)
+        auto_complete = container.get("auto_complete")
+        if isinstance(auto_complete, list):
+            items.extend(
+                item for item in auto_complete
+                if isinstance(item, dict) and (
+                    item.get("type") == "category" or item.get("category_id")
+                )
+            )
         query_attributes = container.get("query_attributes")
         if isinstance(query_attributes, dict):
             category_ids = query_attributes.get("category_ids")
@@ -394,6 +399,7 @@ def extract_autocomplete_categories(payload: Any, query: str = "") -> list[dict]
             ).strip()
             name = str(
                 category.get("title_fa") or category.get("title")
+                or category.get("category_title")
                 or category.get("name_fa") or category.get("name")
                 or category.get("label") or ""
             ).strip()
