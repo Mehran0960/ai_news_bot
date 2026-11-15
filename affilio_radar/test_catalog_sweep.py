@@ -10,6 +10,7 @@ from unittest.mock import Mock
 
 try:
     from .catalog_sweep import (
+        CATEGORY_TAXONOMY_POLICY_VERSION,
         _advance_cursor,
         _clean_old_candidates,
         catalog_handoff_fingerprint,
@@ -36,6 +37,7 @@ try:
     )
 except ImportError:
     from catalog_sweep import (
+        CATEGORY_TAXONOMY_POLICY_VERSION,
         _advance_cursor,
         _clean_old_candidates,
         catalog_handoff_fingerprint,
@@ -321,6 +323,7 @@ class CatalogSweepTests(unittest.TestCase):
         ]
         refreshed = (datetime.now(timezone.utc) - timedelta(hours=48)).isoformat()
         state = {
+            "category_taxonomy_policy_version": CATEGORY_TAXONOMY_POLICY_VERSION,
             "categories": categories,
             "categories_refreshed_at": refreshed,
             "category_index": 1,
@@ -351,6 +354,7 @@ class CatalogSweepTests(unittest.TestCase):
         empty = {"data": {"query_attributes": {"category_ids": []}}}
         session = FakeSession([autocomplete] + [empty] * 14)
         state = {
+            "category_taxonomy_policy_version": CATEGORY_TAXONOMY_POLICY_VERSION,
             "categories": old_categories,
             "categories_refreshed_at": (datetime.now(timezone.utc) - timedelta(hours=48)).isoformat(),
             "category_index": 1,
@@ -365,6 +369,7 @@ class CatalogSweepTests(unittest.TestCase):
     def test_refresh_categories_respects_retry_backoff_without_repeating_api_calls(self):
         now = datetime.now(timezone.utc)
         state = {
+            "category_taxonomy_policy_version": CATEGORY_TAXONOMY_POLICY_VERSION,
             "categories": [{"id": "10", "name": "خانه", "parent_id": "", "depth": 0}],
             "categories_refreshed_at": (now - timedelta(hours=48)).isoformat(),
             "category_discovery_retry_after": (now + timedelta(hours=2)).isoformat(),
@@ -375,6 +380,48 @@ class CatalogSweepTests(unittest.TestCase):
         refresh_categories(state, session)
         self.assertEqual(session.calls, [])
         self.assertEqual(state["page"], 4)
+
+    def test_refresh_categories_rejects_legacy_taxonomy_cache_when_live_api_fails(self):
+        state = {
+            "categories": [
+                {"id": "1", "name": "دیجی‌کالا", "parent_id": "", "depth": 0},
+                {"id": "52394", "name": "فناوری یاری آرتمیس", "parent_id": "", "depth": 0},
+            ],
+            "categories_refreshed_at": datetime.now(timezone.utc).isoformat(),
+        }
+        session = FakeSession([FakeResponse({}, status_code=403)] * 32)
+        with self.assertRaises(CatalogSweepError) as raised:
+            refresh_categories(state, session)
+        self.assertIn("category_taxonomy_migration_requires_live_refresh", str(raised.exception))
+        self.assertFalse(state["category_discovery_fallback_used"])
+        self.assertTrue(state["category_taxonomy_migration_blocked"])
+        self.assertNotEqual(
+            state.get("category_taxonomy_policy_version"),
+            CATEGORY_TAXONOMY_POLICY_VERSION,
+        )
+
+    def test_refresh_categories_replaces_legacy_taxonomy_cache_after_live_discovery(self):
+        live = {
+            "data": {
+                "query_attributes": {
+                    "category_ids": [{"id": 211, "title_fa": "هدفون"}]
+                }
+            }
+        }
+        empty = {"data": {"query_attributes": {"category_ids": []}}}
+        state = {
+            "categories": [{"id": "1", "name": "دیجی‌کالا", "parent_id": "", "depth": 0}],
+            "categories_refreshed_at": datetime.now(timezone.utc).isoformat(),
+        }
+        session = FakeSession([live] + [empty] * 14)
+        refresh_categories(state, session)
+        self.assertEqual({row["id"] for row in state["categories"]}, {"211"})
+        self.assertEqual(
+            state["category_taxonomy_policy_version"],
+            CATEGORY_TAXONOMY_POLICY_VERSION,
+        )
+        self.assertNotIn("category_taxonomy_migration_blocked", state)
+        self.assertFalse(state["category_discovery_fallback_used"])
 
     def test_refresh_categories_does_not_use_expired_taxonomy_cache_after_api_failure(self):
         refreshed = (datetime.now(timezone.utc) - timedelta(hours=200)).isoformat()
