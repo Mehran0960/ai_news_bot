@@ -1640,6 +1640,22 @@ class AffilioRadarTests(unittest.TestCase):
         })
         self.assertEqual(brand, "samsung")
 
+        parsed = radar_module.parse_product_api(
+            {
+                "data": {
+                    "product": {
+                        "id": "123456",
+                        "title_fa": "گوشی موبایل سامسونگ مدل Galaxy S24",
+                        "brand": {"title_fa": "سامسونگ", "title_en": "Samsung"},
+                        "default_variant": {"id": 1, "price": {"selling_price_toman": 25_000_000}},
+                    }
+                }
+            },
+            "https://www.digikala.com/product/dkp-123456/",
+        )
+        self.assertEqual(parsed["brand"], "سامسونگ")
+        self.assertEqual(parsed["brand_name"], "سامسونگ")
+
     def test_recent_brand_is_blocked_for_24_hours_and_released_afterward(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
         published = {
