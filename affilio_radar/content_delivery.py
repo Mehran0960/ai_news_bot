@@ -291,6 +291,8 @@ def reschedule_product_queue_evenly(
         for _sequence, _product_id, entry in pending:
             entry["status"] = "queued"
             entry["last_detail"] = "waiting_for_next_clean_scan_eta"
+            entry.pop("scheduled_at", None)
+            entry.pop("next_attempt_at", None)
         deferred = len(pending)
     else:
         for index, (_sequence, _product_id, entry) in enumerate(pending):
