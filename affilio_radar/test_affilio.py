@@ -28,6 +28,7 @@ from affilio_radar import (
     has_publishable_expiry_or_open_offer,
     parse_snappshop_product_api,
     fetch_product_record,
+    restore_emergency_snapshot_identity_title,
     is_urgent_priority_deal,
     is_deadline_critical_deal,
     is_materially_improved_offer,
@@ -198,6 +199,48 @@ class AffilioRadarTests(unittest.TestCase):
 
     def test_emergency_continuity_snapshot_loader_is_available_for_direct_script_import(self):
         self.assertTrue(callable(radar_module.load_emergency_continuity_candidates))
+
+    def test_emergency_snapshot_title_is_identity_only_and_requires_exact_product_match(self):
+        url = "https://www.digikala.com/product/dkp-12345/"
+        live = {
+            "product_id": "dkp-12345",
+            "title": "",
+            "current_price": 1_250_000,
+            "availability": "in_stock",
+            "image_url": "https://dkstatics-public.digikala.com/live.jpg",
+        }
+        lead = {
+            "product_id": "dkp-12345",
+            "product_url": url,
+            "title": "هدفون بی‌سیم مدل آزمایشی",
+            "brand": "نمونه",
+            "source": "digikala_emergency_last_clean_snapshot",
+            "current_price": 1,
+            "discount_percent": 99,
+            "availability": "out_of_stock",
+        }
+        restored = restore_emergency_snapshot_identity_title(live, lead, url)
+        self.assertEqual(restored["title"], "هدفون بی‌سیم مدل آزمایشی")
+        self.assertEqual(restored["current_price"], 1_250_000)
+        self.assertEqual(restored["availability"], "in_stock")
+        self.assertNotIn("discount_percent", restored)
+        self.assertEqual(
+            restored["title_source"],
+            "hash_pinned_last_clean_catalog_snapshot_identity_only",
+        )
+
+        wrong_id = restore_emergency_snapshot_identity_title(
+            live, {**lead, "product_id": "dkp-999"}, url
+        )
+        self.assertEqual(wrong_id["title"], "")
+        wrong_source = restore_emergency_snapshot_identity_title(
+            live, {**lead, "source": "unverified_catalog"}, url
+        )
+        self.assertEqual(wrong_source["title"], "")
+        wrong_live_id = restore_emergency_snapshot_identity_title(
+            {**live, "product_id": "dkp-54321"}, lead, url
+        )
+        self.assertEqual(wrong_live_id["title"], "")
 
     def test_demand_context_precedes_discount_but_clicks_and_synthetic_scores_are_ignored(self):
         now = datetime(2026, 10, 28, tzinfo=timezone.utc)
