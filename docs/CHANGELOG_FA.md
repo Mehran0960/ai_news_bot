@@ -2403,3 +2403,18 @@
 **ریسک/بازگشت:** استخراج category محدودتر می‌شود؛ در صورت تغییر schema، صف خالی/ناقص می‌ماند تا parser برای ساختار واقعی اصلاح شود. گیت mismatch فقط زمانی محصول را رد می‌کند که هر دو سمت topic دقیق و متفاوت داشته باشند؛ طبقه‌بندی نامعلوم به‌تنهایی حذف‌کننده نیست. rollback با revert همین commitها ممکن است، اما parser عمومی قبلی نباید به‌عنوان fallback فعال شود.
 
 **وضعیت:** اصلاح کد، تست و مستندات روی شاخهٔ مستقل؛ CI، refresh زندهٔ taxonomy و چرخهٔ کامل بدون شکاف هنوز معیارهای پذیرش‌اند.
+
+
+## ۲۰۲۶-۱۱-۱۵ — بی‌اعتبارسازی cache taxonomy قدیمی در مهاجرت parser
+
+**هدف:** جلوگیری از مصرف دوبارهٔ فهرست دسته‌های آلودهٔ cache‌شده پس از محدودشدن parser به category roots صریح.
+
+**تغییر/اقدام:** نشانگر `CATEGORY_TAXONOMY_POLICY_VERSION=discovery_explicit_category_roots_v2` اضافه شد. cache فاقد این نشانگر، حتی اگر از نظر زمانی تازه باشد، در مهاجرت معتبر نیست؛ refresh زنده اجباری می‌شود و cache قدیمی نه merge می‌شود و نه fallback. اگر Discovery API خطا بدهد، اسکن با پیام `category_taxonomy_migration_requires_live_refresh` متوقف می‌شود و retry-after برای جلوگیری از درخواست‌های فشرده ثبت می‌شود. پس از refresh موفق، cache نسخه‌دار و fallback موقت بعدی مجاز می‌شود. تست‌های cache قبلی اکنون فقط cache دارای policy marker را «تأییدشده» فرض می‌کنند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/catalog_sweep.py`، `affilio_radar/test_catalog_sweep.py`، handbook و changelog.
+
+**آزمون و نتیجه:** دو regression جدید تضمین می‌کنند cache legacy در خطای API مصرف نشود و در موفقیت زنده کاملاً جایگزین شود. CI تازه پس از commit لازم است.
+
+**شواهد/شناسه:** شاخهٔ `fix/offerchin-trusted-taxonomy-guard-main-sync-20261115`، PR #196؛ policy cache `discovery_explicit_category_roots_v2`.
+
+**ریسک/بازگشت:** اگر Discovery API برای مدت طولانی taxonomy قابل‌خواندن ارائه نکند، اسکن تا بازیابی منبع دسته متوقف می‌شود؛ این توقف عمدی و ایمن‌تر از رتبه‌دهی بر پایهٔ cache آلوده است.
