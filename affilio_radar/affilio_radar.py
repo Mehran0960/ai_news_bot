@@ -2072,11 +2072,9 @@ def fetch_price_history_record(url: str, current_price: int | None, variant_labe
     pid = product_id(url).replace("dkp-", "")
     if not pid.isdigit():
         return {"history_status": "unavailable", "history_source": "digikala_price_chart", "history_days": 0}
-    response = SESSION.get(
+    response = _digikala_get(
         f"https://api.digikala.com/v1/product/{pid}/price-chart/",
-        headers={"Accept": "application/json", "Referer": "https://www.digikala.com/"},
         timeout=HISTORY_TIMEOUT,
-        allow_redirects=True,
     )
     response.raise_for_status()
     if len(response.content) > 3_000_000:
@@ -3984,7 +3982,7 @@ def discover_product_urls(
     mcp_card_expiries: dict[str, str] = {}
     for page_number in range(1, DEAL_LIST_PAGES + 1):
         try:
-            response = SESSION.get(
+            response = _digikala_get(
                 "https://api.digikala.com/v1/incredible-offers/products/",
                 params={"page": page_number, "q": ""},
                 timeout=HTTP_TIMEOUT,
