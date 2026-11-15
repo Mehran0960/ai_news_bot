@@ -343,10 +343,23 @@ def _topic_emoji(item: dict) -> str:
     return mapping.get(topic, "💡")
 
 
+def _readable_editorial_body(value: Any) -> str:
+    """Separate authored lines and complete sentences into readable paragraphs."""
+    normalized = str(value or "").replace("\r\n", "\n").replace("\r", "\n")
+    paragraphs: list[str] = []
+    for raw_line in normalized.split("\n"):
+        line = raw_line.strip()
+        if not line:
+            continue
+        sentences = re.split(r"(?<=[.!?؟])\s+", line)
+        paragraphs.extend(part.strip() for part in sentences if part.strip())
+    return "\n\n".join(paragraphs)
+
+
 def _format_message(item: dict, *, html_mode: bool = True, platform: str = "telegram") -> str:
     """Build a readable Persian post with attributed source lines and a clickable CTA."""
     title = str(item.get("title") or "").strip()
-    body = str(item.get("body") or "").strip()
+    body = _readable_editorial_body(item.get("body"))
     emoji = _topic_emoji(item)
     source_rows = [
         source for source in (item.get("sources") or [])
@@ -402,7 +415,7 @@ def _format_message(item: dict, *, html_mode: bool = True, platform: str = "tele
         escaped_url = html.escape(url, quote=True)
         rendered.extend([
             f"• {html.escape(organization)} — «{html.escape(source_title)}»:",
-            f'<a href="{escaped_url}">{html.escape(url)}</a>',
+            f'<a href="{escaped_url}">مشاهدهٔ منبع</a>',
             "",
         ])
     escaped_channel = html.escape(channel_url, quote=True)
