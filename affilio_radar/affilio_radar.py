@@ -953,7 +953,7 @@ def search_digikala_v2_product_urls(query: str, session=None, category_limit: in
         category_id = category["id"]
         search_response = http.get(
             f"https://api.digikala.com/v2/category/{category_id}/",
-            params={"q": category["query"], "page": 1, "sort": 5},
+            params={"q": category["query"], "page": 1, "sort": 7},
             timeout=HTTP_TIMEOUT,
         )
         search_response.raise_for_status()
@@ -1749,9 +1749,20 @@ def fetch_product_record(url: str) -> dict:
             try:
                 response = SESSION.get(api_url, timeout=HTTP_TIMEOUT, allow_redirects=True)
                 if not response.ok:
+                    print(
+                        f"PRODUCT_API_HTTP id={product_id(url)} version={api_version} "
+                        f"status={response.status_code}"
+                    )
                     continue
                 payload = response.json()
                 api_product = parse_product_api(payload, url)
+                if not api_product:
+                    data_node = payload.get("data") if isinstance(payload, dict) else None
+                    print(
+                        f"PRODUCT_API_PARSE_EMPTY id={product_id(url)} version={api_version} "
+                        f"root_keys={','.join(sorted(payload.keys())[:12]) if isinstance(payload, dict) else 'non_object'} "
+                        f"data_keys={','.join(sorted(data_node.keys())[:12]) if isinstance(data_node, dict) else 'none'}"
+                    )
                 if api_product.get("title") or api_product.get("current_price") or api_product.get("availability") == "in_stock":
                     print(f"PRODUCT_API id={product_id(url)} version={api_version} title={bool(api_product.get('title'))} price={bool(api_product.get('current_price'))} stock={api_product.get('availability')}")
                     break
@@ -1802,6 +1813,45 @@ def fetch_product_record(url: str) -> dict:
     merged.setdefault("product_url", safe_product_url(url))
     merged.setdefault("checked_at", datetime.now(timezone.utc).isoformat())
     return merged
+
+
+def restore_emergency_snapshot_identity_title(
+    live_record: dict,
+    snapshot_lead: dict,
+    requested_url: str,
+) -> dict:
+    """Use a hash-pinned snapshot title only as an identity/display fallback.
+
+    No commercial field is copied from the snapshot. Product ID must match the
+    requested canonical DigiKala URL and any ID returned by live data.
+    """
+    result = dict(live_record) if isinstance(live_record, dict) else {}
+    if not isinstance(snapshot_lead, dict):
+        return result
+    if snapshot_lead.get("source") != "digikala_emergency_last_clean_snapshot":
+        return result
+
+    expected_id = product_id(safe_product_url(requested_url) or requested_url)
+    snapshot_id = str(snapshot_lead.get("product_id") or "").strip().lower()
+    live_id = str(
+        result.get("product_id")
+        or product_id(result.get("product_url") or "")
+        or ""
+    ).strip().lower()
+    if not expected_id or not expected_id.startswith("dkp-") or snapshot_id != expected_id:
+        return result
+    if live_id and live_id != expected_id:
+        return result
+    if is_publishable_product_title(result.get("title")):
+        return result
+
+    snapshot_title = str(snapshot_lead.get("title") or "").strip()
+    if not is_publishable_product_title(snapshot_title):
+        return result
+
+    result["title"] = snapshot_title
+    result["title_source"] = "hash_pinned_last_clean_catalog_snapshot_identity_only"
+    return result
 
 
 def _history_price_toman(raw) -> int | None:
@@ -11296,6 +11346,14 @@ def run(publish=False, selection_only=False):
             item = fetch_product_record(canonical)
             pid = item.get("product_id", "") or product_id(canonical)
             catalog_record = discovery_queue.get(str(pid), {}) if isinstance(discovery_queue, dict) else {}
+            if isinstance(catalog_record, dict) and catalog_record.get("source") == "digikala_emergency_last_clean_snapshot":
+                before_title = str(item.get("title") or "")
+                item = restore_emergency_snapshot_identity_title(item, catalog_record, canonical)
+                if item.get("title_source") == "hash_pinned_last_clean_catalog_snapshot_identity_only":
+                    print(
+                        f"PRODUCT_TITLE_IDENTITY_FROM_LAST_CLEAN_SNAPSHOT id={pid} "
+                        f"live_title_missing={not is_publishable_product_title(before_title)}"
+                    )
             if isinstance(catalog_record, dict):
                 for field in (
                     "catalog_sort_mode",
