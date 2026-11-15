@@ -1666,9 +1666,9 @@ class AffilioRadarTests(unittest.TestCase):
                 "ts": (now - timedelta(hours=23, minutes=50)).timestamp(),
             }
         }
-        sony_speaker = {
-            "product_id": "dkp-new-speaker",
-            "title": "اسپیکر قابل حمل مدل تازه",
+        sony_laptop = {
+            "product_id": "dkp-new-laptop",
+            "title": "لپ تاپ قابل حمل مدل تازه",
             "brand": "Sony",
             "discount_percent": 75,
             "savings_toman": 700_000,
@@ -1680,7 +1680,7 @@ class AffilioRadarTests(unittest.TestCase):
             "discount_percent": 65,
             "savings_toman": 500_000,
         }
-        candidates = [sony_speaker, other_brand]
+        candidates = [sony_laptop, other_brand]
         queue = {item["product_id"]: {} for item in candidates}
         eligible = {item["product_id"]: item for item in candidates}
 
