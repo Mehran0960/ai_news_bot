@@ -191,7 +191,7 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(by_id["100"]["name"], "تجهیزات دیجیتال")
         self.assertEqual(by_id["101"]["parent_id"], "100")
         self.assertEqual(
-            by_id["100"]["source"], "digikala_discovery_api_v1_search_filters"
+            by_id["100"]["source"], "digikala_discovery_api_v1_search_taxonomy"
         )
         self.assertIn("999", by_id)
 
