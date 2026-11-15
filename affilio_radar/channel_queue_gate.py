@@ -13,12 +13,14 @@ TERMINAL_CORE = {"sent", "not_connected", "manual_review"}
 def pending_core_deliveries(state: dict) -> list[tuple[str, str, list[str]]]:
     pending: list[tuple[str, str, list[str]]] = []
     for collection_name in ("content_delivery_queue", "editorial_delivery_queue"):
-        queue = state.get(collection_name)
-        if not isinstance(queue, dict):
+        queue = state.get(collection_name, {})
+        if queue is None:
             continue
+        if not isinstance(queue, dict):
+            raise ValueError(f"{collection_name}_not_an_object")
         for content_id, entry in queue.items():
             if not isinstance(entry, dict):
-                continue
+                raise ValueError(f"{collection_name}_entry_not_an_object")
             if str(entry.get("status") or "").strip().lower() in TERMINAL_QUEUE:
                 continue
             targets = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
