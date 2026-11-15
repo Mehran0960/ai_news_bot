@@ -151,6 +151,101 @@ class CatalogSweepTests(unittest.TestCase):
             {"22", "23"},
         )
 
+    def test_extract_categories_rejects_seller_brand_and_delivery_facets(self):
+        payload = {
+            "data": {
+                "filters": [
+                    {
+                        "key": "seller_ids",
+                        "name": "فروشنده",
+                        "values": [
+                            {"id": 1, "title": "دیجی‌کالا"},
+                            {"id": 52394, "title": "فناوری یاری آرتمیس"},
+                        ],
+                    },
+                    {
+                        "key": "brands",
+                        "name": "برند",
+                        "values": [
+                            {"id": 18, "title": "سامسونگ"},
+                            {"id": 19, "title": "شیائومی"},
+                        ],
+                    },
+                    {
+                        "key": "has_ready_to_shipment",
+                        "name": "ارسال سریع",
+                        "values": [{"id": 101, "title": "ارسال امروز"}],
+                    },
+                ]
+            }
+        }
+        self.assertEqual(extract_categories(payload), [])
+
+    def test_extract_categories_reads_only_explicit_category_tree_and_facet(self):
+        payload = {
+            "data": {
+                "category_tree": [{
+                    "id": 10,
+                    "title_fa": "کالای دیجیتال",
+                    "children": [{"id": 11, "title_fa": "گوشی موبایل"}],
+                }],
+                "filters": [
+                    {
+                        "key": "categories",
+                        "title": "دسته‌بندی",
+                        "values": [{
+                            "id": 22,
+                            "title": "خانه",
+                            "children": [{"id": 23, "title": "آشپزخانه"}],
+                        }],
+                    },
+                    {
+                        "key": "seller_ids",
+                        "name": "فروشنده",
+                        "values": [{"id": 24, "title": "لوازم جانبی کامپیوتر"}],
+                    },
+                ],
+                "widgets": [{
+                    "type": "vertical_product_listing",
+                    "data": {"widgets": [{
+                        "type": "product",
+                        "data": {
+                            "id": 25,
+                            "title_fa": "ماوس بی‌سیم",
+                            "url": {"uri": "/product/dkp-25/"},
+                            "category": "[MC,لوازم جانبی کامپیوتر]",
+                        },
+                    }]},
+                }],
+            }
+        }
+        rows = extract_categories(payload)
+        by_id = {row["id"]: row for row in rows}
+        self.assertEqual(set(by_id), {"10", "11", "22", "23"})
+        self.assertEqual(by_id["23"]["parent_id"], "22")
+
+    def test_catalog_category_consistency_uses_fine_grained_topics(self):
+        self.assertFalse(catalog_category_is_consistent(
+            {"title": "ماوس بی‌سیم مدل Silent RGB", "category": "[MC,لوازم جانبی کامپیوتر]"},
+            "گوشی ریلمی",
+        ))
+        self.assertFalse(catalog_category_is_consistent(
+            {"title": "فلش مموری 64 گیگابایت", "category": "[MC,تجهیزات ذخیره سازی اطلاعات]"},
+            "گوشی نوکیا",
+        ))
+        self.assertFalse(catalog_category_is_consistent(
+            {"title": "مانیتور 24 اینچ", "category": "[MC,نمایشگر (مانیتور)]"},
+            "گوشی آنر",
+        ))
+        self.assertFalse(catalog_category_is_consistent(
+            {"title": "دوربین مداربسته", "category": "[MC,دوربین و تجهیزات امنیتی]"},
+            "عینک مردانه",
+        ))
+        self.assertTrue(catalog_category_is_consistent(
+            {"title": "گوشی سامسونگ", "category": "[MC,گوشی موبایل]"},
+            "گوشی ریلمی",
+        ))
+
     def test_discover_categories_uses_current_discovery_query_metadata(self):
         payload = {"data": {"query_attributes": {"category_ids": [{"id": 5, "title_fa": "خانه"}]}}}
         empty = {"data": {"query_attributes": {"category_ids": []}}}
