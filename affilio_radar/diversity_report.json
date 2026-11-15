@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-15T22:47:52.576325+00:00",
+  "generated_at": "2026-11-15T22:54:28.106177+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -399,80 +399,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1363,
+    "all_time_count": 1367,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 474,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-15T21:46:44.390709+00:00",
-        "brand": "",
-        "catalog_category_id": "9788",
-        "catalog_category_name": "شورت پسرانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-7284546",
-        "family": "digikala_category:9788",
-        "product_id": "dkp-8477415",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "شورت پسرانه آریان نخ باف مدل 4311",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-15T22:08:48.485032+00:00",
-        "brand": "",
-        "catalog_category_id": "9371",
-        "catalog_category_name": "کفش پاشنه دار زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-6223366",
-        "family": "digikala_category:9371",
-        "product_id": "dkp-14202725",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش پاشنه‌دار زنانه سیی 1966 مدل کلارا کد 1793.4",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-15T22:20:22.859155+00:00",
-        "brand": "",
-        "catalog_category_id": "10559",
-        "catalog_category_name": "کتاب زبان خارجی",
-        "category": "books_stationery",
-        "compared_to_product_id": "dkp-2304995",
-        "family": "digikala_category:10559",
-        "product_id": "dkp-3319356",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کتاب Family and Friends 4 اثر Naomi Simmons انتشارات الوندپویان",
-        "use_case": "books_learning"
-      },
-      {
-        "at": "2026-11-15T22:20:22.859155+00:00",
-        "brand": "",
-        "catalog_category_id": "9467",
-        "catalog_category_name": "مایو و لباس شنای مردانه",
-        "category": "sports_outdoor",
-        "compared_to_product_id": "dkp-21678448",
-        "family": "digikala_category:9467",
-        "product_id": "dkp-9634240",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "مایو مردانه تکنیک+07 مدل SH-143-ME",
-        "use_case": "fashion_lifestyle"
-      },
       {
         "at": "2026-11-15T22:20:22.859155+00:00",
         "brand": "",
@@ -741,6 +674,74 @@
         ],
         "title": "کفش پاشنه‌دار زنانه سیی 1966 مدل کلارا کد 1793.4",
         "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-15T22:54:28.106177+00:00",
+        "brand": "",
+        "catalog_category_id": "10921",
+        "catalog_category_name": "تقویت‌کننده ابرو",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-18027406",
+        "family": "digikala_category:10921",
+        "product_id": "dkp-22744016",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "سرم تقویت‌کننده ابرو وینور مدل EBS-VN حجم 3 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-15T22:54:28.106177+00:00",
+        "brand": "",
+        "catalog_category_id": "10727",
+        "catalog_category_name": "غذای آماده",
+        "category": "grocery_food",
+        "compared_to_product_id": "dkp-12942777",
+        "family": "digikala_category:10727",
+        "product_id": "dkp-22004842",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کنسرو گوشت بوقلمون با طعم شوید پارس بوقلمون - 180 گرم",
+        "use_case": "grocery_food"
+      },
+      {
+        "at": "2026-11-15T22:54:28.106177+00:00",
+        "brand": "",
+        "catalog_category_id": "6765",
+        "catalog_category_name": "شورت آموزشی کودک",
+        "category": "kids_sports",
+        "compared_to_product_id": "dkp-16470889",
+        "family": "digikala_category:6765",
+        "product_id": "dkp-16470620",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "شورت آموزشی کودک وی کر مدل دکمه دار طرح bear boy کد U808",
+        "use_case": "books_learning"
+      },
+      {
+        "at": "2026-11-15T22:54:28.106177+00:00",
+        "brand": "",
+        "catalog_category_id": "10932",
+        "catalog_category_name": "دئودورانت",
+        "category": "other",
+        "compared_to_product_id": "dkp-19399111",
+        "family": "digikala_category:10932",
+        "product_id": "dkp-19398964",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "دئودورانت ضد تعریق زنانه آدرویت مدل آکوا دریم حجم 50 میلی لیتر",
+        "use_case": "catalog_taxonomy_other"
       }
     ]
   }
