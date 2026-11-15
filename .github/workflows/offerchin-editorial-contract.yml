@@ -75,14 +75,18 @@ jobs:
           video = Path(".github/workflows/offerchin-video-publisher.yml").read_text(encoding="utf-8")
           shadow = Path(".github/workflows/offerchin-editorial-shadow.yml").read_text(encoding="utf-8")
           enabled = 'OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: "true"'
+          publisher = Path("affilio_radar/editorial_publisher.py").read_text(encoding="utf-8")
+          radar = Path("affilio_radar/affilio_radar.py").read_text(encoding="utf-8")
           assert channel.count(enabled) == 2
           assert enabled in video
-          assert 'OFFERCHIN_EDITORIAL_GAP_MINUTES: "55"' in channel
+          assert "OFFERCHIN_EDITORIAL_GAP_MINUTES" not in channel + video
+          assert "if not next_product:" in publisher
+          assert "No product slot means no editorial wake-up" in radar
           assert "EDITORIAL_SHADOW_ONLY_PUBLIC_PUBLISH_DISABLED" in channel
           assert "EDITORIAL_VIDEO_SHADOW_ONLY_PUBLIC_PUBLISH_DISABLED" in video
           assert "--shadow-report" in shadow
           assert "--publish" not in shadow
-          print("EDITORIAL_PUBLIC_FALLBACK_ENABLED_WITH_55M_GAP_AND_READ_ONLY_SHADOW")
+          print("EDITORIAL_PUBLIC_FALLBACK_ENABLED_PRODUCT_MIDPOINT_ONLY_NO_FIXED_GAP_AND_READ_ONLY_SHADOW")
           PY
       - name: Run the read-only shadow report and prove state is untouched
         run: |
