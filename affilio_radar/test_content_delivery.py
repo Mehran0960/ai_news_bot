@@ -1053,7 +1053,9 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
         self.assertEqual(sparse["estimated_clean_cycle_seconds"], cycle_seconds)
         self.assertLess(dense["interval_seconds"], sparse["interval_seconds"])
-        self.assertGreaterEqual(dense["interval_seconds"], 27 * 60)
+        horizon_seconds = int((expected_scan - self.now).total_seconds())
+        self.assertEqual(dense["planned_product_slots"], 60)
+        self.assertEqual(dense["interval_seconds"], (horizon_seconds + 59) // 60)
         self.assertGreater(sparse["interval_seconds"], 6 * 60 * 60)
         expected_scan = current_scan_started + timedelta(seconds=cycle_seconds)
         self.assertEqual(
@@ -1071,7 +1073,8 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
         self.assertEqual(result["candidate_count"], 0)
         self.assertEqual(result["planned_product_slots"], 0)
-        self.assertEqual(result["interval_seconds"], 27 * 60)
+        self.assertEqual(result["interval_seconds"], 0)
+        self.assertNotIn("minimum_product_gap_seconds", result)
 
 
     def test_product_cadence_is_not_capped_at_six_hours_for_sparse_cycles(self):
