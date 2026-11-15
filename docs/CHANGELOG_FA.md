@@ -2539,3 +2539,6 @@
 **ریسک/بازگشت:** اگر projection ناقص/قدیمی و خالی باشد، اجرای ویدئو موقتاً skip می‌شود؛ dispatcher دقیقه‌ای همچنان می‌تواند آن را با projection تازه dispatch کند. هیچ وضعیت یا رسیدی حذف نمی‌شود. rollback با revert تغییر workflow ممکن است. قفل مشترک حفظ می‌شود.
 
 **وضعیت:** اصلاح روی شاخهٔ مستقل و آمادهٔ CI/بازبینی؛ این تغییر cadence محصول یا گیت انتخاب را دست نمی‌زند.
+
+
+**Regression guard:** آزمون `test_empty_video_projection_releases_shared_publisher_lock_before_setup` به `affilio_radar/test_shared_selection_media_routing.py` اضافه شد تا ترتیب gate، بررسی projection، خروجی empty و شرط اجرای مراحل سنگین را کنترل کند.
