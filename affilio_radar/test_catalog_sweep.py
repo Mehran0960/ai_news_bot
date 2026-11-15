@@ -20,6 +20,7 @@ try:
         discover_categories,
         refresh_categories,
         CatalogSweepError,
+        validate_discovery_api,
         extract_categories,
         extract_autocomplete_categories,
         extract_product_rows,
@@ -41,6 +42,7 @@ except ImportError:
         discover_categories,
         refresh_categories,
         CatalogSweepError,
+        validate_discovery_api,
         extract_categories,
         extract_autocomplete_categories,
         extract_product_rows,
@@ -141,36 +143,36 @@ class CatalogSweepTests(unittest.TestCase):
             {"22", "23"},
         )
 
-    def test_discover_categories_uses_public_dictionary_endpoint(self):
-        payload = {"data": {"category_tree": [{"id": 5, "title": "خانه", "children": []}]}}
-        session = FakeSession([payload])
+    def test_discover_categories_uses_current_discovery_query_metadata(self):
+        payload = {"data": {"query_attributes": {"category_ids": [{"id": 5, "title_fa": "خانه"}]}}}
+        empty = {"data": {"query_attributes": {"category_ids": []}}}
+        session = FakeSession([payload] + [empty] * 14)
         categories = discover_categories(session)
         self.assertEqual(categories[0]["id"], "5")
-        self.assertIn("types[5]", dict(session.calls[0][1]))
-        self.assertEqual(dict(session.calls[0][1])["types[5]"], "category_tree")
+        self.assertIn("/discovery/api/v1/", session.calls[0][0])
+        self.assertEqual(session.calls[0][1]["q"], "گوشی")
 
-    def test_discover_categories_uses_autocomplete_after_dictionary_endpoint_changes(self):
+    def test_discover_categories_reads_category_ids_from_discovery_api(self):
         discovered = {
-            "data": {"categories": [{
-                "keyword": "گوشی موبایل",
-                "category": {"id": 77, "title_fa": "موبایل", "code": "mobile"},
-            }]}
+            "data": {"query_attributes": {"category_ids": [{
+                "id": 77, "title_fa": "موبایل", "code": "mobile",
+            }]}}
         }
-        session = FakeSession([FakeResponse({}, status_code=404), discovered] + [{"data": {"categories": []}}] * 7)
+        empty = {"data": {"query_attributes": {"category_ids": []}}}
+        session = FakeSession([discovered] + [empty] * 14)
         categories = discover_categories(session)
         mobile = next(row for row in categories if row["id"] == "77")
         self.assertEqual(mobile["name"], "موبایل")
-        self.assertEqual(mobile["query"], "گوشی موبایل")
-        self.assertEqual(mobile["source"], "digikala_v1_autocomplete")
-        self.assertIn("/v1/autocomplete/", session.calls[1][0])
-        self.assertEqual(dict(session.calls[1][1])["q"], "گوشی")
+        self.assertEqual(mobile["query"], "گوشی")
+        self.assertEqual(mobile["source"], "digikala_discovery_api_v1_query_categories")
+        self.assertIn("/discovery/api/v1/", session.calls[0][0])
+        self.assertEqual(dict(session.calls[0][1])["q"], "گوشی")
 
-    def test_discover_categories_reports_autocomplete_http_errors(self):
-        session = FakeSession([FakeResponse({}, status_code=403)] * 9)
+    def test_discover_categories_reports_discovery_api_http_errors(self):
+        session = FakeSession([FakeResponse({}, status_code=403)] * 32)
         with self.assertRaises(CatalogSweepError) as raised:
             discover_categories(session)
-        self.assertIn("dictionaries_http_403", str(raised.exception))
-        self.assertIn("autocomplete_http_403", str(raised.exception))
+        self.assertIn("discovery_search_http_403", str(raised.exception))
 
     def test_refresh_categories_uses_recent_verified_cache_during_api_outage(self):
         categories = [
@@ -184,17 +186,13 @@ class CatalogSweepTests(unittest.TestCase):
             "category_index": 1,
             "page": 7,
         }
-        session = FakeSession([
-            FakeResponse({}, status_code=403),
-            FakeResponse({}, status_code=403),
-        ])
+        session = FakeSession([FakeResponse({}, status_code=403)] * 32)
         refresh_categories(state, session)
         self.assertEqual(state["categories"], categories)
         self.assertEqual(state["category_index"], 1)
         self.assertEqual(state["page"], 7)
         self.assertTrue(state["category_discovery_fallback_used"])
-        self.assertIn("dictionaries_http_403", state["category_discovery_last_error"])
-        self.assertIn("autocomplete_http_403", state["category_discovery_last_error"])
+        self.assertIn("discovery_search_http_403", state["category_discovery_last_error"])
         self.assertGreater(
             datetime.fromisoformat(state["category_discovery_retry_after"]),
             datetime.now(timezone.utc),
@@ -206,15 +204,12 @@ class CatalogSweepTests(unittest.TestCase):
             {"id": "11", "name": "آشپزخانه", "parent_id": "10", "depth": 1},
         ]
         autocomplete = {
-            "data": {"categories": [{
-                "keyword": "موبایل",
-                "category": {"id": 12, "title_fa": "موبایل"},
-            }]}
+            "data": {"query_attributes": {"category_ids": [{
+                "id": 12, "title_fa": "موبایل",
+            }]}}
         }
-        session = FakeSession(
-            [FakeResponse({}, status_code=404), autocomplete] +
-            [{"data": {"categories": []}}] * 7
-        )
+        empty = {"data": {"query_attributes": {"category_ids": []}}}
+        session = FakeSession([autocomplete] + [empty] * 14)
         state = {
             "categories": old_categories,
             "categories_refreshed_at": (datetime.now(timezone.utc) - timedelta(hours=48)).isoformat(),
@@ -267,6 +262,12 @@ class CatalogSweepTests(unittest.TestCase):
         rows = extract_autocomplete_categories(payload, "گوشی")
         self.assertEqual([row["id"] for row in rows], ["101", "102"])
         self.assertEqual(rows[0]["query"], "گوشی سامسونگ")
+        current = {
+            "data": {"query_attributes": {"category_ids": [211, {"id": 11, "title_fa": "گوشی موبایل"}]}}
+        }
+        current_rows = extract_autocomplete_categories(current, "گوشی")
+        self.assertEqual([row["id"] for row in current_rows], ["211", "11"])
+        self.assertEqual(current_rows[0]["name"], "گوشی")
 
     def test_extract_search_api_v2_product_widgets(self):
         payload = {
@@ -366,12 +367,13 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(state["page"], 1)
         self.assertEqual(state["completed_cycles"], 1)
 
-    def test_category_search_requests_current_v2_category_endpoint(self):
+    def test_category_search_requests_current_discovery_api_category_filter(self):
         url, params = _category_page_url("123", 2, "گوشی موبایل")
-        self.assertIn("/v2/category/123/", url)
-        self.assertEqual(params["q"], "گوشی موبایل")
+        self.assertIn("/discovery/api/v1/", url)
+        self.assertEqual(params["categories[0]"], "123")
         self.assertEqual(params["page"], 2)
-        self.assertEqual(params["sort"], 5)
+        self.assertEqual(params["sort"], 7)
+        self.assertNotIn("q", params)
 
     def test_fresh_digikala_bestseller_rank_outranks_a_larger_discount(self):
         now = datetime.now(timezone.utc)
@@ -723,7 +725,7 @@ class CatalogSweepTests(unittest.TestCase):
 
 
     def test_run_sweep_checkpoints_page_and_candidates(self):
-        category_payload = {"data": {"category_tree": [{"id": 7, "title": "کالای دیجیتال"}]}}
+        category_payload = {"data": {"query_attributes": {"category_ids": [{"id": 7, "title_fa": "کالای دیجیتال"}]}}}
         page_payload = {
             "data": {
                 "products": [{
@@ -751,7 +753,8 @@ class CatalogSweepTests(unittest.TestCase):
             },
             "pager": {"total_pages": 1},
         }
-        session = FakeSession([category_payload, page_payload])
+        empty_categories = {"data": {"query_attributes": {"category_ids": []}}}
+        session = FakeSession([category_payload] + [empty_categories] * 14 + [page_payload])
         with tempfile.TemporaryDirectory() as temp:
             base = Path(temp)
             state_path = base / "state.json"
@@ -773,7 +776,8 @@ class CatalogSweepTests(unittest.TestCase):
             self.assertEqual(candidates["candidate_count"], 1)
             self.assertEqual(state["stats"]["catalog_candidate_cards_found_total"], 3)
             self.assertEqual(state["stats"]["discounted_candidates_found_total"], 1)
-            self.assertEqual(dict(session.calls[1][1]).get("sort"), 5)
+            self.assertEqual(dict(session.calls[-1][1]).get("sort"), 7)
+            self.assertEqual(dict(session.calls[-1][1]).get("categories[0]"), "7")
             by_id = {row["product_id"]: row for row in candidates["candidates"]}
             self.assertEqual(set(by_id), {"dkp-777"})
             self.assertEqual(by_id["dkp-777"]["catalog_sort_mode"], "best_selling")
