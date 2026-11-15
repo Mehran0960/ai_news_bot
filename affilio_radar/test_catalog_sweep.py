@@ -1030,6 +1030,7 @@ class CatalogSweepTests(unittest.TestCase):
             candidates_path = base / "candidates.json"
             publisher_state_path = base / "publisher.json"
             state_path.write_text(json.dumps({
+                "category_taxonomy_policy_version": CATEGORY_TAXONOMY_POLICY_VERSION,
                 "categories": [{"id": "7", "name": "کالای دیجیتال"}],
                 "categories_refreshed_at": datetime.now(timezone.utc).isoformat(),
                 "category_index": 0,
