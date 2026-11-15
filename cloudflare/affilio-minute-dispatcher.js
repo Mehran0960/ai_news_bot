@@ -572,13 +572,68 @@ export function hasPendingVideoQueue(state, now = Date.now()) {
   });
 }
 
-async function dispatchVideoUploadsWhenDue(env, tick, state) {
+// Video uploads share the canonical state file and Actions concurrency group with
+// the photo-channel publisher. They may run only in a genuine idle window: no
+// product/editorial slot is planned, no publisher or catalog workflow is active,
+// and the catalog scanner has no pending pages. This keeps video retries from
+// reserving the state lock ahead of selected channel posts.
+export function videoQueueDispatchDeferReason(
+  state,
+  catalogStatus,
+  publisherActive = false,
+  catalogActive = false,
+  now = Date.now()
+) {
+  if (!hasPendingVideoQueue(state, now)) return "video_queue_empty";
+  if (nextPublisherDueAt(state) !== null) return "channel_content_slot_planned";
+  if (publisherActive) return "publisher_workflow_active";
+  if (catalogActive) return "catalog_workflow_active";
+  if (!catalogStatus || typeof catalogStatus !== "object") return "catalog_status_unavailable";
+
+  const rawPendingPages = catalogStatus.pending_page_count;
+  const pendingPages = Number(rawPendingPages);
+  if (rawPendingPages === null || rawPendingPages === undefined ||
+      !Number.isFinite(pendingPages) || pendingPages !== 0) {
+    return "catalog_scan_pending_pages";
+  }
+  const cycleStatus = String(catalogStatus.last_cycle_status || "").trim().toLowerCase();
+  if (!cycleStatus) return "catalog_cycle_status_unavailable";
+  if (["in_progress", "queued", "pending", "running"].includes(cycleStatus)) {
+    return "catalog_scan_active";
+  }
+  return null;
+}
+
+
+async function dispatchVideoUploadsWhenDue(env, tick, state, catalogStatus) {
   if (!state || !env.GITHUB_TOKEN) return;
+
+  const preliminaryReason = videoQueueDispatchDeferReason(
+    state, catalogStatus, false, false, tick.getTime()
+  );
+  if (preliminaryReason) {
+    if (preliminaryReason !== "video_queue_empty") {
+      console.log("OFFERCHIN_VIDEO_DISPATCH_DEFERRED reason=" + preliminaryReason);
+    }
+    return;
+  }
+
+  // These workflows share state.json and its concurrency group. A video runner
+  // must never queue ahead of or overlap a selected-content or catalog run.
+  const [activePublisher, activeCatalog] = await Promise.all([
+    findActiveWorkflow(PUBLISHER_API, env.GITHUB_TOKEN),
+    findActiveWorkflow(CATALOG_API, env.GITHUB_TOKEN),
+  ]);
+  const deferReason = videoQueueDispatchDeferReason(
+    state, catalogStatus, Boolean(activePublisher), Boolean(activeCatalog), tick.getTime()
+  );
+  if (deferReason) {
+    console.log("OFFERCHIN_VIDEO_DISPATCH_DEFERRED reason=" + deferReason);
+    return;
+  }
+
   // The unified Python workflow performs fresh per-platform preflight checks,
-  // including Filo login verification and Aparat deadline checks. Dispatch based
-  // on persisted pending statuses so those checks can terminally skip unavailable
-  // destinations instead of making an ineligible record block the FIFO forever.
-  if (!hasPendingVideoQueue(state)) return;
+  // including Filo login verification and Aparat deadline checks.
   await dispatchWorkflowIfIdle(
     VIDEO_PUBLISHER_API,
     env.GITHUB_TOKEN,
@@ -616,9 +671,11 @@ async function runScheduledCheck(env, scheduledTime) {
 
   // Continue persisted catalog pages on every tick. If category discovery is in
   // backoff and no work remains, wait for its retry_after rather than launching a
-  // failing full workflow every minute.
+  // failing full workflow every minute. Reuse this snapshot for the lower-priority
+  // video gate so no second status read can race the catalog dispatch decision.
+  let catalogStatusForDispatch = null;
   try {
-    const catalogStatusForDispatch = await readCatalogSweepStatus(env.GITHUB_TOKEN);
+    catalogStatusForDispatch = await readCatalogSweepStatus(env.GITHUB_TOKEN);
     const categoryRetryAt = Date.parse(String(
       catalogStatusForDispatch && catalogStatusForDispatch.category_discovery_retry_after || ""
     ));
@@ -655,9 +712,14 @@ async function runScheduledCheck(env, scheduledTime) {
     console.error("OFFERCHIN_PUBLISHER_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 
-  // One unified event-driven video workflow consumes the shared FIFO; the minute
-  // poll is a recovery path for any queue items left after a bounded workflow batch.
-  await dispatchVideoUploadsWhenDue(env, tick, state);
+  // Video fan-out is lower priority than products, editorial midpoints and a
+  // clean full-catalog scan. Its queue remains persisted and will be retried on
+  // later ticks when the shared publisher state lock is genuinely idle.
+  try {
+    await dispatchVideoUploadsWhenDue(env, tick, state, catalogStatusForDispatch);
+  } catch (error) {
+    console.error("OFFERCHIN_VIDEO_DISPATCH_FAILED", String(error).slice(0, 900));
+  }
 }
 
 export default {

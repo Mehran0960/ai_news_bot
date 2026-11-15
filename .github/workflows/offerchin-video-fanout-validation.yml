@@ -78,14 +78,20 @@ jobs:
 
           assert "--all-video-upload-only" in source
           assert "run_all_video_uploads_only" in source
-          assert "offerchin-video-publisher.yml" in publisher
+          # The standard product publisher must not start a long video job while
+          # it still owns the shared state/concurrency pipeline.
+          assert "offerchin-video-publisher.yml" not in publisher
+          # The legacy emergency publisher retains its separately authorized path.
           assert "offerchin-video-publisher.yml" in emergency
-          assert "actions: write" in publisher
           assert "actions: write" in emergency
           assert "--all-video-upload-only" in unified
           assert "VIDEO_WORKFLOW_RETRY_GAP_MS" not in worker
           assert "VIDEO_UPLOAD_MAX_AGE_MS" not in worker
           assert "dispatchVideoPlatformWhenDue" not in worker
           assert "VIDEO_PUBLISHER_API" in worker
-          print("UNIFIED_VIDEO_FANOUT_WORKFLOW_WIRING_OK")
+          assert "videoQueueDispatchDeferReason" in worker
+          assert "findActiveWorkflow(PUBLISHER_API" in worker
+          assert "findActiveWorkflow(CATALOG_API" in worker
+          assert "pending_page_count" in worker
+          print("UNIFIED_VIDEO_FANOUT_IDLE_WINDOW_WIRING_OK")
           PY

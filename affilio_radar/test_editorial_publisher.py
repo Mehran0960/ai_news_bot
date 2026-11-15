@@ -198,6 +198,36 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertNotIn(editorial["content_id"], state["editorial_delivery_queue"])
         self.assertEqual(editorial["status"], "cancelled")
 
+    def test_active_editorial_is_cancelled_when_related_product_slot_becomes_due(self):
+        editorial = {
+            "content_id": "editorial:expired-midpoint",
+            "sequence_number": 21,
+            "status": "partial",
+            "scheduled_at": (NOW - timedelta(minutes=2)).isoformat(),
+            "next_attempt_at": (NOW - timedelta(minutes=2)).isoformat(),
+            "related_product_id": "dkp-due-now",
+            "payload": editorial_item(),
+            "platforms": {"telegram": {"status": "sent", "attempts": 1}},
+        }
+        product = {
+            "content_type": "product",
+            "status": "queued",
+            "selected_at": (NOW - timedelta(minutes=5)).isoformat(),
+            "scheduled_at": (NOW - timedelta(seconds=5)).isoformat(),
+            "platforms": {
+                "telegram": {"status": "pending"},
+                "bale": {"status": "pending"},
+            },
+        }
+        state = {
+            "editorial_delivery_queue": {editorial["content_id"]: editorial},
+            "content_delivery_queue": {"dkp-due-now": product},
+        }
+        self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
+        self.assertNotIn(editorial["content_id"], state["editorial_delivery_queue"])
+        self.assertEqual(editorial["status"], "cancelled")
+        self.assertEqual(editorial["last_detail"], "editorial_midpoint_passed_related_product_due")
+
     def test_pending_product_video_does_not_hold_back_editorial_channel_post(self):
         state = {
             "last_channel_published_at": (NOW - timedelta(minutes=60)).isoformat(),

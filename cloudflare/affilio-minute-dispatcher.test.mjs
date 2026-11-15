@@ -6,6 +6,7 @@ import {
   isDegradedLiveFallbackAvailable,
   hasDueVideoRecord,
   hasPendingVideoQueue,
+  videoQueueDispatchDeferReason,
   videoRecordDue,
   isFiloLoginVerified,
   PUBLISHER_DISCOVERY_RETRY_MS,
@@ -558,4 +559,67 @@ test("terminally skipped video destinations are not redispatched", () => {
       status
     );
   }
+});
+
+
+test("video dispatch waits until the shared channel-publisher state lock is idle", () => {
+  const now = Date.now();
+  const videoState = {
+    published: {
+      product: {
+        ts: now / 1000,
+        video_dispatch_eligible: true,
+        video_generation_status: "generated",
+        youtube_upload_status: "pending",
+        aparat_upload_status: "pending",
+        filo_upload_status: "pending",
+      },
+    },
+  };
+  const cleanIdleCatalog = { last_cycle_status: "complete", pending_page_count: 0 };
+
+  assert.equal(
+    videoQueueDispatchDeferReason(videoState, cleanIdleCatalog, false, false, now),
+    null
+  );
+  assert.equal(
+    videoQueueDispatchDeferReason(videoState, cleanIdleCatalog, true, false, now),
+    "publisher_workflow_active"
+  );
+  assert.equal(
+    videoQueueDispatchDeferReason(videoState, cleanIdleCatalog, false, true, now),
+    "catalog_workflow_active"
+  );
+  assert.equal(
+    videoQueueDispatchDeferReason(
+      videoState, { ...cleanIdleCatalog, pending_page_count: 12 }, false, false, now
+    ),
+    "catalog_scan_pending_pages"
+  );
+  assert.equal(
+    videoQueueDispatchDeferReason(
+      videoState, { ...cleanIdleCatalog, last_cycle_status: "in_progress" }, false, false, now
+    ),
+    "catalog_scan_active"
+  );
+  assert.equal(
+    videoQueueDispatchDeferReason(videoState, null, false, false, now),
+    "catalog_status_unavailable"
+  );
+  assert.equal(
+    videoQueueDispatchDeferReason(
+      { ...videoState, next_channel_content_due_at: new Date(now + 60_000).toISOString() },
+      cleanIdleCatalog,
+      false,
+      false,
+      now
+    ),
+    "channel_content_slot_planned"
+  );
+  assert.equal(
+    videoQueueDispatchDeferReason(
+      { published: {} }, cleanIdleCatalog, false, false, now
+    ),
+    "video_queue_empty"
+  );
 });
