@@ -1330,3 +1330,12 @@ PR validation در workflow اسکن کاتالوگ از گروه concurrency م
 - `affilio_radar/test_catalog_sweep.py` و `affilio_radar/test_parallel_catalog_sweep.py`: تست قرارداد Discovery و بازسازی صف.
 - `.github/workflows/offerchin-digikala-catalog-sweep.yml`: اجرای preflight پیش از پیمایش.
 - Commitهای کد: `7fdc6d8019ba429374c90e6c021a29269d9e0381` و `9544e18d06bab58959f8f3c38ded38fda8ce34dc`. اصلاح تست‌ها: `afbc003a4170f713c6822b964a298fe865d9305f` و `413b68d09fb0b4565347165ee8dd9aa8dd3a77a7`. Workflow preflight: `d28047fda18911a3aa37eb0bb402ad7c66e47459`.
+
+
+## ۲۰۲۶-۱۱-۱۵ — سازگاری با وضعیت موجودی در variant ردیف‌های Discovery
+
+- در payloadهای Discovery، وضعیت بازارپذیری/موجودی ممکن است روی `default_variant` یا ردیف‌های `variants` باشد، نه روی شیء قدیمی `price` یا فقط در `product.status`.
+- parser ابتدا variant پیش‌فرض را برای قیمت نمایش‌داده‌شده می‌خواند و سپس وضعیت variant را بررسی می‌کند.
+- فقط محصولی وارد candidate extraction می‌شود که `product.status=marketable` یا variant آن صریحاً `marketable/in_stock` باشد. وضعیت `not_marketable`، `out_of_stock` یا مقدار نامعلوم بدون شاهد موجودی، محصول را واجد ورود به صف نمی‌کند.
+- وضعیت نامعلوم هرگز به‌صورت پیش‌فرض «موجود» فرض نمی‌شود. کنترل نهایی قیمت، موجودی و تخفیف زنده در ناشر/ممیزی مستقل به قوت خود باقی است.
+- فایل‌های اصلاح‌شده: `affilio_radar/catalog_sweep.py` و `affilio_radar/test_catalog_sweep.py`. آزمون variant-level marketability در regression کاتالوگ اضافه شده است.
