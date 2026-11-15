@@ -21,12 +21,58 @@ def _utc(value: Any) -> datetime | None:
         return None
 
 
+def has_active_core_channel_queue(queue_state: dict | None) -> bool:
+    """Keep discovery out of the way while Telegram/Bale slots remain unresolved."""
+    if not isinstance(queue_state, dict):
+        return False
+
+    product_terminal_queue = {"published", "cancelled", "stale_selection"}
+    editorial_terminal_queue = product_terminal_queue | {"completed", "failed"}
+    product_terminal_core = {"sent", "not_connected", "manual_review"}
+    editorial_terminal_core = product_terminal_core | {"skipped_limit"}
+
+    for collection_name in ("content_delivery_queue", "editorial_delivery_queue"):
+        queue = queue_state.get(collection_name)
+        if not isinstance(queue, dict):
+            continue
+        terminal_queue = (
+            editorial_terminal_queue
+            if collection_name == "editorial_delivery_queue"
+            else product_terminal_queue
+        )
+        terminal_core = (
+            editorial_terminal_core
+            if collection_name == "editorial_delivery_queue"
+            else product_terminal_core
+        )
+        for entry in queue.values():
+            if not isinstance(entry, dict):
+                continue
+            status = str(entry.get("status") or "").strip().lower()
+            if status in terminal_queue:
+                continue
+            targets = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+            for destination in ("telegram", "bale"):
+                target = targets.get(destination)
+                target_status = (
+                    str(target.get("status") or "pending").strip().lower()
+                    if isinstance(target, dict) else "pending"
+                )
+                if target_status not in terminal_core:
+                    return True
+    return False
+
+
 def due_publication_slot(
     state: dict | None,
     *,
+    queue_state: dict | None = None,
     now: datetime | None = None,
 ) -> tuple[bool, str]:
-    """Return whether a product or editorial slot is due, without inventing cadence."""
+    """Return whether delivery is due or an active core queue should drain first."""
+    if has_active_core_channel_queue(queue_state):
+        return True, "active_core_channel_queue"
+
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -52,17 +98,25 @@ def main() -> int:
         "--state-path",
         default="affilio_radar/video_upload_dispatch_state.json",
     )
+    parser.add_argument("--queue-state-path", default="affilio_radar/state.json")
     parser.add_argument("--github-output", default="")
     args = parser.parse_args()
 
     state = None
+    queue_state = None
     try:
         state = json.loads(Path(args.state_path).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         # Fail open: discovery remains available if the small projection is unreadable.
         pass
 
-    due, reason = due_publication_slot(state)
+    try:
+        queue_state = json.loads(Path(args.queue_state_path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        # Missing queue state does not corrupt the independent due-time projection.
+        pass
+
+    due, reason = due_publication_slot(state, queue_state=queue_state)
     value = "true" if due else "false"
     print(f"PUBLICATION_DUE_GATE has_due_slot={value} reason={reason}")
     if args.github_output:
