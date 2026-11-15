@@ -326,8 +326,6 @@ DIGIKALA_BROWSER_HEADERS = {
     "sec-ch-ua-mobile": "?0",
     "sec-ch-ua-platform": '"Linux"',
 }
-SESSION.headers.update(DIGIKALA_BROWSER_HEADERS)
-
 DIGIKALA_DISCOVERY_SEARCH_URL = "https://api.digikala.com/discovery/api/v1/search"
 DIGIKALA_DISCOVERY_AUTOCOMPLETE_URL = "https://api.digikala.com/discovery/api/v1/autocomplete"
 
@@ -1022,7 +1020,7 @@ def _autocomplete_category_queries(payload: dict, query: str, limit: int = 2) ->
     return categories
 
 
-def search_digikala_v2_product_urls(query: str, session=None, category_limit: int = 2) -> tuple[list[str], list[dict]]:
+def search_digikala_discovery_product_urls(query: str, session=None) -> tuple[list[str], list[dict]]:
     """Discover marketable product URLs through DigiKala's current Discovery Search API.
 
     Product-card values are used only to find canonical URLs. Downstream product
@@ -4589,8 +4587,8 @@ def discover_product_urls(
         local = []
         api_error = ""
         try:
-            local, category_diagnostics = search_digikala_v2_product_urls(
-                term, session=SESSION, category_limit=2
+            local, category_diagnostics = search_digikala_discovery_product_urls(
+                term, session=SESSION
             )
             print(
                 f"DISCOVERY_SEARCH_API term={term!r} categories={len(category_diagnostics)} "
