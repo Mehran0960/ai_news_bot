@@ -31,7 +31,7 @@ DEFAULT_PAGES_PER_RUN = 480
 DEFAULT_WORKERS = 16
 BEST_SELLING_SORT_VALUE = base.BEST_SELLING_SORT_VALUE
 WORKER_RAMP_POLICY_VERSION = "explicit_12_14_16_v1"
-API_ROUTE_POLICY_VERSION = "digikala_discovery_api_v1_query_scoped_category_filter_v3"
+API_ROUTE_POLICY_VERSION = "digikala_discovery_api_v1_trusted_category_taxonomy_v4"
 _thread_local = threading.local()
 
 
