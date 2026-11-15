@@ -2679,32 +2679,16 @@
 
 ## ۲۰۲۶-۱۱-۱۵ — تقدم انتشار کانال‌ها بر صف ویدئو
 
-**هدف:** حفظ اولویت انتشار محصولات و تحریریه بین slotهای محصول و جلوگیری از اشغال قفل مشترک state توسط بارگذاری ویدئو.
+**هدف:** جلوگیری از اشغال قفل مشترک وضعیت انتشار توسط بارگذاری ویدئو و حفظ تقدم انتشار پست‌های محصول و تحریریه در slotهای تعیین‌شده.
 
-**تغییر/اقدام:** dispatch مستقیم ویدئو از انتهای workflow ناشر محصول حذف شد. Worker دقیقه‌ای فقط زمانی صف ویدئو را dispatch می‌کند که هیچ slot محصول/تحریریه‌ای در sidecar برنامه‌ریزی نشده باشد، workflow ناشر و اسکن کاتالوگ فعال نباشند و شمار صفحات اسکن صفر باشد. اگر وضعیت اسکن قابل‌خواندن نباشد، dispatch ویدئو fail-closed می‌شود؛ رکوردهای ویدئو حذف یا reset نمی‌شوند و در tickهای بعدی دوباره بررسی می‌شوند.
+**تغییر/اقدام:** dispatch فوری ویدئو از انتهای workflow ناشر محصولات حذف شد. Worker فقط در پنجرهٔ idle واقعی اجازهٔ آغاز workflow ویدئو دارد: هیچ slot کانالِ محصول/تحریریه در sidecar برنامه‌ریزی نشده باشد، workflow ناشر و اسکن کاتالوگ فعال یا در صف نباشند، وضعیت اسکن قابل‌خواندن باشد و `pending_page_count` صفر باشد. در وضعیت نامشخص، dispatch ویدئو fail-closed می‌شود و صف ویدئو برای بررسی در tick بعدی باقی می‌ماند. قفل concurrency مشترک حفظ شد، چون هر دو workflow روی `state.json` مشترک می‌نویسند.
 
-**فایل‌ها/سامانه‌ها:** cloudflare/affilio-minute-dispatcher.js، cloudflare/affilio-minute-dispatcher.test.mjs، .github/workflows/offerchin-publisher.yml، .github/workflows/offerchin-video-fanout-validation.yml، .github/workflows/deploy-affilio-minute-dispatcher.yml و docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md.
+**فایل‌ها/سامانه‌ها:** `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، `.github/workflows/offerchin-publisher.yml`، `.github/workflows/offerchin-video-fanout-validation.yml`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
 
-**آزمون و نتیجه:** تست idle-window شرایط slot برنامه‌ریزی‌شده، ناشر فعال، اسکن فعال، صفحات باقی‌مانده، وضعیت ناموجود و صف خالی را پوشش می‌دهد. Unified Video Fan-out Validation و dry-run Worker در سرشاخهٔ PR موفق شدند؛ Documentation Gate پس از تکمیل همین ورودی دوباره اجرا می‌شود.
+**آزمون و نتیجه:** تست wiring و regressionهای fan-out ویدئو موفق؛ اعتبارسنجی Worker و Wrangler dry-run موفق؛ تست‌های تحریریه، fallback، Top-100/DigiPay و آداپتر پیام‌رسان موفق. Documentation Gate ابتدا به‌دلیل ناقص‌بودن قالب همین ورودی شکست خورد و پس از تکمیل این فیلدها باید مجدداً اجرا شود. هیچ پست عمومی آزمایشی توسط این تغییر ارسال نشده است.
 
-**شواهد/شناسه:** PR #215؛ سرشاخه fix/editorial-midpoint-retry-does-not-block-products؛ اجرای Worker validation با شناسه 43754052427.
+**شواهد/شناسه:** PR #215، شاخهٔ `fix/editorial-midpoint-retry-does-not-block-products`؛ Video Fan-out Validation run `43754052411`؛ Worker validation run `43754052427`؛ Editorial Contract run `43754052410`؛ Fallback run `43754052437`؛ Top-100/DigiPay run `43754052443`؛ Messenger Adapter run `43754052591`.
 
-**ریسک/بازگشت:** اگر slot محصول/تحریریه یا backlog اسکن پیوسته وجود داشته باشد، بارگذاری ویدئو عقب می‌افتد؛ این انتخاب عمدی برای جلوگیری از starvation انتشار کانال است. صف ویدئو حفظ می‌شود و با revert تغییرهای Worker و publisher به سیاست قبلی بازمی‌گردد؛ state و receipt نباید reset شوند.
+**ریسک/بازگشت:** ممکن است بارگذاری ویدئو تا خالی‌شدن slotها و تکمیل اسکن سالم عقب بیفتد؛ این تأخیر عمدی و پایین‌اولویت است و نباید پست کانالی را عقب بیندازد. رکوردها و صف ویدئو reset یا حذف نمی‌شوند. بازگشت با revert تغییر dispatch Worker و حذف شرط idle ممکن است؛ قفل مشترک state نباید حذف شود مگر آنکه ذخیره‌سازی تراکنشی/تفکیک‌شده پیاده شود.
 
-**وضعیت:** کد و regressionها ثبت شده‌اند؛ CI کد و dry-run Worker موفق شده است؛ ادغام و deploy تولیدی هنوز انجام نشده‌اند.
-
-## ۲۰۲۶-۱۱-۱۵ — تصحیح عنوان منبع دیجی‌کالا مگ
-
-**هدف:** یکسان‌سازی عنوان ذخیره‌شده در بانک تحریریه با عنوان واقعی صفحهٔ ناشر.
-
-**تغییر/اقدام:** عنوان منبع مطلب choose-phone-by-needs از «مرداد ۱۴۰۵» به عنوان دقیق صفحهٔ رسمی «بهترین گوشی موبایل بازار ایران (آبان ۱۴۰۵)» تغییر کرد. متن تحریریه همچنان خلاصه‌نویسی مستقل است و فقط به مقالهٔ رسمی ارجاع می‌دهد.
-
-**فایل‌ها/سامانه‌ها:** affilio_radar/editorial_bank.json.
-
-**آزمون و نتیجه:** URL رسمی و عنوان صفحه دوباره بررسی شد؛ صفحه تاریخ انتشار ۱۶ آبان ۱۴۰۵ را نشان می‌دهد. CI مربوط به سرشاخهٔ PR پس از این اصلاح دوباره اجرا می‌شود.
-
-**شواهد/شناسه:** https://www.digikala.com/mag/best-smartphone-buying-guide/ — عنوان صفحه و تاریخ انتشار ۱۶ آبان ۱۴۰۵.
-
-**ریسک/بازگشت:** اصلاح فقط metadata منبع است و متن/سیاست انتشار را تغییر نمی‌دهد؛ بازگشت با revert همین تغییر فایل ممکن است.
-
-**وضعیت:** عنوان منبع با صفحهٔ رسمی تطبیق داده شد.
+**وضعیت:** اصلاح و آزمون‌ها روی PR ثبت شده‌اند؛ تا تأیید نهایی Documentation Gate، ادغام و استقرار production انجام نشده است.
