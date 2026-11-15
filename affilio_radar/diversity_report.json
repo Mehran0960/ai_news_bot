@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-15T21:58:39.623071+00:00",
+  "generated_at": "2026-11-15T22:08:48.485032+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -399,30 +399,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1344,
+    "all_time_count": 1345,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 477,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-15T17:54:39.895866+00:00",
-        "brand": "",
-        "catalog_category_id": "10932",
-        "catalog_category_name": "دئودورانت",
-        "category": "other",
-        "compared_to_product_id": "dkp-14915569",
-        "family": "digikala_category:10932",
-        "product_id": "dkp-19399111",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "دئودورانت ضد تعریق زنانه آدرویت مدل مون لایت حجم 50 میلی لیتر",
-        "use_case": "catalog_taxonomy_other"
-      },
       {
         "at": "2026-11-15T17:54:39.895866+00:00",
         "brand": "",
@@ -732,6 +715,23 @@
           "similarity_repeat"
         ],
         "title": "شورت پسرانه آریان نخ باف مدل 4311",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-15T22:08:48.485032+00:00",
+        "brand": "",
+        "catalog_category_id": "9371",
+        "catalog_category_name": "کفش پاشنه دار زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-6223366",
+        "family": "digikala_category:9371",
+        "product_id": "dkp-14202725",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش پاشنه‌دار زنانه سیی 1966 مدل کلارا کد 1793.4",
         "use_case": "fashion_lifestyle"
       }
     ]
