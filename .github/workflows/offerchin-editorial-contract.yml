@@ -9,6 +9,7 @@ on:
       - "affilio_radar/content_delivery.py"
       - "affilio_radar/publisher.py"
       - "affilio_radar/affilio_radar.py"
+      - "affilio_radar/test_affilio.py"
       - "affilio_radar/editorial_bank.json"
       - "affilio_radar/test_content_delivery.py"
       - "affilio_radar/test_editorial_content.py"
@@ -50,7 +51,8 @@ jobs:
             affilio_radar/editorial_publisher.py \
             affilio_radar/editorial_video.py \
             affilio_radar/content_delivery.py \
-            affilio_radar/publisher.py
+            affilio_radar/publisher.py \
+            affilio_radar/affilio_radar.py
       - name: Validate the reviewed evergreen content bank
         working-directory: affilio_radar
         run: |
@@ -116,3 +118,13 @@ jobs:
             test_editorial_content.py \
             test_editorial_publisher.py \
             test_content_delivery.py
+      - name: Run OfferChin diversity and dispatch regressions
+        working-directory: affilio_radar
+        run: |
+          python -m unittest -v \
+            test_affilio.AffilioRadarTests.test_category_classifier_recognizes_everyday_merchandise \
+            test_affilio.AffilioRadarTests.test_catalog_category_guard_is_independent_and_expires_after_six_hours \
+            test_affilio.AffilioRadarTests.test_use_case_guard_blocks_different_families_for_two_hours_only \
+            test_affilio.AffilioRadarTests.test_explicit_brand_metadata_is_normalized_for_repeat_guards \
+            test_affilio.AffilioRadarTests.test_video_dispatch_state_uses_latest_safe_editorial_wakeup_for_short_gap \
+            test_affilio.AffilioRadarTests.test_video_dispatch_state_skips_editorial_when_dispatch_runway_cannot_fit -v
