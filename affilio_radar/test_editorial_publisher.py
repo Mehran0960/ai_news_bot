@@ -237,7 +237,7 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertIn("<b>منابع:</b>", message)
         self.assertIn("کمیسیون تجارت فدرال آمریکا (FTC)", message)
         self.assertIn("«منبع رسمی راهنمای خرید»:", message)
-        self.assertIn('href="https://consumer.ftc.gov/articles/online-shopping"', message)
+        self.assertIn('<a href="https://consumer.ftc.gov/articles/online-shopping">مشاهدهٔ منبع</a>', message)
         self.assertIn('href="https://t.me/OfferChin">عضویت در کانال آفِرچین</a>', message)
         plain = _format_message(editorial_item(), html_mode=False, platform="bale")
         self.assertIn("منابع:\n• کمیسیون تجارت فدرال آمریکا (FTC)", plain)
@@ -253,8 +253,18 @@ class EditorialPublisherTests(unittest.TestCase):
         }]
         message = _format_message(item, html_mode=True, platform="telegram")
         self.assertIn("کمیسیون تجارت فدرال آمریکا (FTC) — «راهنمای خرید اینترنتی»:", message)
-        self.assertIn('href="https://consumer.ftc.gov/articles/online-shopping"', message)
+        self.assertIn('<a href="https://consumer.ftc.gov/articles/online-shopping">مشاهدهٔ منبع</a>', message)
         self.assertIn('href="https://t.me/OfferChin">عضویت در کانال آفِرچین</a>', message)
+
+    def test_editorial_body_sentences_and_list_items_render_as_separate_paragraphs(self):
+        item = editorial_item()
+        item["body"] = "جملهٔ اول کامل است. جملهٔ دوم پرسشی است؟\nنکتهٔ سوم هم جداست."
+        html_message = _format_message(item, html_mode=True, platform="telegram")
+        self.assertIn(
+            "جملهٔ اول کامل است.\n\nجملهٔ دوم پرسشی است؟\n\nنکتهٔ سوم هم جداست.",
+            html_message,
+        )
+        self.assertIn('href="https://t.me/OfferChin">عضویت در کانال آفِرچین</a>', html_message)
 
     def test_video_fifo_uses_canonical_sequence_for_timestamp_ties(self):
         same_timestamp = NOW.timestamp()
