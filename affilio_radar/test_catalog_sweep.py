@@ -371,7 +371,7 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertIn("/v2/category/123/", url)
         self.assertEqual(params["q"], "گوشی موبایل")
         self.assertEqual(params["page"], 2)
-        self.assertEqual(params["sort"], 7)
+        self.assertEqual(params["sort"], 5)
 
     def test_fresh_digikala_bestseller_rank_outranks_a_larger_discount(self):
         now = datetime.now(timezone.utc)
@@ -773,7 +773,7 @@ class CatalogSweepTests(unittest.TestCase):
             self.assertEqual(candidates["candidate_count"], 1)
             self.assertEqual(state["stats"]["catalog_candidate_cards_found_total"], 3)
             self.assertEqual(state["stats"]["discounted_candidates_found_total"], 1)
-            self.assertEqual(dict(session.calls[1][1]).get("sort"), 7)
+            self.assertEqual(dict(session.calls[1][1]).get("sort"), 5)
             by_id = {row["product_id"]: row for row in candidates["candidates"]}
             self.assertEqual(set(by_id), {"dkp-777"})
             self.assertEqual(by_id["dkp-777"]["catalog_sort_mode"], "best_selling")
