@@ -8252,6 +8252,8 @@ def build_publication_diversity_report(
             "minimum_discount_attractiveness_score": MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE,
             "family_repeat_cooldown_hours": FAMILY_REPEAT_COOLDOWN_HOURS,
             "brand_repeat_cooldown_hours": BRAND_REPEAT_COOLDOWN_HOURS,
+            "catalog_category_repeat_cooldown_hours": PUBLICATION_CATEGORY_REPEAT_COOLDOWN_HOURS,
+            "use_case_repeat_cooldown_hours": PUBLICATION_USE_CASE_REPEAT_COOLDOWN_HOURS,
             "similar_product_repeat_cooldown_hours": PUBLICATION_SIMILARITY_COOLDOWN_HOURS,
             "similarity_jaccard_threshold": PUBLICATION_SIMILARITY_JACCARD_THRESHOLD,
         },
@@ -8466,8 +8468,10 @@ def _publication_similarity_tokens(product_or_title) -> set[str]:
 def _publication_family_guard_key(product_or_record) -> str:
     """Return a stable family key using the real taxonomy where available."""
     category, family, _ = _publication_diversity_group(product_or_record)
+    # A plain DigiKala leaf is a category, not a product family. It is guarded
+    # independently with the shorter category cooldown below.
     if family.startswith("digikala_category:"):
-        return family
+        return ""
     if _is_specific_product_family(category, family):
         return family
     return ""
@@ -8511,15 +8515,7 @@ def _filter_recent_publication_repeats(
     limit: int | None = None,
     label: str = "PUBLISH",
 ) -> list[dict]:
-    """Keep global demand order while enforcing 24-hour family, brand and similarity guards.
-
-    Candidates are expected in descending DigiKala demand-evidence order, with discount
-    percentage and cash savings used only after demand evidence is tied.
-    A candidate published within any of the repeat windows is skipped, then the
-    next highest-ranked candidate is considered. Already-selected candidates are
-    also added to the rolling guard history so one batch cannot violate the same
-    24-hour rules internally.
-    """
+    """Preserve demand rank while independently guarding family, category, use-case, brand and similarity."""
     current = now if now.tzinfo else now.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
     source = [item for item in (candidates or []) if isinstance(item, dict)]
@@ -8530,6 +8526,8 @@ def _filter_recent_publication_repeats(
         float(FAMILY_REPEAT_COOLDOWN_HOURS),
         float(BRAND_REPEAT_COOLDOWN_HOURS),
         float(PUBLICATION_SIMILARITY_COOLDOWN_HOURS),
+        float(PUBLICATION_CATEGORY_REPEAT_COOLDOWN_HOURS),
+        float(PUBLICATION_USE_CASE_REPEAT_COOLDOWN_HOURS),
     )
     history = _recent_publication_diversity(
         published,
@@ -8538,29 +8536,56 @@ def _filter_recent_publication_repeats(
         now=current,
         window_hours=history_window_hours,
     )
+    current_ts = current.timestamp()
+
+    def recent_within(row: dict, hours: float) -> bool:
+        try:
+            timestamp = float(row.get("ts") or row.get("order") or 0)
+        except (TypeError, ValueError, OverflowError):
+            return False
+        return timestamp > 0 and current_ts - timestamp <= hours * 3600
+
+    def usable_use_case(row: dict) -> str:
+        value = _publication_use_case_group(row)
+        return "" if value in {"", "general", "catalog_taxonomy_other"} else value
 
     recent_families: set[str] = set()
     recent_brands: set[str] = set()
+    recent_categories: set[str] = set()
+    recent_use_cases: set[str] = set()
     for previous in history:
         family_key = _publication_family_guard_key(previous)
         _, _, brand = _publication_diversity_group(previous)
+        category_key = _publication_category_guard_key(previous)
+        use_case = usable_use_case(previous)
         if family_key:
             recent_families.add(family_key)
         if brand:
             recent_brands.add(brand)
+        if category_key and recent_within(previous, PUBLICATION_CATEGORY_REPEAT_COOLDOWN_HOURS):
+            recent_categories.add(category_key)
+        if use_case and recent_within(previous, PUBLICATION_USE_CASE_REPEAT_COOLDOWN_HOURS):
+            recent_use_cases.add(use_case)
 
     selected: list[dict] = []
     selected_families: set[str] = set()
     selected_brands: set[str] = set()
+    selected_categories: set[str] = set()
+    selected_use_cases: set[str] = set()
     comparison_history = list(history)
     family_blocked = 0
     brand_blocked = 0
+    category_blocked = 0
+    use_case_blocked = 0
     similarity_blocked = 0
     global _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS
 
     for candidate in source:
         category, family, brand = _publication_diversity_group(candidate)
         family_key = _publication_family_guard_key(candidate)
+        category_key = _publication_category_guard_key(candidate)
+        use_case = usable_use_case(candidate)
+
         family_match = next((
             previous for previous in comparison_history
             if family_key and _publication_family_guard_key(previous) == family_key
@@ -8575,35 +8600,58 @@ def _filter_recent_publication_repeats(
         brand_repeat = bool(brand and (
             brand in recent_brands or brand in selected_brands or brand_match
         ))
+        category_match = next((
+            previous for previous in comparison_history
+            if category_key
+            and _publication_category_guard_key(previous) == category_key
+            and (previous in selected or recent_within(previous, PUBLICATION_CATEGORY_REPEAT_COOLDOWN_HOURS))
+        ), None)
+        category_repeat = bool(category_key and (
+            category_key in recent_categories or category_key in selected_categories or category_match
+        ))
+        use_case_match = next((
+            previous for previous in comparison_history
+            if use_case and usable_use_case(previous) == use_case
+            and (previous in selected or recent_within(previous, PUBLICATION_USE_CASE_REPEAT_COOLDOWN_HOURS))
+        ), None)
+        use_case_repeat = bool(use_case and (
+            use_case in recent_use_cases or use_case in selected_use_cases or use_case_match
+        ))
         similarity_match = next((
             previous for previous in comparison_history
             if _publication_products_are_similar(candidate, previous)
         ), None)
         similarity_repeat = bool(similarity_match)
 
-        if family_repeat or brand_repeat or similarity_repeat:
+        if family_repeat or brand_repeat or category_repeat or use_case_repeat or similarity_repeat:
             family_blocked += int(family_repeat)
             brand_blocked += int(brand_repeat)
+            category_blocked += int(category_repeat)
+            use_case_blocked += int(use_case_repeat)
             similarity_blocked += int(similarity_repeat)
             reasons = [
                 reason for reason, blocked in (
                     ("family_repeat", family_repeat),
                     ("brand_repeat", brand_repeat),
+                    ("category_repeat", category_repeat),
+                    ("use_case_repeat", use_case_repeat),
                     ("similarity_repeat", similarity_repeat),
                 ) if blocked
             ]
             catalog_context = _publication_catalog_category_context(candidate)
-            use_case = _publication_use_case_group(candidate)
-            compared = family_match or brand_match or similarity_match or {}
+            compared = (
+                family_match or brand_match or category_match or use_case_match or similarity_match or {}
+            )
             event = {
                 "product_id": str(candidate.get("product_id") or product_id(candidate.get("product_url") or "")),
                 "title": str(candidate.get("title") or "")[:180],
                 "reasons": reasons,
                 "reason": ",".join(reasons),
                 "category": category,
+                "category_guard_key": category_key,
                 "family": family,
                 "brand": brand,
-                "use_case": use_case,
+                "use_case": use_case or _publication_use_case_group(candidate),
                 "catalog_category_id": catalog_context.get("id", ""),
                 "catalog_category_name": catalog_context.get("name", ""),
                 "compared_to_product_id": str(compared.get("product_id") or ""),
@@ -8624,6 +8672,10 @@ def _filter_recent_publication_repeats(
             selected_families.add(family_key)
         if brand:
             selected_brands.add(brand)
+        if category_key:
+            selected_categories.add(category_key)
+        if use_case:
+            selected_use_cases.add(use_case)
         comparison_history.append(candidate)
 
     skipped = len(source) - len(selected)
@@ -8631,9 +8683,12 @@ def _filter_recent_publication_repeats(
         print(
             f"{label}_REPEAT_GUARD candidates={len(source)} selected={len(selected)} "
             f"deferred={skipped} family_blocked={family_blocked} "
-            f"brand_blocked={brand_blocked} similarity_blocked={similarity_blocked} "
+            f"brand_blocked={brand_blocked} category_blocked={category_blocked} "
+            f"use_case_blocked={use_case_blocked} similarity_blocked={similarity_blocked} "
             f"family_cooldown_hours={FAMILY_REPEAT_COOLDOWN_HOURS} "
             f"brand_cooldown_hours={BRAND_REPEAT_COOLDOWN_HOURS} "
+            f"category_cooldown_hours={PUBLICATION_CATEGORY_REPEAT_COOLDOWN_HOURS} "
+            f"use_case_cooldown_hours={PUBLICATION_USE_CASE_REPEAT_COOLDOWN_HOURS} "
             f"similarity_cooldown_hours={PUBLICATION_SIMILARITY_COOLDOWN_HOURS} "
             f"rank_order_preserved=true"
         )
@@ -8641,6 +8696,7 @@ def _filter_recent_publication_repeats(
     if limit is not None:
         return selected[:max(1, int(limit))]
     return selected
+
 
 def select_urgent_publication_candidate(
     eligible: list[dict],
@@ -8741,6 +8797,8 @@ PUBLICATION_LEDGER_LIMIT = 2000
 # Repeat guards suppress near-duplicates but never change candidate rank.
 FAMILY_REPEAT_COOLDOWN_HOURS = 24
 BRAND_REPEAT_COOLDOWN_HOURS = 24
+PUBLICATION_CATEGORY_REPEAT_COOLDOWN_HOURS = 6
+PUBLICATION_USE_CASE_REPEAT_COOLDOWN_HOURS = 2
 
 
 def _publication_record_ts(record: dict | None) -> float:
@@ -8862,10 +8920,17 @@ def ensure_recent_publications(state: dict) -> bool:
         ts = _publication_record_ts(record)
         if not re.fullmatch(r"(?:dkp|snp)-\d{1,12}", pid) or not title or ts <= 0:
             continue
-        category, family, brand = _publication_diversity_group({
+        history_context = {
             "title": title,
             "brand": record.get("brand") or record.get("brand_name") or "",
-        })
+            "catalog_category_id": record.get("catalog_category_id") or "",
+            "catalog_category_name": record.get("catalog_category_name") or "",
+            "catalog_category_path": record.get("catalog_category_path") or "",
+            "catalog_best_selling_category_id": record.get("catalog_best_selling_category_id") or "",
+            "catalog_best_selling_category_name": record.get("catalog_best_selling_category_name") or "",
+        }
+        category, family, brand = _publication_diversity_group(history_context)
+        use_case = _publication_use_case_group(history_context)
         retailer = _publication_retailer_group({"product_id": pid, "merchant": record.get("merchant") or ""})
         entry = {
             "ts": ts,
@@ -8874,6 +8939,10 @@ def ensure_recent_publications(state: dict) -> bool:
             "category": category,
             "family": family,
             "brand": brand,
+            "use_case": use_case,
+            "catalog_category_id": history_context["catalog_category_id"],
+            "catalog_category_name": history_context["catalog_category_name"],
+            "catalog_category_path": history_context["catalog_category_path"],
             "retailer": retailer,
         }
         for field in ("telegram_message_id", "bale_message_id"):
