@@ -1,7 +1,8 @@
 """Discover relevant DigiKala Mag article metadata for OfferChin's editorial review queue.
 
-This module reads only the public RSS feed. It deliberately does not fetch article
-pages, copy descriptions, store article text/images, generate summaries, or publish.
+This module reads only the public RSS feed. It does not fetch article pages, retain
+article text, generate summaries, or publish. A validated DigiKala-hosted image URL
+may be carried as a reference for a separately reviewed editorial item.
 """
 from __future__ import annotations
 
@@ -147,6 +148,34 @@ def canonical_article_url(value: str) -> str | None:
     return urlunsplit(("https", "www.digikala.com", path + "/", "", ""))
 
 
+def _entry_image_url(node: ET.Element) -> str | None:
+    """Return only an HTTPS image URL served by DigiKala; do not download or persist image bytes."""
+    candidates: list[str] = []
+    for child in node.iter():
+        tag = _tag_name(child.tag)
+        if tag in {"thumbnail", "content", "enclosure"}:
+            candidates.extend([str(child.attrib.get("url") or ""), str(child.attrib.get("href") or "")])
+        if tag == "encoded":
+            html_text = "".join(child.itertext())
+            match = re.search(r"<img\\b[^>]*?\\bsrc=[\\"']([^\\"']+)", html_text, re.IGNORECASE)
+            if match:
+                candidates.append(match.group(1))
+    for candidate in candidates:
+        try:
+            parsed = urlsplit(candidate.strip())
+        except ValueError:
+            continue
+        host = (parsed.hostname or "").lower()
+        if (
+            parsed.scheme.lower() == "https"
+            and host in {"digikala.com", "www.digikala.com", "dkstatics-public.digikala.com"}
+            and not parsed.username
+            and not parsed.password
+            and parsed.path
+        ):
+            return urlunsplit(("https", host, parsed.path, parsed.query, ""))
+    return None
+
 def _classify(title: str, categories: list[str]) -> tuple[str | None, int]:
     combined = " ".join([title, *categories])
     if EXCLUDED.search(combined) or SPECULATIVE_TITLE.search(title):
@@ -268,7 +297,7 @@ def parse_feed(
             continue
         encountered_ids.add(candidate_id)
 
-        candidates.append({
+        candidate = {
             "candidate_id": candidate_id,
             "source": SOURCE_LABEL_FA,
             "source_url": url,
@@ -283,7 +312,11 @@ def parse_feed(
                 "فقط یک فایدهٔ روشن برای مخاطب نگه دار و پیوند منبع را درج کن."
             ),
             "public_copy_generated": False,
-        })
+        }
+        image_url = _entry_image_url(node)
+        if image_url:
+            candidate["image_url"] = image_url
+        candidates.append(candidate)
 
     # Prioritize practical buying value first; recency breaks ties within the
     # seven-day window instead of allowing generic news to outrank guides.
@@ -365,7 +398,8 @@ def run_discovery(
         "feed_url": FEED_URL,
         "mode": "metadata_discovery_only",
         "article_pages_fetched": 0,
-        "article_text_or_images_stored": False,
+        "article_text_stored": False,
+        "article_image_bytes_downloaded_or_stored": False,
         "public_publication_performed": False,
         "public_copy_generated": False,
         "summary_policy_fa": (
