@@ -2267,3 +2267,20 @@
 **ریسک/بازگشت:** اگر مسیرهای جدید نیز 404 یا ساختار payload ناشناخته برگردانند، preflight اسکن را متوقف نگه می‌دارد. از بازگرداندن routeهای قدیمی یا تضعیف گیت‌های تقاضا/تخفیف خودداری شود.
 
 **وضعیت:** مسیرها و parser اصلاح شده‌اند؛ CI و راستی‌آزمایی endpoint زنده در انتظار.
+
+
+## ۲۰۲۶-۱۱-۱۵ — تکمیل سازگاری با Discovery و وضعیت موجودی variant
+
+**هدف:** اطمینان از اینکه اسکنر پس از مهاجرت API علاوه بر دریافت محصول، وضعیت موجودی و قیمت همان variant قابل‌خرید را درست می‌خواند و کالای نامعلوم را موجود فرض نمی‌کند.
+
+**تغییر/اقدام:** مسیرهای عملیاتی به `/discovery/api/v1/search` و `/discovery/api/v1/autocomplete` تفکیک شدند؛ headerهای `Origin` و `X-Web-Optimize-Response: 1` اضافه شدند؛ parser category metadata تو‌در‌تو و پاسخ `auto_complete` را می‌خواند. parser محصول، قیمت را با اولویت `default_variant` می‌خواند و وضعیت را از `default_variant`/ردیف‌های `variants` نیز استخراج می‌کند. ورود به صف فقط با وضعیت صریح بازارپذیر/موجود انجام می‌شود؛ موجودی نامعلوم پذیرفته نمی‌شود.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/catalog_sweep.py`، `affilio_radar/parallel_catalog_sweep.py`، `affilio_radar/test_catalog_sweep.py`، `affilio_radar/test_parallel_catalog_sweep.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
+
+**آزمون و نتیجه:** در GitHub Actions اجرای Four-Factor Ranking شمارهٔ ۲۴۰ موفق شد؛ compile و ۳۶۶ تست کاتالوگ/رتبه‌بندی با نتیجهٔ `OK (skipped=2)` گذشتند. اجرای اسکن زندهٔ کاتالوگ شمارهٔ ۸۳۱۳ هنوز در صف اجراست؛ بنابراین HTTP 200 و استخراج واقعی محصول از endpoint جدید هنوز تأیید نشده است.
+
+**شواهد/شناسه:** مسیرها/headers: `6f5a11df1602cb9160a7af2ba36059970de2cccb`; route-policy/requeue: `6313deddee3e407fce6f8c0afec46f9d6c0afc20`; parser nested/category: `87e8bd4de3d709de59bf8b273594cf1e3134fc90`; variant status: `ffd3e243ebecacd6d76a312d6d9c68700b2a51b8`; regression: `27f4c3c5437f53d205ba680cb74b0d101a6adc4b`, `b5a89271a46be8682ff69f4d96f55724e4a9e8f1`, `7e95ae66a039b88075da5d19017c49e54d0464cf` و `3052b85a1458910677efbdaf26bba146d8354f35`.
+
+**ریسک/بازگشت:** اگر API جدید خطای HTTP بدهد یا payload موجودی variant نداشته باشد، preflight/اسکن باید fail-closed بماند و هیچ محصولی صرفاً بر پایهٔ قیمت یا عنوان وارد صف انتشار نشود.
+
+**وضعیت:** کد و regressionها موفق؛ اجرای زندهٔ کاتالوگ و Documentation Gate در انتظار تکمیل.
