@@ -14,7 +14,7 @@ except ImportError:  # unittest discovery from the workflow's affilio_radar work
 
 
 class ParallelCatalogSweepTests(unittest.TestCase):
-    def test_fetch_page_uses_v2_category_endpoint_and_marketable_widget_parser(self):
+    def test_fetch_page_uses_discovery_api_category_filter_and_marketable_widget_parser(self):
         payload = {
             "data": {
                 "widgets": [{
@@ -56,9 +56,9 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         self.assertEqual(result["rows"][0]["product_id"], "dkp-12345")
         self.assertEqual(result["total_pages"], 9)
         args, kwargs = session.get.call_args
-        self.assertIn("/v2/category/77/", args[0])
+        self.assertIn("/discovery/api/v1/", args[0])
         self.assertEqual(kwargs["params"], {
-            "q": "گوشی سامسونگ", "page": 3, "sort": sweep.BEST_SELLING_SORT_VALUE
+            "categories[0]": "77", "page": 3, "sort": 7
         })
 
     def test_legacy_worker_checkpoint_is_normalized_to_the_first_trial_level_once(self):
@@ -225,12 +225,39 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         self.assertNotIn("last_cycle_completed_at", state)
         self.assertEqual(state["parallel_cycle_pages_success"], 0)
 
+    def test_discovery_route_migration_requeues_categories_previously_marked_unqueryable(self):
+        state = {
+            "categories": [
+                {"id": "11", "name": "موبایل", "parent_id": "", "depth": 0},
+                {"id": "22", "name": "خانه", "parent_id": "", "depth": 0},
+            ],
+            "parallel_queue_initialized": True,
+            "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
+            "parallel_api_route_policy_version": "retired_v2_category_route",
+            "parallel_known_category_ids": ["11", "22"],
+            "parallel_pending_pages": [],
+            "parallel_cycle_completed_category_ids": [],
+            "parallel_cycle_unqueryable_category_ids": ["11", "22"],
+            "parallel_cycle_pages_success": 0,
+        }
+        queued = sweep._ensure_parallel_state(state)
+        self.assertEqual(
+            [(row["category_id"], row["page"]) for row in queued],
+            [("11", 1), ("22", 1)],
+        )
+        self.assertEqual(state["parallel_cycle_unqueryable_category_ids"], [])
+        self.assertEqual(
+            state["parallel_api_route_policy_version"],
+            sweep.API_ROUTE_POLICY_VERSION,
+        )
+
     def test_parallel_queue_preserves_deep_pages_without_an_arbitrary_cap(self):
         state = {
             "categories": [{"id": "10", "name": "mobile"}],
             "parallel_queue_initialized": True,
             "parallel_known_category_ids": ["10"],
             "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
+            "parallel_api_route_policy_version": sweep.API_ROUTE_POLICY_VERSION,
             "parallel_deep_pages_pruned": 0,
             "parallel_pending_pages": [
                 {"category_id": "10", "page": 1, "attempts": 0},
@@ -243,7 +270,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
         self.assertEqual([(row["category_id"], row["page"]) for row in queued], [("10", 1), ("10", 3), ("10", 4), ("10", 500)])
         self.assertEqual(state["parallel_deep_pages_pruned"], 0)
 
-    def test_fetch_page_falls_back_to_discovery_and_legacy_category_routes(self):
+    def test_fetch_page_uses_current_discovery_route_without_retired_fallbacks(self):
         captured = []
 
         class Response:
@@ -258,36 +285,24 @@ class ParallelCatalogSweepTests(unittest.TestCase):
                     raise RuntimeError(f"http_{self.status_code}")
 
         product_payload = {
-            "data": {
-                "widgets": [{
-                    "type": "vertical_product_listing",
-                    "data": {"widgets": [{
-                        "type": "product",
-                        "data": {
-                            "id": 12345,
-                            "title_fa": "گوشی هوشمند نمونه",
-                            "url": {"uri": "/product/dkp-12345/sample/"},
-                            "status": "marketable",
-                            "default_variant": {"price": {
-                                "selling_price": 10_000_000,
-                                "rrp_price": 12_000_000,
-                                "discount_percent": 17,
-                            }},
-                        },
-                    }]},
-                }],
-                "pager": {"total_pages": 4},
-            }
+            "data": {"products": [{
+                "id": 12345,
+                "title_fa": "گوشی هوشمند نمونه",
+                "url": "/product/dkp-12345/sample/",
+                "status": "marketable",
+                "default_variant": {"price": {
+                    "selling_price": 10_000_000,
+                    "rrp_price": 12_000_000,
+                    "discount_percent": 17,
+                }},
+            }]},
+            "pager": {"total_pages": 4},
         }
 
         class Session:
             def get(self, url, params, timeout):
                 captured.append({"url": url, "params": params, "timeout": timeout})
-                if "/v2/category/123/" in url:
-                    return Response(404)
-                if "/discovery/api/v2/categories/123/products/" in url:
-                    return Response(200, product_payload)
-                return Response(404)
+                return Response(200, product_payload)
 
         with patch.object(sweep, "_session", return_value=Session()):
             result = sweep._fetch_page({
@@ -295,13 +310,14 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             })
 
         self.assertEqual(result["kind"], "ok")
-        self.assertEqual(result["source"], "discovery_api_v2_category_products")
+        self.assertEqual(result["source"], "discovery_api_v1_category_search")
         self.assertEqual(result["rows"][0]["product_id"], "dkp-12345")
         self.assertEqual(result["total_pages"], 4)
-        self.assertIn("/v2/category/123/", captured[0]["url"])
-        self.assertEqual(captured[0]["params"]["sort"], 5)
-        self.assertIn("/discovery/api/v2/categories/123/products/", captured[1]["url"])
-        self.assertEqual(captured[1]["params"]["page"], 2)
+        self.assertEqual(len(captured), 1)
+        self.assertIn("/discovery/api/v1/", captured[0]["url"])
+        self.assertEqual(captured[0]["params"], {
+            "categories[0]": "123", "page": 2, "sort": 7
+        })
 
     def test_fetch_page_closes_category_only_after_all_known_routes_return_not_found(self):
         captured = []
@@ -317,11 +333,10 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             result = sweep._fetch_page({"category_id": "123", "page": 2})
 
         self.assertEqual(result["kind"], "terminal")
-        self.assertEqual(len(captured), 3)
-        self.assertEqual(captured[0]["params"]["sort"], 5)
-        self.assertIn("/discovery/api/v2/categories/123/products/", captured[1]["url"])
-        self.assertEqual(captured[2]["params"]["categories[]"], "123")
-        self.assertEqual(captured[2]["params"]["sort"], 5)
+        self.assertEqual(len(captured), 1)
+        self.assertIn("/discovery/api/v1/", captured[0]["url"])
+        self.assertEqual(captured[0]["params"]["categories[0]"], "123")
+        self.assertEqual(captured[0]["params"]["sort"], 7)
 
     def test_fetch_page_keeps_forbidden_routes_retryable(self):
         calls = []
@@ -337,7 +352,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
             result = sweep._fetch_page({"category_id": "123", "page": 2})
 
         self.assertEqual(result["kind"], "retry")
-        self.assertEqual(len(calls), 3)
+        self.assertEqual(len(calls), 1)
 
     def test_persisted_page_queue_sweeps_leaf_page_one_before_parent_and_deeper_pages(self):
         state = {
