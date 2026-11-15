@@ -1395,3 +1395,11 @@ PR validation در workflow اسکن کاتالوگ از گروه concurrency م
 - نسخهٔ route policy به `digikala_discovery_api_v1_trusted_category_taxonomy_v4` ارتقا یافته است تا همهٔ دسته‌های شناخته‌شده از صفحهٔ ۱ دوباره بررسی شوند. صف و snapshot نامزدهای چرخهٔ قبلی با شناسهٔ چرخهٔ جدید هم‌خوان نیستند و برای چرخهٔ جدید مصرف نمی‌شوند؛ تاریخچهٔ انتشار، رسیدها و گاردهای تکرار در `state.json` ناشر reset نمی‌شوند.
 - تست منفی برای seller/brand/delivery facets، محصولات nested در پاسخ Search و mismatchهای mouse/USB/monitor/phone و jewelry/camera اضافه شده است.
 - تا زمانی که چرخهٔ جدید بدون شکاف تمام نشده و Snapshot کامل hash-valid تولید نشده، نامزدهای این اسکن مجوز انتشار نیستند.
+
+
+### اعتبارسنجی نسخهٔ cache taxonomy
+
+- cache دسته‌بندی که فاقد نشانگر `category_taxonomy_policy_version=discovery_explicit_category_roots_v2` باشد، legacy و غیرقابل‌اعتماد تلقی می‌شود.
+- نخستین اجرا پس از تغییر parser باید taxonomy را مستقیماً از Discovery API بازسازی کند؛ cache قدیمی حتی اگر تازه به‌نظر برسد، نه به صف و نه به fallback وارد نمی‌شود.
+- در خطای API، اسکن fail-closed می‌شود و retry-after ثبت می‌شود. تا موفقیت refresh زنده، categoryهای legacy و rankهای وابسته به آن‌ها قابل‌استفاده نیستند.
+- پس از موفقیت، cache نسخه‌دار می‌شود و fallbackهای موقت فقط برای cache تولیدشده با همین policy مجازند.
