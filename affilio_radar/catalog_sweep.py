@@ -322,12 +322,21 @@ def validate_discovery_api(session: requests.Session | None = None) -> dict:
     if not rows:
         raise CatalogSweepError("discovery_api_search_returned_zero_marketable_products")
 
-    categories = extract_autocomplete_categories(payload, "گوشی")
+    # Prefer the current search response's live category facets/tree. The old
+    # taxonomy cache can contain IDs/names that have since moved or been retired.
+    # Query-scoped category_ids are a secondary source, not a replacement for
+    # the richer category filter metadata when it is present.
+    categories = extract_categories(payload)
+    category_source = "discovery_search_filters"
+    if not categories:
+        categories = extract_autocomplete_categories(payload, "گوشی")
+        category_source = "discovery_search_query_attributes"
     if not categories:
         autocomplete_payload = _request_json(
             http, DISCOVERY_AUTOCOMPLETE_URL, params={"q": "گوشی"}
         )
         categories = extract_autocomplete_categories(autocomplete_payload, "گوشی")
+        category_source = "discovery_autocomplete"
     if not categories:
         raise CatalogSweepError("discovery_api_returned_no_category_ids")
 
@@ -340,11 +349,20 @@ def validate_discovery_api(session: requests.Session | None = None) -> dict:
             + str(categories[0].get("id") or "")
         )
 
+    sample_categories = ",".join(
+        f"{row.get('id')}:{str(row.get('name') or '')[:40]}" for row in categories[:8]
+    )
+    probe_product_categories = ",".join(
+        str(row.get("category") or "")[:60] for row in category_rows[:5]
+    )
     print(
         "DIGIKALA_DISCOVERY_API_PREFLIGHT_OK "
         f"status=200 search_products={len(rows)} "
-        f"category_ids={len(categories)} category_probe_products={len(category_rows)} "
+        f"category_ids={len(categories)} category_source={category_source} "
+        f"category_probe_products={len(category_rows)} "
         f"category_probe_id={categories[0]['id']} "
+        f"category_samples={sample_categories!r} "
+        f"probe_product_categories={probe_product_categories!r} "
         f"search_path={DISCOVERY_SEARCH_URL} autocomplete_path={DISCOVERY_AUTOCOMPLETE_URL}"
     )
     return payload
@@ -530,6 +548,16 @@ def discover_categories(session: requests.Session | None = None) -> list[dict]:
                 DISCOVERY_SEARCH_URL,
                 params={"q": seed, "page": 1, "sort": BEST_SELLING_SORT_VALUE},
             )
+            # The category filter/tree in data.filters is fresher and richer
+            # than the small query-matched ID list. Merge it first so current
+            # category names/parents can correct stale cached taxonomy entries.
+            for row in extract_categories(payload):
+                row = {
+                    **row,
+                    "query": seed,
+                    "source": "digikala_discovery_api_v1_search_filters",
+                }
+                discovered[row["id"]] = row
             for row in extract_autocomplete_categories(payload, seed):
                 previous = discovered.get(row["id"])
                 if previous is None or (
