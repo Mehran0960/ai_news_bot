@@ -2610,3 +2610,20 @@
 **ریسک/بازگشت:** در صورت ایجاد بیش از ۱۰۰ commit هم‌زمان بین checkout و persist، rebase ممکن است به تاریخچهٔ عمیق‌تر نیاز داشته باشد؛ retry باید شکست را گزارش کند و state را force-push نمی‌کند. rollback با بازگرداندن `fetch-depth: 0` ممکن است؛ این تغییر cadence یا محتوای انتشار را تغییر نمی‌دهد.
 
 **وضعیت:** تغییر workflow و مستندات انجام‌شده؛ در انتظار CI و ادغام.
+
+
+## ۲۰۲۶-۱۱-۱۵ — حذف فاصلهٔ قدیمی ۵۵ دقیقه‌ای از گزارش سایه‌ای OfferChin
+
+**هدف:** پاک‌کردن اثر باقی‌ماندهٔ سیاست قدیمی فاصلهٔ ثابت از پیکربندی تشخیصی و جلوگیری از اشتباه‌گرفتن آن با cadence زندهٔ محصولات.
+
+**تغییر/اقدام:** متغیر بلااستفادهٔ `OFFERCHIN_EDITORIAL_GAP_MINUTES=55` از workflow صرفاً تشخیصی `offerchin-editorial-shadow.yml` حذف شد. آزمون قراردادی اکنون همزمان فایل‌های ناشر کانال، ناشر ویدئو و shadow را برای نبودن این متغیر بررسی می‌کند و فرمول `remaining_seconds / pending_product_count` و سیاست `equal_spacing_pending_selected_products_across_time_until_next_clean_catalog_scan` را الزام می‌کند. کد انتشار زنده برای حذف یک مقدار بلااستفاده تغییر نکرد.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/offerchin-editorial-shadow.yml`، `.github/workflows/offerchin-editorial-contract.yml`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
+
+**آزمون و نتیجه:** Editorial Contract run `43748642729` با نتیجهٔ success تمام شد؛ شامل کامپایل ماژول‌ها، اعتبارسنجی بانک تحریریه، کنترل نبودن فاصلهٔ ثابت، گزارش سایه‌ای read-only و آزمون‌های `test_editorial_content.py`، `test_editorial_publisher.py` و `test_content_delivery.py`. Documentation Gate در زمان ثبت اولیه در حال اجرا بود و باید نتیجهٔ نهایی آن پیش از ادغام ثبت شود.
+
+**شواهد/شناسه:** PR #212، شاخهٔ `fix/offerchin-remove-legacy-editorial-gap`، head commit `9e3fbba1428fe54e770c98e58d00a0f1dd7c159d`؛ اجرای ناشر #43747781304 در همان روز سه محصول را با وضعیت `CONTENT_CHANNEL_DELIVERY_COMPLETE` به Telegram و Bale تحویل داد.
+
+**ریسک/بازگشت:** حذف این متغیر رفتار انتشار زنده را تغییر نمی‌دهد، چون فقط در shadow workflow بود و در کد زمان‌بندی مصرف نمی‌شد. بازگشت صرفاً با revert تغییر workflow و تست ممکن است؛ صف، state، تاریخچه و رسیدهای انتشار نباید reset شوند.
+
+**وضعیت:** اصلاح workflow و regression guard انجام شد؛ آزمون قراردادی موفق است؛ ادغام نهایی منوط به موفقیت Documentation Gate است.
