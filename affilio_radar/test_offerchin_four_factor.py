@@ -13,6 +13,7 @@ from offerchin_four_factor import (
     discount_publish_gate,
     four_factor_sort_key,
     generality_score,
+    infer_use_case_group,
     harmonic_mean,
 )
 
@@ -70,6 +71,15 @@ class OfferChinFourFactorTests(unittest.TestCase):
         self.assertLess(row["offerchin_four_factor"]["discount_attractiveness"], 40)
         eligible, _, _ = discount_publish_gate(row, independently_verified=False)
         self.assertFalse(eligible)
+
+    def test_product_taxonomy_distinguishes_software_from_mobile_hardware(self):
+        self.assertEqual(
+            infer_use_case_group("", "[MA, نرم افزار]"), "software_tools"
+        )
+        self.assertEqual(
+            infer_use_case_group("", "گوشی 512 گیگابایت"), "mobile_productivity"
+        )
+        self.assertEqual(generality_score("software_tools"), 40)
 
     def test_harmonic_mean_penalizes_a_single_weak_dimension(self):
         balanced = harmonic_mean([100, 100, 100, 10])
