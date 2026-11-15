@@ -699,6 +699,18 @@ def run_parallel_sweep(
         for row_index, row in enumerate(rows):
             if not isinstance(row, dict):
                 continue
+            if not base.catalog_category_is_consistent(row, category_name):
+                rejected = max(
+                    0, base._normal_int(state.get("parallel_category_mismatch_rows_rejected"))
+                ) + 1
+                state["parallel_category_mismatch_rows_rejected"] = rejected
+                print(
+                    "PARALLEL_CATALOG_CATEGORY_MISMATCH_REJECTED "
+                    f"category_id={category_id} category_name={category_name!r} "
+                    f"product_id={row.get('product_id') or ''} "
+                    f"product_category={str(row.get('category') or '')!r}"
+                )
+                continue
             pid = str(row.get("product_id") or "")
             if not pid:
                 continue
