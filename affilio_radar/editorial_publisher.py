@@ -305,6 +305,22 @@ def _source_organization(source: dict) -> str:
     return str(source.get("publisher") or source.get("organization") or title or "منبع معتبر").strip()
 
 
+def _source_display_title(source: dict) -> str:
+    """Prefer a concise Persian label while retaining the exact source URL."""
+    source_id = str(source.get("source_id") or "").strip().lower()
+    localized = {
+        "ftc-infographic": "اینفوگرافیک خرید اینترنتی",
+        "ftc-online-shopping": "راهنمای خرید اینترنتی",
+        "ftc-marketplace": "راهنمای خرید از بازارگاه آنلاین",
+    }
+    return str(
+        source.get("title_fa")
+        or localized.get(source_id)
+        or source.get("title")
+        or "راهنمای رسمی"
+    ).strip()
+
+
 def _topic_emoji(item: dict) -> str:
     topic = str(item.get("topic") or "").strip().lower()
     mapping = {
@@ -355,7 +371,7 @@ def _format_message(item: dict, *, html_mode: bool = True, platform: str = "tele
     ]
     for source in source_rows:
         organization = _source_organization(source)
-        source_title = str(source.get("title") or "راهنمای رسمی").strip()
+        source_title = _source_display_title(source)
         url = str(source.get("url") or "").strip()
         lines.extend([
             f"• {organization} — «{source_title}»:",
