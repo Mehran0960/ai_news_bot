@@ -201,6 +201,74 @@ jobs:
           AFFILIO_MAX_PUBLISH_CANDIDATE_ATTEMPTS: "250"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py --select-only
+      - name: Reconcile product slots with the latest completed catalog scan
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: |
+          # Discovery can outlast the previous scan ETA; refresh only the catalog status, never remote delivery state.
+          git fetch origin main
+          git show origin/main:affilio_radar/catalog_sweep_status.json > affilio_radar/catalog_sweep_status.json
+          python - <<'PY'
+          import json
+          import sys
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          sys.path.insert(0, "affilio_radar")
+          from content_delivery import (
+              TERMINAL_QUEUE_STATUSES,
+              calculate_product_publication_cadence,
+              reschedule_product_queue_evenly,
+          )
+
+          state_path = Path("affilio_radar/state.json")
+          catalog_path = Path("affilio_radar/catalog_sweep_status.json")
+          if not state_path.is_file() or not catalog_path.is_file():
+              raise SystemExit("OFFERCHIN_CADENCE_REPLAN_INPUT_MISSING")
+
+          state = json.loads(state_path.read_text(encoding="utf-8"))
+          catalog_status = json.loads(catalog_path.read_text(encoding="utf-8"))
+          if not isinstance(state, dict) or not isinstance(catalog_status, dict):
+              raise SystemExit("OFFERCHIN_CADENCE_REPLAN_INPUT_INVALID")
+
+          queue = state.get("content_delivery_queue")
+          queue = queue if isinstance(queue, dict) else {}
+          pending_products = 0
+          for product_id, entry in queue.items():
+              if not isinstance(entry, dict) or entry.get("status") in TERMINAL_QUEUE_STATUSES:
+                  continue
+              if str(entry.get("content_type") or "product") != "product":
+                  continue
+              platforms = entry.get("platforms")
+              platforms = platforms if isinstance(platforms, dict) else {}
+              core_sent = any(
+                  isinstance(platforms.get(name), dict)
+                  and platforms[name].get("status") == "sent"
+                  for name in ("telegram", "bale", "rubika", "eitaa")
+              )
+              if not core_sent:
+                  pending_products += 1
+
+          now = datetime.now(timezone.utc)
+          cadence = calculate_product_publication_cadence(
+              state, catalog_status, pending_products, now=now, max_daily_posts=72
+          )
+          schedule = reschedule_product_queue_evenly(state, cadence, now=now)
+          cadence["scheduled_product_count"] = schedule["scheduled"]
+          cadence["deferred_product_count"] = schedule["deferred"]
+          state["product_publication_cadence"] = cadence
+          state_path.write_text(
+              json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(
+              "OFFERCHIN_CADENCE_RECONCILED "
+              f"pending={pending_products} scheduled={schedule['scheduled']} "
+              f"deferred={schedule['deferred']} interval_seconds={cadence['interval_seconds']:.3f} "
+              f"next_clean_scan_at={cadence['estimated_next_clean_scan_at']} "
+              f"eta_source={cadence['scan_eta_source']}"
+          )
+          PY
       - name: Publish due selections to Telegram and Bale only
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
