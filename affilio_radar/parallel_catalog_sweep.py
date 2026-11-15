@@ -672,7 +672,9 @@ def run_parallel_sweep(
             )
             print(
                 "PARALLEL_CATALOG_PAGE_UNQUERYABLE "
-                f"category={category_id} page={page} status={result.get('status_code', 'unknown')}"
+                f"category={category_id} page={page} status={result.get('status_code', 'unknown')} "
+                f"routes={','.join(result.get('route_errors') or [])[:420]} "
+                f"error={str(result.get('error') or '')[:160]}"
             )
             continue
 
