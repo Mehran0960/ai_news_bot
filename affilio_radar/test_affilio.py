@@ -977,7 +977,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertIn("/v1/autocomplete/", session.calls[0][0])
         self.assertIn("/v2/category/77/", session.calls[1][0])
         self.assertEqual(session.calls[1][1]["q"], "گوشی سامسونگ")
-        self.assertEqual(session.calls[1][1]["sort"], 7)
+        self.assertEqual(session.calls[1][1]["sort"], radar_module.BEST_SELLING_SORT_VALUE)
 
     def test_incredible_offers_parser_keeps_discounted_product_urls_only(self):
         payload = {

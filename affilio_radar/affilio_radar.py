@@ -47,6 +47,7 @@ try:
         acknowledge_catalog_candidates_handoff,
         defer_catalog_candidates_handoff,
         catalog_handoff_fingerprint,
+        BEST_SELLING_SORT_VALUE,
     )
 except ImportError:
     from catalog_sweep import (
@@ -54,6 +55,7 @@ except ImportError:
         acknowledge_catalog_candidates_handoff,
         defer_catalog_candidates_handoff,
         catalog_handoff_fingerprint,
+        BEST_SELLING_SORT_VALUE,
     )
 
 try:
@@ -935,13 +937,15 @@ def _autocomplete_category_queries(payload: dict, query: str, limit: int = 2) ->
 
 
 def search_digikala_v2_product_urls(query: str, session=None, category_limit: int = 2) -> tuple[list[str], list[dict]]:
-    """Resolve a query with public autocomplete, then Search API v2 category listings."""
+    """Resolve a query with autocomplete and resilient public category-search routes."""
     http = session or SESSION
     response = http.get(
         "https://api.digikala.com/v1/autocomplete/",
         params={"q": query},
         timeout=HTTP_TIMEOUT,
     )
+    if response.status_code == 429:
+        raise RuntimeError("DigiKala autocomplete rate limited")
     response.raise_for_status()
     if len(response.content) > 4_000_000:
         raise RuntimeError("autocomplete API response exceeded 4 MB")
@@ -950,24 +954,78 @@ def search_digikala_v2_product_urls(query: str, session=None, category_limit: in
     found = []
     diagnostics = []
     for category in categories:
-        category_id = category["id"]
-        search_response = http.get(
-            f"https://api.digikala.com/v2/category/{category_id}/",
-            params={"q": category["query"], "page": 1, "sort": 7},
-            timeout=HTTP_TIMEOUT,
-        )
-        search_response.raise_for_status()
-        if len(search_response.content) > 8_000_000:
-            raise RuntimeError("category search API response exceeded 8 MB")
-        payload = search_response.json()
-        rows = api_search_product_urls(payload)
-        diagnostics.append({
+        category_id = str(category["id"])
+        category_query = str(category.get("query") or query)
+        route_specs = [
+            (
+                "search_api_v2_category",
+                f"https://api.digikala.com/v2/category/{category_id}/",
+                {"q": category_query, "page": 1, "sort": BEST_SELLING_SORT_VALUE},
+            ),
+            (
+                "discovery_api_v2_category_products",
+                f"https://api.digikala.com/discovery/api/v2/categories/{category_id}/products/",
+                {"page": 1, "sort": BEST_SELLING_SORT_VALUE, "q": category_query},
+            ),
+            (
+                "legacy_search_api_v1",
+                "https://api.digikala.com/v1/search/",
+                {"categories[]": category_id, "page": 1, "sort": BEST_SELLING_SORT_VALUE},
+            ),
+        ]
+        route_errors = []
+        category_rows = []
+        category_diagnostic = {
             "category_id": category_id,
-            "category": category["name"],
-            "products_found": len(rows),
-            "status": search_response.status_code,
-        })
-        for url in rows:
+            "category": category.get("name", category_id),
+            "requested_sort": BEST_SELLING_SORT_VALUE,
+        }
+        for source, url, params in route_specs:
+            try:
+                search_response = http.get(url, params=params, timeout=HTTP_TIMEOUT)
+                status = int(getattr(search_response, "status_code", 0) or 0)
+                if status == 429:
+                    raise RuntimeError(f"{source}_rate_limited")
+                if status in (400, 403, 404):
+                    body = re.sub(r"\s+", " ", str(getattr(search_response, "text", "") or ""))[:180]
+                    route_errors.append(f"{source}_http_{status}:{body}")
+                    continue
+                search_response.raise_for_status()
+                if len(search_response.content) > 8_000_000:
+                    route_errors.append(f"{source}_response_exceeded_8mb")
+                    continue
+                try:
+                    payload = search_response.json()
+                except ValueError:
+                    route_errors.append(f"{source}_non_json")
+                    continue
+                category_rows = api_search_product_urls(payload)
+                data_block = payload.get("data", {}) if isinstance(payload, dict) else {}
+                observed_sort_options = data_block.get("sort_options") if isinstance(data_block, dict) else None
+                category_diagnostic.update({
+                    "source": source,
+                    "status": status,
+                    "products_found": len(category_rows),
+                    "route_errors": route_errors,
+                    "observed_sort_options": observed_sort_options if isinstance(observed_sort_options, list) else None,
+                })
+                if isinstance(observed_sort_options, list):
+                    print(
+                        "DIGIKALA_SEARCH_API_V2_SORT_OPTIONS "
+                        f"category={category_id} requested_sort={BEST_SELLING_SORT_VALUE} "
+                        f"observed={json.dumps(observed_sort_options, ensure_ascii=False, separators=(',', ':'))[:1400]}"
+                    )
+                if category_rows:
+                    break
+                route_errors.append(f"{source}_empty_product_list")
+            except Exception as exc:
+                if isinstance(exc, RuntimeError) and "rate_limited" in str(exc):
+                    raise
+                status = getattr(getattr(exc, "response", None), "status_code", None)
+                route_errors.append(f"{source}_{type(exc).__name__}" + (f"_{status}" if status else ""))
+        category_diagnostic["route_errors"] = route_errors[-6:]
+        diagnostics.append(category_diagnostic)
+        for url in category_rows:
             if url not in found:
                 found.append(url)
             if len(found) >= MAX_PER_QUERY:
@@ -975,7 +1033,6 @@ def search_digikala_v2_product_urls(query: str, session=None, category_limit: in
         if len(found) >= MAX_PER_QUERY:
             break
     return found[:MAX_PER_QUERY], diagnostics
-
 
 def _offer_discount_percent(obj: dict) -> int:
     """Get the retailer-declared discount or derive one from current/list prices."""
