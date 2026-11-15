@@ -198,6 +198,33 @@ class CatalogSweepTests(unittest.TestCase):
             datetime.now(timezone.utc),
         )
 
+    def test_refresh_categories_merges_autocomplete_discoveries_into_recent_verified_tree(self):
+        old_categories = [
+            {"id": "10", "name": "خانه", "parent_id": "", "depth": 0},
+            {"id": "11", "name": "آشپزخانه", "parent_id": "10", "depth": 1},
+        ]
+        autocomplete = {
+            "data": {"categories": [{
+                "keyword": "موبایل",
+                "category": {"id": 12, "title_fa": "موبایل"},
+            }]}
+        }
+        session = FakeSession(
+            [FakeResponse({}, status_code=404), autocomplete] +
+            [{"data": {"categories": []}}] * 7
+        )
+        state = {
+            "categories": old_categories,
+            "categories_refreshed_at": (datetime.now(timezone.utc) - timedelta(hours=48)).isoformat(),
+            "category_index": 1,
+            "page": 3,
+        }
+        refresh_categories(state, session, force=True)
+        self.assertEqual({row["id"] for row in state["categories"]}, {"10", "11", "12"})
+        self.assertEqual(state["page"], 3)
+        self.assertEqual(state["category_index"], 1)
+        self.assertEqual(next(row for row in state["categories"] if row["id"] == "12")["query"], "موبایل")
+
     def test_refresh_categories_respects_retry_backoff_without_repeating_api_calls(self):
         now = datetime.now(timezone.utc)
         state = {
@@ -213,7 +240,7 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(state["page"], 4)
 
     def test_refresh_categories_does_not_use_expired_taxonomy_cache_after_api_failure(self):
-        refreshed = (datetime.now(timezone.utc) - timedelta(hours=120)).isoformat()
+        refreshed = (datetime.now(timezone.utc) - timedelta(hours=200)).isoformat()
         state = {
             "categories": [{"id": "10", "name": "خانه", "parent_id": "", "depth": 0}],
             "categories_refreshed_at": refreshed,
