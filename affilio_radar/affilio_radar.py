@@ -1440,8 +1440,18 @@ def parse_product_api(payload: dict, url: str, now: datetime | None = None) -> d
                     break
             except ValueError:
                 pass
-    for raw in (rating_obj.get("count"), rating_obj.get("rating_count"), rating_obj.get("review_count"),
-                product_obj.get("rating_count"), product_obj.get("review_count"), product_obj.get("reviews_count")):
+    # Prefer actual written reviews/comments for demand-growth tracking. Aggregate
+    # rating counts are only a fallback because they can include ratings without text.
+    for raw in (
+        product_obj.get("comments_count"),
+        product_obj.get("reviews_count"),
+        rating_obj.get("comments_count"),
+        rating_obj.get("count"),
+        rating_obj.get("rating_count"),
+        rating_obj.get("review_count"),
+        product_obj.get("rating_count"),
+        product_obj.get("review_count"),
+    ):
         value = _int_value(raw)
         if value is not None:
             review_count = max(0, value)
