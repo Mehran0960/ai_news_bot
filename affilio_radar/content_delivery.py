@@ -26,6 +26,50 @@ PENDING_PLATFORM_STATUSES = {"pending", "failed", "retry"}
 PRODUCT_ID_PATTERN = re.compile(r"^(?:dkp|snp)-\d{1,12}$", re.IGNORECASE)
 
 
+def editorial_dispatch_runway_seconds(state: dict | None = None) -> int:
+    """Return the real dispatch-and-delivery runway needed for an editorial slot.
+
+    The Cloudflare dispatcher polls once per minute by default. The delivery part is
+    estimated from recent completed editorial sends, using a conservative p90. This
+    is an eligibility window, not a minimum interval between channel posts.
+    """
+    try:
+        poll_seconds = int(os.getenv("OFFERCHIN_EDITORIAL_DISPATCH_POLL_SECONDS", "60"))
+    except (TypeError, ValueError, OverflowError):
+        poll_seconds = 60
+    poll_seconds = max(15, min(180, poll_seconds))
+    try:
+        default_delivery = int(os.getenv("OFFERCHIN_EDITORIAL_DEFAULT_DELIVERY_SECONDS", "30"))
+    except (TypeError, ValueError, OverflowError):
+        default_delivery = 30
+    default_delivery = max(10, min(180, default_delivery))
+
+    durations: list[float] = []
+    if isinstance(state, dict):
+        for key in ("editorial_delivery_history", "editorial_delivery_attempts"):
+            rows = state.get(key)
+            if not isinstance(rows, list):
+                continue
+            for row in rows[-30:]:
+                if not isinstance(row, dict):
+                    continue
+                try:
+                    duration = float(row.get("delivery_duration_seconds") or 0)
+                except (TypeError, ValueError, OverflowError):
+                    continue
+                if 0 < duration <= 900:
+                    durations.append(duration)
+
+    if durations:
+        durations.sort()
+        # Nearest-rank 90th percentile; a single observation is still useful.
+        index = max(0, min(len(durations) - 1, math.ceil(0.90 * len(durations)) - 1))
+        delivery_seconds = max(10, int(math.ceil(durations[index])))
+    else:
+        delivery_seconds = default_delivery
+    return poll_seconds + delivery_seconds
+
+
 def _configured_queue_limit(value: Any = None) -> int:
     """Return a defensive upper bound for live content hand-off/retry records."""
     raw = value if value is not None else os.getenv("AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT", "250")
