@@ -7573,13 +7573,13 @@ def _publication_catalog_category_context(product_or_title) -> dict:
         return {"id": "", "name": "", "path": ""}
     product = product_or_title
     category_id = str(
-        product.get("catalog_best_selling_category_id")
-        or product.get("catalog_category_id")
+        product.get("catalog_category_id")
+        or product.get("catalog_best_selling_category_id")
         or ""
     ).strip()
     category_name = str(
-        product.get("catalog_best_selling_category_name")
-        or product.get("catalog_category_name")
+        product.get("catalog_category_name")
+        or product.get("catalog_best_selling_category_name")
         or ""
     ).strip()
     ranks = product.get("catalog_best_selling_ranks_by_category")
@@ -7721,10 +7721,13 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     explicit_brand = ""
     if isinstance(product_or_title, dict):
         title = str(product_or_title.get("title") or "")
-        raw_brand = product_or_title.get("brand") or product_or_title.get("brand_name") or ""
-        if isinstance(raw_brand, dict):
-            raw_brand = raw_brand.get("name") or raw_brand.get("title") or raw_brand.get("value") or ""
-        explicit_brand = str(raw_brand or "").strip()
+        raw_brand = (
+            product_or_title.get("brand")
+            or product_or_title.get("brand_name")
+            or product_or_title.get("brand_fa")
+            or ""
+        )
+        explicit_brand = _extract_brand_name(raw_brand)
     else:
         title = str(product_or_title or "")
     normalized = title.lower().replace("\u200c", " ")
@@ -7826,13 +7829,18 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         "grocery_food": [
             ("sweets_and_spreads", r"خرما|شکلات|کنجد|عسل|حلوا|مربا|شیره|نبات"),
             ("nuts_and_dried_fruit", r"آجیل|خشکبار|پسته|بادام|گردو|فندق"),
-            ("grains_and_staples", r"غلات|برنج|جو|گندم|آرد|حبوبات"),
+            ("cooking_oils", r"روغن زیتون|روغن ذرت|روغن خوراکی|روغن کنجد"),
+            ("pasta_and_noodles", r"پاستا|ماکارونی|نودل"),
+            ("pulses", r"عدس|لپه|نخود|لوبیا|حبوبات"),
+            ("grains_and_staples", r"غلات|برنج|(?<![آ-ی])جو(?![آ-ی])|گندم|آرد|شکر"),
             ("tea_and_coffee", r"چای|دمنوش|قهوه"),
         ],
         "personal_care": [
             ("hair_accessories", r"کش\s*مو|گیره\s*مو|تل\s*مو|کلیپس\s*مو|سنجاق\s*مو"),
-            ("skincare", r"پوست|کرم|سرم|آبرسان|تونر|ضدآفتاب"),
-            ("haircare", r"مو|سشوار|برس حرارتی|اتو مو"),
+            ("haircare", r"شامپو|نرم کننده مو|مراقبت مو|سشوار|برس حرارتی|اتو مو"),
+            ("skincare", r"پوست|کرم|سرم|آبرسان|تونر|ضدآفتاب|لایه بردار|اسکراب"),
+            ("bodycare", r"لوسیون|روغن بدن|دئودورانت|مام ضد تعریق"),
+            ("makeup", r"رژ لب|کرم پودر|رژگونه|مداد چشم"),
             ("oral_care", r"مسواک|دندان|دهان\s*شویه|واتر\s*جت"),
             ("shaving", r"ریش.?تراش|موزن|اپیلاتور|ماشین\s*اصلاح"),
             ("massage", r"ماساژ"),
@@ -7852,9 +7860,11 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         "jewelry": [("jewelry", r"نقره|گوشواره|انگشتر|دستبند|گردنبند|زیورآلات|بدلیجات")],
         "beauty_fragrance": [("fragrance", r"عطر|ادکلن|پرفیوم|تویلت|بادی\s*اسپلش")],
         "home": [
-            ("kitchen", r"آشپزخانه|ظرف|قهوه ساز|فلاسک|ماگ"),
+            ("kitchen", r"آشپزخانه|ظرف|قهوه ساز|فلاسک|ماگ|قاشق|چنگال|سرویس غذاخوری"),
             ("cookware", r"قابلمه|تابه|سرویس\s*پخت|زودپز|پلوپز"),
             ("coffee_appliances", r"قهوه\s*ساز|اسپرسو\s*ساز|آسیاب\s*قهوه"),
+            ("faucets_and_bath", r"شیر ظرفشویی|شیرآلات|حوله|سرویس بهداشتی"),
+            ("furniture_and_textiles", r"کاور مبل|مبلمان|فرش|پرده|کالای خواب"),
             ("organization", r"نظم دهنده|ارگانایزر"),
             ("study_desks", r"میز\s*(?:تحریر|مطالعه)|کتابخانه"),
             ("lighting", r"چراغ|لامپ"),
@@ -7873,14 +7883,29 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
                 family = f"{category}:{subfamily}"
                 break
 
-    # Prefer the real DigiKala leaf node as the canonical family boundary.
-    # The title and use-case remain part of the classification and similarity guard.
+    # Keep a recognisable product family separate from the exact DigiKala leaf
+    # category. The two dimensions are guarded independently below.
     catalog_category_id = str(catalog_context.get("id") or "").strip()
-    if catalog_category_id:
+    if catalog_category_id and family == category:
         family = f"digikala_category:{catalog_category_id}"
-    # Keep use-case as an independent dimension in history/reporting; do not let
-    # it split one DigiKala family into separate cooldown buckets.
     brand_hints = [
+        ("samsung", r"سامسونگ|\bSamsung\b|\bGalaxy\b"),
+        ("apple", r"اپل|\bApple\b|\biPhone\b|\biPad\b|\bMacBook\b"),
+        ("xiaomi", r"شیائومی|\bXiaomi\b|\bRedmi\b|\bPOCO\b|\bPoco\b"),
+        ("huawei", r"هواوی|\bHuawei\b|\bHonor\b|آنر"),
+        ("asus", r"ایسوس|\bASUS\b"),
+        ("lenovo", r"لنوو|\bLenovo\b"),
+        ("hp", r"\bHP\b|اچ پی"),
+        ("dell", r"\bDell\b|دل"),
+        ("sony", r"سونی|\bSony\b"),
+        ("jbl", r"\bJBL\b"),
+        ("anker", r"\bAnker\b|انکر"),
+        ("baseus", r"\bBaseus\b|بیسوس"),
+        ("logitech", r"\bLogitech\b|لاجیتک"),
+        ("philips", r"فیلیپس|\bPhilips\b"),
+        ("braun", r"\bBraun\b|براون"),
+        ("lg", r"\bLG\b|ال جی"),
+        ("xiaomi", r"شیائومی|\bXiaomi\b|\bRedmi\b|\bPOCO\b|\bPoco\b"),
         ("ufc", r"\bUFC\b|یو\s*اف\s*سی"),
         ("ai_javaher", r"آی\s*جواهر"),
         ("sangboo_climy", r"سانگبو\s*کلایمی"),
@@ -7919,6 +7944,23 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
             if brand_slug and brand_slug not in {"unknown", "other", "none", "نامشخص", "-"}:
                 brand = f"brand:{brand_slug}"
     return category, family, brand
+
+
+def _publication_category_guard_key(product_or_record) -> str:
+    """Return an exact catalog-leaf key for category cooldowns, not a broad top-level aisle."""
+    context = _publication_catalog_category_context(
+        product_or_record if isinstance(product_or_record, dict) else {}
+    )
+    category_id = str(context.get("id") or "").strip()
+    if category_id:
+        return f"catalog_category:{category_id}"
+    category_name = str(context.get("name") or "").strip()
+    if category_name:
+        normalized = category_name.lower().replace("ي", "ی").replace("ك", "ک")
+        normalized = normalized.replace("\u200c", " ")
+        slug = re.sub(r"[^\w\u0600-\u06FF]+", "_", normalized).strip("_")
+        return f"catalog_category_name:{slug}" if slug else ""
+    return ""
 
 
 def _publication_retailer_group(product_or_record) -> str:
