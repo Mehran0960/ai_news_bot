@@ -205,17 +205,14 @@ def queue_editorial_if_due(
             product_slot_is_due = product_slot_at is not None and product_slot_at <= current
             dispatch_window_closed = (
                 product_slot_at is not None
-                and product_slot_at - current <= dispatch_runway
+                and product_slot_at - current <= delivery_runway
             )
             if (
                 isinstance(product_entry, dict)
                 and product_entry.get("status") not in {"published", "cancelled", "stale_selection"}
                 and not _product_has_core_channel_success(product_entry)
                 and not product_slot_is_due
-                and not (
-                    product_slot_at is not None
-                    and product_slot_at - current <= delivery_runway
-                )
+                and not dispatch_window_closed
             ):
                 # Once awake, the publisher may send any time until the empirically
                 # measured delivery window closes; it must never delay the product.
