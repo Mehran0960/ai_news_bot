@@ -18,6 +18,10 @@ from pathlib import Path
 from typing import Any
 
 import requests
+try:
+    from .digikala_http import new_digikala_session
+except ImportError:
+    from digikala_http import new_digikala_session
 
 try:
     from .offerchin_four_factor import (
@@ -80,14 +84,7 @@ PERSIAN_DIGITS = str.maketrans(
     "01234567890123456789,.",
 )
 
-SESSION = requests.Session()
-SESSION.headers.update({
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                  "(KHTML, like Gecko) Chrome/128 Safari/537.36",
-    "Accept": "application/json,text/plain,*/*",
-    "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.7",
-    "Referer": "https://www.digikala.com/",
-})
+SESSION = new_digikala_session()
 
 
 class CatalogSweepError(RuntimeError):
