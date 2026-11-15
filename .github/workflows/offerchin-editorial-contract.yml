@@ -127,4 +127,5 @@ jobs:
             test_affilio.AffilioRadarTests.test_use_case_guard_blocks_different_families_for_two_hours_only \
             test_affilio.AffilioRadarTests.test_explicit_brand_metadata_is_normalized_for_repeat_guards \
             test_affilio.AffilioRadarTests.test_video_dispatch_state_uses_latest_safe_editorial_wakeup_for_short_gap \
+            test_affilio.AffilioRadarTests.test_video_dispatch_state_keeps_a_missed_wakeup_due_while_delivery_window_is_open \
             test_affilio.AffilioRadarTests.test_video_dispatch_state_skips_editorial_when_dispatch_runway_cannot_fit -v
