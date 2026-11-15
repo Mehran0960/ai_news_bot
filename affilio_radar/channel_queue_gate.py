@@ -6,8 +6,10 @@ import json
 from pathlib import Path
 
 STATE_PATH = Path(__file__).resolve().parent / "state.json"
-TERMINAL_QUEUE = {"published", "cancelled", "stale_selection"}
-TERMINAL_CORE = {"sent", "not_connected", "manual_review"}
+TERMINAL_PRODUCT_QUEUE = {"published", "cancelled", "stale_selection"}
+TERMINAL_EDITORIAL_QUEUE = TERMINAL_PRODUCT_QUEUE | {"completed", "failed"}
+TERMINAL_PRODUCT_CORE = {"sent", "not_connected", "manual_review"}
+TERMINAL_EDITORIAL_CORE = TERMINAL_PRODUCT_CORE | {"skipped_limit"}
 
 
 def pending_core_deliveries(state: dict) -> list[tuple[str, str, list[str]]]:
@@ -21,14 +23,17 @@ def pending_core_deliveries(state: dict) -> list[tuple[str, str, list[str]]]:
         for content_id, entry in queue.items():
             if not isinstance(entry, dict):
                 raise ValueError(f"{collection_name}_entry_not_an_object")
-            if str(entry.get("status") or "").strip().lower() in TERMINAL_QUEUE:
+            entry_status = str(entry.get("status") or "").strip().lower()
+            terminal_queue = TERMINAL_EDITORIAL_QUEUE if collection_name == "editorial_delivery_queue" else TERMINAL_PRODUCT_QUEUE
+            if entry_status in terminal_queue:
                 continue
+            terminal_core = TERMINAL_EDITORIAL_CORE if collection_name == "editorial_delivery_queue" else TERMINAL_PRODUCT_CORE
             targets = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
             unresolved = [
                 name for name in ("telegram", "bale")
                 if not (
                     isinstance(targets.get(name), dict)
-                    and str(targets[name].get("status") or "pending").strip().lower() in TERMINAL_CORE
+                    and str(targets[name].get("status") or "pending").strip().lower() in terminal_core
                 )
             ]
             if unresolved:
