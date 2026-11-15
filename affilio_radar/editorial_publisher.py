@@ -20,6 +20,7 @@ import requests
 import affilio_radar as radar
 from content_delivery import (
     allocate_publication_sequence,
+    editorial_delivery_p90_seconds,
     editorial_dispatch_runway_seconds,
     get_last_channel_published_at,
     refresh_unpublished_selections,
@@ -193,7 +194,7 @@ def queue_editorial_if_due(
     active_products = product_queue if isinstance(product_queue, dict) else {}
     if active:
         valid_active = []
-        dispatch_runway = timedelta(seconds=editorial_dispatch_runway_seconds(state))
+        delivery_runway = timedelta(seconds=editorial_delivery_p90_seconds(state))
         for queued_editorial in active:
             related_id = str(queued_editorial.get("related_product_id") or "").strip()
             product_entry = active_products.get(related_id) if related_id else None
@@ -211,12 +212,15 @@ def queue_editorial_if_due(
                 and product_entry.get("status") not in {"published", "cancelled", "stale_selection"}
                 and not _product_has_core_channel_success(product_entry)
                 and not product_slot_is_due
-                and not dispatch_window_closed
+                and not (
+                    product_slot_at is not None
+                    and product_slot_at - current <= delivery_runway
+                )
             ):
-                # Keep the midpoint as the target, but allow the minute dispatcher
-                # to deliver any time afterwards while the real runway remains open.
+                # Once awake, the publisher may send any time until the empirically
+                # measured delivery window closes; it must never delay the product.
                 queued_editorial["window_closes_at"] = (
-                    product_slot_at - dispatch_runway
+                    product_slot_at - delivery_runway
                 ).isoformat()
                 valid_active.append(queued_editorial)
                 continue
@@ -270,18 +274,21 @@ def queue_editorial_if_due(
     if gap_seconds <= 0:
         return None
     dispatch_runway_seconds = editorial_dispatch_runway_seconds(state)
-    # The midpoint is only a useful target when the minute dispatcher can wake
-    # and finish a normal send before the next product slot. This is not a fixed
-    # product-post interval: it is a live feasibility check from polling + p90 send.
-    if gap_seconds / 2 < dispatch_runway_seconds:
+    delivery_runway_seconds = editorial_delivery_p90_seconds(state)
+    # Aim for the midpoint, but when a short real gap makes that too late for the
+    # minute dispatcher, move the target earlier to the latest safe dispatch start.
+    # No fixed interval is introduced between product posts.
+    if gap_seconds <= dispatch_runway_seconds:
         print(
             "EDITORIAL_WAIT_INSUFFICIENT_DISPATCH_WINDOW "
             f"product_id={related_product_id} gap_seconds={int(gap_seconds)} "
-            f"required_gap_seconds={dispatch_runway_seconds * 2} "
+            f"required_gap_seconds={dispatch_runway_seconds} "
             f"dispatch_runway_seconds={dispatch_runway_seconds}"
         )
         return None
-    scheduled_at = anchor + timedelta(seconds=gap_seconds / 2)
+    midpoint_at = anchor + timedelta(seconds=gap_seconds / 2)
+    latest_safe_dispatch_at = product_at - timedelta(seconds=dispatch_runway_seconds)
+    scheduled_at = min(midpoint_at, latest_safe_dispatch_at)
     if scheduled_at <= current:
         print(
             "EDITORIAL_MIDPOINT_PASSED "
@@ -320,8 +327,9 @@ def queue_editorial_if_due(
         "selected_at": current.isoformat(),
         "scheduled_at": scheduled_at.isoformat(),
         "next_attempt_at": scheduled_at.isoformat(),
-        "window_closes_at": (product_at - timedelta(seconds=dispatch_runway_seconds)).isoformat(),
+        "window_closes_at": (product_at - timedelta(seconds=delivery_runway_seconds)).isoformat(),
         "dispatch_runway_seconds": dispatch_runway_seconds,
+        "delivery_runway_seconds": delivery_runway_seconds,
         "status": "queued",
         "attempt_count": 0,
         "payload": item,
