@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-15T21:11:56.100665+00:00",
+  "generated_at": "2026-11-15T21:20:06.894389+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -117,6 +117,7 @@
       "غذای نیمه آماده": 1,
       "فیلم سینمایی": 1,
       "قاشق، چنگال و ظروف کودک و نوزاد": 1,
+      "قطعات جانبی موبایل و تبلت و هدفون": 1,
       "قلم لمسی (Stylus)": 1,
       "لایه بردار پوست و اسکراب": 1,
       "لوازم یکبار مصرف آشپزخانه": 1,
@@ -152,36 +153,36 @@
       "kids_sports": 2,
       "large_appliances": 2,
       "lighting": 1,
-      "mobile_devices": 1,
+      "mobile_devices": 2,
       "other": 13,
       "personal_care": 4,
       "sports_outdoor": 2
     },
     "category_share_percent": {
-      "beauty_fragrance": 2.4,
-      "books_stationery": 11.9,
-      "fashion": 9.5,
-      "grocery_food": 11.9,
-      "home": 4.8,
-      "kids_sports": 4.8,
-      "large_appliances": 4.8,
-      "lighting": 2.4,
-      "mobile_devices": 2.4,
-      "other": 31.0,
-      "personal_care": 9.5,
-      "sports_outdoor": 4.8
+      "beauty_fragrance": 2.3,
+      "books_stationery": 11.6,
+      "fashion": 9.3,
+      "grocery_food": 11.6,
+      "home": 4.7,
+      "kids_sports": 4.7,
+      "large_appliances": 4.7,
+      "lighting": 2.3,
+      "mobile_devices": 4.7,
+      "other": 30.2,
+      "personal_care": 9.3,
+      "sports_outdoor": 4.7
     },
-    "distinct_catalog_categories": 42,
+    "distinct_catalog_categories": 43,
     "distinct_categories": 12,
-    "distinct_families": 42,
+    "distinct_families": 43,
     "distinct_retailers": 1,
     "distinct_use_cases": 10,
     "known_brand_posts": 1,
-    "posts": 42,
+    "posts": 43,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 42
+      "digikala": 43
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -195,7 +196,7 @@
       "home_cleaning": 1,
       "home_living": 2,
       "kitchen_food": 2,
-      "mobile_productivity": 22,
+      "mobile_productivity": 23,
       "personal_care": 1
     }
   },
@@ -246,6 +247,7 @@
       "فیلتر چای": 1,
       "فیلم سینمایی": 1,
       "قاشق، چنگال و ظروف کودک و نوزاد": 1,
+      "قطعات جانبی موبایل و تبلت و هدفون": 1,
       "قلم لمسی (Stylus)": 1,
       "لایه بردار پوست و اسکراب": 2,
       "لباس زیر و جوراب زنانه": 1,
@@ -316,7 +318,7 @@
       "kids_sports": 3,
       "large_appliances": 2,
       "lighting": 2,
-      "mobile_devices": 3,
+      "mobile_devices": 4,
       "other": 53,
       "personal_care": 29,
       "power_backup": 2,
@@ -334,25 +336,25 @@
       "kids_sports": 2.1,
       "large_appliances": 1.4,
       "lighting": 1.4,
-      "mobile_devices": 2.1,
-      "other": 37.3,
-      "personal_care": 20.4,
+      "mobile_devices": 2.8,
+      "other": 37.1,
+      "personal_care": 20.3,
       "power_backup": 1.4,
       "sports_outdoor": 4.9
     },
-    "distinct_catalog_categories": 102,
+    "distinct_catalog_categories": 103,
     "distinct_categories": 16,
-    "distinct_families": 120,
+    "distinct_families": 121,
     "distinct_retailers": 1,
     "distinct_use_cases": 19,
     "known_brand_posts": 7,
-    "posts": 142,
+    "posts": 143,
     "repeated_brand_count": 1,
     "repeated_brands": {
       "habsan": 2
     },
     "retailer_post_counts": {
-      "digikala": 142
+      "digikala": 143
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -371,7 +373,7 @@
       "home_living": 3,
       "kitchen_food": 6,
       "lighting_electrical": 2,
-      "mobile_productivity": 48,
+      "mobile_productivity": 49,
       "office_study": 2,
       "outdoor_travel": 2,
       "personal_care": 13,
@@ -393,30 +395,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1338,
+    "all_time_count": 1339,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 481,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-15T17:54:39.895866+00:00",
-        "brand": "",
-        "catalog_category_id": "11600",
-        "catalog_category_name": "کتاب کسب و کار و اقتصاد",
-        "category": "books_stationery",
-        "compared_to_product_id": "dkp-22539590",
-        "family": "digikala_category:11600",
-        "product_id": "dkp-4825904",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کتاب پول، پول، پول، پول، پول اثر جان میلتون فاگ انتشارات تیموری",
-        "use_case": "books_learning"
-      },
       {
         "at": "2026-11-15T17:54:39.895866+00:00",
         "brand": "",
@@ -730,6 +715,23 @@
           "similarity_repeat"
         ],
         "title": "زیرپوش مردانه آریان نخ باف کد 1211",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-15T21:20:06.894389+00:00",
+        "brand": "",
+        "catalog_category_id": "9371",
+        "catalog_category_name": "کفش پاشنه دار زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-6223366",
+        "family": "digikala_category:9371",
+        "product_id": "dkp-3584477",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش زنانه پاتکان کد NIC829",
         "use_case": "fashion_lifestyle"
       }
     ]
