@@ -1,6 +1,6 @@
 {
   "aparat_last_upload_attempt_at": "2026-11-14T17:19:55.882293+00:00",
-  "aparat_last_upload_success_at": "2026-11-14T22:57:49.282206+00:00",
+  "aparat_last_upload_success_at": "2026-11-15T00:01:34.407171+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-13T10:31:20.893746+00:00",
@@ -329153,6 +329153,21 @@
         "youtube": "sent"
       },
       "updated_at": "2026-11-14T22:58:21.210791+00:00"
+    },
+    {
+      "content_id": "editorial:gift-card-warning",
+      "sequence_number": 31,
+      "status": "completed",
+      "terminal_summary": {
+        "aparat": "sent",
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "filo": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent",
+        "youtube": "sent"
+      },
+      "updated_at": "2026-11-15T00:01:35.525786+00:00"
     }
   ],
   "editorial_delivery_history": [
@@ -329526,8 +329541,12 @@
       "content_id": "editorial:gift-card-warning",
       "destinations": {
         "aparat": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-15T00:01:29.276810+00:00",
+          "attempts": 1,
+          "message_id": "tgq86k1",
+          "status": "sent",
+          "updated_at": "2026-11-15T00:01:34.407103+00:00",
+          "url": "https://www.aparat.com/v/tgq86k1"
         },
         "bale": {
           "attempt_started_at": "2026-11-14T23:57:48.304481+00:00",
@@ -329544,7 +329563,9 @@
         },
         "filo": {
           "attempts": 0,
-          "status": "pending"
+          "last_error": "filo_login_not_verified",
+          "status": "not_connected",
+          "updated_at": "2026-11-15T00:01:34.965665+00:00"
         },
         "rubika": {
           "attempt_started_at": "2026-11-14T23:57:49.718249+00:00",
@@ -329561,8 +329582,12 @@
           "updated_at": "2026-11-14T23:57:47.926481+00:00"
         },
         "youtube": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-15T00:01:26.540500+00:00",
+          "attempts": 1,
+          "message_id": "bAjN8ZFg8Hw",
+          "status": "sent",
+          "updated_at": "2026-11-15T00:01:28.717626+00:00",
+          "url": "https://www.youtube.com/shorts/bAjN8ZFg8Hw"
         }
       },
       "editorial_id": "gift-card-warning",
@@ -329572,82 +329597,7 @@
       "topic": "safe-payment"
     }
   ],
-  "editorial_delivery_queue": {
-    "editorial:gift-card-warning": {
-      "attempt_count": 0,
-      "content_id": "editorial:gift-card-warning",
-      "content_type": "editorial",
-      "next_attempt_at": "2026-11-14T23:57:46.427265+00:00",
-      "payload": {
-        "body": "اگر فروشنده اصرار دارد فقط با کارت هدیه، حواله یا روش پرداختی که پیگیری آن دشوار است پول بفرستی، مکث کن. روش پرداخت را از مسیر رسمی فروشگاه انجام بده و هر درخواست غیرعادی را پیش از واریز بررسی کن.",
-        "content_id": "editorial:gift-card-warning",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 1,
-        "editorial_id": "gift-card-warning",
-        "idempotency_key": "8a190fa1b0f5f35b",
-        "related_product_id": "",
-        "review_due_at": "2027-02-10T18:00:00Z",
-        "reviewed_at": "2026-11-12T18:00:00Z",
-        "sequence_number": 31,
-        "sources": [
-          {
-            "source_id": "ftc-online-shopping",
-            "title": "راهنمای خرید اینترنتی FTC",
-            "url": "https://consumer.ftc.gov/articles/online-shopping"
-          }
-        ],
-        "title": "برای خرید کالا، درخواست کارت هدیه یا انتقال ناشناس را جدی بگیر",
-        "topic": "safe-payment"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-14T23:57:48.304481+00:00",
-          "attempts": 1,
-          "message_id": "1970",
-          "status": "sent",
-          "updated_at": "2026-11-14T23:57:49.343113+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "eitaa_not_enabled_or_credentials_missing",
-          "status": "not_connected",
-          "updated_at": "2026-11-14T23:57:53.729286+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-14T23:57:49.718249+00:00",
-          "attempts": 1,
-          "message_id": "1972314790242588651",
-          "status": "sent",
-          "updated_at": "2026-11-14T23:57:53.351253+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-14T23:57:47.189637+00:00",
-          "attempts": 1,
-          "message_id": "1483",
-          "status": "sent",
-          "updated_at": "2026-11-14T23:57:47.926481+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "related_product_id": "",
-      "scheduled_at": "2026-11-14T23:57:46.427265+00:00",
-      "selected_at": "2026-11-14T23:57:46.427265+00:00",
-      "sequence_number": 31,
-      "status": "partial"
-    }
-  },
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -329673,7 +329623,7 @@
   },
   "filo_last_upload_attempt_at": "2026-11-14T17:20:05.324497+00:00",
   "filo_last_upload_success_at": "2026-11-14T17:20:43.441934+00:00",
-  "filo_login_verification_attempted_at": "2026-11-14T23:29:15.813224+00:00",
+  "filo_login_verification_attempted_at": "2026-11-15T00:01:20.427289+00:00",
   "filo_login_verification_status": "failed",
   "filo_upload_interval_policy_version": 3,
   "growth_tracking": {
@@ -329943,7 +329893,7 @@
   "last_channel_published_at": "2026-11-14T23:57:49.343113+00:00",
   "last_content_selection_at": "2026-11-13T22:13:58.676719+00:00",
   "last_editorial_attempt_at": "2026-11-14T23:57:46.427265+00:00",
-  "last_editorial_confirmed_at": "2026-11-14T23:57:53.351253+00:00",
+  "last_editorial_confirmed_at": "2026-11-15T00:01:34.407103+00:00",
   "last_product_channel_published_at": "2026-11-13T22:14:18.640320+00:00",
   "last_published_at": "2026-11-14T23:57:49.343113+00:00",
   "market_price_api_checks": {
@@ -507152,6 +507102,6 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 17,
   "snappshop_retry_after": "2026-11-15T10:36:57.728076+00:00",
-  "youtube_last_upload_success_at": "2026-11-14T22:57:44.809182+00:00",
+  "youtube_last_upload_success_at": "2026-11-15T00:01:28.717672+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
