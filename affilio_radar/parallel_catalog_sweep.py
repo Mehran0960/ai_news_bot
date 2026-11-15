@@ -83,6 +83,7 @@ def build_initial_page_queue(
         tasks.append({
             "category_id": category_id,
             "category_name": str(category.get("name") or category_id),
+            "category_query": str(category.get("query") or category.get("name") or category_id),
             "page": page if index == start_index else 1,
             "attempts": 0,
         })
@@ -126,13 +127,14 @@ def _fetch_page(task: dict) -> dict:
         }
 
     try:
+        search_url, params = base._category_page_url(
+            category_id,
+            page,
+            str(task.get("category_query") or task.get("category_name") or category_id),
+        )
         response = _session().get(
-            base.SEARCH_URL,
-            params={
-                "categories[]": category_id,
-                "page": page,
-                "sort": base.BEST_SELLING_SORT_VALUE,
-            },
+            search_url,
+            params=params,
             timeout=base.REQUEST_TIMEOUT,
         )
         if response.status_code in (400, 404):
