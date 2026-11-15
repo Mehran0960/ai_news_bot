@@ -179,8 +179,23 @@ def queue_editorial_if_due(
     current = current.astimezone(timezone.utc)
 
     active = _active_editorial_entries(state)
+    product_queue = state.get("content_delivery_queue")
+    active_products = product_queue if isinstance(product_queue, dict) else {}
     if active:
-        return active[0]
+        valid_active = []
+        for queued_editorial in active:
+            related_id = str(queued_editorial.get("related_product_id") or "").strip()
+            product_entry = active_products.get(related_id) if related_id else None
+            if isinstance(product_entry, dict) and product_entry.get("status") not in {"published", "cancelled", "stale_selection"}:
+                valid_active.append(queued_editorial)
+                continue
+            queued_editorial["status"] = "cancelled"
+            queued_editorial["last_detail"] = "editorial_requires_an_active_related_product_slot"
+            editorial_queue = state.get("editorial_delivery_queue")
+            if isinstance(editorial_queue, dict):
+                editorial_queue.pop(str(queued_editorial.get("content_id") or ""), None)
+        if valid_active:
+            return valid_active[0]
 
     refresh_unpublished_selections(state, now=current, stale_after_minutes=8)
     next_product = _next_product_slot(state, current)
@@ -903,12 +918,7 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
     pending_videos = _pending_product_video_exists(state)
     shadow_state_for_anchor = json.loads(json.dumps(state, ensure_ascii=False, default=str))
     anchor = _recent_attempt_anchor(shadow_state_for_anchor)
-    elapsed = (current - anchor) if anchor else None
-    remaining = (
-        max(0, int((timedelta(minutes=STANDALONE_EDITORIAL_GAP_MINUTES) - elapsed).total_seconds()))
-        if elapsed is not None and elapsed < timedelta(minutes=STANDALONE_EDITORIAL_GAP_MINUTES)
-        else 0
-    )
+    remaining = 0
 
     destination_config = {
         "telegram": bool(radar.BOT_TOKEN and radar.TARGET_CHAT),
@@ -949,22 +959,31 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         decision = "wait_for_older_product_video_fifo"
         item_id = None
         sequence = None
-    elif remaining:
-        decision = "wait_for_55_minute_fallback_interval"
-        item_id = None
-        sequence = None
     else:
-        # Simulate enqueue against a JSON copy only. The live state and queue are read-only.
-        shadow_state = json.loads(json.dumps(state, ensure_ascii=False, default=str))
-        candidate = select_editorial_fallback(bank, shadow_state, now=current)
-        if candidate is None:
-            decision = "no_valid_nonrepeating_reviewed_item"
+        # Editorial may only occupy a midpoint before a product already selected.
+        # The shadow report must never predict a standalone editorial post.
+        candidate_product = _next_product_slot(state, current)
+        if candidate_product is None:
+            decision = "wait_for_selected_product_slot"
             item_id = None
             sequence = None
         else:
-            sequence = allocate_publication_sequence(shadow_state)
-            decision = "would_queue_editorial"
-            item_id = str(candidate.get("content_id") or "")
+            shadow_state = json.loads(json.dumps(state, ensure_ascii=False, default=str))
+            candidate = select_editorial_fallback(
+                bank, shadow_state, now=current,
+                related_product=(
+                    candidate_product[1].get("payload")
+                    if isinstance(candidate_product[1].get("payload"), dict) else {}
+                ),
+            )
+            if candidate is None:
+                decision = "no_valid_nonrepeating_reviewed_item"
+                item_id = None
+                sequence = None
+            else:
+                sequence = allocate_publication_sequence(shadow_state)
+                decision = "would_queue_editorial_before_product"
+                item_id = str(candidate.get("content_id") or "")
 
     return {
         "observed_at": current.astimezone(timezone.utc).isoformat(),
@@ -973,8 +992,7 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         "decision": decision,
         "would_select_content_id": item_id,
         "would_allocate_sequence_number": sequence,
-        "fallback_interval_minutes": STANDALONE_EDITORIAL_GAP_MINUTES,
-        "seconds_until_fallback_due": remaining,
+        "requires_selected_product_slot": True,
         "editorial_bank_total": len(bank),
         "editorial_bank_valid": len(valid_items),
         "editorial_bank_invalid": invalid_items,
