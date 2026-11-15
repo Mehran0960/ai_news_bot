@@ -2318,3 +2318,20 @@
 **ریسک/بازگشت:** اگر Discovery پاسخ filters ندهد، اسکنر به query-scoped IDs و سپس autocomplete برمی‌گردد؛ اگر آن‌ها نیز قابل استفاده نباشند، از cache معتبر با backoff استفاده می‌شود و وضعیت fallback صریح گزارش می‌شود. هیچ دسته یا محصولی بدون شناسه/وضعیت قابل‌تأیید به‌عنوان معتبر فرض نمی‌شود.
 
 **وضعیت:** اصلاح taxonomy و regression ثبت شده؛ CI و اسکن واقعی بعد از refresh در انتظار.
+
+ 
+## ۲۰۲۶-۱۱-۱۵ — اصلاح برچسب منبع taxonomy زنده
+ 
+**هدف:** ثبت منبع واقعی دادهٔ دسته‌بندی به‌نحوی که هم فیلترهای دسته و هم query metadata پاسخ Search را پوشش دهد.
+ 
+**تغییر/اقدام:** برچسب منبع `digikala_discovery_api_v1_search_filters` به `digikala_discovery_api_v1_search_taxonomy` تغییر کرد؛ چون استخراج از پاسخ Search هر دو شکل category filters/tree و `query_attributes.category_ids` را پوشش می‌دهد.
+ 
+**فایل‌ها/سامانه‌ها:** `affilio_radar/catalog_sweep.py`، `affilio_radar/test_catalog_sweep.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
+ 
+**آزمون و نتیجه:** آزمون منبع taxonomy اصلاح شد؛ CI جدید در انتظار اجراست.
+ 
+**شواهد/شناسه:** کد `10ef46f52108066154f3fe3b42c2adf8c95c8d33`؛ اصلاح تست `10ef46f52108066154f3fe3b42c2adf8c95c8d33` و commitهای بعدی.
+ 
+**ریسک/بازگشت:** فقط label منبع تغییر کرده؛ ترتیب استخراج و معیار پذیرش دسته تغییر نکرده است.
+ 
+**وضعیت:** ثبت شد؛ CI در انتظار.
