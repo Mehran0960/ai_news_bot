@@ -1262,6 +1262,29 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(result["interval_seconds"], 0)
 
 
+    def test_expired_scan_eta_uses_provisional_57_minute_product_window(self):
+        status = {
+            "estimated_next_clean_scan_at": (self.now - timedelta(minutes=1)).isoformat(),
+        }
+        result = calculate_product_publication_cadence(
+            {}, status, 3, now=self.now, max_daily_posts=72
+        )
+        self.assertEqual(result["candidate_count"], 3)
+        self.assertEqual(result["planned_product_slots"], 3)
+        self.assertTrue(result["scan_eta_is_provisional"])
+        self.assertEqual(result["estimated_next_clean_scan_at"], "")
+        self.assertEqual(result["interval_seconds"], 57 * 60)
+        self.assertTrue(result["first_slot_due_now"])
+
+    def test_missing_scan_eta_uses_provisional_57_minute_product_window(self):
+        result = calculate_product_publication_cadence(
+            {}, {}, 2, now=self.now, max_daily_posts=72
+        )
+        self.assertTrue(result["scan_eta_is_provisional"])
+        self.assertEqual(result["estimated_next_clean_scan_at"], "")
+        self.assertEqual(result["interval_seconds"], 57 * 60)
+        self.assertTrue(result["first_slot_due_now"])
+
     def test_product_cadence_is_not_capped_at_six_hours_for_sparse_cycles(self):
         clean_started = self.now - timedelta(hours=50)
         clean_completed = self.now - timedelta(hours=8)
@@ -1324,6 +1347,37 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(result["planned_product_slots"], 4)
         self.assertEqual(result["interval_seconds"], 57 * 60)
         self.assertTrue(result["first_slot_due_now"])
+
+    def test_reflow_after_expired_scan_eta_keeps_products_moving_at_57_minutes(self):
+        last_product = self.now - timedelta(hours=2)
+        state = {
+            "last_product_channel_published_at": last_product.isoformat(),
+            "content_delivery_queue": {
+                "dkp-reflow-now": {
+                    "content_type": "product", "status": "queued",
+                    "sequence_number": 1, "platforms": {},
+                },
+                "dkp-reflow-later": {
+                    "content_type": "product", "status": "queued",
+                    "sequence_number": 2, "platforms": {},
+                },
+            },
+            "product_publication_cadence": {
+                "estimated_next_clean_scan_at": (self.now - timedelta(minutes=5)).isoformat(),
+                "interval_seconds": 0,
+            },
+        }
+        result = reflow_product_queue_after_delivery(state, now=self.now)
+        first = datetime.fromisoformat(
+            state["content_delivery_queue"]["dkp-reflow-now"]["scheduled_at"]
+        )
+        second = datetime.fromisoformat(
+            state["content_delivery_queue"]["dkp-reflow-later"]["scheduled_at"]
+        )
+        self.assertEqual(result["interval_seconds"], 57 * 60)
+        self.assertEqual(first, self.now)
+        self.assertEqual(second, self.now + timedelta(minutes=57))
+        self.assertTrue(state["product_publication_cadence"]["scan_eta_is_provisional"])
 
     def test_product_queue_slots_are_evenly_rescheduled(self):
         last_product = self.now - timedelta(minutes=10)
