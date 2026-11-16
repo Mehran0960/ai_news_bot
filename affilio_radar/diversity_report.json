@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T16:47:58.973940+00:00",
+  "generated_at": "2026-11-16T17:33:30.145498+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -201,7 +201,7 @@
       "digital_accessories": 2,
       "fashion": 8,
       "gaming": 2,
-      "grocery_food": 18,
+      "grocery_food": 19,
       "home": 8,
       "home_cleaning": 2,
       "kids_sports": 3,
@@ -218,39 +218,40 @@
       "automotive": 1.0,
       "books_stationery": 8.2,
       "computer_network": 3.1,
-      "digital_accessories": 2.1,
+      "digital_accessories": 2.0,
       "fashion": 8.2,
-      "gaming": 2.1,
-      "grocery_food": 18.6,
+      "gaming": 2.0,
+      "grocery_food": 19.4,
       "home": 8.2,
-      "home_cleaning": 2.1,
+      "home_cleaning": 2.0,
       "kids_sports": 3.1,
       "large_appliances": 1.0,
       "lighting": 1.0,
-      "mobile_devices": 2.1,
-      "other": 16.5,
-      "personal_care": 11.3,
+      "mobile_devices": 2.0,
+      "other": 16.3,
+      "personal_care": 11.2,
       "power_backup": 1.0,
-      "sports_outdoor": 9.3,
+      "sports_outdoor": 9.2,
       "tv_audio_video": 1.0
     },
     "distinct_catalog_categories": 93,
     "distinct_categories": 18,
-    "distinct_families": 97,
+    "distinct_families": 98,
     "distinct_retailers": 1,
     "distinct_use_cases": 18,
-    "known_brand_posts": 32,
-    "posts": 97,
-    "repeated_brand_count": 5,
+    "known_brand_posts": 33,
+    "posts": 98,
+    "repeated_brand_count": 6,
     "repeated_brands": {
       "brand:تکسان": 2,
       "brand:سریتا": 2,
+      "brand:مری_کینگ": 2,
       "maedeh": 2,
       "tuska": 2,
       "zarin_barakat": 2
     },
     "retailer_post_counts": {
-      "digikala": 97
+      "digikala": 98
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -264,7 +265,7 @@
       "fashion_lifestyle": 8,
       "gaming": 4,
       "general": 1,
-      "grocery_food": 20,
+      "grocery_food": 21,
       "home_cleaning": 2,
       "home_living": 6,
       "kitchen_food": 4,
@@ -439,7 +440,7 @@
       "digital_accessories": 2,
       "fashion": 13,
       "gaming": 2,
-      "grocery_food": 22,
+      "grocery_food": 23,
       "home": 13,
       "home_cleaning": 3,
       "jewelry": 3,
@@ -450,7 +451,7 @@
       "other": 34,
       "personal_care": 37,
       "power_backup": 3,
-      "sports_outdoor": 13,
+      "sports_outdoor": 12,
       "tools_industrial": 3,
       "tv_audio_video": 1
     },
@@ -463,7 +464,7 @@
       "digital_accessories": 1.1,
       "fashion": 7.2,
       "gaming": 1.1,
-      "grocery_food": 12.2,
+      "grocery_food": 12.8,
       "home": 7.2,
       "home_cleaning": 1.7,
       "jewelry": 1.7,
@@ -474,7 +475,7 @@
       "other": 18.9,
       "personal_care": 20.6,
       "power_backup": 1.7,
-      "sports_outdoor": 7.2,
+      "sports_outdoor": 6.7,
       "tools_industrial": 1.7,
       "tv_audio_video": 0.6
     },
@@ -483,13 +484,14 @@
     "distinct_families": 168,
     "distinct_retailers": 1,
     "distinct_use_cases": 20,
-    "known_brand_posts": 53,
+    "known_brand_posts": 54,
     "posts": 180,
-    "repeated_brand_count": 14,
+    "repeated_brand_count": 15,
     "repeated_brands": {
       "arden": 3,
       "brand:تکسان": 2,
       "brand:سریتا": 2,
+      "brand:مری_کینگ": 2,
       "callista": 3,
       "comeon": 2,
       "maedeh": 2,
@@ -513,7 +515,7 @@
       "fashion_lifestyle": 13,
       "gaming": 4,
       "general": 5,
-      "grocery_food": 31,
+      "grocery_food": 32,
       "home_cleaning": 3,
       "home_living": 9,
       "kitchen_food": 7,
@@ -523,7 +525,7 @@
       "outdoor_travel": 4,
       "personal_care": 32,
       "pet_care": 1,
-      "sports_fitness": 9,
+      "sports_fitness": 8,
       "tools_industrial": 3
     }
   },
@@ -543,30 +545,13 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1538,
+    "all_time_count": 1539,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 397,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T08:31:23.100241+00:00",
-        "brand": "",
-        "catalog_category_id": "9744",
-        "catalog_category_name": "کیف پول و کیف لوازم آرایش دخترانه",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-18692390",
-        "family": "digikala_category:9744",
-        "product_id": "dkp-18707793",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کیف لوازم آرایش دخترانه خندالو مدل قهوه دمی کد 5068",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-16T08:31:23.100241+00:00",
         "brand": "",
@@ -884,6 +869,23 @@
         ],
         "title": "اس اس دی اینترنال SATA III هایک سمی مدل WAVE S ظرفیت 256 گیگابایت",
         "use_case": "home_living"
+      },
+      {
+        "at": "2026-11-16T17:33:30.145498+00:00",
+        "brand": "",
+        "catalog_category_id": "9083",
+        "catalog_category_name": "لوازم ماهیگیری",
+        "category": "other",
+        "compared_to_product_id": "dkp-13338289",
+        "family": "digikala_category:9083",
+        "product_id": "dkp-4080071",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "چوب ماهیگیری ساپا مدل VALERIE-210",
+        "use_case": "outdoor_travel"
       }
     ]
   }
