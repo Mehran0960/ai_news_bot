@@ -140,50 +140,6 @@ def _draw_topic_illustration(draw: ImageDraw.ImageDraw, topic: str) -> None:
         draw.line((x, top + 120, x, top + 202), fill=MUTED, width=7)
 
 
-def _draw_topic_illustration(draw: ImageDraw.ImageDraw, topic: str) -> None:
-    """Draw original topic-specific artwork when no cleared related photo exists."""
-    center = WIDTH // 2
-    top = 230
-    topic = str(topic or "").strip().lower()
-    if topic in {"delivery", "parcel-check"}:
-        left, right, bottom = center - 112, center + 112, top + 184
-        draw.rounded_rectangle((left, top + 42, right, bottom), radius=22,
-                               fill=PANEL_ALT, outline=ACCENT, width=7)
-        draw.polygon([
-            (left, top + 62), (center, top + 118),
-            (right, top + 62), (center, top + 8),
-        ], fill=(43, 68, 98), outline=ACCENT)
-        draw.line((center, top + 9, center, bottom - 2), fill=ACCENT, width=7)
-        draw.line((left + 7, top + 63, center, top + 118), fill=ACCENT, width=5)
-        draw.line((right - 7, top + 63, center, top + 118), fill=ACCENT, width=5)
-        draw.rounded_rectangle((center - 23, top + 12, center + 23, top + 67),
-                               radius=8, fill=ACCENT)
-        return
-    if topic in {"security", "account-security", "privacy", "privacy-and-security"}:
-        points = [
-            (center, top + 8), (center + 112, top + 52),
-            (center + 94, top + 151), (center, top + 205),
-            (center - 94, top + 151), (center - 112, top + 52),
-        ]
-        draw.polygon(points, fill=PANEL_ALT, outline=ACCENT)
-        draw.line((center - 48, top + 104, center - 10, top + 142, center + 58, top + 74),
-                  fill=ACCENT, width=13, joint="curve")
-        return
-    if topic in {"mobile", "device-compatibility"}:
-        draw.rounded_rectangle((center - 82, top, center + 82, top + 212),
-                               radius=30, fill=PANEL_ALT, outline=ACCENT, width=8)
-        draw.rounded_rectangle((center - 56, top + 26, center + 56, top + 171),
-                               radius=10, fill=BACKGROUND, outline=MUTED, width=3)
-        draw.ellipse((center - 9, top + 184, center + 9, top + 202), fill=ACCENT)
-        return
-    draw.rounded_rectangle((center - 122, top + 78, center + 122, top + 190),
-                           radius=18, fill=PANEL_ALT, outline=ACCENT, width=8)
-    draw.line((center - 86, top + 78, center - 48, top + 10), fill=ACCENT, width=9)
-    draw.line((center + 86, top + 78, center + 48, top + 10), fill=ACCENT, width=9)
-    for x in (center - 58, center, center + 58):
-        draw.line((x, top + 92, x, top + 178), fill=MUTED, width=5)
-
-
 def render_editorial_poster(item: dict, output_path: str | Path | None = None) -> bytes:
     """Create a topic-led Persian editorial card without product photography or source credits."""
     title = str(item.get("title") or "").strip()
@@ -200,7 +156,7 @@ def render_editorial_poster(item: dict, output_path: str | Path | None = None) -
                            radius=5, fill=ACCENT)
 
     _draw_topic_illustration(draw, str(item.get("topic") or ""))
-    title_y = 486
+    title_y = 520
     title_font = _title_font(44)
     title_lines = _wrap_rtl_text(draw, title, title_font, WIDTH - 140, max_lines=2)
     for line in title_lines:
@@ -237,7 +193,7 @@ def render_editorial_poster(item: dict, output_path: str | Path | None = None) -
     return data
 
 
-def render_editorial_video(def render_editorial_video(
+def render_editorial_video(
     item: dict,
     output_path: str | Path,
     *,
