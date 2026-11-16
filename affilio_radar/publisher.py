@@ -350,14 +350,15 @@ def _valid_emergency_continuity_override(
         return False
     try:
         discount = float(factors.get("discount_attractiveness") or 0)
-        affordability = float(factors.get("affordability") or 0)
         generality = float(factors.get("generality") or 0)
     except (TypeError, ValueError, OverflowError):
         return False
-    if min(discount, affordability, generality) <= 0:
+    # Demand relaxation still requires a verified markdown and broad usefulness.
+    # Absolute price and affordability are never ranking or publication gates.
+    if min(discount, generality) <= 0:
         return False
-    harmonic = 3 / (1 / discount + 1 / affordability + 1 / generality)
-    if discount < 55 or affordability < 40 or generality < 50 or harmonic < 55:
+    harmonic = 2 / (1 / discount + 1 / generality)
+    if discount < 55 or generality < 50 or harmonic < 55:
         return False
     try:
         verified_leads = radar.load_emergency_continuity_candidates(
