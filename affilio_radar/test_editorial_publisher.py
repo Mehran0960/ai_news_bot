@@ -15,6 +15,7 @@ from editorial_publisher import (
     _format_message,
     _send_bot_photo,
     _video_description,
+    _load_bank,
     queue_editorial_if_due,
 )
 from editorial_video import render_editorial_poster, render_editorial_video
@@ -39,6 +40,38 @@ def editorial_item(editorial_id="test-guide", topic="test-topic"):
 
 
 class EditorialPublisherTests(unittest.TestCase):
+    def test_load_bank_merges_manually_approved_source_items(self):
+        base = editorial_item(editorial_id="base-guide", topic="purchase-planning")
+        approved = editorial_item(editorial_id="digikala-delivery", topic="delivery")
+        approved["priority"] = "high"
+        approved["sources"] = [{
+            "source_id": "digikala-mag-delivery",
+            "publisher": "دیجی‌کالا مگ",
+            "title": "راهنمای زمان تحویل",
+            "url": "https://www.digikala.com/mag/digikala-delivery-time/",
+        }]
+        approved["claims"] = [{
+            "text": "بازه تحویل هر سفارش را در صفحه سفارش بررسی کن",
+            "source_ids": ["digikala-mag-delivery"],
+        }]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            bank_path = root / "editorial_bank.json"
+            approved_path = root / "editorial_approved_items.json"
+            bank_path.write_text(json.dumps([base], ensure_ascii=False), encoding="utf-8")
+            approved_path.write_text(json.dumps([approved], ensure_ascii=False), encoding="utf-8")
+            with patch("editorial_publisher.EDITORIAL_BANK", bank_path), patch(
+                "editorial_publisher.EDITORIAL_APPROVED_ITEMS", approved_path
+            ):
+                loaded = _load_bank()
+
+        self.assertEqual({item["editorial_id"] for item in loaded}, {"base-guide", "digikala-delivery"})
+        chosen = __import__("editorial_content").select_editorial_fallback(
+            loaded, {}, now=NOW, related_product={}
+        )
+        self.assertEqual(chosen["editorial_id"], "digikala-delivery")
+        self.assertEqual(chosen["sources"][0]["publisher"], "دیجی‌کالا مگ")
+
     def test_editorial_fifo_lock_is_disabled_by_default(self):
         state = {
             "editorial_delivery_queue": {
