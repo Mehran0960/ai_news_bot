@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T01:31:18.238477+00:00",
+  "generated_at": "2026-11-16T01:41:31.030530+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -399,114 +399,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1401,
+    "all_time_count": 1407,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 457,
+      "family_repeat": 456,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T00:06:58.231573+00:00",
-        "brand": "",
-        "catalog_category_id": "11084",
-        "catalog_category_name": "غذا و دانه پرندگان",
-        "category": "other",
-        "compared_to_product_id": "dkp-5467971",
-        "family": "digikala_category:11084",
-        "product_id": "dkp-12290421",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "غذای خشک طوطی عروس هلندی مای برد مدل پلاس کد Cockatiel+1 وزن یک کیلوگرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-16T00:06:58.231573+00:00",
-        "brand": "",
-        "catalog_category_id": "10727",
-        "catalog_category_name": "غذای آماده",
-        "category": "grocery_food",
-        "compared_to_product_id": "dkp-22004885",
-        "family": "digikala_category:10727",
-        "product_id": "dkp-22004842",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کنسرو گوشت بوقلمون با طعم شوید پارس بوقلمون - 180 گرم",
-        "use_case": "grocery_food"
-      },
-      {
-        "at": "2026-11-16T00:06:58.231573+00:00",
-        "brand": "",
-        "catalog_category_id": "9286",
-        "catalog_category_name": "ست رسمی زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-21663217",
-        "family": "digikala_category:9286",
-        "product_id": "dkp-21768867",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ست کت و شلوار رسمی زنانه السانا مدل آنیما کد 2547",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-16T00:06:58.231573+00:00",
-        "brand": "",
-        "catalog_category_id": "11096",
-        "catalog_category_name": "غذای خشک سگ",
-        "category": "other",
-        "compared_to_product_id": "dkp-8838591",
-        "family": "digikala_category:11096",
-        "product_id": "dkp-20935355",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "غذا خشک سگ بالغ دکتر ژان مدل پرمیوم طعم میکس 10 کیلوگرم",
-        "use_case": "pet_care"
-      },
-      {
-        "at": "2026-11-16T00:19:12.959216+00:00",
-        "brand": "",
-        "catalog_category_id": "9224",
-        "catalog_category_name": "گوشت گوسفند",
-        "category": "other",
-        "compared_to_product_id": "dkp-20502655",
-        "family": "digikala_category:9224",
-        "product_id": "dkp-21586430",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-16T00:19:12.959216+00:00",
-        "brand": "",
-        "catalog_category_id": "9371",
-        "catalog_category_name": "کفش پاشنه دار زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-6223366",
-        "family": "digikala_category:9371",
-        "product_id": "dkp-3584477",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش زنانه پاتکان کد NIC829",
-        "use_case": "fashion_lifestyle"
-      },
       {
         "at": "2026-11-16T00:19:12.959216+00:00",
         "brand": "",
@@ -736,6 +635,107 @@
         ],
         "title": "زیرپوش مردانه آریان نخ باف کد 1211",
         "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T01:41:31.030530+00:00",
+        "brand": "",
+        "catalog_category_id": "9224",
+        "catalog_category_name": "گوشت گوسفند",
+        "category": "other",
+        "compared_to_product_id": "dkp-20502655",
+        "family": "digikala_category:9224",
+        "product_id": "dkp-21586430",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-16T01:41:31.030530+00:00",
+        "brand": "",
+        "catalog_category_id": "10559",
+        "catalog_category_name": "کتاب زبان خارجی",
+        "category": "books_stationery",
+        "compared_to_product_id": "dkp-2304995",
+        "family": "digikala_category:10559",
+        "product_id": "dkp-12374358",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کتاب مکالمات روزمره ترکی استانبولی اثر نگین آهویی انتشارات یوشیتا",
+        "use_case": "books_learning"
+      },
+      {
+        "at": "2026-11-16T01:41:31.030530+00:00",
+        "brand": "",
+        "catalog_category_id": "11044",
+        "catalog_category_name": "البسه طبی و پزشکی",
+        "category": "other",
+        "compared_to_product_id": "dkp-14396543",
+        "family": "digikala_category:11044",
+        "product_id": "dkp-14396631",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "روپوش پزشکی زنانه ناب تن کد 108",
+        "use_case": "health_wellness"
+      },
+      {
+        "at": "2026-11-16T01:41:31.030530+00:00",
+        "brand": "",
+        "catalog_category_id": "9906",
+        "catalog_category_name": "کفش روزمره مردانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-8995270",
+        "family": "digikala_category:9906",
+        "product_id": "dkp-22634892",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش طبی مردانه کروماکی چرم طبیعی مدل km336",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-16T01:41:31.030530+00:00",
+        "brand": "",
+        "catalog_category_id": "10921",
+        "catalog_category_name": "تقویت‌کننده ابرو",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-18027406",
+        "family": "digikala_category:10921",
+        "product_id": "dkp-22744016",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "سرم تقویت‌کننده ابرو وینور مدل EBS-VN حجم 3 میلی‌لیتر",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-16T01:41:31.030530+00:00",
+        "brand": "",
+        "catalog_category_id": "10895",
+        "catalog_category_name": "چای سیاه کیسه‌ای",
+        "category": "other",
+        "compared_to_product_id": "dkp-580729",
+        "family": "digikala_category:10895",
+        "product_id": "dkp-3178030",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "چای کیسه ای با طعم هل صنایع غذایی طلالو بسته 25 عددی",
+        "use_case": "catalog_taxonomy_other"
       }
     ]
   }
