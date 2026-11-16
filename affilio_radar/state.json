@@ -226445,76 +226445,7 @@
       "topic": "device-compatibility"
     }
   ],
-  "editorial_delivery_queue": {
-    "editorial:recall-check": {
-      "attempt_count": 0,
-      "content_id": "editorial:recall-check",
-      "content_type": "editorial",
-      "delivery_runway_seconds": 33,
-      "dispatch_runway_seconds": 93,
-      "next_attempt_at": "2026-11-16T15:34:11.362820+00:00",
-      "payload": {
-        "body": "در گروه‌هایی مثل لوازم برقی، اسباب‌بازی یا تجهیزات کودک، اطلاعات ایمنی و اطلاعیه‌های فراخوان سازنده یا نهادهای معتبر را بررسی کن. اگر درباره مدل دقیق محصول هشدار یا فراخوانی منتشر شده، پیش از استفاده راهنمای رسمی را بخوان.",
-        "content_id": "editorial:recall-check",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 1,
-        "editorial_id": "recall-check",
-        "idempotency_key": "2253d2b9bc14113e",
-        "related_product_id": "dkp-10708866",
-        "related_product_image_url": "https://dkstatics-public.digikala.com/digikala-products/0058857645312a4c2f86b4d20bb058cb43972cf7_1676788016.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "related_product_title": "روغن سبوس برنج مری کینگ - 1 لیتر بسته 12 عددی",
-        "review_due_at": "2027-02-10T18:00:00Z",
-        "reviewed_at": "2026-11-12T18:00:00Z",
-        "sequence_number": 1367,
-        "sources": [
-          {
-            "source_id": "cpsc-recalls",
-            "title": "پایگاه فراخوان و هشدار ایمنی محصولات CPSC",
-            "url": "https://www.cpsc.gov/Recalls"
-          }
-        ],
-        "title": "برای کالاهای حساس، اطلاعیه‌های ایمنی را هم بررسی کن",
-        "topic": "product-safety"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "related_product_id": "dkp-10708866",
-      "scheduled_at": "2026-11-16T15:34:11.362820+00:00",
-      "selected_at": "2026-11-16T15:33:53.682700+00:00",
-      "sequence_number": 1367,
-      "status": "queued",
-      "window_closes_at": "2026-11-16T15:35:11.362820+00:00"
-    }
-  },
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
