@@ -60,5 +60,24 @@ class PublicationDueGateTests(unittest.TestCase):
         )
 
 
+    def test_due_gate_runs_before_runtime_setup_and_expensive_validation(self):
+        from pathlib import Path
+        workflow = (
+            Path(__file__).resolve().parents[1]
+            / ".github" / "workflows" / "offerchin-publisher.yml"
+        ).read_text(encoding="utf-8")
+        gate = workflow.index("name: Detect due product or editorial slots")
+        setup = workflow.index("name: Set up Python")
+        discovery = workflow.index("name: Discover and queue the next verified selection")
+        delivery = workflow.index("name: Publish due selections to Telegram and Bale only")
+        self.assertLess(gate, setup)
+        self.assertLess(gate, discovery)
+        self.assertLess(gate, delivery)
+        self.assertIn("if: steps.publication_due.outputs.has_due_slot != 'true'", workflow)
+        self.assertEqual(
+            workflow.count("if: steps.publication_due.outputs.has_due_slot != 'true'"),
+            4,
+        )
+
 if __name__ == "__main__":
     unittest.main()
