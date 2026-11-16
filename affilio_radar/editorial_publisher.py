@@ -26,7 +26,12 @@ from content_delivery import (
     get_last_channel_published_at,
     refresh_unpublished_selections,
 )
-from editorial_content import record_editorial_delivery, select_editorial_fallback
+from editorial_content import (
+    editorial_topics_for_product,
+    record_editorial_delivery,
+    select_editorial_fallback,
+    validate_editorial_item,
+)
 from platform_registry import PLATFORM_NAMES
 
 ROOT = Path(__file__).resolve().parent
@@ -196,13 +201,57 @@ def queue_editorial_if_due(
     if active:
         valid_active = []
         delivery_runway = timedelta(seconds=editorial_delivery_p90_seconds(state))
+        current_bank = {
+            str(row.get("editorial_id") or "").strip(): row
+            for row in bank if isinstance(row, dict) and str(row.get("editorial_id") or "").strip()
+        }
         for queued_editorial in active:
             related_id = str(queued_editorial.get("related_product_id") or "").strip()
             product_entry = active_products.get(related_id) if related_id else None
-            product_slot_at = (
-                _utc(product_entry.get("scheduled_at"))
-                if isinstance(product_entry, dict) else None
+            queued_payload = (
+                queued_editorial.get("payload")
+                if isinstance(queued_editorial.get("payload"), dict) else {}
             )
+            editorial_id = str(queued_payload.get("editorial_id") or "").strip()
+            reviewed_item = current_bank.get(editorial_id)
+            valid_item, invalid_reason = (
+                validate_editorial_item(reviewed_item, now=current)
+                if reviewed_item else (False, "editorial_id_not_in_current_reviewed_bank")
+            )
+            payload_fields = ("title", "body", "topic", "sources", "claims", "reviewed_at", "review_due_at")
+            payload_matches_reviewed = bool(reviewed_item) and all(
+                queued_payload.get(field) == reviewed_item.get(field)
+                for field in payload_fields
+            )
+            product_payload = (
+                product_entry.get("payload")
+                if isinstance(product_entry, dict) and isinstance(product_entry.get("payload"), dict)
+                else {}
+            )
+            topic_is_relevant = (
+                str(queued_payload.get("topic") or "").strip().lower()
+                in editorial_topics_for_product(product_payload)
+            )
+            stale_reason = ""
+            if not valid_item:
+                stale_reason = invalid_reason
+            elif not payload_matches_reviewed:
+                stale_reason = "queued_payload_differs_from_current_reviewed_bank"
+            elif not isinstance(product_entry, dict):
+                stale_reason = "related_product_slot_missing"
+            elif not topic_is_relevant:
+                stale_reason = "queued_topic_not_relevant_to_related_product"
+            if stale_reason:
+                queued_editorial["status"] = "cancelled"
+                queued_editorial["last_detail"] = f"stale_or_irrelevant_editorial:{stale_reason}"
+                if isinstance(queue, dict):
+                    queue.pop(str(queued_editorial.get("content_id") or ""), None)
+                print(
+                    "EDITORIAL_STALE_QUEUE_CANCELLED "
+                    f"content_id={queued_editorial.get('content_id')} reason={stale_reason}"
+                )
+                continue
+            product_slot_at = _utc(product_entry.get("scheduled_at"))
             product_slot_is_due = product_slot_at is not None and product_slot_at <= current
             dispatch_window_closed = (
                 product_slot_at is not None
