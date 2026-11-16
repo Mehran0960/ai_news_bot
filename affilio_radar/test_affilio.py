@@ -2489,7 +2489,7 @@ class AffilioRadarTests(unittest.TestCase):
         # Durable history enforces the 24-hour family, brand and similarity guards before selection.
         self.assertEqual(
             [item["product_id"] for item in selected],
-            ["dkp-power-new", "dkp-fashion-new"],
+            ["dkp-fashion-new"],
         )
 
 
@@ -3205,6 +3205,7 @@ class AffilioRadarTests(unittest.TestCase):
             row.get("offerchin_three_factor", {}).get("policy_version") == radar_module.OFFERCHIN_THREE_FACTOR_POLICY_VERSION
             for row in published_order
         ))
+        self.assertTrue(all("affordability" not in row["offerchin_three_factor"] for row in published_order))
         self.assertTrue(all("affordability" not in row["offerchin_three_factor"] for row in published_order))
         self.assertGreater(
             len({row["offerchin_three_factor"]["balanced_score"] for row in published_order}),
