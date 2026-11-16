@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T02:57:28.212511+00:00",
+  "generated_at": "2026-11-16T03:03:52.396250+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -399,29 +399,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1421,
+    "all_time_count": 1422,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 449,
+      "family_repeat": 448,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T01:41:31.030530+00:00",
-        "brand": "",
-        "catalog_category_id": "9224",
-        "catalog_category_name": "گوشت گوسفند",
-        "category": "other",
-        "compared_to_product_id": "dkp-20502655",
-        "family": "digikala_category:9224",
-        "product_id": "dkp-21586430",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-16T01:41:31.030530+00:00",
         "brand": "",
@@ -736,6 +720,22 @@
           "similarity_repeat"
         ],
         "title": "کفش زنانه پاتکان کد NIC829",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T03:03:52.396250+00:00",
+        "brand": "",
+        "catalog_category_id": "9473",
+        "catalog_category_name": "زیرپوش مردانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-7284546",
+        "family": "digikala_category:9473",
+        "product_id": "dkp-720533",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "زیرپوش مردانه آریان نخ باف کد 1211",
         "use_case": "fashion_lifestyle"
       }
     ]
