@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T09:04:46.243774+00:00",
+  "generated_at": "2026-11-16T09:17:10.432191+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -407,93 +407,13 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1525,
+    "all_time_count": 1530,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 401,
+      "family_repeat": 400,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T07:57:06.113338+00:00",
-        "brand": "",
-        "catalog_category_id": "9473",
-        "catalog_category_name": "زیرپوش مردانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-7284546",
-        "family": "digikala_category:9473",
-        "product_id": "dkp-720533",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "زیرپوش مردانه آریان نخ باف کد 1211",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-16T08:03:38.559262+00:00",
-        "brand": "",
-        "catalog_category_id": "10836",
-        "catalog_category_name": "روغن کنجد",
-        "category": "grocery_food",
-        "compared_to_product_id": "dkp-14568455",
-        "family": "digikala_category:10836",
-        "product_id": "dkp-14568855",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "روغن کنجد تصفیه شده توسکا - 1350 گرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-16T08:09:45.126177+00:00",
-        "brand": "",
-        "catalog_category_id": "9841",
-        "catalog_category_name": "جوراب زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-7284546",
-        "family": "digikala_category:9841",
-        "product_id": "dkp-1734924",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "جوراب زنانه آریان نخ باف کد 5122-1 بسته 3 عددی",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-16T08:15:09.212355+00:00",
-        "brand": "",
-        "catalog_category_id": "9788",
-        "catalog_category_name": "شورت پسرانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-7284546",
-        "family": "digikala_category:9788",
-        "product_id": "dkp-8477415",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "شورت پسرانه آریان نخ باف مدل 4311",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-16T08:23:59.461479+00:00",
-        "brand": "",
-        "catalog_category_id": "9224",
-        "catalog_category_name": "گوشت گوسفند",
-        "category": "other",
-        "compared_to_product_id": "dkp-20502655",
-        "family": "digikala_category:9224",
-        "product_id": "dkp-21586430",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-16T08:23:59.461479+00:00",
         "brand": "",
@@ -745,6 +665,90 @@
           "similarity_repeat"
         ],
         "title": "محلول تقویت کننده ابرو و مژه وچه مدل 54564 حجم 11 میلی لیتر",
+        "use_case": "catalog_taxonomy_other"
+      },
+      {
+        "at": "2026-11-16T09:17:10.432191+00:00",
+        "brand": "",
+        "catalog_category_id": "10738",
+        "catalog_category_name": "کنسرو نخود فرنگی",
+        "category": "grocery_food",
+        "compared_to_product_id": "dkp-22892572",
+        "family": "digikala_category:10738",
+        "product_id": "dkp-22892720",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کنسرو نخود سبز مستر استار - 380 گرم بسته 12 عددی",
+        "use_case": "grocery_food"
+      },
+      {
+        "at": "2026-11-16T09:17:10.432191+00:00",
+        "brand": "",
+        "catalog_category_id": "8640",
+        "catalog_category_name": "پارچه",
+        "category": "other",
+        "compared_to_product_id": "dkp-8716351",
+        "family": "digikala_category:8640",
+        "product_id": "dkp-6862760",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "پارچه ملحفه کد 150",
+        "use_case": "home_living"
+      },
+      {
+        "at": "2026-11-16T09:17:10.432191+00:00",
+        "brand": "",
+        "catalog_category_id": "9569",
+        "catalog_category_name": "ست لباس راحتی نوزاد",
+        "category": "kids_sports",
+        "compared_to_product_id": "dkp-22568125",
+        "family": "digikala_category:9569",
+        "product_id": "dkp-22097631",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "ست سویشرت و شلوار راحتی نوزادی مدل 10",
+        "use_case": "baby_care"
+      },
+      {
+        "at": "2026-11-16T09:17:10.432191+00:00",
+        "brand": "",
+        "catalog_category_id": "9462",
+        "catalog_category_name": "شلوارک ورزشی مردانه",
+        "category": "sports_outdoor",
+        "compared_to_product_id": "dkp-8711418",
+        "family": "digikala_category:9462",
+        "product_id": "dkp-22126022",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "شلوارک ورزشی مردانه مدل 361-Niki",
+        "use_case": "sports_fitness"
+      },
+      {
+        "at": "2026-11-16T09:17:10.432191+00:00",
+        "brand": "",
+        "catalog_category_id": "11544",
+        "catalog_category_name": "لپه محلی و ارگانیک",
+        "category": "other",
+        "compared_to_product_id": "dkp-22036587",
+        "family": "digikala_category:11544",
+        "product_id": "dkp-10003347",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "لپه ریز زرین برکت - 2.5 کیلوگرم",
         "use_case": "catalog_taxonomy_other"
       }
     ]
