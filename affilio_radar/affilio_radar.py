@@ -7772,7 +7772,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         ],
         "power_backup": [
             ("battery", r"باتری|قلمی|نیم\s*قلمی"),
-            ("charger", r"شارژر|آداپتور"),
+            ("charger", r"شارژر دیواری|شارژر سریع|شارژر فندکی|آداپتور"),
             ("emergency_light", r"چراغ اضطراری|برق اضطراری"),
             ("flashlights", r"چراغ\s*قوه|چراغ\s*دستی|چراغ\s*پلیسی"),
             ("power_bank", r"پاور\s*بانک|پاوربانک|شارژر\s*همراه"),
