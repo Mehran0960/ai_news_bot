@@ -30,7 +30,7 @@ from product_quality import (
     normalize_brand_value,
 )
 try:
-    from .offerchin_three_factor import (
+    from .offerchin_four_factor import (
         POLICY_VERSION as OFFERCHIN_THREE_FACTOR_POLICY_VERSION,
         apply_three_factor_scores as _apply_three_factor_scores,
         three_factor_sort_key as _three_factor_sort_key,
@@ -38,7 +38,7 @@ try:
         MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE,
     )
 except ImportError:
-    from offerchin_three_factor import (
+    from offerchin_four_factor import (
         POLICY_VERSION as OFFERCHIN_THREE_FACTOR_POLICY_VERSION,
         apply_three_factor_scores as _apply_three_factor_scores,
         three_factor_sort_key as _three_factor_sort_key,
@@ -3438,10 +3438,6 @@ def _apply_offerchin_three_factor_scores(records: list[dict], now: datetime | No
         records,
         live_demand_score_fn=lambda row: _offerchin_live_demand_score(row, now=current),
         use_case_group_fn=_publication_use_case_group,
-        price_group_fn=lambda row: str(
-            row.get("catalog_category_id") or row.get("catalog_best_selling_category_id")
-            or _publication_use_case_group(row)
-        ),
         discount_verified_fn=lambda row: has_attractive_discount_value(row, now=current),
         now=current,
     )
