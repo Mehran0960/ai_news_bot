@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T03:12:46.734074+00:00",
+  "generated_at": "2026-11-16T03:23:48.037501+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -399,47 +399,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1424,
+    "all_time_count": 1426,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 448,
+      "family_repeat": 446,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T01:41:31.030530+00:00",
-        "brand": "",
-        "catalog_category_id": "9906",
-        "catalog_category_name": "کفش روزمره مردانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-8995270",
-        "family": "digikala_category:9906",
-        "product_id": "dkp-22634892",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش طبی مردانه کروماکی چرم طبیعی مدل km336",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-16T01:41:31.030530+00:00",
-        "brand": "",
-        "catalog_category_id": "10921",
-        "catalog_category_name": "تقویت‌کننده ابرو",
-        "category": "personal_care",
-        "compared_to_product_id": "dkp-18027406",
-        "family": "digikala_category:10921",
-        "product_id": "dkp-22744016",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "سرم تقویت‌کننده ابرو وینور مدل EBS-VN حجم 3 میلی‌لیتر",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-16T01:41:31.030530+00:00",
         "brand": "",
@@ -736,6 +702,38 @@
           "similarity_repeat"
         ],
         "title": "کفش پاشنه‌دار زنانه سیی 1966 مدل کلارا کد 1793.4",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T03:23:48.037501+00:00",
+        "brand": "",
+        "catalog_category_id": "9224",
+        "catalog_category_name": "گوشت گوسفند",
+        "category": "other",
+        "compared_to_product_id": "dkp-20502655",
+        "family": "digikala_category:9224",
+        "product_id": "dkp-21586430",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-16T03:23:48.037501+00:00",
+        "brand": "",
+        "catalog_category_id": "9841",
+        "catalog_category_name": "جوراب زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-7284546",
+        "family": "digikala_category:9841",
+        "product_id": "dkp-1734924",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "جوراب زنانه آریان نخ باف کد 5122-1 بسته 3 عددی",
         "use_case": "fashion_lifestyle"
       }
     ]
