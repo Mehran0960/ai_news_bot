@@ -167,15 +167,10 @@ def canonical_article_url(value: str, source_key: str = "digikala_mag") -> str |
     prefix = config["path_prefix"]
     if prefix != "/" and (not path.startswith(prefix) or path == prefix.rstrip("/")):
         return None
-    canonical_host = "www." + next(
-        (host_name for host_name in config["hosts"] if host_name != "www." + host_name),
-        host,
-    )
-    # Both approved publishers use www as their canonical web hostname.
-    if source_key == "zoomit":
-        canonical_host = "www.zoomit.ir"
-    elif source_key == "digikala_mag":
-        canonical_host = "www.digikala.com"
+    canonical_host = {
+        "digikala_mag": "www.digikala.com",
+        "zoomit": "www.zoomit.ir",
+    }[source_key]
     return urlunsplit(("https", canonical_host, path + "/", "", ""))
 
 
@@ -225,6 +220,8 @@ def parse_feed(
     source_key: str = "digikala_mag",
 ) -> tuple[list[dict[str, Any]], dict[str, int], dict[str, str]]:
     """Parse feed metadata into new candidates without retaining article excerpts."""
+    if source_key not in SOURCE_CONFIGS:
+        raise ValueError("unknown_editorial_source")
     current = now or _now_utc()
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
