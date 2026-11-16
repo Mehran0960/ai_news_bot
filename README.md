@@ -7,7 +7,7 @@
 - [منشور هدف، معماری و نقشهٔ راه](docs/PROJECT_CHARTER_FA.md)
 - [راهنمای فنی و نقطهٔ بازیابی](docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md)
 - [دفتر تغییرات و اقدامات](docs/CHANGELOG_FA.md)
-- [سیاست کشف و استفاده از دیجی‌کالا مگ در تحریریه](docs/OFFERCHIN_DIGIKALA_MAG_SOURCE_POLICY_FA.md)
+- [سیاست کشف چندمنبعی RSS و تحریریهٔ تصمیم‌یار خرید](docs/OFFERCHIN_DIGIKALA_MAG_SOURCE_POLICY_FA.md)
 - [دسترسی و گزارش‌گیری افیلیو](affilio_radar/AFFILIO_REPORTING_ACCESS.md)
 - [استاندارد برندینگ تصویر/ویدئو](affilio_radar/VISUAL_BRANDING.md)
 - [پکیج بهینه‌سازی OfferChin — سیاست و وضعیت اجرایی](docs/OFFERCHIN_OPTIMIZATION_PACKAGE_FA.md)\n- [سیاست رتبه‌بندی چهارعاملی — تقاضا، استطاعت، عمومیت و تخفیف](docs/OFFERCHIN_FOUR_FACTOR_RANKING_FA.md)
@@ -20,7 +20,7 @@
 - [اولین خروجی تحقیق زنده](opportunity_hunter/snapshots/first_research_snapshot_2026-11-11.md) — نامزد سرویس پکیج تهران، امتیاز اکتشافی ۶۳/۱۰۰ و هنوز غیرمجاز برای انتشار.
 - [تصمیم‌های اجرایی و سوابق نسخه](opportunity_hunter/DECISIONS_FA.md)
 
-این ماژول مستقل است و منطق اجرایی OfferChin را تغییر نمی‌دهد.
+این ماژول مستقل است و منطق اجرایی OfferChin را تغییر نمی‌دهد.\n\n## تحریریهٔ چندمنبعی\n\nفیدهای RSS دیجی‌کالا مگ و زومیت فقط برای کشف metadata و سوژه‌های قابل بازبینی استفاده می‌شوند؛ متن/تصویر منبع بازنشر نمی‌شود و هیچ نامزدی بدون نگارش مستقل و تأیید انسانی منتشر نمی‌شود.
 
 ## فیلتر مستقل آگهی
 
