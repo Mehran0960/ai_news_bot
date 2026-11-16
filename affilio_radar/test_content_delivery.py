@@ -172,7 +172,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(summary["added"], 1)
         self.assertEqual(
             datetime.fromisoformat(state["content_delivery_queue"]["dkp-fresh"]["scheduled_at"]),
-            self.now,
+            latest_channel_send + timedelta(minutes=57),
         )
 
     def test_partial_media_retry_does_not_advance_channel_publication_clock(self):
@@ -578,7 +578,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(
             datetime.fromisoformat(queue["dkp-2"]["scheduled_at"])
             - datetime.fromisoformat(queue["dkp-1"]["scheduled_at"]),
-            timedelta(seconds=1200),
+            timedelta(minutes=57),
         )
         again = enqueue_selected_content(state, items, now=self.now, interval_seconds=1200, max_items=2)
         self.assertEqual(again["added"], 0)
@@ -604,6 +604,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         old["platforms"]["telegram"]["status"] = "sent"
         old["platforms"]["bale"]["status"] = "failed"
         next_slot = self.now + timedelta(minutes=20)
+        state["last_product_channel_published_at"] = self.now.isoformat()
         old["scheduled_at"] = next_slot.isoformat()
         old["next_attempt_at"] = next_slot.isoformat()
         state["last_published_at"] = self.now.isoformat()
@@ -615,7 +616,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(summary["added"], 1)
         self.assertEqual(
             datetime.fromisoformat(state["content_delivery_queue"]["dkp-fresh"]["scheduled_at"]),
-            next_slot,
+            self.now + timedelta(minutes=57),
         )
 
     def test_retry_queue_is_bounded_and_prefers_fresh_selections(self):
@@ -666,7 +667,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
                                  now=self.now, interval_seconds=1200, max_items=2)
         due_now = due_content(state, now=self.now, limit=5)
         self.assertEqual([pid for pid, _entry in due_now], ["dkp-1"])
-        later = due_content(state, now=self.now + timedelta(minutes=21), limit=5)
+        later = due_content(state, now=self.now + timedelta(minutes=58), limit=5)
         self.assertEqual({pid for pid, _entry in later}, {"dkp-1", "dkp-2"})
 
 
@@ -715,6 +716,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         old["platforms"]["youtube"]["status"] = "pending"
         state["last_published_at"] = self.now.isoformat()
 
+        state["last_product_channel_published_at"] = self.now.isoformat()
         next_time = self.now + timedelta(minutes=20)
         summary = enqueue_selected_content(
             state, [self.item("dkp-new")], now=next_time,
@@ -725,7 +727,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             datetime.fromisoformat(
                 state["content_delivery_queue"]["dkp-new"]["scheduled_at"]
             ),
-            next_time,
+            self.now + timedelta(minutes=57),
         )
         self.assertIn("dkp-video-pending", state["content_delivery_queue"])
 
@@ -1005,7 +1007,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             max_items=1,
         )
         self.assertEqual(fresh["added"], 1)
-        due = due_content(state, now=self.now + timedelta(minutes=21), limit=1)
+        due = due_content(state, now=self.now + timedelta(minutes=58), limit=1)
         self.assertEqual([product_id for product_id, _entry in due], ["dkp-after-rubika"])
 
     def test_terminal_queue_item_moves_to_bounded_history(self):
@@ -1370,7 +1372,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(ordered[0], self.now + timedelta(minutes=47))
         self.assertEqual(
             (ordered[-1] - last_product).total_seconds(),
-            47 * 60 + 2 * 3600,
+            57 * 60 + 2 * 3600,
         )
 
     def test_reschedule_carries_overflow_instead_of_dropping_products(self):
