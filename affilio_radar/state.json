@@ -206198,8 +206198,8 @@
       "used-refurbished"
     ],
     "cycle_number": 1,
-    "last_editorial_id": "check-model-number",
-    "last_topic": "fit-and-size",
+    "last_editorial_id": "return-shipping-cost",
+    "last_topic": "shipping-and-returns",
     "used_ids": [
       "check-delivery-window",
       "inspect-on-arrival",
@@ -206207,6 +206207,7 @@
       "negative-review-balance",
       "plan-before-buy",
       "recall-check",
+      "return-shipping-cost",
       "review-patterns",
       "seller-and-return-policy",
       "used-refurbished"
@@ -207571,78 +207572,59 @@
       "related_product_id": "dkp-11161996",
       "sequence_number": 1376,
       "topic": "fit-and-size"
-    }
-  ],
-  "editorial_delivery_queue": {
-    "editorial:return-shipping-cost": {
-      "attempt_count": 0,
+    },
+    {
       "content_id": "editorial:return-shipping-cost",
-      "content_type": "editorial",
-      "delivery_runway_seconds": 16,
-      "dispatch_runway_seconds": 76,
-      "next_attempt_at": "2026-11-16T21:03:22.379410+00:00",
-      "payload": {
-        "body": "پیش از ثبت سفارش مشخص کن در صورت انصراف یا ناسازگاری کالا، هزینه ارسال برگشتی با چه کسی است. مهلت مرجوعی، شرایط بسته‌بندی و مدارک لازم را بخوان تا بعداً غافلگیر نشوی.",
-        "content_id": "editorial:return-shipping-cost",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 1,
-        "editorial_id": "return-shipping-cost",
-        "idempotency_key": "289c105ec762435e",
-        "related_product_affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-4622784%2F",
-        "related_product_id": "dkp-4622784",
-        "related_product_title": "مداد تراش آرایشی کازمتیک مدل AB_24",
-        "review_due_at": "2027-02-10T18:00:00Z",
-        "reviewed_at": "2026-11-12T18:00:00Z",
-        "sequence_number": 1397,
-        "sources": [
-          {
-            "source_id": "ftc-online-shopping",
-            "title": "راهنمای خرید اینترنتی FTC",
-            "url": "https://consumer.ftc.gov/articles/online-shopping"
-          }
-        ],
-        "title": "هزینه برگشت کالا را هم در تصمیم لحاظ کن",
-        "topic": "shipping-and-returns"
-      },
-      "platforms": {
+      "delivery_duration_seconds": 12.9,
+      "destinations": {
         "aparat": {
           "attempts": 0,
           "status": "pending"
         },
         "bale": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T21:04:44.161954+00:00",
+          "attempts": 1,
+          "message_id": "2151",
+          "status": "sent",
+          "updated_at": "2026-11-16T21:04:49.284343+00:00"
         },
         "eitaa": {
           "attempts": 0,
-          "status": "pending"
+          "last_error": "eitaa_not_enabled_or_credentials_missing",
+          "status": "not_connected",
+          "updated_at": "2026-11-16T21:04:54.441911+00:00"
         },
         "filo": {
           "attempts": 0,
           "status": "pending"
         },
         "rubika": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T21:04:49.621340+00:00",
+          "attempts": 1,
+          "message_id": "1974205702746588651",
+          "status": "sent",
+          "updated_at": "2026-11-16T21:04:54.102462+00:00"
         },
         "telegram": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T21:04:42.418570+00:00",
+          "attempts": 1,
+          "message_id": "1612",
+          "status": "sent",
+          "updated_at": "2026-11-16T21:04:43.809160+00:00"
         },
         "youtube": {
           "attempts": 0,
           "status": "pending"
         }
       },
+      "editorial_id": "return-shipping-cost",
+      "published_at": "2026-11-16T21:04:43.809160+00:00",
       "related_product_id": "dkp-4622784",
-      "scheduled_at": "2026-11-16T21:03:22.379410+00:00",
-      "selected_at": "2026-11-16T21:00:16.811647+00:00",
-      "sequence_number": 1397,
-      "status": "queued",
-      "window_closes_at": "2026-11-16T21:06:12.482167+00:00"
+      "sequence_number": 1398,
+      "topic": "shipping-and-returns"
     }
-  },
+  ],
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -207958,12 +207940,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-16T21:00:16.276654+00:00",
+  "last_channel_published_at": "2026-11-16T21:04:49.284343+00:00",
   "last_content_selection_at": "2026-11-16T20:59:58.717525+00:00",
-  "last_editorial_attempt_at": "2026-11-16T21:00:16.811647+00:00",
-  "last_editorial_confirmed_at": "2026-11-16T18:26:51.937427+00:00",
+  "last_editorial_attempt_at": "2026-11-16T21:04:40.935043+00:00",
+  "last_editorial_confirmed_at": "2026-11-16T21:04:54.102462+00:00",
   "last_product_channel_published_at": "2026-11-16T21:00:16.276654+00:00",
-  "last_published_at": "2026-11-16T21:00:16.276654+00:00",
+  "last_published_at": "2026-11-16T21:04:49.284343+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -298661,7 +298643,7 @@
       "ts": 1793119008.409393
     }
   },
-  "publication_sequence_counter": 1397,
+  "publication_sequence_counter": 1398,
   "published": {
     "dkp-10002173": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -303296,6 +303278,7 @@
     },
     "dkp-117895": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2147,
       "bale_posted_at": "2026-11-16T20:50:48.262945+00:00",
       "brand": "سی گل",
@@ -303360,6 +303343,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_upload_status": "pending",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-16T20:38:10.659684+00:00",
@@ -328904,6 +328888,7 @@
     },
     "dkp-19873348": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2145,
       "bale_posted_at": "2026-11-16T20:48:51.099397+00:00",
       "brand": "",
@@ -328968,6 +328953,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_upload_status": "pending",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-16T20:38:10.659657+00:00",
@@ -391544,6 +391530,7 @@
     },
     "dkp-8994322": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2148,
       "bale_posted_at": "2026-11-16T20:52:53.668684+00:00",
       "brand": "",
@@ -391612,6 +391599,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_upload_status": "pending",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-16T20:38:10.659697+00:00",
