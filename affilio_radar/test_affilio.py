@@ -379,6 +379,7 @@ class AffilioRadarTests(unittest.TestCase):
                 "product": {
                     "id": 22104577,
                     "title_fa": "هدفون بلوتوثی دبلیو کی دیزاین مدل INAIR32",
+                    "brand": {"title_fa": "دبلیو کی دیزاین"},
                     "status": "marketable",
                     "images": ["https://dkstatics-public.digikala.com/digikala-products/sample.jpg"],
                     "default_variant": {
@@ -423,6 +424,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(record["original_price"], 2_500_000)
         self.assertEqual(record["availability"], "in_stock")
         self.assertEqual(record["review_count"], 83)
+        self.assertEqual(record["brand"], "دبلیو کی دیزاین")
         self.assertTrue(record["image_url"].startswith("https://dkstatics-public.digikala.com/"))
         html_fetch.assert_not_called()
 
@@ -1550,6 +1552,8 @@ class AffilioRadarTests(unittest.TestCase):
     def test_family_brand_and_similarity_repeat_guards_are_24_hours(self):
         self.assertEqual(radar_module.FAMILY_REPEAT_COOLDOWN_HOURS, 24)
         self.assertEqual(radar_module.BRAND_REPEAT_COOLDOWN_HOURS, 24)
+        self.assertEqual(radar_module.CATEGORY_REPEAT_COOLDOWN_HOURS, 6)
+        self.assertEqual(radar_module.USE_CASE_REPEAT_COOLDOWN_HOURS, 4)
         self.assertEqual(radar_module.PUBLICATION_SIMILARITY_COOLDOWN_HOURS, 24)
 
     def test_recent_brand_is_blocked_for_24_hours_and_released_afterward(self):
@@ -2344,9 +2348,9 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
 
         self.assertTrue(selected)
-        # Strict demand/discount priority outranks category variety and the
-        # 60% eyewear offer wins when current demand evidence is tied.
-        self.assertEqual(selected[0]["product_id"], "dkp-eyewear-0")
+        # Recent use of the broad fashion category defers eyewear to the
+        # available fragrance alternative; hard family/similarity guards remain.
+        self.assertEqual(selected[0]["product_id"], "dkp-late-fragrance")
 
 
     def test_single_repeated_category_candidate_is_still_publishable(self):
@@ -6076,7 +6080,7 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_discovery_records_for_check(
             queue, now, max_count=2, published={}, recent_publications=recent
         )
-        self.assertEqual([pid for pid, _ in selected], ["dkp-93032", "dkp-93033"])
+        self.assertEqual([pid for pid, _ in selected], ["dkp-93033", "dkp-93032"])
 
     def test_discovery_check_budget_applies_brand_and_family_guards_before_limit(self):
         now = datetime(2026, 11, 6, 9, 0, tzinfo=timezone.utc)
