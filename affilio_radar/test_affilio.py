@@ -2464,7 +2464,7 @@ class AffilioRadarTests(unittest.TestCase):
         )
 
 
-    def test_publish_selection_blocks_durable_recent_audio_family(self):
+    def test_publish_selection_blocks_durable_recent_audio_family_but_keeps_other_categories(self):
         now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
         recent_publications = [
             {
@@ -2486,11 +2486,11 @@ class AffilioRadarTests(unittest.TestCase):
             queue, eligible, now, published={}, recent_publications=recent_publications
         )
 
-        # Durable history enforces the 24-hour family, brand and similarity guards before selection.
-        self.assertEqual(
-            [item["product_id"] for item in selected],
-            ["dkp-fashion-new"],
-        )
+        selected_ids = [item["product_id"] for item in selected]
+        # The recent audio family is hard-blocked, but unrelated power and fashion
+        # products remain eligible: a family guard must not become a category-wide lock.
+        self.assertNotIn("dkp-audio-new", selected_ids)
+        self.assertEqual(selected_ids, ["dkp-power-new", "dkp-fashion-new"])
 
 
     def test_recent_publication_diversity_deduplicates_same_message_ids_across_timestamps(self):
