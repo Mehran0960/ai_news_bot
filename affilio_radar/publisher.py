@@ -248,9 +248,11 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
         "selection_continuity_mode": str(item.get("selection_continuity_mode") or ""),
         "emergency_continuity_snapshot_sha256": str(item.get("emergency_continuity_snapshot_sha256") or ""),
         "emergency_continuity_baseline_completed_at": str(item.get("emergency_continuity_baseline_completed_at") or ""),
-        "selection_four_factor": (
-            dict(item.get("selection_four_factor"))
-            if isinstance(item.get("selection_four_factor"), dict) else {}
+        "selection_three_factor": (
+            dict(item.get("selection_three_factor"))
+            if isinstance(item.get("selection_three_factor"), dict)
+            else dict(item.get("offerchin_three_factor"))
+            if isinstance(item.get("offerchin_three_factor"), dict) else {}
         ),
         "emergency_continuity_quality_score": item.get("emergency_continuity_quality_score"),
         "selection_bestseller_rank": item.get("selection_bestseller_rank"),
@@ -458,7 +460,7 @@ def _fresh_selected_item(
         "catalog_rank_observed_at", "catalog_cycle_completed_at", "catalog_cycle_snapshot_rank",
         "publication_policy", "selection_demand_evidence", "selection_demand_quality",
         "selection_continuity_mode", "emergency_continuity_snapshot_sha256",
-        "emergency_continuity_baseline_completed_at", "selection_four_factor",
+        "emergency_continuity_baseline_completed_at", "selection_three_factor",
         "emergency_continuity_quality_score",
         "selection_bestseller_rank", "selection_bestseller_category_count",
         "selection_bestseller_rank_improvement", "selection_review_growth_evidence",
