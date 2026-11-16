@@ -84,6 +84,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
 
     def test_last_mile_product_fallback_inherits_failed_slot_sequence(self):
         state = {
+            "last_product_channel_published_at": (self.now - timedelta(minutes=10)).isoformat(),
             "content_delivery_history": [{
                 "content_id": "dkp-primary",
                 "status": "stale_selection",
@@ -100,6 +101,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(entry["sequence_number"], 9)
         self.assertEqual(entry["payload"]["sequence_number"], 9)
         self.assertEqual(entry["content_type"], "product")
+        self.assertEqual(
+            datetime.fromisoformat(entry["scheduled_at"]),
+            self.now + timedelta(minutes=47),
+        )
 
     def test_initial_product_slot_is_immediate_and_following_product_is_at_least_57_minutes_later(self):
         state = {}
