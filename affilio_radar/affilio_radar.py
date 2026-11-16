@@ -8223,6 +8223,8 @@ def build_publication_diversity_report(
             "minimum_discount_attractiveness_score": MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE,
             "family_repeat_cooldown_hours": FAMILY_REPEAT_COOLDOWN_HOURS,
             "brand_repeat_cooldown_hours": BRAND_REPEAT_COOLDOWN_HOURS,
+            "category_repeat_cooldown_hours": CATEGORY_REPEAT_COOLDOWN_HOURS,
+            "use_case_repeat_cooldown_hours": USE_CASE_REPEAT_COOLDOWN_HOURS,
             "similar_product_repeat_cooldown_hours": PUBLICATION_SIMILARITY_COOLDOWN_HOURS,
             "similarity_jaccard_threshold": PUBLICATION_SIMILARITY_JACCARD_THRESHOLD,
         },
@@ -8512,6 +8514,23 @@ def _filter_recent_publication_repeats(
         window_hours=history_window_hours,
     )
 
+    current_ts = current.timestamp()
+    recent_categories: set[str] = set()
+    recent_use_cases: set[str] = set()
+    for previous in history:
+        try:
+            posted_at = float(previous.get("ts") or 0)
+        except (TypeError, ValueError, OverflowError):
+            posted_at = 0.0
+        if posted_at and current_ts - posted_at <= CATEGORY_REPEAT_COOLDOWN_HOURS * 3600:
+            prior_category = str(previous.get("category") or _publication_diversity_group(previous)[0] or "")
+            if prior_category and prior_category not in {"other", "unknown"}:
+                recent_categories.add(prior_category)
+        if posted_at and current_ts - posted_at <= USE_CASE_REPEAT_COOLDOWN_HOURS * 3600:
+            prior_use_case = str(previous.get("use_case") or _publication_use_case_group(previous) or "")
+            if prior_use_case and prior_use_case not in {"general", "catalog_taxonomy_other", "unknown"}:
+                recent_use_cases.add(prior_use_case)
+
     recent_families: set[str] = set()
     recent_brands: set[str] = set()
     for previous in history:
@@ -8523,6 +8542,9 @@ def _filter_recent_publication_repeats(
             recent_brands.add(brand)
 
     selected: list[dict] = []
+    deferred_candidates: list[tuple[dict, list[str]]] = []
+    selected_categories: set[str] = set()
+    selected_use_cases: set[str] = set()
     selected_families: set[str] = set()
     selected_brands: set[str] = set()
     comparison_history = list(history)
@@ -8532,7 +8554,10 @@ def _filter_recent_publication_repeats(
     global _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS
 
     for candidate in source:
+        if limit is not None and len(selected) >= max(1, int(limit)):
+            break
         category, family, brand = _publication_diversity_group(candidate)
+        use_case = _publication_use_case_group(candidate)
         family_key = _publication_family_guard_key(candidate)
         family_match = next((
             previous for previous in comparison_history
@@ -8592,11 +8617,60 @@ def _filter_recent_publication_repeats(
             )
             continue
 
+        soft_reasons = []
+        if category and category not in {"other", "unknown"} and (
+            category in recent_categories or category in selected_categories
+        ):
+            soft_reasons.append("category_repeat")
+        if use_case and use_case not in {"general", "catalog_taxonomy_other", "unknown"} and (
+            use_case in recent_use_cases or use_case in selected_use_cases
+        ):
+            soft_reasons.append("use_case_repeat")
+        if soft_reasons:
+            deferred_candidates.append((candidate, soft_reasons))
+            continue
+
         selected.append(candidate)
         if family_key:
             selected_families.add(family_key)
         if brand:
             selected_brands.add(brand)
+        if category and category not in {"other", "unknown"}:
+            selected_categories.add(category)
+        if use_case and use_case not in {"general", "catalog_taxonomy_other", "unknown"}:
+            selected_use_cases.add(use_case)
+        comparison_history.append(candidate)
+
+    # Fill remaining capacity from soft-deferred candidates; hard repeat checks still apply.
+    for candidate, soft_reasons in deferred_candidates:
+        if limit is not None and len(selected) >= max(1, int(limit)):
+            break
+        _category, _family, _brand = _publication_diversity_group(candidate)
+        family_key = _publication_family_guard_key(candidate)
+        family_repeat = any(
+            family_key and _publication_family_guard_key(previous) == family_key
+            for previous in comparison_history
+        )
+        brand_repeat = bool(_brand and any(
+            _publication_diversity_group(previous)[2] == _brand
+            for previous in comparison_history
+        ))
+        similarity_repeat = any(
+            _publication_products_are_similar(candidate, previous)
+            for previous in comparison_history
+        )
+        if family_repeat or brand_repeat or similarity_repeat:
+            continue
+        selected.append(candidate)
+        if family_key:
+            selected_families.add(family_key)
+        if _brand:
+            selected_brands.add(_brand)
+        if _category and _category not in {"other", "unknown"}:
+            selected_categories.add(_category)
+        _use_case = _publication_use_case_group(candidate)
+        if _use_case and _use_case not in {"general", "catalog_taxonomy_other", "unknown"}:
+            selected_use_cases.add(_use_case)
         comparison_history.append(candidate)
 
     skipped = len(source) - len(selected)
@@ -8605,10 +8679,14 @@ def _filter_recent_publication_repeats(
             f"{label}_REPEAT_GUARD candidates={len(source)} selected={len(selected)} "
             f"deferred={skipped} family_blocked={family_blocked} "
             f"brand_blocked={brand_blocked} similarity_blocked={similarity_blocked} "
+            f"category_deferred={sum(1 for _, reasons in deferred_candidates if 'category_repeat' in reasons)} "
+            f"use_case_deferred={sum(1 for _, reasons in deferred_candidates if 'use_case_repeat' in reasons)} "
             f"family_cooldown_hours={FAMILY_REPEAT_COOLDOWN_HOURS} "
             f"brand_cooldown_hours={BRAND_REPEAT_COOLDOWN_HOURS} "
+            f"category_cooldown_hours={CATEGORY_REPEAT_COOLDOWN_HOURS} "
+            f"use_case_cooldown_hours={USE_CASE_REPEAT_COOLDOWN_HOURS} "
             f"similarity_cooldown_hours={PUBLICATION_SIMILARITY_COOLDOWN_HOURS} "
-            f"rank_order_preserved=true"
+            f"rank_order_preserved_with_soft_diversification=true"
         )
 
     if limit is not None:
