@@ -154,6 +154,119 @@ class EditorialPublisherTests(unittest.TestCase):
             NOW + timedelta(minutes=50),
         )
 
+    def test_short_but_feasible_gap_moves_editorial_to_latest_safe_dispatch_start(self):
+        product_at = NOW + timedelta(minutes=2)
+        state = {
+            "last_channel_published_at": NOW.isoformat(),
+            "content_delivery_queue": {
+                "dkp-short-gap": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": product_at.isoformat(),
+                    "payload": {"product_id": "dkp-short-gap", "title": "گوشی موبایل"},
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                }
+            },
+        }
+        with patch.dict(os.environ, {
+            "OFFERCHIN_EDITORIAL_DISPATCH_POLL_SECONDS": "60",
+            "OFFERCHIN_EDITORIAL_DEFAULT_DELIVERY_SECONDS": "30",
+        }, clear=True):
+            entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
+
+        self.assertIsNotNone(entry)
+        self.assertEqual(
+            datetime.fromisoformat(entry["scheduled_at"]),
+            NOW + timedelta(seconds=30),
+        )
+        self.assertEqual(
+            datetime.fromisoformat(entry["window_closes_at"]),
+            NOW + timedelta(seconds=90),
+        )
+        self.assertEqual(entry["dispatch_runway_seconds"], 90)
+
+    def test_missed_midpoint_starts_now_when_the_remaining_delivery_runway_fits(self):
+        product_at = NOW + timedelta(minutes=2)
+        state = {
+            "last_channel_published_at": (NOW - timedelta(minutes=2)).isoformat(),
+            "content_delivery_queue": {
+                "dkp-late-wakeup": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": product_at.isoformat(),
+                    "payload": {"product_id": "dkp-late-wakeup", "title": "گوشی موبایل"},
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                }
+            },
+        }
+        with patch.dict(os.environ, {
+            "OFFERCHIN_EDITORIAL_DISPATCH_POLL_SECONDS": "60",
+            "OFFERCHIN_EDITORIAL_DEFAULT_DELIVERY_SECONDS": "30",
+        }, clear=True):
+            entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
+
+        self.assertIsNotNone(entry)
+        self.assertEqual(datetime.fromisoformat(entry["scheduled_at"]), NOW)
+        self.assertEqual(
+            datetime.fromisoformat(entry["window_closes_at"]),
+            NOW + timedelta(seconds=90),
+        )
+        self.assertEqual(entry["delivery_runway_seconds"], 30)
+
+    def test_editorial_is_skipped_when_real_send_runway_does_not_fit(self):
+        product_at = NOW + timedelta(seconds=75)
+        state = {
+            "last_channel_published_at": NOW.isoformat(),
+            "content_delivery_queue": {
+                "dkp-no-runway": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": product_at.isoformat(),
+                    "payload": {"product_id": "dkp-no-runway", "title": "گوشی موبایل"},
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                }
+            },
+        }
+        with patch.dict(os.environ, {
+            "OFFERCHIN_EDITORIAL_DISPATCH_POLL_SECONDS": "60",
+            "OFFERCHIN_EDITORIAL_DEFAULT_DELIVERY_SECONDS": "30",
+        }, clear=True):
+            entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
+
+        self.assertIsNone(entry)
+        self.assertFalse(state.get("editorial_delivery_queue"))
+
+    def test_active_editorial_is_cancelled_when_only_delivery_time_remains(self):
+        editorial = {
+            "content_id": "editorial:window-closed",
+            "sequence_number": 31,
+            "status": "queued",
+            "scheduled_at": (NOW - timedelta(seconds=5)).isoformat(),
+            "next_attempt_at": (NOW - timedelta(seconds=5)).isoformat(),
+            "related_product_id": "dkp-product-soon",
+            "payload": editorial_item(),
+            "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+        }
+        product = {
+            "content_type": "product",
+            "status": "queued",
+            "scheduled_at": (NOW + timedelta(seconds=20)).isoformat(),
+            "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+        }
+        state = {
+            "editorial_delivery_queue": {editorial["content_id"]: editorial},
+            "content_delivery_queue": {"dkp-product-soon": product},
+        }
+        with patch.dict(os.environ, {
+            "OFFERCHIN_EDITORIAL_DISPATCH_POLL_SECONDS": "60",
+            "OFFERCHIN_EDITORIAL_DEFAULT_DELIVERY_SECONDS": "30",
+        }, clear=True):
+            self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
+
+        self.assertNotIn(editorial["content_id"], state["editorial_delivery_queue"])
+        self.assertEqual(editorial["status"], "cancelled")
+        self.assertEqual(editorial["last_detail"], "editorial_dispatch_window_closed_before_product")
+
     def test_editorial_does_not_preempt_a_due_product_slot(self):
         state = {
             "last_channel_published_at": (NOW - timedelta(hours=2)).isoformat(),
