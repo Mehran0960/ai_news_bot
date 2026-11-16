@@ -18,6 +18,33 @@ FORBIDDEN_COMMERCE_TERMS = re.compile(
     re.IGNORECASE,
 )
 
+UNIVERSAL_EDITORIAL_TOPICS = frozenset({
+    "purchase-planning",
+    "review-literacy",
+    "seller-check",
+    "purchase-records",
+    "delivery",
+    "shipping-and-returns",
+})
+ALLOWED_EDITORIAL_TOPICS = UNIVERSAL_EDITORIAL_TOPICS | frozenset({
+    "product-inspection",
+    "total-cost",
+    "fit-and-size",
+    "device-compatibility",
+    "warranty-and-service",
+    "maintenance-and-care",
+    "product-safety",
+    "product-condition",
+    "safe-payment",
+    "seller-verification",
+})
+RETIRED_EDITORIAL_IDS = frozenset({
+    "app-permissions",
+    "privacy-policy",
+    "location-sharing",
+    "account-password",
+})
+
 
 def _utc(value: Any) -> datetime | None:
     try:
@@ -55,6 +82,10 @@ def validate_editorial_item(item: Any, *, now: datetime | None = None) -> tuple[
         return False, "invalid_title_or_body_length"
     if not re.fullmatch(r"[a-z0-9-]{2,40}", topic):
         return False, "invalid_topic"
+    if editorial_id in RETIRED_EDITORIAL_IDS:
+        return False, "retired_off_topic_item"
+    if topic not in ALLOWED_EDITORIAL_TOPICS:
+        return False, "unsupported_editorial_topic"
     if FORBIDDEN_COMMERCE_TERMS.search(title + "\n" + body):
         return False, "unsupported_commercial_claim"
     sources = item.get("sources")
@@ -93,27 +124,43 @@ def _history_rows(state: dict) -> list[dict]:
 
 
 def editorial_topics_for_product(product: Any) -> set[str]:
-    """Return reviewed editorial topics that can support a nearby product decision."""
-    if not isinstance(product, dict):
-        return set()
-    factors = product.get("offerchin_four_factor")
+    """Return topics that genuinely help with this product's purchase or ownership."""
+    factors = product.get("offerchin_four_factor") if isinstance(product, dict) else None
     group = str(factors.get("generality_group") or "").strip().lower() if isinstance(factors, dict) else ""
     mapping = {
-        "mobile_productivity": {"device-compatibility", "warranty-and-service", "product-inspection", "purchase-planning"},
-        "audio_visual": {"device-compatibility", "warranty-and-service", "product-inspection", "review-literacy"},
+        "mobile_productivity": {"device-compatibility", "warranty-and-service", "product-inspection"},
+        "audio_visual": {"device-compatibility", "warranty-and-service", "product-inspection"},
         "home_cleaning": {"maintenance-and-care", "product-safety", "total-cost", "product-inspection"},
         "kitchen_food": {"maintenance-and-care", "product-safety", "total-cost", "product-inspection"},
-        "grocery_food": {"product-safety", "product-condition", "total-cost", "seller-check"},
-        "personal_care": {"product-safety", "product-condition", "product-inspection", "purchase-planning"},
-        "home_living": {"fit-and-size", "product-inspection", "total-cost", "purchase-planning"},
-        "fashion_lifestyle": {"fit-and-size", "product-condition", "product-inspection", "purchase-planning"},
-        "baby_care": {"product-safety", "product-condition", "seller-check"},
+        "grocery_food": {"product-safety", "product-condition", "total-cost"},
+        "personal_care": {"product-safety", "product-condition", "product-inspection"},
+        "home_living": {"fit-and-size", "product-inspection", "total-cost"},
+        "fashion_lifestyle": {"fit-and-size", "product-condition", "product-inspection"},
+        "baby_care": {"product-safety", "product-condition"},
         "tools_industrial": {"product-safety", "maintenance-and-care", "warranty-and-service"},
         "automotive": {"maintenance-and-care", "warranty-and-service", "product-safety"},
         "office_study": {"device-compatibility", "fit-and-size", "product-inspection"},
-        "books_learning": {"review-literacy", "purchase-planning"},
+        "books_learning": set(),
     }
-    return set(mapping.get(group, {"purchase-planning", "review-literacy", "seller-check"}))
+    # Purchase planning, seller trust, receipts and delivery are relevant across
+    # e-commerce categories. Product-specific topics must match the product group.
+    return set(UNIVERSAL_EDITORIAL_TOPICS) | set(mapping.get(group, set()))
+
+
+def _editorial_source_rank(item: dict) -> int:
+    """Prefer useful Iranian retail/editorial sources over generic foreign advice."""
+    sources = item.get("sources") if isinstance(item, dict) else None
+    for source in sources if isinstance(sources, list) else []:
+        if not isinstance(source, dict):
+            continue
+        host = (urlparse(str(source.get("url") or "")).hostname or "").lower()
+        if host == "digikala.com" or host.endswith(".digikala.com"):
+            return 0
+        if host == "zoomit.ir" or host.endswith(".zoomit.ir"):
+            return 1
+        if host.endswith(".ir"):
+            return 2
+    return 3
 
 
 def select_editorial_fallback(
@@ -137,11 +184,14 @@ def select_editorial_fallback(
     current = current.astimezone(timezone.utc)
     history = _history_rows(state if isinstance(state, dict) else {})
 
+    relevant_topics = editorial_topics_for_product(related_product)
     valid_items = []
     for raw in bank if isinstance(bank, list) else []:
         ok, _reason = validate_editorial_item(raw, now=current)
-        if ok:
+        if ok and str(raw.get("topic") or "").strip().lower() in relevant_topics:
             valid_items.append(raw)
+    # Editorial is a quality gate, not filler. If no reviewed item fits the
+    # selected product, skip this editorial slot instead of publishing noise.
     if not valid_items:
         return None
 
@@ -179,7 +229,6 @@ def select_editorial_fallback(
             if str(item.get("editorial_id") or "") != last_id
         ] or eligible
 
-    relevant_topics = editorial_topics_for_product(related_product)
     last_used: dict[str, datetime] = {}
     for row in history:
         topic = str(row.get("topic") or "").lower()
@@ -198,6 +247,7 @@ def select_editorial_fallback(
     priority_rank = {"high": 0, "normal": 1, "low": 2}
     eligible.sort(key=lambda row: (
         -relevance(row),
+        _editorial_source_rank(row),
         priority_rank.get(str(row.get("priority") or "normal").lower(), 1),
         last_used.get(str(row.get("topic") or "").lower(), datetime.min.replace(tzinfo=timezone.utc)),
         str(row["editorial_id"]),
