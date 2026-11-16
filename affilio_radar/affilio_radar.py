@@ -4766,7 +4766,7 @@ def _verified_review_growth_sort_key(
 
 
 def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
-    """Rank valid offers by the balanced live-demand/affordability/generality/value index."""
+    """Rank valid offers by live demand, use-case reach and verified discount quality."""
     candidate = p if isinstance(p, dict) else {}
     return (
         *_offerchin_factor_sort_key(candidate, now=now),
@@ -9344,7 +9344,7 @@ def select_discount_fallback_candidates(
         approved_emergency.sort(
             key=lambda row: (
                 float(row.get("emergency_continuity_quality_score") or 0),
-                float((row.get("offerchin_four_factor") or {}).get("discount_attractiveness") or 0),
+                float((row.get("offerchin_three_factor") or {}).get("discount_attractiveness") or 0),
                 int(row.get("savings_toman") or 0),
             ),
             reverse=True,
@@ -9483,8 +9483,8 @@ def select_discount_fallback_candidates(
             caption_experiment_counts[caption_variant] += 1
 
     print(
-        f"PUBLICATION_CANDIDATES_READY four_factor_ranked={len(safe_handoff)} "
-        f"top_four_factor={safe_handoff[0].get('offerchin_four_factor', {}).get('balanced_score')} "
+        f"PUBLICATION_CANDIDATES_READY three_factor_ranked={len(safe_handoff)} "
+        f"top_three_factor={safe_handoff[0].get('offerchin_three_factor', {}).get('balanced_score')} "
         f"top_bestseller_rank={safe_handoff[0].get('selection_bestseller_rank')} "
         f"top_discount={safe_handoff[0].get('discount_percent')} "
         f"visual_variants={experiment_counts} caption_variants={caption_experiment_counts} "
@@ -11403,8 +11403,8 @@ def run(publish=False, selection_only=False):
     print(
         "Ranking mode=full-catalog four-factor-balanced; fresh DigiKala bestseller rank or verified "
         "recent review-growth proxy is a hard demand gate. Eligible candidates are ranked by the "
-        "harmonic mean of live demand, cash-ticket affordability, use-case generality and discount "
-        "attractiveness; the weakest factor is a tie-break. Missing price/evidence is never invented. "
+        "harmonic mean of live demand, use-case generality and discount attractiveness; the weakest "
+        "factor is a tie-break. Affordability is excluded. Missing evidence is never invented. "
         "Clicks and affiliate revenue never rank demand. Live stock, price, product identity, direct "
         "Affilio URL, expiry, 24h family/brand/similarity guards and safety checks remain hard controls."
     )
@@ -11681,8 +11681,7 @@ def run(publish=False, selection_only=False):
     enrich_price_history(products, state)
     enrich_market_prices(products, state)
     queue_now = datetime.now(timezone.utc)
-    # Score the comparable live-checked product cohort together so category-relative
-    # affordability is computed from its peers, not from isolated one-item calls.
+    # Score the complete live-checked cohort with three independent non-price dimensions.
     _apply_offerchin_four_factor_scores(products, now=queue_now)
     products.sort(key=deal_sort_key, reverse=True)
     # Independent market/history evidence is diagnostic; it cannot filter a live markdown.
