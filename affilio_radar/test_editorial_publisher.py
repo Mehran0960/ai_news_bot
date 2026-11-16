@@ -137,6 +137,7 @@ class EditorialPublisherTests(unittest.TestCase):
         product_at = NOW + timedelta(hours=2)
         state = {
             "last_channel_published_at": (NOW - timedelta(minutes=20)).isoformat(),
+            "last_product_channel_published_at": (NOW - timedelta(minutes=20)).isoformat(),
             "content_delivery_queue": {
                 "dkp-next": {
                     "content_type": "product",
@@ -259,10 +260,11 @@ class EditorialPublisherTests(unittest.TestCase):
             "product_id": "dkp-related",
             "title": "گوشی هوشمند",
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/test.jpg",
-            "offerchin_four_factor": {"generality_group": "mobile_productivity"},
+            "offerchin_three_factor": {"generality_group": "mobile_productivity"},
         }
         state = {
             "last_channel_published_at": NOW.isoformat(),
+            "last_product_channel_published_at": NOW.isoformat(),
             "content_delivery_queue": {
                 "dkp-related": {
                     "content_type": "product",
