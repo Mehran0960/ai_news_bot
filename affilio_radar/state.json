@@ -252158,81 +252158,7 @@
       "topic": "purchase-planning"
     }
   ],
-  "editorial_delivery_queue": {
-    "editorial:seller-and-return-policy": {
-      "attempt_count": 0,
-      "content_id": "editorial:seller-and-return-policy",
-      "content_type": "editorial",
-      "delivery_runway_seconds": 33,
-      "dispatch_runway_seconds": 93,
-      "next_attempt_at": "2026-11-16T13:40:24.743973+00:00",
-      "payload": {
-        "body": "نام و راه ارتباطی فروشنده را پیدا کن. هزینه و زمان ارسال، شرایط بازگشت کالا، بازپرداخت وجه و هزینه احتمالی ارسال برگشتی را بخوان. اگر درباره کالا یا شرایط معامله ابهامی داری، پاسخ فروشنده را مکتوب نگه دار. در خرید از بازارگاه‌ها، مسئولیت‌ها و پشتیبانی هر پلتفرم ممکن است با دیگری فرق داشته باشد.",
-        "content_id": "editorial:seller-and-return-policy",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 1,
-        "editorial_id": "seller-and-return-policy",
-        "idempotency_key": "f86fc4f46f142069",
-        "related_product_id": "dkp-6960252",
-        "related_product_image_url": "https://dkstatics-public.digikala.com/digikala-products/e5131efbda31fac9f4607da4004234811828df39_1789221077.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "related_product_title": "میز پاتختی مدل DLF47L",
-        "review_due_at": "2027-02-10T18:00:00Z",
-        "reviewed_at": "2026-11-12T18:00:00Z",
-        "sequence_number": 1351,
-        "sources": [
-          {
-            "source_id": "ftc-marketplace",
-            "title": "Buying From an Online Marketplace – Consumer Advice",
-            "url": "https://consumer.ftc.gov/articles/buying-online-marketplace"
-          },
-          {
-            "source_id": "ftc-online-shopping",
-            "title": "Online Shopping – Consumer Advice",
-            "url": "https://consumer.ftc.gov/articles/online-shopping"
-          }
-        ],
-        "title": "پیش از پرداخت، فروشنده و شرایط مرجوعی را بررسی کن",
-        "topic": "seller-check"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "related_product_id": "dkp-6960252",
-      "scheduled_at": "2026-11-16T13:40:24.743973+00:00",
-      "selected_at": "2026-11-16T13:39:16.924713+00:00",
-      "sequence_number": 1351,
-      "status": "queued",
-      "window_closes_at": "2026-11-16T13:41:24.743973+00:00"
-    }
-  },
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -346077,6 +346003,7 @@
     },
     "dkp-11517794": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2095,
       "bale_posted_at": "2026-11-16T13:26:53.894069+00:00",
       "brand": "تکسان",
@@ -350199,6 +350126,7 @@
     },
     "dkp-13146788": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2091,
       "bale_posted_at": "2026-11-16T13:22:43.048039+00:00",
       "brand": "",
@@ -350263,6 +350191,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_upload_status": "pending",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-16T12:08:09.043270+00:00",
@@ -425652,6 +425581,7 @@
     },
     "dkp-6812939": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2092,
       "bale_posted_at": "2026-11-16T13:23:58.712076+00:00",
       "brand": "",
@@ -425716,6 +425646,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_upload_status": "pending",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-16T12:08:09.043316+00:00",
@@ -432262,6 +432193,7 @@
     },
     "dkp-9388176": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2093,
       "bale_posted_at": "2026-11-16T13:25:47.244845+00:00",
       "brand": "",
