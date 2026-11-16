@@ -21,6 +21,7 @@ import affilio_radar as radar
 from content_delivery import (
     allocate_publication_sequence,
     get_last_channel_published_at,
+    get_last_product_channel_published_at,
     refresh_unpublished_selections,
 )
 from editorial_content import record_editorial_delivery, select_editorial_fallback
@@ -252,7 +253,7 @@ def queue_editorial_if_due(
     if already_linked:
         return None
 
-    anchor = get_last_channel_published_at(state) or current
+    anchor = get_last_product_channel_published_at(state) or current
     gap_seconds = max(0.0, (product_at - anchor).total_seconds())
     if gap_seconds <= 0:
         return None
