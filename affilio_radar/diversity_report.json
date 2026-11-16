@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T06:52:24.817781+00:00",
+  "generated_at": "2026-11-16T07:01:38.702986+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -396,63 +396,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1481,
+    "all_time_count": 1484,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 420,
+      "family_repeat": 418,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T06:00:25.701987+00:00",
-        "brand": "",
-        "catalog_category_id": "9841",
-        "catalog_category_name": "جوراب زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-7284546",
-        "family": "digikala_category:9841",
-        "product_id": "dkp-1734924",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "جوراب زنانه آریان نخ باف کد 5122-1 بسته 3 عددی",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-16T06:07:05.146075+00:00",
-        "brand": "",
-        "catalog_category_id": "9371",
-        "catalog_category_name": "کفش پاشنه دار زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-6223366",
-        "family": "digikala_category:9371",
-        "product_id": "dkp-3584477",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش زنانه پاتکان کد NIC829",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-16T06:07:05.146075+00:00",
-        "brand": "",
-        "catalog_category_id": "10638",
-        "catalog_category_name": "قابلمه و تابه",
-        "category": "other",
-        "compared_to_product_id": "dkp-921444",
-        "family": "digikala_category:10638",
-        "product_id": "dkp-3241918",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "قابلمه عروس مدل کلاسیک خطی سایز 20",
-        "use_case": "kitchen_food"
-      },
       {
         "at": "2026-11-16T06:07:05.146075+00:00",
         "brand": "",
@@ -732,6 +682,55 @@
           "similarity_repeat"
         ],
         "title": "جوراب زنانه آریان نخ باف کد 5122-1 بسته 3 عددی",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T07:01:38.702986+00:00",
+        "brand": "",
+        "catalog_category_id": "9473",
+        "catalog_category_name": "زیرپوش مردانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-7284546",
+        "family": "digikala_category:9473",
+        "product_id": "dkp-720533",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "زیرپوش مردانه آریان نخ باف کد 1211",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T07:01:38.702986+00:00",
+        "brand": "",
+        "catalog_category_id": "10836",
+        "catalog_category_name": "روغن کنجد",
+        "category": "grocery_food",
+        "compared_to_product_id": "dkp-14568455",
+        "family": "digikala_category:10836",
+        "product_id": "dkp-14568855",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "روغن کنجد تصفیه شده توسکا - 1350 گرم",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-16T07:01:38.702986+00:00",
+        "brand": "",
+        "catalog_category_id": "9369",
+        "catalog_category_name": "کفش تخت زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-13050880",
+        "family": "digikala_category:9369",
+        "product_id": "dkp-21996984",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش زنانه سیی 1966 مدل پاپیونی طلقی کد 2449",
         "use_case": "fashion_lifestyle"
       }
     ]
