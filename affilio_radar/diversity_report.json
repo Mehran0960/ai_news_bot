@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T23:00:17.333809+00:00",
+  "generated_at": "2026-11-16T23:12:29.040782+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
@@ -552,47 +552,13 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1560,
+    "all_time_count": 1562,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 397,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T18:21:38.054785+00:00",
-        "brand": "brand:سرمد",
-        "catalog_category_id": "10355",
-        "catalog_category_name": "آجیل سنتی",
-        "category": "grocery_food",
-        "compared_to_product_id": "dkp-17437219",
-        "family": "digikala_category:10355",
-        "product_id": "dkp-18026753",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "سویا پروتئین آجیلی ممتاز سرمد - 650 گرم",
-        "use_case": "grocery_food"
-      },
-      {
-        "at": "2026-11-16T19:44:03.586968+00:00",
-        "brand": "brand:هایک_سمی",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "home",
-        "compared_to_product_id": "dkp-532451",
-        "family": "home:kitchen",
-        "product_id": "dkp-17125980",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "اس اس دی اینترنال SATA III هایک سمی مدل WAVE S ظرفیت 256 گیگابایت",
-        "use_case": "home_living"
-      },
       {
         "at": "2026-11-16T19:49:45.517687+00:00",
         "brand": "",
@@ -898,6 +864,40 @@
         ],
         "title": "اس اس دی اینترنال SATA III هایک سمی مدل WAVE S ظرفیت 256 گیگابایت",
         "use_case": "home_living"
+      },
+      {
+        "at": "2026-11-16T23:12:29.040782+00:00",
+        "brand": "",
+        "catalog_category_id": "9369",
+        "catalog_category_name": "کفش تخت زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-9673230",
+        "family": "digikala_category:9369",
+        "product_id": "dkp-13050880",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش زنانه مدل دوگره کد sh.p.p.d.g",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T23:12:29.040782+00:00",
+        "brand": "",
+        "catalog_category_id": "9083",
+        "catalog_category_name": "لوازم ماهیگیری",
+        "category": "other",
+        "compared_to_product_id": "dkp-13338289",
+        "family": "digikala_category:9083",
+        "product_id": "dkp-4080071",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "چوب ماهیگیری ساپا مدل VALERIE-210",
+        "use_case": "outdoor_travel"
       }
     ]
   }
