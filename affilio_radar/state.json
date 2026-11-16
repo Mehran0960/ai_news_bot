@@ -7516,179 +7516,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-8727004",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-8727004%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "5604",
-        "catalog_best_selling_category_name": "سایر لوازم جانبی صوتی و تصویری",
-        "catalog_best_selling_rank": 7,
-        "catalog_best_selling_ranks_by_category": {
-          "5604": {
-            "category_name": "سایر لوازم جانبی صوتی و تصویری",
-            "observed_at": "2026-11-16T06:32:14.063139+00:00",
-            "rank": 7,
-            "rank_history": [
-              {
-                "category_name": "سایر لوازم جانبی صوتی و تصویری",
-                "observed_at": "2026-11-16T06:32:14.063139+00:00",
-                "rank": 7
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T07:05:48.787472+00:00",
-        "catalog_cycle_snapshot_rank": 510,
-        "catalog_rank_observed_at": "2026-11-16T06:32:14.063139+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-16T07:27:46.417371+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-8727004",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 750000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 11.5,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 48.4,
-        "discount_percent": 25,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T07:28:24.490454+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 750000,
-        "history_low_toman": 750000,
-        "history_median_toman": 750000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 750000,
-        "history_start_day": "2026-11-15",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/95907204795bda01617137de832145351637edb2_1787419301.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "affordability": 83.64,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 40.71,
-          "discount_attractiveness": 48.4,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 99.14,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "5604",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T07:28:35.642066+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "original_price": 1000000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-8727004",
-        "product_url": "https://www.digikala.com/product/dkp-8727004/",
-        "promo_score": 20,
-        "publication_policy": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-        "qualifies_as_deal": true,
-        "rating": 3.88,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 477,
-        "savings_toman": 250000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 7,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "affordability": 83.64,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 40.71,
-          "discount_attractiveness": 48.4,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 99.14,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "5604",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T07:28:35.642066+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1166,
-        "title": "دانگل وای فای USB شارک مدل 100Meter",
-        "variant_label": "مشکی"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-8727004",
-      "product_plan_cycle_id": "2026-11-16T07:05:48.787472+00:00",
-      "selected_at": "2026-11-16T07:28:38.897675+00:00",
-      "sequence_number": 1166,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T07:40:44.979262+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-882785",
       "content_type": "product",
       "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
@@ -43117,6 +42944,193 @@
       "sequence_number": 1389,
       "status": "published",
       "updated_at": "2026-11-16T20:50:58.745337+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-8994322",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-16T20:51:32.912132+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-16T20:51:03.454464+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-8994322%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "5867",
+        "catalog_best_selling_category_name": "لوازم جانبی جاروبرقی و بخار شو",
+        "catalog_best_selling_rank": 2,
+        "catalog_best_selling_ranks_by_category": {
+          "5867": {
+            "category_name": "لوازم جانبی جاروبرقی و بخار شو",
+            "observed_at": "2026-11-16T19:34:15.650643+00:00",
+            "rank": 2,
+            "rank_history": [
+              {
+                "category_name": "لوازم جانبی جاروبرقی و بخار شو",
+                "observed_at": "2026-11-16T19:34:15.650643+00:00",
+                "rank": 2
+              }
+            ]
+          }
+        },
+        "catalog_category_ids": [
+          "5753",
+          "5850",
+          "5867"
+        ],
+        "catalog_category_name": "لوازم خانگی برقی",
+        "catalog_cycle_completed_at": "2026-11-16T20:12:33.932599+00:00",
+        "catalog_cycle_snapshot_rank": 479,
+        "catalog_rank_observed_at": "2026-11-16T19:34:15.650643+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "home_cleaning",
+        "checked_at": "2026-11-16T20:37:22.992436+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-8994322",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 520000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 11.8,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 48.28,
+        "discount_percent": 26,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-16T20:38:10.659697+00:00",
+        "history_days": 5,
+        "history_end_day": "2026-11-16",
+        "history_high_toman": 520000,
+        "history_low_toman": 520000,
+        "history_median_toman": 520000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": 520000,
+        "history_start_day": "2026-11-10",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/6f1058ed04b068b80d8a3dc85ce06fa181cc5aae_1657896220.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 72.77,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 48.28,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 96.0,
+          "generality_group": "home_cleaning",
+          "live_demand": 99.02,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-16T20:38:10.661706+00:00",
+          "weakest_factor_score": 48.28
+        },
+        "original_price": 700000,
+        "pct_above_stable_low": 0,
+        "product_id": "dkp-8994322",
+        "product_url": "https://www.digikala.com/product/dkp-8994322/",
+        "promo_score": 19,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.33,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 831,
+        "savings_toman": 180000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 2,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 72.77,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 48.28,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 96.0,
+          "generality_group": "home_cleaning",
+          "live_demand": 99.02,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-16T20:38:10.661706+00:00",
+          "weakest_factor_score": 48.28
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1390,
+        "title": "پاکت جاروبرقی بوش مدل G ALL بسته 5 عددی مناسب برای جاروبرقی های بوش تایپ G"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-16T20:51:32.912132+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-16T20:52:53.668684+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-16T20:51:32.912132+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-16T20:51:32.912132+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-16T20:53:03.252263+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-16T20:51:32.912132+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-16T20:52:12.537166+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-8994322",
+      "product_plan_cycle_id": "2026-11-16T20:12:33.932599+00:00",
+      "scheduled_at": "2026-11-16T20:51:03.454464+00:00",
+      "selected_at": "2026-11-16T20:38:18.110746+00:00",
+      "sequence_number": 1390,
+      "status": "published",
+      "updated_at": "2026-11-16T20:53:04.189175+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -43131,7 +43145,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22182003",
       "content_type": "product",
-      "next_attempt_at": "2026-11-16T20:51:22.307816+00:00",
+      "next_attempt_at": "2026-11-17T00:41:04.184246+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22182003%2F",
         "availability": "in_stock",
@@ -43291,7 +43305,7 @@
       },
       "product_id": "dkp-22182003",
       "product_plan_cycle_id": "2026-11-16T20:12:33.932599+00:00",
-      "scheduled_at": "2026-11-16T20:51:22.307816+00:00",
+      "scheduled_at": "2026-11-17T00:41:04.184246+00:00",
       "selected_at": "2026-11-16T20:38:18.110746+00:00",
       "sequence_number": 1394,
       "status": "queued"
@@ -43300,7 +43314,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22962866",
       "content_type": "product",
-      "next_attempt_at": "2026-11-16T20:51:17.594478+00:00",
+      "next_attempt_at": "2026-11-16T23:44:04.184246+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22962866%2F",
         "availability": "in_stock",
@@ -43461,7 +43475,7 @@
       },
       "product_id": "dkp-22962866",
       "product_plan_cycle_id": "2026-11-16T20:12:33.932599+00:00",
-      "scheduled_at": "2026-11-16T20:51:17.594478+00:00",
+      "scheduled_at": "2026-11-16T23:44:04.184246+00:00",
       "selected_at": "2026-11-16T20:38:18.110746+00:00",
       "sequence_number": 1393,
       "status": "queued"
@@ -43470,7 +43484,7 @@
       "attempt_count": 0,
       "content_id": "dkp-4622784",
       "content_type": "product",
-      "next_attempt_at": "2026-11-16T20:51:12.881140+00:00",
+      "next_attempt_at": "2026-11-16T22:47:04.184246+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-4622784%2F",
         "availability": "in_stock",
@@ -43632,7 +43646,7 @@
       },
       "product_id": "dkp-4622784",
       "product_plan_cycle_id": "2026-11-16T20:12:33.932599+00:00",
-      "scheduled_at": "2026-11-16T20:51:12.881140+00:00",
+      "scheduled_at": "2026-11-16T22:47:04.184246+00:00",
       "selected_at": "2026-11-16T20:38:18.110746+00:00",
       "sequence_number": 1392,
       "status": "queued"
@@ -43641,7 +43655,7 @@
       "attempt_count": 0,
       "content_id": "dkp-580801",
       "content_type": "product",
-      "next_attempt_at": "2026-11-16T20:51:08.167802+00:00",
+      "next_attempt_at": "2026-11-16T21:50:04.184246+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-580801%2F",
         "availability": "in_stock",
@@ -43809,185 +43823,9 @@
       },
       "product_id": "dkp-580801",
       "product_plan_cycle_id": "2026-11-16T20:12:33.932599+00:00",
-      "scheduled_at": "2026-11-16T20:51:08.167802+00:00",
+      "scheduled_at": "2026-11-16T21:50:04.184246+00:00",
       "selected_at": "2026-11-16T20:38:18.110746+00:00",
       "sequence_number": 1391,
-      "status": "queued"
-    },
-    "dkp-8994322": {
-      "attempt_count": 0,
-      "content_id": "dkp-8994322",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-16T20:51:03.454464+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-8994322%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "5867",
-        "catalog_best_selling_category_name": "لوازم جانبی جاروبرقی و بخار شو",
-        "catalog_best_selling_rank": 2,
-        "catalog_best_selling_ranks_by_category": {
-          "5867": {
-            "category_name": "لوازم جانبی جاروبرقی و بخار شو",
-            "observed_at": "2026-11-16T19:34:15.650643+00:00",
-            "rank": 2,
-            "rank_history": [
-              {
-                "category_name": "لوازم جانبی جاروبرقی و بخار شو",
-                "observed_at": "2026-11-16T19:34:15.650643+00:00",
-                "rank": 2
-              }
-            ]
-          }
-        },
-        "catalog_category_ids": [
-          "5753",
-          "5850",
-          "5867"
-        ],
-        "catalog_category_name": "لوازم خانگی برقی",
-        "catalog_cycle_completed_at": "2026-11-16T20:12:33.932599+00:00",
-        "catalog_cycle_snapshot_rank": 479,
-        "catalog_rank_observed_at": "2026-11-16T19:34:15.650643+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "home_cleaning",
-        "checked_at": "2026-11-16T20:37:22.992436+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-8994322",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 520000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 11.8,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 48.28,
-        "discount_percent": 26,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T20:38:10.659697+00:00",
-        "history_days": 5,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 520000,
-        "history_low_toman": 520000,
-        "history_median_toman": 520000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 520000,
-        "history_start_day": "2026-11-10",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/6f1058ed04b068b80d8a3dc85ce06fa181cc5aae_1657896220.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 72.77,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 48.28,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 96.0,
-          "generality_group": "home_cleaning",
-          "live_demand": 99.02,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T20:38:10.661706+00:00",
-          "weakest_factor_score": 48.28
-        },
-        "original_price": 700000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-8994322",
-        "product_url": "https://www.digikala.com/product/dkp-8994322/",
-        "promo_score": 19,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.33,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 831,
-        "savings_toman": 180000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 2,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 72.77,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 48.28,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 96.0,
-          "generality_group": "home_cleaning",
-          "live_demand": 99.02,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T20:38:10.661706+00:00",
-          "weakest_factor_score": 48.28
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1390,
-        "title": "پاکت جاروبرقی بوش مدل G ALL بسته 5 عددی مناسب برای جاروبرقی های بوش تایپ G"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-8994322",
-      "product_plan_cycle_id": "2026-11-16T20:12:33.932599+00:00",
-      "scheduled_at": "2026-11-16T20:51:03.454464+00:00",
-      "selected_at": "2026-11-16T20:38:18.110746+00:00",
-      "sequence_number": 1390,
       "status": "queued"
     }
   },
@@ -208704,61 +208542,31 @@
   },
   "editorial_cycle": {
     "bank_ids": [
-      "accessories-compatibility",
-      "care-instructions",
-      "check-box-contents",
       "check-delivery-window",
-      "check-model-number",
-      "check-replacement-parts",
-      "choose-phone-by-needs",
       "compare-total-cost",
-      "compatibility-before-buy",
-      "energy-use",
-      "extended-warranty-check",
-      "gift-card-warning",
       "inspect-on-arrival",
       "keep-purchase-records",
-      "marketplace-responsibility",
-      "measure-room-size",
       "negative-review-balance",
       "plan-before-buy",
-      "product-description-details",
       "recall-check",
-      "repairability",
       "return-shipping-cost",
       "review-patterns",
       "reviews-beyond-stars",
-      "secure-checkout",
       "seller-and-return-policy",
-      "seller-contact",
-      "seller-history",
-      "service-center-before-buy",
       "shipping-window",
       "sponsored-review",
-      "suspicious-links",
-      "used-refurbished",
-      "warranty-terms"
+      "used-refurbished"
     ],
     "cycle_number": 1,
     "last_editorial_id": "check-model-number",
     "last_topic": "fit-and-size",
     "used_ids": [
-      "accessories-compatibility",
-      "care-instructions",
-      "check-box-contents",
       "check-delivery-window",
-      "check-model-number",
-      "check-replacement-parts",
       "compare-total-cost",
-      "energy-use",
-      "extended-warranty-check",
-      "gift-card-warning",
       "inspect-on-arrival",
       "keep-purchase-records",
-      "marketplace-responsibility",
       "negative-review-balance",
       "plan-before-buy",
-      "product-description-details",
       "recall-check",
       "review-patterns",
       "seller-and-return-policy",
@@ -210126,7 +209934,76 @@
       "topic": "fit-and-size"
     }
   ],
-  "editorial_delivery_queue": {},
+  "editorial_delivery_queue": {
+    "editorial:return-shipping-cost": {
+      "attempt_count": 0,
+      "content_id": "editorial:return-shipping-cost",
+      "content_type": "editorial",
+      "delivery_runway_seconds": 16,
+      "dispatch_runway_seconds": 76,
+      "next_attempt_at": "2026-11-16T21:21:34.184246+00:00",
+      "payload": {
+        "body": "پیش از ثبت سفارش مشخص کن در صورت انصراف یا ناسازگاری کالا، هزینه ارسال برگشتی با چه کسی است. مهلت مرجوعی، شرایط بسته‌بندی و مدارک لازم را بخوان تا بعداً غافلگیر نشوی.",
+        "content_id": "editorial:return-shipping-cost",
+        "content_type": "editorial",
+        "delivery_status": "selected_not_published",
+        "editorial_cycle_number": 1,
+        "editorial_id": "return-shipping-cost",
+        "idempotency_key": "289c105ec762435e",
+        "related_product_affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-580801%2F",
+        "related_product_id": "dkp-580801",
+        "related_product_title": "نودل با عصاره مرغ هاتی کارا - بسته 5 عددی",
+        "review_due_at": "2027-02-10T18:00:00Z",
+        "reviewed_at": "2026-11-12T18:00:00Z",
+        "sequence_number": 1395,
+        "sources": [
+          {
+            "source_id": "ftc-online-shopping",
+            "title": "راهنمای خرید اینترنتی FTC",
+            "url": "https://consumer.ftc.gov/articles/online-shopping"
+          }
+        ],
+        "title": "هزینه برگشت کالا را هم در تصمیم لحاظ کن",
+        "topic": "shipping-and-returns"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "related_product_id": "dkp-580801",
+      "scheduled_at": "2026-11-16T21:21:34.184246+00:00",
+      "selected_at": "2026-11-16T20:53:04.761496+00:00",
+      "sequence_number": 1395,
+      "status": "queued",
+      "window_closes_at": "2026-11-16T21:49:48.184246+00:00"
+    }
+  },
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -210442,12 +210319,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-16T20:50:58.741126+00:00",
+  "last_channel_published_at": "2026-11-16T20:53:04.184246+00:00",
   "last_content_selection_at": "2026-11-16T20:38:18.110746+00:00",
-  "last_editorial_attempt_at": "2026-11-16T18:31:06.983279+00:00",
+  "last_editorial_attempt_at": "2026-11-16T20:53:04.761496+00:00",
   "last_editorial_confirmed_at": "2026-11-16T18:26:51.937427+00:00",
-  "last_product_channel_published_at": "2026-11-16T20:50:58.741126+00:00",
-  "last_published_at": "2026-11-16T20:50:58.741126+00:00",
+  "last_product_channel_published_at": "2026-11-16T20:53:04.184246+00:00",
+  "last_published_at": "2026-11-16T20:53:04.184246+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -218451,23 +218328,6 @@
       "publish_failure_count": 0,
       "savings_toman": 113000,
       "title": "نودل با عصاره مرغ هاتی کارا - بسته 5 عددی",
-      "urgent": false
-    },
-    "dkp-8994322": {
-      "current_price": 520000,
-      "deal_expires_at": "",
-      "discount_percent": 26,
-      "first_seen_at": "2026-11-16T20:38:10.661706+00:00",
-      "last_publish_failure": "",
-      "last_publish_failure_at": "",
-      "next_publish_attempt_at": "",
-      "original_price": 700000,
-      "product_id": "dkp-8994322",
-      "product_url": "https://www.digikala.com/product/dkp-8994322/",
-      "promo_score": 19,
-      "publish_failure_count": 0,
-      "savings_toman": 180000,
-      "title": "پاکت جاروبرقی بوش مدل G ALL بسته 5 عددی مناسب برای جاروبرقی های بوش تایپ G",
       "urgent": false
     }
   },
@@ -258788,53 +258648,52 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-16T20:50:58.741134+00:00",
-    "candidate_count": 5,
+    "calculated_at": "2026-11-16T20:53:04.184253+00:00",
+    "candidate_count": 4,
     "catalog_cycle_id": "2026-11-16T20:12:33.932599+00:00",
     "current_cycle_started_at": "2026-11-16T20:12:34.307816+00:00",
     "daily_post_limit": 72,
     "deferred_product_count": 0,
     "estimated_clean_cycle_seconds": 2328,
-    "estimated_next_clean_scan_at": "2026-11-16T20:51:22.307816+00:00",
+    "estimated_next_clean_scan_at": "",
     "first_slot_due_now": false,
-    "interval_minutes": 0.079,
-    "interval_seconds": 4.713338,
+    "interval_minutes": 57.0,
+    "interval_seconds": 3420.0,
     "last_clean_cycle_completed_at": "2026-11-16T20:12:33.932599+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-16T20:50:58.741126+00:00",
-    "plan_anchor_kind": "last_product",
-    "planned_product_slots": 5,
-    "planned_window_end_at": "2026-11-16T20:51:22.307816+00:00",
+    "plan_anchor_at": "2026-11-16T20:53:04.184246+00:00",
+    "plan_anchor_kind": "last_product_provisional",
+    "planned_product_slots": 4,
+    "planned_window_end_at": "2026-11-17T00:41:04.184246+00:00",
     "policy": "even_scan_window_spacing_capped_at_57_minutes_with_provisional_fallback_when_eta_overdue",
-    "scan_eta_is_provisional": false,
-    "scan_eta_source": "last_observed_full_cycle_duration",
+    "scan_eta_is_provisional": true,
+    "scan_eta_source": "provisional_max_interval_after_overdue_or_missing_scan_eta",
     "scheduled_product_count": 12,
-    "seconds_from_plan_anchor_to_next_scan": 23.56669,
-    "seconds_until_estimated_next_clean_scan": 23.566682
+    "seconds_from_plan_anchor_to_next_scan": 13680,
+    "seconds_until_estimated_next_clean_scan": 0.0
   },
-  "product_publication_interval_seconds": 4.713338,
+  "product_publication_interval_seconds": 3420.0,
   "product_publication_plan": {
-    "anchor_at": "2026-11-16T20:50:58.741126+00:00",
-    "anchor_kind": "last_product",
+    "anchor_at": "2026-11-16T20:53:04.184246+00:00",
+    "anchor_kind": "last_product_provisional",
     "catalog_cycle_id": "2026-11-16T20:12:33.932599+00:00",
     "first_slot_due_now": false,
-    "interval_minutes": 0.079,
-    "interval_seconds": 4.713338,
+    "interval_minutes": 57.0,
+    "interval_seconds": 3420.0,
     "maximum_product_interval_seconds": 3420,
-    "next_clean_scan_at": "2026-11-16T20:51:22.307816+00:00",
-    "pending_product_count": 5,
+    "next_clean_scan_at": "",
+    "pending_product_count": 4,
     "product_ids": [
-      "dkp-8994322",
       "dkp-580801",
       "dkp-4622784",
       "dkp-22962866",
       "dkp-22182003"
     ],
-    "scheduled_product_count": 5,
-    "updated_at": "2026-11-16T20:50:58.741134+00:00"
+    "scheduled_product_count": 4,
+    "updated_at": "2026-11-16T20:53:04.184253+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-16T20:50:58.741126+00:00",
-  "product_publication_plan_anchor_kind": "last_product",
+  "product_publication_plan_anchor_at": "2026-11-16T20:53:04.184246+00:00",
+  "product_publication_plan_anchor_kind": "last_product_provisional",
   "product_publication_plan_cycle_id": "2026-11-16T20:12:33.932599+00:00",
   "publication_diversity_fallback_count": 5307,
   "publication_diversity_fallback_events": [
@@ -300959,7 +300818,7 @@
       "ts": 1793119008.409393
     }
   },
-  "publication_sequence_counter": 1394,
+  "publication_sequence_counter": 1395,
   "published": {
     "dkp-10002173": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -393707,6 +393566,138 @@
       "ts": 1793840386.274291,
       "video_generation_status": "skipped_expiring_soon",
       "youtube_upload_status": "skipped_expiring_soon"
+    },
+    "dkp-8994322": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2148,
+      "bale_posted_at": "2026-11-16T20:52:53.668684+00:00",
+      "brand": "",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "B",
+      "catalog_best_selling_category_id": "5867",
+      "catalog_best_selling_category_name": "لوازم جانبی جاروبرقی و بخار شو",
+      "catalog_best_selling_rank": 2,
+      "catalog_best_selling_ranks_by_category": {
+        "5867": {
+          "category_name": "لوازم جانبی جاروبرقی و بخار شو",
+          "observed_at": "2026-11-16T19:34:15.650643+00:00",
+          "rank": 2,
+          "rank_history": [
+            {
+              "category_name": "لوازم جانبی جاروبرقی و بخار شو",
+              "observed_at": "2026-11-16T19:34:15.650643+00:00",
+              "rank": 2
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [
+        "5753",
+        "5850",
+        "5867"
+      ],
+      "catalog_category_name": "لوازم خانگی برقی",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-16T20:12:33.932599+00:00",
+      "catalog_cycle_snapshot_rank": 479,
+      "catalog_rank_observed_at": "2026-11-16T19:34:15.650643+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-8994322",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "B",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-16T20:53:03.252290+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 0,
+      "distribution_queue_id": "dkp-8994322:2026-11-16T20:38:18.110746+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-16T20:38:10.659697+00:00",
+      "history_days": 5,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/6f1058ed04b068b80d8a3dc85ce06fa181cc5aae_1657896220.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "not_checked",
+      "platform_message_ids": {
+        "rubika": "1974191695672588651"
+      },
+      "posted_current_price": 520000,
+      "posted_discount_percent": 26,
+      "posted_original_price": 700000,
+      "product_url": "https://www.digikala.com/product/dkp-8994322/",
+      "promo_score": 19,
+      "publication_category": "home_cleaning",
+      "publication_family": "digikala_category:5867",
+      "publication_use_case": "home_cleaning",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 11.8,
+      "rubika_posted_at": "2026-11-16T20:53:03.252263+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 2,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 72.77,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 48.28,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 96.0,
+        "generality_group": "home_cleaning",
+        "live_demand": 99.02,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-16T20:38:10.661706+00:00",
+        "weakest_factor_score": 48.28
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1390,
+      "telegram_message_id": 1610,
+      "telegram_posted_at": "2026-11-16T20:52:12.537166+00:00",
+      "title": "پاکت جاروبرقی بوش مدل G ALL بسته 5 عددی مناسب برای جاروبرقی های بوش تایپ G",
+      "ts": 1794862292.912132,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
     },
     "dkp-9007897": {
       "aparat_skip_reason": "verified_expiry_required",
