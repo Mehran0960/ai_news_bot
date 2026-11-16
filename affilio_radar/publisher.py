@@ -343,21 +343,22 @@ def _valid_emergency_continuity_override(
         or payload.get("emergency_continuity_baseline_completed_at") != baseline_completed
     ):
         return False
-    factors = payload.get("selection_four_factor")
+    factors = payload.get("selection_three_factor")
     if not isinstance(factors, dict):
-        factors = payload.get("offerchin_four_factor")
+        factors = payload.get("offerchin_three_factor")
     if not isinstance(factors, dict):
         return False
     try:
         discount = float(factors.get("discount_attractiveness") or 0)
-        affordability = float(factors.get("affordability") or 0)
         generality = float(factors.get("generality") or 0)
     except (TypeError, ValueError, OverflowError):
         return False
-    if min(discount, affordability, generality) <= 0:
+    if min(discount, generality) <= 0:
         return False
-    harmonic = 3 / (1 / discount + 1 / affordability + 1 / generality)
-    if discount < 55 or affordability < 40 or generality < 50 or harmonic < 55:
+    # This exception relaxes only live-demand evidence; affordability is not
+    # a product filter and cannot veto a candidate in the emergency path.
+    harmonic = 2 / (1 / discount + 1 / generality)
+    if discount < 55 or generality < 50 or harmonic < 55:
         return False
     try:
         verified_leads = radar.load_emergency_continuity_candidates(
