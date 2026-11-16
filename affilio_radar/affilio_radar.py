@@ -4716,7 +4716,7 @@ def classify_category(title: str) -> str:
         # Food cues must precede the broad skincare word «کرم» (e.g. sesame cream).
         ("grocery_food", r"روغن کنجد|روغن زیتون|روغن ذرت|روغن آفتابگردان|روغن خوراکی|گوشت|مرغ|ماهی خوراکی|خرما|شکلات|کنجد|عسل|حلوا|مربا|شیره|آجیل|خشکبار|غلات|کالای خوراکی|خوراکی|مواد غذایی|کنسرو|ادویه|برنج|جو پرک|گندم|آرد|حبوبات|نبات|چای ارگانیک|قهوه ارگانیک|دمنوش"),
         ("personal_care", r"بالم لب|رژ لب|لیپ گلاس|پوست|(?<!\w)مو(?!\w)|کرم|سرم|آبرسان|اصلاح|ماساژور|بهداشت|آرایش|ضدآفتاب|مسواک|دندان|سشوار|برس حرارتی|اتو مو|ریش.?تراش|موزن|اپیلاتور|دستگاه بخور|تونر|پاک کننده آرایش|سنگ پا|پاشنه کش|سوهان پا"),
-        ("automotive", r"خودرو|ماشین|موتور سیکلت|داشبورد|کمپرسور باد|لوازم خودرو|شارژر فندکی|روکش صندلی|کفپوش خودرو|مراقبت خودرو"),
+        ("automotive", r"خودرو|موتور سیکلت|داشبورد|کمپرسور باد|لوازم خودرو|شارژر فندکی|روکش صندلی|کفپوش خودرو|مراقبت خودرو"),
         ("home", r"آشپزخانه|نظم دهنده|ارگانایزر|خردکن|ظرف|ابزار آشپزخانه|خانه|قهوه ساز|فلاسک|ماگ|قمقمه|بطری آب|ظروف|حمام|سرویس بهداشتی|باغبانی|گلدان"),
         ("fashion", r"تی\s*شرت|تیشرت|پولو\s*شرت|پولوشرت|سویشرت|سوییشرت|هودی|شلوار|بلوز|شومیز|تاپ|مانتو|دامن|پیراهن|پوشاک|لباس|کفش|صندل|بوت|کاپشن|کوله|کیف|جاکارتی|کمربند|کراوات|کلاه|دستکش|جوراب|زیرپوش|شورت|شال|روسری|عینک|ساعت مچی|لباس زیر|مام فیت|پالتو"),
     ]
@@ -7700,9 +7700,10 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     explicit_brand = ""
     if isinstance(product_or_title, dict):
         title = str(product_or_title.get("title") or "")
-        raw_brand = product_or_title.get("brand") or product_or_title.get("brand_name") or ""
-        if isinstance(raw_brand, dict):
-            raw_brand = raw_brand.get("name") or raw_brand.get("title") or raw_brand.get("value") or ""
+        raw_brand = (
+            product_or_title.get("brand") or product_or_title.get("brand_name")
+            or product_or_title.get("brand_title") or ""
+        )
         explicit_brand = normalize_brand_value(raw_brand)
     else:
         title = str(product_or_title or "")
