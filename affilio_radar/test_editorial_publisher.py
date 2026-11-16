@@ -406,7 +406,9 @@ class EditorialPublisherTests(unittest.TestCase):
         )
 
     def test_editorial_message_hides_sources_and_keeps_platform_cta(self):
-        message = _format_message(editorial_item(), html_mode=True, platform="telegram")
+        item = editorial_item()
+        item["topic"] = "device-compatibility"
+        message = _format_message(item, html_mode=True, platform="telegram")
         self.assertNotIn("منابع", message)
         self.assertNotIn("FTC", message)
         self.assertNotIn("consumer.ftc.gov", message)
@@ -414,7 +416,7 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertIn("💡", message)
         self.assertIn('href="https://t.me/OfferChin">عضویت در کانال آفِرچین</a>', message)
 
-        bale = _format_message(editorial_item(), html_mode=True, platform="bale")
+        bale = _format_message(item, html_mode=True, platform="bale")
         self.assertNotIn("منابع", bale)
         self.assertNotIn("consumer.ftc.gov", bale)
         self.assertIn("دکمهٔ زیر را بزن", bale)
