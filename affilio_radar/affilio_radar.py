@@ -1912,7 +1912,7 @@ def fetch_product_record(url: str) -> dict:
 
     merged = dict(html_product)
     for key in (
-        "product_id", "product_url", "title", "image_url", "current_price", "original_price",
+        "product_id", "product_url", "title", "brand", "image_url", "current_price", "original_price",
         "variant_label", "rating", "review_count", "deal_expires_at", "expiry_source",
         "expiry_deadline_verified_directly", "expiry_estimated",
     ):
@@ -7628,6 +7628,7 @@ def _publication_use_case_group(product_or_title) -> str:
 
     # Prefer specific DigiKala taxonomy/use-case signals over broad title keywords.
     patterns = (
+        ("home_living", r"ماشین لباسشویی|لباسشویی|ماشین ظرفشویی|ظرفشویی|یخچال|فریزر|اجاق گاز|مایکروویو|کولر گازی|آبگرمکن"),
         ("automotive", r"خودرو|فندکی|داشبورد|لاستیک|تایر|شارژر خودرو|فیلتر کابین|روغن موتور|ضد یخ خودرو|لوازم خودرو|جانبی خودرو|تجهیزات راحتی سرنشین"),
         ("outdoor_travel", r"کمپینگ|کوهنوردی|چادر مسافرتی|طبیعت گردی|لوازم سفر|مسافرت|ماهیگیری|لوازم ماهیگیری|کیف و کوله سفری|تجهیزات اسکان"),
         ("tabletop_games", r"بوردگیم|بازی فکری|بازی رومیزی|اوریگامی"),
@@ -8690,6 +8691,10 @@ def _filter_recent_publication_repeats(
             f"rank_order_preserved_with_soft_diversification=true"
         )
 
+    # Diversification changes which candidates fill a bounded selection window,
+    # not the final demand/deal ordering of the selected items.
+    source_positions = {id(item): index for index, item in enumerate(source)}
+    selected.sort(key=lambda item: source_positions.get(id(item), len(source)))
     if limit is not None:
         return selected[:max(1, int(limit))]
     return selected
