@@ -7,24 +7,23 @@ from unittest.mock import patch
 import affilio_radar as radar
 from offerchin_four_factor import (
     POLICY_VERSION,
-    affordability_absolute_score,
-    apply_four_factor_scores,
+    apply_three_factor_scores,
     discount_attractiveness_score,
     discount_publish_gate,
-    four_factor_sort_key,
     generality_score,
-    infer_use_case_group,
     harmonic_mean,
+    infer_use_case_group,
+    three_factor_sort_key,
 )
 
 
-class OfferChinFourFactorTests(unittest.TestCase):
+class OfferChinThreeFactorTests(unittest.TestCase):
     def setUp(self):
         self.now = datetime(2026, 11, 11, 12, 0, tzinfo=timezone.utc)
 
     def _score(self, rows, independent=None):
         independent = independent or set()
-        return apply_four_factor_scores(
+        return apply_three_factor_scores(
             rows,
             live_demand_score_fn=lambda row: row.get("test_live_demand", 80),
             use_case_group_fn=lambda row: row.get("test_group", "kitchen_food"),
@@ -66,73 +65,55 @@ class OfferChinFourFactorTests(unittest.TestCase):
             "test_group": "home_cleaning",
         }
         self._score([row])
-        self.assertGreater(row["offerchin_four_factor"]["live_demand"], 90)
-        self.assertGreater(row["offerchin_four_factor"]["generality"], 90)
-        self.assertLess(row["offerchin_four_factor"]["discount_attractiveness"], 40)
+        score = row["offerchin_three_factor"]
+        self.assertGreater(score["live_demand"], 90)
+        self.assertGreater(score["generality"], 90)
+        self.assertLess(score["discount_attractiveness"], 40)
         eligible, _, _ = discount_publish_gate(row, independently_verified=False)
         self.assertFalse(eligible)
 
     def test_product_taxonomy_distinguishes_software_from_mobile_hardware(self):
-        self.assertEqual(
-            infer_use_case_group("", "[MA, نرم افزار]"), "software_tools"
-        )
-        self.assertEqual(
-            infer_use_case_group("", "گوشی 512 گیگابایت"), "mobile_productivity"
-        )
+        self.assertEqual(infer_use_case_group("", "[MA, نرم افزار]"), "software_tools")
+        self.assertEqual(infer_use_case_group("", "گوشی 512 گیگابایت"), "mobile_productivity")
         self.assertEqual(generality_score("software_tools"), 40)
 
     def test_harmonic_mean_penalizes_a_single_weak_dimension(self):
-        balanced = harmonic_mean([100, 100, 100, 10])
-        self.assertAlmostEqual(balanced, 30.77, places=2)
-        self.assertLess(balanced, sum([100, 100, 100, 10]) / 4)
+        balanced = harmonic_mean([100, 100, 10])
+        self.assertAlmostEqual(balanced, 25.0, places=2)
+        self.assertLess(balanced, (100 + 100 + 10) / 3)
 
-    def test_incomplete_four_factor_data_falls_back_without_discount_tiebreak(self):
+    def test_incomplete_three_factor_data_falls_back_without_discount_tiebreak(self):
         row = {
             "current_price": 500_000,
             "original_price": 1_000_000,
             "discount_percent": 80,
             "savings_toman": 800_000,
         }
-        apply_four_factor_scores(
+        apply_three_factor_scores(
             [row],
             live_demand_score_fn=lambda _row: 0,
             use_case_group_fn=lambda _row: "kitchen_food",
             discount_verified_fn=lambda _row: True,
             now=self.now,
         )
-        self.assertEqual(four_factor_sort_key(row), (0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
+        self.assertEqual(three_factor_sort_key(row), (0.0, 0.0, 0.0, 0.0, 0.0))
 
-    def test_affordability_uses_public_monthly_income_reference_and_final_cash_price(self):
-        from offerchin_four_factor import (
-            AFFORDABILITY_REFERENCE_MONTHLY_INCOME_TOMAN,
-            AFFORDABILITY_FULL_SCORE_PRICE_SHARE,
-        )
-        anchor = AFFORDABILITY_REFERENCE_MONTHLY_INCOME_TOMAN * AFFORDABILITY_FULL_SCORE_PRICE_SHARE
-        self.assertEqual(affordability_absolute_score(anchor), 100)
-        self.assertGreater(affordability_absolute_score(anchor), affordability_absolute_score(anchor * 10))
-        self.assertGreater(affordability_absolute_score(anchor * 10), affordability_absolute_score(anchor * 100))
-        self.assertEqual(affordability_absolute_score(0), 0)
-
-    def test_installment_down_payment_never_replaces_final_cash_price_in_affordability(self):
-        cash_only = {"current_price": 10_000_000}
-        installment_ad = {
-            **cash_only,
-            "installment_down_payment_toman": 1_000_000,
-            "installment_terms_verified": True,
+    def test_product_ticket_size_never_changes_selection_score(self):
+        base = {
+            "original_price": 1_000_000,
+            "discount_percent": 50,
+            "savings_toman": 500_000,
+            "test_live_demand": 75,
+            "test_group": "kitchen_food",
         }
-        rows = [cash_only, installment_ad]
-        self._score(rows)
-        first, second = rows
-        self.assertEqual(first["offerchin_four_factor"]["affordability_basis"], "listed_final_cash_price_excluding_unverified_delivery_fees")
-        self.assertEqual(second["offerchin_four_factor"]["affordability_basis"], "listed_final_cash_price_excluding_unverified_delivery_fees")
+        low_ticket = {"current_price": 500_000, **base}
+        high_ticket = {"current_price": 50_000_000, **base}
+        self._score([low_ticket, high_ticket])
         self.assertEqual(
-            first["offerchin_four_factor"]["affordability"],
-            second["offerchin_four_factor"]["affordability"],
+            low_ticket["offerchin_three_factor"],
+            high_ticket["offerchin_three_factor"],
         )
-        self.assertEqual(
-            second["offerchin_four_factor"]["affordability_reference_monthly_income_toman"],
-            16_625_550,
-        )
+        self.assertNotIn("affordability", low_ticket["offerchin_three_factor"])
 
     def test_unknown_use_case_is_not_mistaken_for_general_mass_market(self):
         self.assertGreater(generality_score("kitchen_food"), generality_score("tabletop_games"))
@@ -161,31 +142,7 @@ class OfferChinFourFactorTests(unittest.TestCase):
         self.assertEqual(score, 0)
         self.assertEqual(reason, "inconsistent_markdown_arithmetic")
 
-    def test_category_price_cohort_prefers_lower_entry_price(self):
-        rows = []
-        for index in range(8):
-            price = (index + 1) * 100_000
-            rows.append({
-                "product_id": f"dkp-{index + 1}",
-                "current_price": price,
-                "original_price": price * 2,
-                "discount_percent": 50,
-                "savings_toman": price,
-                "test_live_demand": 80,
-                "test_group": "kitchen_food",
-            })
-        self._score(rows)
-        cheapest, most_expensive = rows[0], rows[-1]
-        cheap_scores = cheapest["offerchin_four_factor"]
-        high_scores = most_expensive["offerchin_four_factor"]
-        self.assertEqual(cheap_scores["price_cohort_size"], 8)
-        self.assertGreater(cheap_scores["affordability"], high_scores["affordability"])
-        self.assertGreater(
-            four_factor_sort_key(cheapest),
-            four_factor_sort_key(most_expensive),
-        )
-
-    def test_equal_candidates_are_ranked_by_all_four_dimensions(self):
+    def test_equal_candidates_are_ranked_by_three_dimensions(self):
         base = {
             "current_price": 1_000_000,
             "original_price": 1_500_000,
@@ -193,18 +150,29 @@ class OfferChinFourFactorTests(unittest.TestCase):
             "savings_toman": 500_000,
         }
         candidates = [
-            {"product_id": "cheap_niche", **base, "current_price": 200_000, "original_price": 300_000,
-             "discount_percent": 33, "savings_toman": 100_000, "test_live_demand": 80, "test_group": "tabletop_games"},
-            {"product_id": "balanced_daily", **base, "test_live_demand": 80, "test_group": "kitchen_food"},
-            {"product_id": "weak_demand", **base, "test_live_demand": 35, "test_group": "kitchen_food"},
+            {
+                "product_id": "niche",
+                **base,
+                "test_live_demand": 80,
+                "test_group": "tabletop_games",
+            },
+            {
+                "product_id": "balanced_daily",
+                **base,
+                "test_live_demand": 80,
+                "test_group": "kitchen_food",
+            },
+            {
+                "product_id": "weak_demand",
+                **base,
+                "test_live_demand": 35,
+                "test_group": "kitchen_food",
+            },
         ]
         self._score(candidates)
-        ranked = sorted(candidates, key=four_factor_sort_key, reverse=True)
+        ranked = sorted(candidates, key=three_factor_sort_key, reverse=True)
         self.assertEqual(ranked[0]["product_id"], "balanced_daily")
-        self.assertLess(
-            candidates[1]["offerchin_four_factor"]["balanced_score"],
-            80,
-        )
+        self.assertLess(candidates[1]["offerchin_three_factor"]["balanced_score"], 80)
 
     def test_clicks_and_synthetic_popularity_fields_do_not_change_any_score(self):
         baseline = {
@@ -225,17 +193,16 @@ class OfferChinFourFactorTests(unittest.TestCase):
         }
         self._score([baseline, changed])
         self.assertEqual(
-            baseline["offerchin_four_factor"],
-            changed["offerchin_four_factor"],
+            baseline["offerchin_three_factor"],
+            changed["offerchin_three_factor"],
         )
 
-    def test_live_publication_selector_uses_batch_four_factor_scores(self):
+    def test_live_publication_selector_uses_batch_three_factor_scores(self):
         products = []
         for index in range(8):
             price = (index + 1) * 100_000
-            pid = f"dkp-{100 + index}"
             products.append({
-                "product_id": pid,
+                "product_id": f"dkp-{100 + index}",
                 "title": f"چای ساز کاربردی مدل {index}",
                 "current_price": price,
                 "original_price": price * 2,
@@ -257,7 +224,7 @@ class OfferChinFourFactorTests(unittest.TestCase):
         self.assertTrue(selected)
         self.assertEqual(selected[0]["product_id"], "dkp-100")
         self.assertEqual(
-            selected[0]["offerchin_four_factor"]["policy_version"],
+            selected[0]["offerchin_three_factor"]["policy_version"],
             POLICY_VERSION,
         )
 
