@@ -23,7 +23,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
     def setUp(self):
         self.now = datetime(2026, 10, 25, 12, 0, tzinfo=timezone.utc)
 
-    def test_publication_workflow_has_no_fixed_post_interval_setting(self):
+    def test_publication_workflow_has_no_legacy_fixed_post_interval_setting(self):
         workflow = (
             Path(__file__).resolve().parents[1]
             / ".github" / "workflows" / "affilio-radar.yml"
@@ -101,7 +101,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(entry["payload"]["sequence_number"], 9)
         self.assertEqual(entry["content_type"], "product")
 
-    def test_initial_product_slot_has_no_fixed_offset_and_later_slots_use_planned_interval(self):
+    def test_initial_product_slot_is_immediate_and_following_product_is_at_least_57_minutes_later(self):
         state = {}
         enqueue_selected_content(
             state, [self.item("dkp-first")], now=self.now,
@@ -122,7 +122,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         second = datetime.fromisoformat(
             state["content_delivery_queue"]["dkp-second"]["scheduled_at"]
         )
-        self.assertEqual(second, self.now + timedelta(minutes=20))
+        self.assertEqual(second, self.now + timedelta(minutes=57))
 
 
     def test_enqueue_persists_platform_neutral_payload_without_delivery(self):
@@ -1111,14 +1111,16 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         result = reflow_product_queue_after_delivery(state, now=self.now)
         self.assertEqual(result["pending_products"], 2)
         self.assertEqual(result["scheduled"], 2)
-        self.assertEqual(result["interval_seconds"], 300)
+        self.assertEqual(result["interval_seconds"], 57 * 60)
+        self.assertEqual(result["deferred"], 0)
+        self.assertEqual(result["slots_spilling_past_next_scan"], 2)
         self.assertEqual(
             datetime.fromisoformat(state["content_delivery_queue"]["dkp-next-a"]["scheduled_at"]),
-            self.now + timedelta(minutes=5),
+            self.now + timedelta(minutes=57),
         )
         self.assertEqual(
             datetime.fromisoformat(state["content_delivery_queue"]["dkp-next-b"]["scheduled_at"]),
-            next_scan,
+            self.now + timedelta(minutes=114),
         )
 
     def test_due_editorial_midpoint_precedes_later_product_slot_even_with_higher_sequence(self):
@@ -1240,9 +1242,15 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertLess(dense["interval_seconds"], sparse["interval_seconds"])
         self.assertGreater(dense["interval_seconds"], 0)
         self.assertGreater(sparse["interval_seconds"], 0)
+        self.assertGreaterEqual(sparse["interval_seconds"], 57 * 60)
         self.assertEqual(
-            sparse["interval_seconds"] * 5,
-            sparse["seconds_from_plan_anchor_to_next_scan"],
+            sparse["interval_seconds"] * 4,
+            sparse["seconds_from_first_product_slot_to_next_scan"],
+        )
+        self.assertGreaterEqual(dense["interval_seconds"], 57 * 60)
+        self.assertEqual(
+            dense["slots_spilling_past_next_scan"],
+            60 - dense["slots_that_fit_before_next_scan"],
         )
         expected_scan = current_scan_started + timedelta(seconds=cycle_seconds)
         self.assertEqual(
@@ -1254,7 +1262,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             sparse["interval_seconds"],
         )
 
-    def test_product_cadence_has_no_default_interval_when_no_product_or_scan_eta_exists(self):
+    def test_product_cadence_has_no_slots_when_no_candidates_exist(self):
         result = calculate_product_publication_cadence(
             {}, {}, 0, now=self.now, max_daily_posts=72
         )
@@ -1317,7 +1325,12 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
 
         expected_next_scan = current_scan_started + timedelta(seconds=cycle_seconds)
-        expected_interval = (expected_next_scan - last_product).total_seconds() / 4
+        first_slot = self.now
+        expected_interval = max(
+            57 * 60,
+            (expected_next_scan - first_slot).total_seconds() / 3,
+        )
+        self.assertEqual(result["first_product_slot_at"], first_slot.isoformat())
         self.assertEqual(result["plan_anchor_kind"], "last_product")
         self.assertEqual(result["plan_anchor_at"], last_product.isoformat())
         self.assertEqual(result["estimated_next_clean_scan_at"], expected_next_scan.isoformat())
@@ -1354,10 +1367,59 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             [(ordered[i + 1] - ordered[i]).total_seconds() for i in range(2)],
             [3600, 3600],
         )
+        self.assertEqual(ordered[0], self.now + timedelta(minutes=47))
         self.assertEqual(
             (ordered[-1] - last_product).total_seconds(),
-            3 * 3600,
+            47 * 60 + 2 * 3600,
         )
+
+    def test_reschedule_carries_overflow_instead_of_dropping_products(self):
+        state = {
+            "last_product_channel_published_at": (self.now - timedelta(hours=2)).isoformat(),
+            "content_delivery_queue": {
+                f"dkp-overflow-{index}": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "sequence_number": index,
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                }
+                for index in range(4)
+            },
+        }
+        schedule = {
+            "catalog_cycle_id": "short-scan-window",
+            "interval_seconds": 60,
+            "first_product_slot_at": self.now.isoformat(),
+            "estimated_next_clean_scan_at": (self.now + timedelta(minutes=80)).isoformat(),
+        }
+        result = reschedule_product_queue_evenly(state, schedule, now=self.now)
+        self.assertEqual(result["scheduled"], 4)
+        self.assertEqual(result["deferred"], 0)
+        self.assertEqual(result["interval_seconds"], 57 * 60)
+        self.assertEqual(result["spilling_past_next_scan"], 2)
+        scheduled = [
+            datetime.fromisoformat(state["content_delivery_queue"][f"dkp-overflow-{i}"]["scheduled_at"])
+            for i in range(4)
+        ]
+        self.assertEqual(
+            [(scheduled[i + 1] - scheduled[i]).total_seconds() for i in range(3)],
+            [57 * 60, 57 * 60, 57 * 60],
+        )
+
+    def test_editorial_publication_does_not_reset_the_57_minute_product_clock(self):
+        editorial_at = self.now - timedelta(minutes=5)
+        product_at = self.now - timedelta(hours=2)
+        state = {
+            "last_product_channel_published_at": product_at.isoformat(),
+            "last_channel_published_at": editorial_at.isoformat(),
+            "editorial_delivery_history": [{"content_id": "editorial:midpoint", "published_at": editorial_at.isoformat()}],
+        }
+        schedule = calculate_product_publication_cadence(state, {}, 2, now=self.now)
+        self.assertEqual(schedule["first_product_slot_at"], self.now.isoformat())
+        self.assertEqual(schedule["interval_seconds"], 57 * 60)
 
 if __name__ == "__main__":
     unittest.main()
