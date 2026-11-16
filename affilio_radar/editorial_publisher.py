@@ -244,8 +244,9 @@ def queue_editorial_if_due(
             if stale_reason:
                 queued_editorial["status"] = "cancelled"
                 queued_editorial["last_detail"] = f"stale_or_irrelevant_editorial:{stale_reason}"
-                if isinstance(queue, dict):
-                    queue.pop(str(queued_editorial.get("content_id") or ""), None)
+                editorial_queue = state.get("editorial_delivery_queue")
+                if isinstance(editorial_queue, dict):
+                    editorial_queue.pop(str(queued_editorial.get("content_id") or ""), None)
                 print(
                     "EDITORIAL_STALE_QUEUE_CANCELLED "
                     f"content_id={queued_editorial.get('content_id')} reason={stale_reason}"
