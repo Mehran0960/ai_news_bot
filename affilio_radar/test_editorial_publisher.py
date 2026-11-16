@@ -16,6 +16,7 @@ from editorial_publisher import (
     _send_bot_photo,
     _video_description,
     _load_bank,
+    _cancel_stale_unapproved_editorials,
     queue_editorial_if_due,
 )
 from editorial_video import render_editorial_poster, render_editorial_video
@@ -32,7 +33,7 @@ def editorial_item(editorial_id="test-guide", topic="test-topic"):
         "title": "راهنمای کوتاه خرید آگاهانه",
         "body": "پیش از انتخاب، نیاز، هزینه نهایی، مشخصات و شرایط بازگشت را بررسی کن.",
         "topic": topic,
-        "sources": [{"source_id": "s1", "title": "منبع رسمی راهنمای خرید", "url": "https://consumer.ftc.gov/articles/online-shopping"}],
+        "sources": [{"source_id": "s1", "title": "راهنمای دیجی‌کالا مگ درباره خرید", "url": "https://www.digikala.com/mag/digikala-delivery-time/"}],
         "claims": [{"text": "هزینه‌های جانبی را بررسی کن", "source_ids": ["s1"]}],
         "reviewed_at": (NOW - timedelta(days=1)).isoformat(),
         "review_due_at": (NOW + timedelta(days=30)).isoformat(),
@@ -71,6 +72,46 @@ class EditorialPublisherTests(unittest.TestCase):
         )
         self.assertEqual(chosen["editorial_id"], "digikala-delivery")
         self.assertEqual(chosen["sources"][0]["publisher"], "دیجی‌کالا مگ")
+
+    def test_legacy_foreign_source_queue_item_is_cancelled_before_delivery(self):
+        approved = editorial_item()
+        legacy = editorial_item()
+        legacy["sources"] = [{
+            "source_id": "old-ftc-source",
+            "title": "راهنمای عمومی خارجی",
+            "url": "https://consumer.ftc.gov/articles/online-shopping",
+        }]
+        entry = {
+            "content_id": "editorial:test-guide",
+            "content_type": "editorial",
+            "status": "queued",
+            "payload": legacy,
+            "platforms": {name: {"status": "pending"} for name in PLATFORM_NAMES},
+        }
+        state = {"editorial_delivery_queue": {entry["content_id"]: entry}}
+
+        cancelled = _cancel_stale_unapproved_editorials(state, [approved], now=NOW)
+
+        self.assertEqual(cancelled, 1)
+        self.assertEqual(entry["status"], "cancelled")
+        self.assertEqual(
+            entry["last_detail"],
+            "editorial_payload_not_in_current_reviewed_local_source_bank",
+        )
+        self.assertIn(entry["content_id"], state["editorial_delivery_queue"])
+
+    def test_current_local_queue_item_is_preserved(self):
+        approved = editorial_item()
+        entry = {
+            "content_id": "editorial:test-guide",
+            "content_type": "editorial",
+            "status": "queued",
+            "payload": dict(approved),
+            "platforms": {name: {"status": "pending"} for name in PLATFORM_NAMES},
+        }
+        state = {"editorial_delivery_queue": {entry["content_id"]: entry}}
+        self.assertEqual(_cancel_stale_unapproved_editorials(state, [approved], now=NOW), 0)
+        self.assertEqual(entry["status"], "queued")
 
     def test_editorial_fifo_lock_is_disabled_by_default(self):
         state = {
@@ -445,8 +486,8 @@ class EditorialPublisherTests(unittest.TestCase):
             "https://www.digikala.com/product/dkp-123/"
         )
         message = _format_message(item, html_mode=True, platform="telegram")
-        self.assertIn("FTC", message)
-        self.assertIn('href="https://consumer.ftc.gov/articles/online-shopping"', message)
+        self.assertIn("دیجی‌کالا مگ", message)
+        self.assertIn('href="https://www.digikala.com/mag/digikala-delivery-time/"', message)
         self.assertIn("🔌", message)
         self.assertIn("💡", message)
         self.assertIn("پیوند همکاری در فروش", message)
@@ -462,7 +503,7 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertNotIn("عضویت در کانال", bale)
 
         plain = _format_message(item, html_mode=False, platform="rubika")
-        self.assertIn("consumer.ftc.gov/articles/online-shopping", plain)
+        self.assertIn("www.digikala.com/mag/digikala-delivery-time/", plain)
         self.assertIn("https://aflo.ir/QekEYTRg?p=", plain)
         self.assertNotIn("rubika.ir/offerchin", plain)
 
