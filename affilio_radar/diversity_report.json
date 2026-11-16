@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T06:22:50.698727+00:00",
+  "generated_at": "2026-11-16T06:29:34.474292+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -396,29 +396,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1468,
+    "all_time_count": 1469,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 425,
+      "family_repeat": 424,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T05:29:11.367057+00:00",
-        "brand": "",
-        "catalog_category_id": "9473",
-        "catalog_category_name": "زیرپوش مردانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-7284546",
-        "family": "digikala_category:9473",
-        "product_id": "dkp-720533",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "زیرپوش مردانه آریان نخ باف کد 1211",
-        "use_case": "fashion_lifestyle"
-      },
       {
         "at": "2026-11-16T05:35:39.136583+00:00",
         "brand": "",
@@ -732,6 +716,22 @@
         ],
         "title": "زیرپوش مردانه آریان نخ باف کد 1211",
         "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T06:29:34.474292+00:00",
+        "brand": "",
+        "catalog_category_id": "10836",
+        "catalog_category_name": "روغن کنجد",
+        "category": "grocery_food",
+        "compared_to_product_id": "dkp-14568455",
+        "family": "digikala_category:10836",
+        "product_id": "dkp-14568855",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "روغن کنجد تصفیه شده توسکا - 1350 گرم",
+        "use_case": "mobile_productivity"
       }
     ]
   }
