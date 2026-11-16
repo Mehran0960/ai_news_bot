@@ -405,54 +405,79 @@ class EditorialPublisherTests(unittest.TestCase):
             NOW + timedelta(hours=1),
         )
 
-    def test_editorial_message_hides_sources_and_keeps_platform_cta(self):
+    def test_editorial_message_shows_source_and_related_affiliate_cta_without_self_membership(self):
         item = editorial_item()
         item["topic"] = "device-compatibility"
+        item["related_product_affiliate_url"] = radar.build_affilio_tracking_link(
+            "https://www.digikala.com/product/dkp-123/"
+        )
         message = _format_message(item, html_mode=True, platform="telegram")
-        self.assertNotIn("منابع", message)
-        self.assertNotIn("FTC", message)
-        self.assertNotIn("consumer.ftc.gov", message)
+        self.assertIn("FTC", message)
+        self.assertIn('href="https://consumer.ftc.gov/articles/online-shopping"', message)
         self.assertIn("🔌", message)
         self.assertIn("💡", message)
-        self.assertIn('href="https://t.me/OfferChin">عضویت در کانال آفِرچین</a>', message)
+        self.assertIn("پیوند همکاری در فروش", message)
+        self.assertIn("https://aflo.ir/QekEYTRg?p=", message)
+        self.assertNotIn("راهنمای کاربردی آفِرچین", message)
+        self.assertNotIn("<b>آفِرچین</b>", message)
+        self.assertNotIn("t.me/OfferChin", message)
+        self.assertNotIn("عضویت در کانال", message)
 
         bale = _format_message(item, html_mode=True, platform="bale")
-        self.assertNotIn("منابع", bale)
-        self.assertNotIn("consumer.ftc.gov", bale)
-        self.assertIn("دکمهٔ زیر را بزن", bale)
-        self.assertNotIn("https://ble.ir/OfferChin", bale)
+        self.assertIn("دکمهٔ خرید پایین پست", bale)
+        self.assertNotIn("ble.ir/OfferChin", bale)
+        self.assertNotIn("عضویت در کانال", bale)
 
-        plain = _format_message(editorial_item(), html_mode=False, platform="rubika")
-        self.assertNotIn("منابع", plain)
-        self.assertNotIn("consumer.ftc.gov", plain)
-        self.assertIn("https://rubika.ir/offerchin", plain)
+        plain = _format_message(item, html_mode=False, platform="rubika")
+        self.assertIn("consumer.ftc.gov/articles/online-shopping", plain)
+        self.assertIn("https://aflo.ir/QekEYTRg?p=", plain)
+        self.assertNotIn("rubika.ir/offerchin", plain)
 
-    def test_bale_editorial_photo_has_a_real_clickable_membership_button(self):
-        caption = _format_message(editorial_item(), html_mode=True, platform="bale")
+    def test_editorial_without_verified_affiliate_url_has_no_commercial_cta(self):
+        item = editorial_item()
+        item["related_product_affiliate_url"] = "https://www.digikala.com/best-selling/"
+        message = _format_message(item, html_mode=True, platform="telegram")
+        self.assertNotIn("پیوند همکاری در فروش", message)
+        self.assertNotIn("aflo.ir", message)
+
+    def test_bale_editorial_photo_has_a_real_related_product_affiliate_button(self):
+        item = editorial_item()
+        item["related_product_affiliate_url"] = radar.build_affilio_tracking_link(
+            "https://www.digikala.com/product/dkp-123/"
+        )
+        caption = _format_message(item, html_mode=True, platform="bale")
         with patch("editorial_publisher.radar.BALE_BOT_TOKEN", "test-token"), \
              patch("editorial_publisher.radar.BALE_CHANNEL_ID", "@OfferChin"), \
              patch("editorial_publisher.requests.post") as post:
             post.return_value.json.return_value = {
                 "ok": True, "result": {"message_id": 77}
             }
-            receipt = _send_bot_photo("bale", b"png-bytes", caption)
+            receipt = _send_bot_photo("bale", b"png-bytes", caption, item=item)
 
         self.assertEqual(receipt, {"message_id": "77"})
         payload = post.call_args.kwargs["data"]
         self.assertEqual(payload["parse_mode"], "HTML")
-        self.assertNotIn("consumer.ftc.gov", payload["caption"])
+        self.assertIn("consumer.ftc.gov/articles/online-shopping", payload["caption"])
         markup = json.loads(payload["reply_markup"])
         button = markup["inline_keyboard"][0][0]
-        self.assertEqual(button["text"], "➕ عضویت در کانال آفِرچین")
-        self.assertEqual(button["url"], "https://ble.ir/OfferChin")
+        self.assertEqual(button["text"], "🛒 مشاهدهٔ پیشنهاد مرتبط")
+        self.assertEqual(
+            button["url"],
+            "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-123%2F",
+        )
 
-    def test_video_description_has_no_source_citations(self):
-        description = _video_description(editorial_item())
-        self.assertNotIn("منابع", description)
-        self.assertNotIn("FTC", description)
-        self.assertNotIn("consumer.ftc.gov", description)
-        self.assertIn("https://t.me/OfferChin", description)
-        self.assertIn("https://ble.ir/OfferChin", description)
+    def test_video_description_has_sources_and_only_related_affiliate_link(self):
+        item = editorial_item()
+        item["related_product_affiliate_url"] = radar.build_affilio_tracking_link(
+            "https://www.digikala.com/product/dkp-123/"
+        )
+        description = _video_description(item)
+        self.assertIn("FTC", description)
+        self.assertIn("consumer.ftc.gov/articles/online-shopping", description)
+        self.assertIn("پیوند همکاری در فروش", description)
+        self.assertIn("https://aflo.ir/QekEYTRg?p=", description)
+        self.assertNotIn("t.me/OfferChin", description)
+        self.assertNotIn("ble.ir/OfferChin", description)
 
     def test_editorial_body_sentences_and_list_items_render_as_separate_paragraphs(self):
         item = editorial_item()
@@ -462,7 +487,7 @@ class EditorialPublisherTests(unittest.TestCase):
             "💡 جملهٔ اول کامل است.\n📌 جملهٔ دوم پرسشی است؟\n✅ نکتهٔ سوم هم جداست.",
             html_message,
         )
-        self.assertIn('href="https://t.me/OfferChin">عضویت در کانال آفِرچین</a>', html_message)
+        self.assertIn('href="https://consumer.ftc.gov/articles/online-shopping"', html_message)
 
     def test_video_fifo_uses_canonical_sequence_for_timestamp_ties(self):
         same_timestamp = NOW.timestamp()
