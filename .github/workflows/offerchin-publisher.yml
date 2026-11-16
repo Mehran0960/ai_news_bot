@@ -49,6 +49,12 @@ jobs:
           ref: main
           fetch-depth: 100
 
+      # Check the tiny persisted publication clock before tests or catalog discovery.
+      # A due product/editorial item must go straight to delivery, not wait behind discovery.
+      - name: Detect due product or editorial slots
+        id: publication_due
+        run: python3 affilio_radar/publication_due_gate.py --github-output "$GITHUB_OUTPUT"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -90,6 +96,7 @@ jobs:
           PY
 
       - name: Validate the delivery-only path
+        if: steps.publication_due.outputs.has_due_slot != 'true'
         run: |
           python -m py_compile affilio_radar/affilio_radar.py affilio_radar/expiration_monitor.py affilio_radar/offerchin_visuals.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/messenger_adapters.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
           python - <<'PY'
@@ -104,6 +111,7 @@ jobs:
           PY
 
       - name: Validate DigiKala demand-first ranking and publication gates
+        if: steps.publication_due.outputs.has_due_slot != 'true'
         run: |
           cd affilio_radar
           python -m unittest \
@@ -148,16 +156,12 @@ jobs:
           node --test test_affiliate_deal_radar_worker.mjs
 
       - name: Validate permanent YouTube retention policy
+        if: steps.publication_due.outputs.has_due_slot != 'true'
         run: |
           cd affilio_radar
           python -m unittest \
             test_expiration_monitor.ExpirationMonitorTests.test_expired_youtube_short_is_retained_without_delete_or_privacy_change \
             test_expiration_monitor.ExpirationMonitorTests.test_youtube_retention_does_not_require_expiry_or_oauth_credentials -v
-
-      # A due slot should go straight to delivery; repeat discovery would delay selected content.
-      - name: Detect due product or editorial slots
-        id: publication_due
-        run: python affilio_radar/publication_due_gate.py --github-output "$GITHUB_OUTPUT"
 
       # Discovery/selection is a distinct stage. It writes the neutral content queue only.
       # Independent video workflows consume the persisted published-product records after channel delivery.
