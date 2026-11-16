@@ -285,7 +285,7 @@ class EditorialPublisherTests(unittest.TestCase):
             "product_id": "dkp-related",
             "title": "گوشی هوشمند",
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/test.jpg",
-            "offerchin_four_factor": {"generality_group": "mobile_productivity"},
+            "offerchin_three_factor": {"generality_group": "mobile_productivity"},
         }
         state = {
             "last_channel_published_at": NOW.isoformat(),
