@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T05:53:04.988731+00:00",
+  "generated_at": "2026-11-16T06:00:25.701987+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -396,46 +396,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1460,
+    "all_time_count": 1462,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 430,
+      "family_repeat": 428,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T04:28:13.759919+00:00",
-        "brand": "",
-        "catalog_category_id": "9369",
-        "catalog_category_name": "کفش تخت زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-16520582",
-        "family": "digikala_category:9369",
-        "product_id": "dkp-13050880",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش زنانه مدل دوگره کد sh.p.p.d.g",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-16T04:28:13.759919+00:00",
-        "brand": "",
-        "catalog_category_id": "9841",
-        "catalog_category_name": "جوراب زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-7284546",
-        "family": "digikala_category:9841",
-        "product_id": "dkp-1734924",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "جوراب زنانه آریان نخ باف کد 5122-1 بسته 3 عددی",
-        "use_case": "fashion_lifestyle"
-      },
       {
         "at": "2026-11-16T04:36:05.494253+00:00",
         "brand": "",
@@ -729,6 +696,38 @@
           "similarity_repeat"
         ],
         "title": "شورت پسرانه آریان نخ باف مدل 4311",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T06:00:25.701987+00:00",
+        "brand": "",
+        "catalog_category_id": "9224",
+        "catalog_category_name": "گوشت گوسفند",
+        "category": "other",
+        "compared_to_product_id": "dkp-20502655",
+        "family": "digikala_category:9224",
+        "product_id": "dkp-21586430",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-16T06:00:25.701987+00:00",
+        "brand": "",
+        "catalog_category_id": "9841",
+        "catalog_category_name": "جوراب زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-7284546",
+        "family": "digikala_category:9841",
+        "product_id": "dkp-1734924",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "جوراب زنانه آریان نخ باف کد 5122-1 بسته 3 عددی",
         "use_case": "fashion_lifestyle"
       }
     ]
