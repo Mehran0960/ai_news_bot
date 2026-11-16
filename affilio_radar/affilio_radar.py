@@ -7929,9 +7929,13 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     brand = ""
     if explicit_brand:
         normalized_explicit_brand = explicit_brand.strip().lower()
+        known_brand_keys = {key for key, _pattern in brand_hints}
         if normalized_explicit_brand.startswith("brand:"):
-            # Publication-history records already store normalized brand slugs.
-            # Keep normalization idempotent when history is read back as a record.
+            # Unknown explicit brand slugs stay stable when history is read back.
+            brand = normalized_explicit_brand
+        elif normalized_explicit_brand in known_brand_keys:
+            # Known aliases such as "muzik_apollo" are already canonical; do not
+            # turn them into "brand:muzik_apollo" during history normalization.
             brand = normalized_explicit_brand
         else:
             brand = next((
