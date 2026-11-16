@@ -2,6 +2,8 @@ import unittest
 from datetime import datetime, timedelta, timezone
 
 from editorial_content import (
+    has_local_market_source,
+    is_local_market_source,
     record_editorial_delivery,
     select_editorial_fallback,
     validate_editorial_item,
@@ -16,7 +18,7 @@ def item(editorial_id="buying-checklist", topic="buying-guide"):
         "title": "چک‌لیست انتخاب کالای بادوام",
         "body": "پیش از خرید، نیاز واقعی، هزینه نگهداری، ضمانت و امکان تعمیر را بررسی کنید.",
         "topic": topic,
-        "sources": [{"source_id": "s1", "title": "راهنمای رسمی مصرف‌کننده", "url": "https://example.org/guide"}],
+        "sources": [{"source_id": "s1", "title": "راهنمای رسمی مصرف‌کننده", "url": "https://www.digikala.com/mag/digikala-delivery-time/"}],
         "claims": [{"text": "هزینه نگهداری را پیش از انتخاب بررسی کنید", "source_ids": ["s1"]}],
         "reviewed_at": (NOW - timedelta(days=1)).isoformat(),
         "review_due_at": (NOW + timedelta(days=30)).isoformat(),
@@ -27,6 +29,35 @@ def item(editorial_id="buying-checklist", topic="buying-guide"):
 class EditorialContentTests(unittest.TestCase):
     def test_valid_item_passes(self):
         self.assertEqual(validate_editorial_item(item(), now=NOW), (True, "ok"))
+
+    def test_local_source_gate_rejects_foreign_only_editorial(self):
+        value = item()
+        value["sources"][0]["url"] = "https://consumer.ftc.gov/articles/online-shopping"
+        self.assertEqual(validate_editorial_item(value, now=NOW), (True, "ok"))
+        self.assertFalse(has_local_market_source(value))
+        self.assertIsNone(select_editorial_fallback([value], {}, now=NOW))
+
+    def test_local_source_gate_rejects_lookalike_and_insecure_domains(self):
+        self.assertFalse(is_local_market_source({
+            "url": "https://digikala.com.evil.example/mag/fake/",
+            "title": "جعلی",
+        }))
+        self.assertFalse(is_local_market_source({
+            "url": "http://www.digikala.com/mag/article/",
+            "title": "ناامن",
+        }))
+
+    def test_selected_payload_retains_claim_provenance(self):
+        chosen = select_editorial_fallback([item()], {}, now=NOW)
+        self.assertEqual(chosen["claims"], item()["claims"])
+
+    def test_24_hour_cooldown_blocks_recently_published_item(self):
+        state = {"editorial_delivery_history": [{
+            "editorial_id": "buying-checklist",
+            "topic": "buying-guide",
+            "published_at": (NOW - timedelta(hours=3)).isoformat(),
+        }]}
+        self.assertIsNone(select_editorial_fallback([item()], state, now=NOW))
 
     def test_current_commercial_claim_is_rejected(self):
         value = item()
