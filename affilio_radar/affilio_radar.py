@@ -7654,6 +7654,10 @@ def _publication_use_case_group(product_or_title) -> str:
         ("lighting_electrical", r"روشنایی|لامپ|چراغ قوه|چراغ اضطراری|الکتریکی|سیم و کابل برق"),
         ("events_decor", r"پرچم|لوازم تزئینی|وسایل جشن"),
     )
+    # Preserve high-specificity cleaning taxonomy even when downstream
+    # category aliases also contain generic kitchen/household words.
+    if re.search(r"اسکاچ|سیم\s*ظرف\s*شویی|اسفنج\s*ظرف\s*شویی|دستمال\s*نظافت", text, re.I):
+        return "home_cleaning"
     matched = next((name for name, pattern in patterns if re.search(pattern, text, re.I)), None)
     if matched:
         return matched
@@ -7930,9 +7934,14 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
             # Keep normalization idempotent when history is read back as a record.
             brand = normalized_explicit_brand
         else:
-            brand_slug = re.sub(r"[^\w\u0600-\u06FF]+", "_", normalized_explicit_brand).strip("_")
-            if brand_slug and brand_slug not in {"unknown", "other", "none", "نامشخص", "-"}:
-                brand = f"brand:{brand_slug}"
+            brand = next((
+                key for key, pattern in brand_hints
+                if re.search(pattern, normalized_explicit_brand, re.I)
+            ), "")
+            if not brand:
+                brand_slug = re.sub(r"[^\w\u0600-\u06FF]+", "_", normalized_explicit_brand).strip("_")
+                if brand_slug and brand_slug not in {"unknown", "other", "none", "نامشخص", "-"}:
+                    brand = f"brand:{brand_slug}"
     if not brand:
         brand = next((key for key, pattern in brand_hints if re.search(pattern, family_match_text, re.I)), "")
     return category, family, brand
