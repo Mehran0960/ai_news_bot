@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T04:28:13.759919+00:00",
+  "generated_at": "2026-11-16T04:36:05.494253+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -398,47 +398,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1442,
+    "all_time_count": 1444,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 441,
+      "family_repeat": 439,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T03:12:46.734074+00:00",
-        "brand": "",
-        "catalog_category_id": "10750",
-        "catalog_category_name": "پودر سیر، موسیر و پیاز",
-        "category": "other",
-        "compared_to_product_id": "dkp-21919310",
-        "family": "digikala_category:10750",
-        "product_id": "dkp-3745772",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "پودر سیر شاهسوند - 120 گرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-16T03:12:46.734074+00:00",
-        "brand": "",
-        "catalog_category_id": "9371",
-        "catalog_category_name": "کفش پاشنه دار زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-21219236",
-        "family": "digikala_category:9371",
-        "product_id": "dkp-14202725",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش پاشنه‌دار زنانه سیی 1966 مدل کلارا کد 1793.4",
-        "use_case": "fashion_lifestyle"
-      },
       {
         "at": "2026-11-16T03:23:48.037501+00:00",
         "brand": "",
@@ -736,6 +702,38 @@
           "similarity_repeat"
         ],
         "title": "جوراب زنانه آریان نخ باف کد 5122-1 بسته 3 عددی",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T04:36:05.494253+00:00",
+        "brand": "",
+        "catalog_category_id": "9224",
+        "catalog_category_name": "گوشت گوسفند",
+        "category": "other",
+        "compared_to_product_id": "dkp-20502655",
+        "family": "digikala_category:9224",
+        "product_id": "dkp-21586430",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-16T04:36:05.494253+00:00",
+        "brand": "",
+        "catalog_category_id": "9788",
+        "catalog_category_name": "شورت پسرانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-7284546",
+        "family": "digikala_category:9788",
+        "product_id": "dkp-8477415",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "شورت پسرانه آریان نخ باف مدل 4311",
         "use_case": "fashion_lifestyle"
       }
     ]
