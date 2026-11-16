@@ -83,6 +83,25 @@ def get_last_product_channel_published_at(state: dict) -> datetime | None:
             except (TypeError, ValueError, OverflowError, OSError):
                 continue
 
+    # A partially delivered active queue item is also a real product receipt.
+    # Recover it even when editorial history exists; do not fall back to the global
+    # channel clock, which may have been advanced by a later editorial post.
+    active_queue = state.get("content_delivery_queue")
+    if isinstance(active_queue, dict):
+        for entry in active_queue.values():
+            if not isinstance(entry, dict):
+                continue
+            content_id = str(entry.get("content_id") or entry.get("product_id") or "")
+            if not PRODUCT_ID_PATTERN.fullmatch(content_id):
+                continue
+            platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+            for destination in ("telegram", "bale", "rubika", "eitaa"):
+                target = platforms.get(destination)
+                if isinstance(target, dict) and target.get("status") == "sent":
+                    sent_at = _utc(target.get("updated_at"))
+                    if sent_at is not None:
+                        observed.append(sent_at)
+
     history = state.get("content_delivery_history")
     rows = history.values() if isinstance(history, dict) else (history if isinstance(history, list) else [])
     for entry in rows:
@@ -758,6 +777,13 @@ def enqueue_selected_content(
     max_items = max(1, int(max_items))
     minimum_runway_minutes = max(0, int(minimum_runway_minutes))
     queue_limit = _configured_queue_limit(max_active_items)
+    try:
+        interval_seconds = max(
+            float(PRODUCT_PUBLICATION_MIN_INTERVAL_SECONDS),
+            float(interval_seconds),
+        )
+    except (TypeError, ValueError, OverflowError):
+        interval_seconds = float(PRODUCT_PUBLICATION_MIN_INTERVAL_SECONDS)
 
     queue = state.setdefault("content_delivery_queue", {})
     if not isinstance(queue, dict):
