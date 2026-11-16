@@ -2469,7 +2469,7 @@ class AffilioRadarTests(unittest.TestCase):
             "muzik_apollo",
         )
         recent_history = radar_module._recent_publication_diversity(
-            published={}, limit=radar.PUBLICATION_LEDGER_LIMIT,
+            published={}, limit=radar_module.PUBLICATION_LEDGER_LIMIT,
             durable_history=recent_publications, now=now, window_hours=24,
         )
         self.assertIn("muzik_apollo", {row["brand"] for row in recent_history})
