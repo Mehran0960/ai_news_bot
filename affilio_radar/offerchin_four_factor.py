@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from typing import Callable
 
 
-POLICY_VERSION = "offerchin_three_factor_harmonic_v5_no_affordability"
+POLICY_VERSION = "offerchin_three_factor_harmonic_v5"
 MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE = 40.0
 
 GENERALITY_SCORES = {
