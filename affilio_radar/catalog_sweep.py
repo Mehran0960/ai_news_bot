@@ -20,13 +20,13 @@ from typing import Any
 import requests
 
 try:
-    from .offerchin_three_factor import (
+    from .offerchin_four_factor import (
         apply_three_factor_scores as _apply_three_factor_scores,
         three_factor_sort_key as _three_factor_sort_key,
         infer_use_case_group as _infer_use_case_group,
     )
 except ImportError:
-    from offerchin_three_factor import (
+    from offerchin_four_factor import (
         apply_three_factor_scores as _apply_three_factor_scores,
         three_factor_sort_key as _three_factor_sort_key,
         infer_use_case_group as _infer_use_case_group,
