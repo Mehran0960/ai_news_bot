@@ -422,7 +422,7 @@ def _editorial_source_rows(item: dict) -> list[tuple[str, str]]:
         "ftc.gov": "FTC",
         "cpsc.gov": "CPSC",
     }
-    for source in sources[:2]:
+    for source in sources[:1]:
         if not isinstance(source, dict):
             continue
         url = str(source.get("url") or "").strip()
@@ -455,10 +455,10 @@ def _editorial_affiliate_url(item: dict | None) -> str:
 
 def _format_message(item: dict, *, html_mode: bool = True, platform: str = "telegram") -> str:
     """Build a topic-led editorial post with visible provenance and one relevant disclosed CTA."""
-    title = str(item.get("title") or "").strip()
+    title = str(item.get("title") or "").strip()[:110]
     body = _readable_editorial_body(item.get("body"))
-    if len(body) > 560:
-        shortened = body[:557].rsplit(" ", 1)[0].rstrip()
+    if len(body) > 430:
+        shortened = body[:427].rsplit(" ", 1)[0].rstrip()
         body = shortened + "…"
     paragraphs = [part.strip() for part in body.split("\n\n") if part.strip()]
     emoji = _topic_emoji(item)
