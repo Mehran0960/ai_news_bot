@@ -3438,10 +3438,6 @@ def _apply_offerchin_four_factor_scores(records: list[dict], now: datetime | Non
         records,
         live_demand_score_fn=lambda row: _offerchin_live_demand_score(row, now=current),
         use_case_group_fn=_publication_use_case_group,
-        price_group_fn=lambda row: str(
-            row.get("catalog_category_id") or row.get("catalog_best_selling_category_id")
-            or _publication_use_case_group(row)
-        ),
         discount_verified_fn=lambda row: has_attractive_discount_value(row, now=current),
         now=current,
     )
@@ -4690,9 +4686,23 @@ def discover_product_urls(
 
 
 def classify_category(title: str) -> str:
-    value = (title or "").lower().replace("\u200c", " ")
+    value = str(title or "").lower()
+    value = value.replace("\u200c", " ").replace("\u200f", " ").replace("\u200b", " ")
+    value = value.replace("ي", "ی").replace("ك", "ک")
+    value = re.sub(r"[\u064b-\u065f\u0670ـ]", "", value)
+    value = re.sub(r"[\s،,:;؛|/_\-]+", " ", value).strip()
     # Specific product families first; "other" should be the true fallback.
     patterns = [
+        # High-specificity gaps observed in the live catalog's "other" bucket.
+        ("home_cleaning", r"دستکش نظافت|کیسه فریزر|کیسه زباله|بوگیر و خوشبو کننده هوا"),
+        ("personal_care", r"دئودورانت|ضد تعریق|مام ضد تعریق|رول ضد تعریق|تقویت کننده ابرو|تقویت کننده مژه|ژل ابرو|صابون ابرو|براش آرایشی|لایه بردار پوست|اسکراب|کرم ترک پا|شامپو|تریمر|شیور فویلی"),
+        ("grocery_food", r"آجیل سنتی|چای سیاه|چای کیسه ای|نودل|پاستا|ماکارونی|رشته آش|رشته سوپی|غذای نیمه آماده|پودر کیک|کاپوچینو|کنجد سفید|غذای آماده"),
+        ("home", r"کاور مبل|روکش مبل|ملحفه|حوله|پادری|روتختی|روبالشی|سرویس خواب|لوازم یکبار مصرف آشپزخانه|ارگانایزر آشپزخانه|نظم دهنده کیسه|ظروف کودک"),
+        ("digital_accessories", r"قلم لمسی|قلم استایلوس|استایلوس|کارت حافظه|microsd|محافظ صفحه"),
+        ("tools_industrial", r"سمپاش|متر لیزری|متر نواری|متر خیاطی|پیچ گوشتی|فازمتر"),
+        ("tv_audio_video", r"فیلم سینمایی|فیلم مستند|فیلم کوتاه|سریال"),
+        ("kids_sports", r"اکشن فیگور|فیگور|عروسک|اسباب بازی"),
+        ("jewelry", r"سکه پارسیان|شمش طلا|پلاک طلا|شمش و پلاک"),
         # Keep dedicated families ahead of broad matches; otherwise the rotation can't see them as distinct.
         ("mobile_devices", r"گوشی\s*(?:موبایل|هوشمند)|گوشی\s+(?:سامسونگ|شیائومی|ردمی|پوکو|اپل|آیفون|هواوی|آنر|نوکیا|realme)|آیفون|iphone|smartphone|mobile phone|تبلت|آیپد|ipad"),
         ("tv_audio_video", r"تلویزیون|android\s*tv|smart\s*tv|پروژکتور|سینما خانگی|گیرنده دیجیتال|اندروید باکس|دوربین عکاسی|لنز دوربین|camcorder"),
@@ -4724,6 +4734,8 @@ def classify_category(title: str) -> str:
         if re.search(pattern, value, re.I):
             return category
     return "other"
+
+
 
 
 def score_product(p: dict) -> dict:
@@ -4773,7 +4785,7 @@ def _verified_review_growth_sort_key(
 
 
 def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
-    """Rank valid offers by the balanced live-demand/affordability/generality/value index."""
+    """Rank valid offers by live demand, generality and verified discount value."""
     candidate = p if isinstance(p, dict) else {}
     return (
         *_offerchin_factor_sort_key(candidate, now=now),
@@ -5213,6 +5225,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         return raw if isinstance(raw, (str, int, float, bool)) or raw is None else None
 
     next_channel_due = []
+    pending_product_queue_count = 0
     terminal_queue_statuses = {
         "published", "completed", "cancelled", "stale_selection", "rejected", "failed"
     }
@@ -5235,6 +5248,19 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                     continue
                 platforms = entry.get("platforms")
                 platforms = platforms if isinstance(platforms, dict) else {}
+                if (
+                    collection_name == "content_delivery_queue"
+                    and str(entry.get("content_type") or "product") == "product"
+                ):
+                    has_pending_core_channel = any(
+                        str(
+                            (platforms.get(destination) or {}).get("status")
+                            or "pending"
+                        ).strip().lower() not in terminal_channel_statuses
+                        for destination in core_channel_destinations
+                    )
+                    if has_pending_core_channel:
+                        pending_product_queue_count += 1
                 for destination in core_channel_destinations:
                     target_state = platforms.get(destination)
                     target_state = target_state if isinstance(target_state, dict) else {}
@@ -5359,6 +5385,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         "product_publication_cadence_cycle_id": cadence.get("catalog_cycle_id"),
         "next_channel_content_due_at": next_channel_due_at,
         "next_editorial_planning_at": next_editorial_planning_at,
+        "pending_product_queue_count": pending_product_queue_count,
         "emergency_continuity_active": emergency_continuity_active,
         "emergency_continuity_snapshot_sha256": emergency_sha if emergency_continuity_active else None,
         "emergency_continuity_baseline_completed_at": (
@@ -7558,27 +7585,84 @@ def defer_pending_publication(
 
 
 def _publication_catalog_category_context(product_or_title) -> dict:
-    """Return the best evidenced DigiKala taxonomy node carried by a candidate."""
+    """Return the best evidenced DigiKala leaf taxonomy node and its parent path."""
     if not isinstance(product_or_title, dict):
         return {"id": "", "name": "", "path": ""}
     product = product_or_title
+
+    def node_value(node, keys):
+        if isinstance(node, dict):
+            for key in keys:
+                value = node.get(key)
+                if value not in (None, "") and not isinstance(value, (dict, list, tuple)):
+                    return str(value).strip()
+        return ""
+
+    def path_parts(value):
+        if isinstance(value, (list, tuple)):
+            result = []
+            for item in value:
+                if isinstance(item, dict):
+                    label = node_value(item, ("title_fa", "name_fa", "title", "name", "label"))
+                else:
+                    label = str(item or "").strip()
+                if label and label not in result:
+                    result.append(label)
+            return result
+        if isinstance(value, dict):
+            labels = []
+            for key in ("parent_name", "title_fa", "name_fa", "name", "title", "label"):
+                label = node_value(value, (key,))
+                if label and label not in labels:
+                    labels.append(label)
+            return labels
+        raw = str(value or "").strip()
+        return [part.strip() for part in re.split(r"\s*(?:>|/|»|›)\s*", raw) if part.strip()]
+
     category_id = str(
         product.get("catalog_best_selling_category_id")
         or product.get("catalog_category_id")
+        or product.get("best_selling_category_id")
         or ""
     ).strip()
     category_name = str(
         product.get("catalog_best_selling_category_name")
         or product.get("catalog_category_name")
+        or product.get("best_selling_category_name")
         or ""
     ).strip()
+
+    nested_nodes = []
+    for key in ("categories", "category_path", "parent_categories", "ancestors"):
+        value = product.get(key)
+        if isinstance(value, (list, tuple)):
+            nested_nodes.extend(item for item in value if isinstance(item, dict))
+    for key in ("category", "catalog_category", "best_selling_category"):
+        value = product.get(key)
+        if isinstance(value, dict):
+            parents = value.get("parent_categories") or value.get("ancestors") or value.get("parents")
+            if isinstance(parents, (list, tuple)):
+                nested_nodes.extend(item for item in parents if isinstance(item, dict))
+            nested_nodes.append(value)
+        elif isinstance(value, (list, tuple)):
+            nested_nodes.extend(item for item in value if isinstance(item, dict))
+
+    if nested_nodes:
+        leaf = nested_nodes[-1]
+        if not category_id:
+            category_id = node_value(leaf, ("id", "category_id", "value"))
+        if not category_name:
+            category_name = node_value(
+                leaf, ("title_fa", "name_fa", "title", "name", "label")
+            )
+
     ranks = product.get("catalog_best_selling_ranks_by_category")
     if isinstance(ranks, dict):
         ranked = []
         for raw_id, record in ranks.items():
             if not isinstance(record, dict):
                 continue
-            name = str(record.get("category_name") or "").strip()
+            name = str(record.get("category_name") or record.get("title_fa") or "").strip()
             try:
                 rank = int(record.get("rank") or 0)
             except (TypeError, ValueError, OverflowError):
@@ -7592,77 +7676,68 @@ def _publication_catalog_category_context(product_or_title) -> dict:
             if not category_id:
                 category_id = ranked_id
 
-    raw_path = product.get("catalog_category_path") or product.get("category_path") or ""
-    if isinstance(raw_path, (list, tuple)):
-        parts = [
-            str(item.get("name") or item.get("title") or "").strip()
-            if isinstance(item, dict) else str(item).strip()
-            for item in raw_path
-        ]
-        path = " > ".join(part for part in parts if part)
-    elif isinstance(raw_path, dict):
-        path = " > ".join(
-            str(raw_path.get(key) or "").strip()
-            for key in ("parent_name", "name", "title")
-            if str(raw_path.get(key) or "").strip()
-        )
-    else:
-        path = str(raw_path or "").strip()
+    raw_path = (
+        product.get("catalog_category_path")
+        or product.get("category_path")
+        or product.get("category_ancestors")
+        or product.get("parent_categories")
+    )
+    path_labels = path_parts(raw_path)
+    if not path_labels and nested_nodes:
+        for node in nested_nodes:
+            label = node_value(node, ("title_fa", "name_fa", "title", "name", "label"))
+            if label and label not in path_labels:
+                path_labels.append(label)
+    if category_name and (not path_labels or path_labels[-1] != category_name):
+        path_labels.append(category_name)
+    path = " > ".join(path_labels)
     if not path and category_name:
         path = category_name
     return {"id": category_id, "name": category_name, "path": path}
 
 
 def _publication_use_case_group(product_or_title) -> str:
-    """Classify product use from title and DigiKala taxonomy; reserve general for missing taxonomy."""
+    """Classify practical product use from the title and the complete catalog taxonomy."""
     category = _publication_catalog_category_context(product_or_title)
     title = (
         str(product_or_title.get("title") or "")
         if isinstance(product_or_title, dict) else str(product_or_title or "")
     )
     raw_text = " ".join((title, category.get("name", ""), category.get("path", ""))).lower()
-    # DigiKala category labels can mix Arabic/Persian glyphs, ZWNJ and punctuation.
     text = raw_text.replace("\u200c", " ").replace("\u200f", " ").replace("ي", "ی").replace("ك", "ک")
     text = re.sub(r"[\u064b-\u065f\u0670ـ]", "", text)
     text = re.sub(r"[\s،,:;؛|/_\-]+", " ", text).strip()
 
-    # Prefer specific DigiKala taxonomy/use-case signals over broad title keywords.
+    # Narrow, high-confidence use cases are checked before broad household/food cues.
     patterns = (
-        ("home_living", r"ماشین لباسشویی|لباسشویی|ماشین ظرفشویی|ظرفشویی|یخچال|فریزر|اجاق گاز|مایکروویو|کولر گازی|آبگرمکن"),
-        ("automotive", r"خودرو|فندکی|داشبورد|لاستیک|تایر|شارژر خودرو|فیلتر کابین|روغن موتور|ضد یخ خودرو|لوازم خودرو|جانبی خودرو|تجهیزات راحتی سرنشین"),
+        ("home_cleaning", r"اسکاچ|سیم ظرفشویی|اسفنج ظرفشویی|دستمال نظافت|شوینده سطوح|نظافت خانه|دستکش نظافت|کیسه فریزر|کیسه زباله|بوگیر و خوشبو کننده هوا"),
+        ("automotive", r"خودرو|فندکی|داشبورد|لاستیک|تایر|شارژر خودرو|فیلتر کابین|روغن موتور|ضد یخ خودرو|لوازم خودرو|جانبی خودرو|تجهیزات راحتی سرنشین|نظافت و نگهداری خودرو"),
         ("outdoor_travel", r"کمپینگ|کوهنوردی|چادر مسافرتی|طبیعت گردی|لوازم سفر|مسافرت|ماهیگیری|لوازم ماهیگیری|کیف و کوله سفری|تجهیزات اسکان"),
         ("tabletop_games", r"بوردگیم|بازی فکری|بازی رومیزی|اوریگامی"),
         ("gaming", r"گیمینگ|بازی رایانه|کنسول بازی|پلی استیشن|ایکس باکس|\bxbox\b|دسته بازی"),
-        ("office_study", r"اداری|لوازم اداری|میز کار|مطالعه|تحریر|لوازم تحریر|مدرسه|دانشجویی|لوازم ارائه|پوینتر ارائه|پرینتر|کاغذ|نوشت افزار|مهر و استامپ"),
+        ("office_study", r"اداری|لوازم اداری|میز کار|مطالعه|تحریر|لوازم تحریر|مدرسه|دانشجویی|لوازم ارائه|پوینتر ارائه|پرینتر|کاغذ|نوشت افزار|مهر و استامپ|نشانگر کتاب"),
+        ("local_goods", r"محصولات بومی|محصولات محلی|محصولات بومی و محلی|سوغات محلی"),
         ("books_learning", r"کتاب|(?<!د)رمان(?:\s|$)|روانشناسی|داستان|مجله|آموزشی|زبان آموزی"),
-        ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک|پوشک|اسباب بازی کودک|دهان شویه کودک|خمیردندان کودک|مکمل کمک درمانی کودک"),
+        ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک|پوشک|اسباب بازی کودک|دهان شویه کودک|خمیردندان کودک|غذای مادر و کودک"),
         ("pet_care", r"حیوان خانگی|گربه|سگ|پرنده|طوطی|عروس هلندی|غذای پرندگان|غذای حیوان|قلاده|خاک گربه|آکواریوم|ماهی زینتی"),
-        ("home_cleaning", r"اسکاچ|سیم ظرفشویی|اسفنج ظرفشویی|دستمال نظافت|شوینده سطوح|نظافت خانه"),
-        ("kitchen_food", r"آشپزخانه|آشپزی|ظرفشویی|پخت و پز|قهوه ساز|اسپرسو|قابلمه|تابه|چای ساز|سرویس کفگیر|کفگیر|ملاقه|قاشق|چنگال|ظروف غذاخوری"),
-        ("local_goods", r"محصولات بومی|محصولات محلی|سوغات محلی"),
-        ("grocery_food", r"روغن خوراکی|روغن کنجد|روغن زیتون|روغن ذرت|روغن آفتابگردان|گوشت|مرغ|ماهی خوراکی|خوراکی|مواد غذایی|صبحانه|نوشیدنی|چای ارگانیک|قهوه ارگانیک|شکلات|تنقلات|غلات|کنسرو|ادویه|کالای خوراکی"),
-        ("home_cleaning", r"نظافت|شستشو|شوینده|تمیزکننده|زمین شوی|بخارشوی|جارو|اسکاچ|سیم ظرفشویی|دستمال نظافت"),
-        ("personal_care", r"بالم لب|رژ لب|لیپ گلاس|مراقبت پوست|مراقبت از پوست|مراقبت مو|آرایش|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن|مسواک|دهان شویه|ضدآفتاب|ماسک صورت|ماسک بدن|شانه مو|مداد چشم"),
-        ("sports_fitness", r"ورزشی|ورزش های توپی|بدنسازی|باشگاه|دوچرخه|توپ فوتبال|فیتنس|تنیس|راکت|زانو بند طبی|لوازم جانبی راکت"),
+        ("personal_care", r"دئودورانت|ضد تعریق|مام ضد تعریق|رول ضد تعریق|ابرو|مژه|تقویت کننده ابرو|تقویت کننده مژه|براش آرایشی|رژ لب|لایه بردار پوست|اسکراب|مراقبت پوست|مراقبت از پوست|مراقبت مو|آرایش|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن|مسواک|دهان شویه|ضدآفتاب|ماسک صورت|ماسک بدن|شانه مو|مداد چشم|کرم ترک پا|لوسیون و روغن بدن"),
+        ("grocery_food", r"روغن خوراکی|روغن کنجد|روغن زیتون|روغن ذرت|روغن آفتابگردان|گوشت|مرغ|ماهی خوراکی|خوراکی|مواد غذایی|صبحانه|نوشیدنی|چای|دمنوش|قهوه|کاپوچینو|پاستا|ماکارونی|نودل|رشته آش|رشته سوپی|آجیل|خشکبار|پودر کیک|شیرینی|شکلات|تنقلات|غلات|کنسرو|ادویه|برنج|جو|گندم|آرد|حبوبات|نبات|خرما|عسل|مربا|شیره|غذای آماده"),
+        ("kitchen_food", r"آشپزخانه|آشپزی|ظرفشویی|پخت و پز|قهوه ساز|اسپرسو|قابلمه|تابه|چای ساز|فیلتر چای|سرویس کفگیر|کفگیر|ملاقه|قاشق|چنگال|ظروف غذاخوری|لوازم یکبار مصرف آشپزخانه|آبکش|آبگیر|سبد آشپزخانه|ارگانایزر آشپزخانه"),
+        ("sports_fitness", r"ورزشی|ورزش های توپی|بدنسازی|باشگاه|دوچرخه|توپ فوتبال|فیتنس|تنیس|راکت|زانو بند طبی|لوازم جانبی راکت|دمبل"),
         ("health_wellness", r"سلامت|پزشکی|مکمل غذایی|مکمل|کمک درمانی|تجهیزات پزشکی|ارتوپدی"),
-        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه|کابل|حافظه|حافظه رم|رم کامپیوتر|رم لپ تاپ|(?<!\w)رم(?!\w)|(?<!\w)ram(?!\w)|مانیتور|کیبورد|ماوس|مودم"),
-        ("audio_visual", r"هدفون|هدست|هندزفری|ایرپاد|اسپیکر|تلویزیون|دوربین عکاسی|پروژکتور|سینما خانگی"),
-        ("home_living", r"خانه|اتاق خواب|دکوراسیون|مبلمان|روشنایی منزل|کالای خواب|خواب|پتو|ملحفه|کوسن|پرده"),
+        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه|کابل|حافظه|حافظه رم|رم کامپیوتر|رم لپ تاپ|(?<!\w)رم(?!\w)|(?<!\w)ram(?!\w)|مانیتور|کیبورد|ماوس|مودم|قلم لمسی|استایلوس|کارت حافظه|microsd"),
+        ("audio_visual", r"هدفون|هدست|هندزفری|ایرپاد|اسپیکر|تلویزیون|دوربین عکاسی|پروژکتور|سینما خانگی|فیلم سینمایی|فیلم مستند|سریال"),
+        ("home_living", r"ماشین لباسشویی|لباسشویی|ماشین ظرفشویی|ظرفشویی|یخچال|فریزر|اجاق گاز|مایکروویو|کولر گازی|آبگرمکن|خانه|اتاق خواب|دکوراسیون|مبلمان|روشنایی منزل|کالای خواب|خواب|پتو|ملحفه|کوسن|پرده|کاور مبل|روکش مبل|حوله|پادری|روتختی|روبالشی|سرویس خواب"),
         ("fashion_lifestyle", r"پوشاک|لباس|تی شرت|تیشرت|شلوار|کفش|بوت|کیف پول|عینک آفتابی|جوراب|مانتو|اکسسوری زنانه|لباس کار"),
-        ("tools_industrial", r"ابزار|سمپاش|پیچ گوشتی|فازمتر|متر|هویه|مته|پیچ و مهره|کمپرسور|تجهیزات ایمنی|ایمنی|لوازم یدکی ابزار|باغبانی|کشاورزی"),
-        ("arts_crafts", r"صنایع دستی|دست بافته|رودوزی|بافتنی|خیاطی|نقاشی|رنگ آمیزی|کاردستی"),
+        ("tools_industrial", r"ابزار|سمپاش|پیچ گوشتی|فازمتر|متر لیزری|متر نواری|مته|پیچ و مهره|کمپرسور|تجهیزات ایمنی|ایمنی|لوازم یدکی ابزار|باغبانی|کشاورزی"),
+        ("arts_crafts", r"صنایع دستی|دست بافته|رودوزی|بافتنی|خیاطی|نقاشی|رنگ آمیزی|کاردستی|بوم نقاشی|رنگ اکریلیک"),
         ("lighting_electrical", r"روشنایی|لامپ|چراغ قوه|چراغ اضطراری|الکتریکی|سیم و کابل برق"),
         ("events_decor", r"پرچم|لوازم تزئینی|وسایل جشن"),
     )
-    # Preserve high-specificity cleaning taxonomy even when downstream
-    # category aliases also contain generic kitchen/household words.
-    if re.search(r"اسکاچ|سیم\s*ظرف\s*شویی|اسفنج\s*ظرف\s*شویی|دستمال\s*نظافت", text, re.I):
-        return "home_cleaning"
     matched = next((name for name, pattern in patterns if re.search(pattern, text, re.I)), None)
     if matched:
         return matched
 
-    # Broad DigiKala taxonomy is a second fallback; do not call a known category general.
     broad = classify_category(text)
     broad_use_cases = {
         "automotive": "automotive",
@@ -7686,12 +7761,15 @@ def _publication_use_case_group(product_or_title) -> str:
         "large_appliances": "home_living",
         "arts_crafts": "arts_crafts",
         "presentation_tools": "office_study",
+        "grocery_food": "grocery_food",
+        "jewelry": "fashion_lifestyle",
     }
     if broad in broad_use_cases:
         return broad_use_cases[broad]
     if category.get("id") and category.get("name"):
         return "catalog_taxonomy_other"
     return "general"
+
 
 def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     """Return a broad category, narrower product family, and known brand hint."""
@@ -7705,10 +7783,15 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     explicit_brand = ""
     if isinstance(product_or_title, dict):
         title = str(product_or_title.get("title") or "")
-        raw_brand = (
-            product_or_title.get("brand") or product_or_title.get("brand_name")
-            or product_or_title.get("brand_title") or ""
-        )
+        raw_brand = ""
+        for brand_key in (
+            "brand", "brand_name", "brand_title", "brand_en", "brand_fa",
+            "brand_name_fa", "brand_title_fa",
+        ):
+            candidate_brand = normalize_brand_value(product_or_title.get(brand_key))
+            if candidate_brand:
+                raw_brand = candidate_brand
+                break
         explicit_brand = normalize_brand_value(raw_brand)
     else:
         title = str(product_or_title or "")
@@ -7866,6 +7949,25 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     # Keep use-case as an independent dimension in history/reporting; do not let
     # it split one DigiKala family into separate cooldown buckets.
     brand_hints = [
+        # Exact title-brand aliases seen in recent verified DigiKala candidates.
+        ("tuska", r"توسکا|tuska"),
+        ("dat_bar", r"دیت\s*بار|date\s*bar"),
+        ("espitore", r"اسپی\s*توره|espi\s*tore"),
+        ("microsonic", r"میکروسونیک|microsonic"),
+        ("callista", r"کالیستا|callista"),
+        ("poshpak", r"پوشپاک|poshpak"),
+        ("trobyte", r"تروبایت|trobyte"),
+        ("shahdin", r"شهدین|shahdin"),
+        ("karin", r"کارین|karin"),
+        ("maedeh", r"مائده|maedeh"),
+        ("shifteh", r"شیفته|shifteh"),
+        ("viva_kids", r"ویوا\s*کیدز|vivakids"),
+        ("medbase", r"مدبیس|medbase"),
+        ("sarzi", r"سارزی|sarzi"),
+        ("genius", r"جنیوس|genius"),
+        ("mister_star", r"مستر\s*استار|mister\s*star"),
+        ("salina_plast", r"سالینا\s*پلاست|salina\s*plast"),
+        ("zarin_barakat", r"زرین\s*برکت|zarin\s*barakat"),
         ("ufc", r"\bUFC\b|یو\s*اف\s*سی"),
         ("ai_javaher", r"آی\s*جواهر"),
         ("sangboo_climy", r"سانگبو\s*کلایمی"),
@@ -7947,7 +8049,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
                 if brand_slug and brand_slug not in {"unknown", "other", "none", "نامشخص", "-"}:
                     brand = f"brand:{brand_slug}"
     if not brand:
-        brand = next((key for key, pattern in brand_hints if re.search(pattern, family_match_text, re.I)), "")
+        brand = next((key for key, pattern in brand_hints if re.search(pattern, brand_search_text, re.I)), "")
     return category, family, brand
 
 
@@ -9299,13 +9401,12 @@ def _emergency_continuity_window_active(
 
 
 def _emergency_continuity_quality_score(product: dict) -> float:
-    """Score affordability, generality and discount only; never invent a demand score."""
+    """Score verified discount and broad usefulness when fresh demand is temporarily unavailable."""
     factors = product.get("offerchin_four_factor")
     if not isinstance(factors, dict):
         return 0.0
     try:
         values = [
-            float(factors.get("affordability") or 0),
             float(factors.get("generality") or 0),
             float(factors.get("discount_attractiveness") or 0),
         ]
@@ -9313,7 +9414,7 @@ def _emergency_continuity_quality_score(product: dict) -> float:
         return 0.0
     if any(value <= 0 for value in values):
         return 0.0
-    return round(len(values) / sum(1.0 / value for value in values), 2)
+    return round(2 / sum(1.0 / value for value in values), 2)
 
 
 def select_discount_fallback_candidates(
@@ -9392,15 +9493,13 @@ def select_discount_fallback_candidates(
             quality_score = _emergency_continuity_quality_score(product)
             try:
                 discount_score = float(factors.get("discount_attractiveness") or 0)
-                affordability_score = float(factors.get("affordability") or 0)
                 generality_score = float(factors.get("generality") or 0)
             except (TypeError, ValueError, OverflowError):
                 continue
-            # This is deliberately stricter than the ordinary four-factor ranking:
-            # a missing demand signal is disclosed, while weak markdown/fit is rejected.
+            # Emergency continuity relaxes only fresh demand. A real discount and
+            # broad usefulness remain required; absolute price is not a factor.
             if (
                 discount_score < 55
-                or affordability_score < 40
                 or generality_score < 50
                 or quality_score < 55
             ):
@@ -9422,7 +9521,7 @@ def select_discount_fallback_candidates(
             print(
                 "EMERGENCY_CONTINUITY_CANDIDATES "
                 f"available={len(quality_eligible)} approved={len(emergency_candidates)} "
-                "ranking=affordability_generality_discount_harmonic "
+                "ranking=generality_discount_harmonic "
                 "fresh_demand_claim=false"
             )
             fresh_candidates.extend(emergency_candidates)
@@ -11469,11 +11568,12 @@ def run(publish=False, selection_only=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
     print(
-        "Ranking mode=full-catalog four-factor-balanced; fresh DigiKala bestseller rank or verified "
+        "Ranking mode=full-catalog three-factor-balanced; fresh DigiKala bestseller rank or verified "
         "recent review-growth proxy is a hard demand gate. Eligible candidates are ranked by the "
-        "harmonic mean of live demand, cash-ticket affordability, use-case generality and discount "
-        "attractiveness; the weakest factor is a tie-break. Missing price/evidence is never invented. "
-        "Clicks and affiliate revenue never rank demand. Live stock, price, product identity, direct "
+        "harmonic mean of live demand, use-case generality and verified discount attractiveness. "
+        "Absolute price is not a score or rejection filter; live price is checked only for offer validity. "
+        "Missing demand/discount evidence is never invented. Clicks and affiliate revenue never rank demand. "
+        "Live stock, price, product identity, direct "
         "Affilio URL, expiry, 24h family/brand/similarity guards and safety checks remain hard controls."
     )
     catalog = load_catalog()
@@ -11745,8 +11845,8 @@ def run(publish=False, selection_only=False):
     enrich_price_history(products, state)
     enrich_market_prices(products, state)
     queue_now = datetime.now(timezone.utc)
-    # Score the comparable live-checked product cohort together so category-relative
-    # affordability is computed from its peers, not from isolated one-item calls.
+    # Score the comparable live-checked product cohort together for consistent
+    # cohort-relative generality and discount comparisons.
     _apply_offerchin_four_factor_scores(products, now=queue_now)
     products.sort(key=deal_sort_key, reverse=True)
     # Independent market/history evidence is diagnostic; it cannot filter a live markdown.
@@ -11996,18 +12096,17 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "The full-catalog scanner requires fresh market-demand evidence before publication. The final offer order balances four equally important dimensions with a harmonic mean: live demand, cash-ticket affordability (with only explicitly verified installment down-payment terms eligible as an entry-price proxy), generality of use, and discount attractiveness. Category-relative cash prices are used only when at least eight comparable candidates exist. A weak dimension cannot be hidden by a strong one. DigiKala bestseller rank is relative within-category evidence, not unit sales; review growth is an indirect proxy, not sales. Clicks never rank market demand. Missing data remains missing.",
-        "four_factor_ranking_policy": {
+        "ranking_note": "The full-catalog scanner requires fresh market-demand evidence before publication. The final offer order balances three dimensions with a harmonic mean: live demand, generality of use, and verified discount attractiveness. Absolute price and installment terms do not affect ranking or publication eligibility; price is used only to recheck the current offer and calculate/verify the markdown. DigiKala bestseller rank is relative within-category evidence, not unit sales; review growth is an indirect proxy, not sales. Clicks never rank market demand. Missing data remains missing.",
+        "three_factor_ranking_policy": {
             "version": OFFERCHIN_FOUR_FACTOR_POLICY_VERSION,
             "aggregation": "equal_weight_harmonic_mean",
-            "dimensions": ["live_demand", "affordability", "generality", "discount_attractiveness"],
-            "affordability": "listed_final_cash_price_vs_versioned_1405_minimum_wage_proxy_plus_within_use_case_price_percentile_when_cohort_size_at_least_8",
-            "verified_installment_terms_required": True,
+            "dimensions": ["live_demand", "generality", "discount_attractiveness"],
+            "price_usage": "current_price_and_discount_arithmetic_validation_only; no_price_penalty_score_or_gate",
             "generality": "taxonomy_and_use_case_reach_heuristic; unknown_taxonomy_scored_low",
             "discount_attractiveness": "verified_percent_and_cash_savings_plus_fresh_history_or_market_evidence_confidence",
             "missing_factor_behavior": "no_invented_values; incomplete legacy cards retain prior fallback order",
             "demand_gate_remains_hard": True,
-            "clicks_affect_demand_or_four_factor_score": False,
+            "clicks_affect_demand_or_three_factor_score": False,
             "score_is_conversion_probability": False,
         },
         "demand_ranking_policy": {

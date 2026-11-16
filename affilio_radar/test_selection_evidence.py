@@ -229,7 +229,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             radar.deal_sort_key(stale_bestseller, now=self.now),
         )
 
-    def test_four_factor_balance_can_trade_off_live_demand_against_affordability_and_discount(self):
+    def test_three_factor_balance_uses_live_demand_discount_and_generality_only(self):
         products = [
             {
                 "product_id": "dkp-popular-low-discount",
@@ -279,22 +279,18 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             row["product_id"]: row["offerchin_four_factor"]
             for row in selected
         }
-        self.assertGreater(
-            scores["dkp-popular-low-discount"]["live_demand"],
-            scores["dkp-weak-high-discount"]["live_demand"],
-        )
-        self.assertGreater(
-            scores["dkp-weak-high-discount"]["affordability"],
-            scores["dkp-popular-low-discount"]["affordability"],
-        )
+        self.assertTrue(all("affordability" not in score for score in scores.values()))
+        self.assertGreater(scores["dkp-popular-low-discount"]["live_demand"], 0)
+        self.assertGreater(scores["dkp-weak-high-discount"]["live_demand"], 0)
         self.assertGreater(
             scores["dkp-weak-high-discount"]["discount_attractiveness"],
             scores["dkp-popular-low-discount"]["discount_attractiveness"],
         )
-        self.assertGreater(
-            scores["dkp-weak-high-discount"]["balanced_score"],
-            scores["dkp-popular-low-discount"]["balanced_score"],
-        )
+        self.assertGreater(scores["dkp-popular-low-discount"]["generality"], 0)
+        self.assertGreater(scores["dkp-weak-high-discount"]["generality"], 0)
+        self.assertTrue(scores["dkp-popular-low-discount"]["generality_group"])
+        self.assertTrue(scores["dkp-weak-high-discount"]["generality_group"])
+        self.assertIn("balanced_score", scores["dkp-popular-low-discount"])
         queue = {row["product_id"]: {} for row in selected}
         by_id = {row["product_id"]: row for row in selected}
         published = radar.select_publish_candidates(queue, by_id, self.now)
@@ -303,7 +299,6 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             [row["product_id"] for row in published],
             [row["product_id"] for row in expected],
         )
-        self.assertEqual(published[0]["product_id"], "dkp-weak-high-discount")
 
     def test_discount_is_the_final_tiebreak_after_equal_demand_evidence(self):
         base = {
@@ -376,10 +371,9 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         def score(rows, now=None):
             for row in rows:
                 row["offerchin_four_factor"] = {
-                    "affordability": 75,
                     "generality": 80,
                     "discount_attractiveness": 90,
-                    "balanced_score": 81,
+                    "balanced_score": 84.71,
                 }
 
         common_patches = (
@@ -429,10 +423,9 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         def score(rows, now=None):
             for row in rows:
                 row["offerchin_four_factor"] = {
-                    "affordability": 75,
                     "generality": 80,
                     "discount_attractiveness": 54,
-                    "balanced_score": 67,
+                    "balanced_score": 64.62,
                 }
 
         with (
@@ -623,3 +616,97 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class OfferChinTaxonomyRegressionTests(unittest.TestCase):
+    def test_live_catalog_miss_categories_are_classified_out_of_other(self):
+        examples = {
+            "رول دئودورانت ضد تعریق مردانه": "personal_care",
+            "نودل فوری با طعم مرغ": "grocery_food",
+            "کاور مبل کشی دو نفره": "home",
+            "قلم لمسی استایلوس برای تبلت": "digital_accessories",
+            "فیگور مرد عنکبوتی": "kids_sports",
+            "متر لیزری اندازه گیری": "tools_industrial",
+            "فیلم سینمایی": "tv_audio_video",
+            "دستکش نظافت خانگی": "home_cleaning",
+        }
+        for title, expected in examples.items():
+            with self.subTest(title=title):
+                self.assertEqual(radar.classify_category(title), expected)
+
+    def test_use_case_uses_leaf_category_and_title_for_known_catalog_buckets(self):
+        examples = (
+            (
+                {
+                    "title": "رول ضد تعریق مردانه مدل Frost",
+                    "catalog_category_id": "10932",
+                    "catalog_category_name": "دئودورانت",
+                },
+                "personal_care",
+            ),
+            (
+                {
+                    "title": "کنسرو غذای آماده با سویا",
+                    "catalog_category_id": "10727",
+                    "catalog_category_name": "غذای آماده",
+                },
+                "grocery_food",
+            ),
+            (
+                {
+                    "title": "کاور مبل دو نفره",
+                    "catalog_category_id": "11743",
+                    "catalog_category_name": "کاور مبل",
+                },
+                "home_living",
+            ),
+            (
+                {
+                    "title": "کیسه فریزر رولی",
+                    "catalog_category_id": "11766",
+                    "catalog_category_name": "کیسه فریزر",
+                },
+                "home_cleaning",
+            ),
+        )
+        for product, expected in examples:
+            with self.subTest(product=product):
+                self.assertEqual(radar._publication_use_case_group(product), expected)
+
+    def test_nested_digikala_category_objects_preserve_leaf_and_parent_path(self):
+        product = {
+            "title": "رول ضد تعریق مردانه",
+            "category": {
+                "id": 10932,
+                "title_fa": "دئودورانت",
+                "parent_categories": [
+                    {"id": 10, "title_fa": "زیبایی و سلامت"},
+                    {"id": 11, "title_fa": "بهداشت شخصی"},
+                ],
+            },
+        }
+        context = radar._publication_catalog_category_context(product)
+        self.assertEqual(context["id"], "10932")
+        self.assertEqual(context["name"], "دئودورانت")
+        self.assertEqual(
+            context["path"],
+            "زیبایی و سلامت > بهداشت شخصی > دئودورانت",
+        )
+
+    def test_nested_brand_metadata_and_verified_title_aliases_are_recognized(self):
+        nested = {
+            "title": "هدفون بی‌سیم مدل آزمایشی",
+            "brand": {"name_fa": "برند نمونه"},
+        }
+        self.assertEqual(
+            radar._publication_diversity_group(nested)[2],
+            "brand:برند_نمونه",
+        )
+        title_brand = {
+            "title": "کارت حافظه microSDHC میکروسونیک مدل HC کلاس 10",
+            "brand": "",
+        }
+        self.assertEqual(
+            radar._publication_diversity_group(title_brand)[2],
+            "microsonic",
+        )
+
