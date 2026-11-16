@@ -2790,3 +2790,24 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 
 
 **تکمیل اتصال منبع محلی به چرخهٔ انتخاب:** مشخص شد که `_load_bank()` از قبل `editorial_approved_items.json` را با بانک evergreen ادغام می‌کند؛ یک مورد مستقل DigiKala Mag در آن ثبت است. در این PR تست صریح ادغام و انتخاب این آیتم اضافه و CI برای اعتبارسنجی هر دو فایل اصلاح شد. بانک evergreen ۳۳ مورد و فایل تأییدشده یک مورد محلی دارد؛ جمع مؤثر ۳۴ مورد.
+
+## ۲۰۲۶-۱۱-۱۶ — گیت سخت ارتباط تحریریه با محصول
+
+**هدف:** جلوگیری قطعی از انتشار محتوای عمومی و بی‌ارتباط با کالای انتخاب‌شده و جلوگیری از ارسال مجدد آیتم‌هایی که از بانک جاری حذف یا منقضی شده‌اند.
+
+**تغییر/اقدام:**
+- تبدیل ارتباط موضوع با محصول از «امتیاز ترجیحی» به شرط لازم؛ در نبود مطلب مرتبط، slot تحریریه خالی می‌ماند.
+- افزودن فهرست topicهای مجاز و بازنشسته‌کردن IDهای خارج از تمرکز، از جمله `app-permissions`.
+- اولویت‌دهی به دیجی‌کالا مگ، سپس زومیت و بعد منابع معتبر ایرانی؛ منابع خارجی برای اصول عمومی تصمیم خرید نگه داشته می‌شوند.
+- اعتبارسنجی مجدد صف فعال در زمان ارسال با بانک جاری، claims/sources، تاریخ بازبینی و محصول مرتبط؛ آیتم حذف‌شده، تغییرکرده، منقضی یا نامرتبط لغو می‌شود.
+- افزودن regression برای رد محتوای حریم خصوصی نامرتبط، جلوگیری از fallback بی‌ربط، رتبه‌بندی منبع ایرانی و حذف آیتم قدیمی از صف.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/editorial_content.py`، `affilio_radar/editorial_publisher.py`، `affilio_radar/test_editorial_content.py`، `affilio_radar/test_editorial_publisher.py`، `.github/workflows/offerchin-documentation-gate.yml`، `docs/OFFERCHIN_DIGIKALA_MAG_SOURCE_POLICY_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
+
+**آزمون و نتیجه:** Editorial Contract Tests شامل compile، اعتبارسنجی بانک، shadow read-only، تست‌های محتوا/صف/رندر/retry و retention ۴۸ساعته موفق شد؛ Unified Video Fan-out Validation و Multi-Source Editorial Discovery نیز موفق شدند. Documentation Gate برای commit پیشین به‌دلیل عدم رعایت قالب ساختاری changelog شکست خورد؛ قالب این ورودی و عمق checkout آن workflow اصلاح شده و اجرای جدید در انتظار نتیجه است. هیچ پیام زنده‌ای حذف یا ارسال آزمایشی نشده است.
+
+**شواهد/شناسه:** PR #226: https://github.com/Mehran0960/ai_news_bot/pull/226 ؛ head commit `3302621a533fd3ae3e3de3128aea2ad8d0738741`؛ Editorial Contract run `43932200880`؛ Video Fan-out run `43932201118`؛ Multi-Source Discovery run `43932200845`.
+
+**ریسک/بازگشت:** سخت‌گیری موضوعی می‌تواند تعداد slotهای تحریریه را کم کند؛ این رفتار عمدی است و کیفیت را بر حجم مقدم می‌کند. برای افزودن موضوع جدید، باید نگاشت موضوع به گروه محصول، منبع معتبر و تست مرتبط اضافه شود. بازگشت با revert همین PR ممکن است؛ state و صف انتشار نباید reset شوند.
+
+**وضعیت:** کد و تست‌ها روی شاخهٔ PR #226 اصلاح شده‌اند؛ ادغام به main منوط به سبزشدن دوبارهٔ Documentation Gate است.

@@ -2,6 +2,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 
 from editorial_content import (
+    editorial_topics_for_product,
     record_editorial_delivery,
     select_editorial_fallback,
     validate_editorial_item,
@@ -10,7 +11,7 @@ from editorial_content import (
 NOW = datetime(2026, 11, 12, 18, 0, tzinfo=timezone.utc)
 
 
-def item(editorial_id="buying-checklist", topic="buying-guide"):
+def item(editorial_id="buying-checklist", topic="purchase-planning"):
     return {
         "editorial_id": editorial_id,
         "title": "چک‌لیست انتخاب کالای بادوام",
@@ -68,7 +69,7 @@ class EditorialContentTests(unittest.TestCase):
 
     def test_selector_returns_non_recent_reviewed_item(self):
         chosen = select_editorial_fallback(
-            [item(), item("home-maintenance", "home-care")], {}, now=NOW
+            [item(), item("seller-guide", "seller-check")], {}, now=NOW
         )
         self.assertEqual(chosen["content_type"], "editorial")
         self.assertEqual(chosen["content_id"], "editorial:buying-checklist")
@@ -86,9 +87,59 @@ class EditorialContentTests(unittest.TestCase):
             [item(), item("new-mag-guide", "device-compatibility")],
             state,
             now=NOW,
+            related_product={
+                "product_id": "dkp-phone",
+                "offerchin_four_factor": {"generality_group": "mobile_productivity"},
+            },
         )
         self.assertEqual(chosen["editorial_id"], "new-mag-guide")
         self.assertEqual(state["editorial_cycle"]["cycle_number"], 3)
+
+    def test_privacy_only_topics_and_retired_app_permissions_item_are_rejected(self):
+        privacy_item = item("app-permissions", "privacy-and-security")
+        self.assertEqual(
+            validate_editorial_item(privacy_item, now=NOW)[1],
+            "retired_off_topic_item",
+        )
+        renamed_privacy_item = item("generic-privacy-tip", "privacy")
+        self.assertEqual(
+            validate_editorial_item(renamed_privacy_item, now=NOW)[1],
+            "unsupported_editorial_topic",
+        )
+
+    def test_selector_does_not_fall_back_to_an_unrelated_topic_for_a_product(self):
+        product = {
+            "product_id": "dkp-phone",
+            "offerchin_four_factor": {"generality_group": "mobile_productivity"},
+        }
+        unrelated = item("seller-history-guide", "seller-verification")
+        self.assertIsNone(
+            select_editorial_fallback([unrelated], {}, now=NOW, related_product=product)
+        )
+
+    def test_local_digikala_mag_source_is_preferred_over_generic_foreign_source(self):
+        global_item = item("global-buying-guide", "purchase-planning")
+        local_item = item("local-buying-guide", "purchase-planning")
+        local_item["sources"] = [{
+            "source_id": "digikala-mag",
+            "title": "راهنمای خرید دیجی‌کالا مگ",
+            "publisher": "دیجی‌کالا مگ",
+            "url": "https://www.digikala.com/mag/example/",
+        }]
+        local_item["claims"] = [{
+            "text": "راهنمای خرید مرتبط با موضوع",
+            "source_ids": ["digikala-mag"],
+        }]
+        chosen = select_editorial_fallback(
+            [global_item, local_item], {}, now=NOW, related_product={}
+        )
+        self.assertEqual(chosen["editorial_id"], "local-buying-guide")
+
+    def test_delivery_guidance_is_relevant_across_product_categories(self):
+        topics = editorial_topics_for_product({
+            "offerchin_four_factor": {"generality_group": "automotive"}
+        })
+        self.assertIn("delivery", topics)
 
     def test_related_editorial_topic_is_preferred_for_product(self):
         state = {}
