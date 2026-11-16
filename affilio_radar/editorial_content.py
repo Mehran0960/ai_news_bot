@@ -41,6 +41,38 @@ def _safe_source(source: Any) -> bool:
     return parsed.scheme == "https" and bool(parsed.netloc) and bool(title)
 
 
+def is_local_market_source(source: Any) -> bool:
+    """Allow only article URLs from the approved Iranian editorial publishers."""
+    if not isinstance(source, dict):
+        return False
+    url = str(source.get("url") or "").strip()
+    try:
+        parsed = urlparse(url)
+    except ValueError:
+        return False
+    host = (parsed.hostname or "").lower()
+    path = parsed.path.rstrip("/")
+    if (
+        parsed.scheme.lower() != "https"
+        or parsed.username
+        or parsed.password
+        or not path
+        or path == "/"
+    ):
+        return False
+    if host in {"digikala.com", "www.digikala.com"}:
+        return path.startswith("/mag/") and path != "/mag"
+    if host in {"zoomit.ir", "www.zoomit.ir"}:
+        return path != "/feed" and not path.startswith("/feed/")
+    return False
+
+
+def has_local_market_source(item: Any) -> bool:
+    """Require at least one allowlisted local-market editorial article source."""
+    sources = item.get("sources") if isinstance(item, dict) else None
+    return isinstance(sources, list) and any(is_local_market_source(source) for source in sources)
+
+
 def validate_editorial_item(item: Any, *, now: datetime | None = None) -> tuple[bool, str]:
     """Validate a reviewed evergreen item; no current offer claims are allowed."""
     if not isinstance(item, dict):
@@ -140,9 +172,28 @@ def select_editorial_fallback(
     valid_items = []
     for raw in bank if isinstance(bank, list) else []:
         ok, _reason = validate_editorial_item(raw, now=current)
-        if ok:
+        if ok and has_local_market_source(raw):
             valid_items.append(raw)
     if not valid_items:
+        return None
+
+    # Do not recycle an item inside the rolling publication cooldown.
+    last_published_by_id: dict[str, datetime] = {}
+    for row in history:
+        editorial_id = str(row.get("editorial_id") or "").strip()
+        published_at = _utc(row.get("published_at"))
+        if editorial_id and published_at and (
+            editorial_id not in last_published_by_id
+            or published_at > last_published_by_id[editorial_id]
+        ):
+            last_published_by_id[editorial_id] = published_at
+    item_cutoff = current - timedelta(hours=max(0, int(cooldown_hours)))
+    not_recent = [
+        item for item in valid_items
+        if last_published_by_id.get(str(item["editorial_id"])) is None
+        or last_published_by_id[str(item["editorial_id"])] < item_cutoff
+    ]
+    if not not_recent:
         return None
 
     current_ids = sorted({str(item["editorial_id"]) for item in valid_items})
@@ -157,7 +208,7 @@ def select_editorial_fallback(
     cycle["used_ids"] = sorted(used_ids)
     cycle.setdefault("cycle_number", 1)
 
-    eligible = [item for item in valid_items if str(item["editorial_id"]) not in used_ids]
+    eligible = [item for item in not_recent if str(item["editorial_id"]) not in used_ids]
     if not eligible:
         try:
             cycle["cycle_number"] = max(1, int(cycle.get("cycle_number") or 1)) + 1
@@ -165,12 +216,16 @@ def select_editorial_fallback(
             cycle["cycle_number"] = 2
         cycle["used_ids"] = []
         cycle["cycle_started_at"] = current.isoformat()
-        eligible = list(valid_items)
+        eligible = list(not_recent)
 
+    topic_cutoff = current - timedelta(hours=max(0, int(topic_cooldown_hours)))
     recent_topics = {
         str(row.get("topic") or "").lower()
-        for row in history[-3:]
+        for row in history
         if isinstance(row, dict)
+        and str(row.get("topic") or "").strip()
+        and (_utc(row.get("published_at")) is not None)
+        and _utc(row.get("published_at")) >= topic_cutoff
     }
     last_id = str(cycle.get("last_editorial_id") or "")
     if len(eligible) > 1:
@@ -226,6 +281,7 @@ def select_editorial_fallback(
         "body": str(chosen["body"]).strip(),
         "topic": str(chosen["topic"]).lower(),
         "sources": list(chosen["sources"]),
+        "claims": list(chosen["claims"]),
         "reviewed_at": str(chosen["reviewed_at"]),
         "review_due_at": str(chosen["review_due_at"]),
         "sequence_number": None,
