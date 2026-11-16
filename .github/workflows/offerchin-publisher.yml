@@ -91,7 +91,7 @@ jobs:
 
       - name: Validate the delivery-only path
         run: |
-          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/expiration_monitor.py affilio_radar/offerchin_visuals.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/messenger_adapters.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
+          python -m py_compile affilio_radar/affilio_radar.py affilio_radar/expiration_monitor.py affilio_radar/offerchin_visuals.py affilio_radar/product_quality.py affilio_radar/content_delivery.py affilio_radar/catalog_sweep.py affilio_radar/parallel_catalog_sweep.py affilio_radar/offerchin_four_factor.py affilio_radar/platform_registry.py affilio_radar/publisher.py affilio_radar/editorial_publisher.py affilio_radar/messenger_adapters.py affilio_radar/short_video.py affilio_radar/aparat_uploader.py
           python - <<'PY'
           from pathlib import Path
           source = Path("affilio_radar/publisher.py").read_text(encoding="utf-8")
@@ -145,6 +145,7 @@ jobs:
           python -m unittest test_selection_evidence -v
           python -m unittest -v test_content_delivery.py
           python -m unittest -v test_shared_selection_media_routing.py
+          python -m unittest -v test_offerchin_four_factor.py test_offerchin_diversity.py test_editorial_publisher.py
           node --test test_affiliate_deal_radar_worker.mjs
 
       - name: Validate permanent YouTube retention policy
