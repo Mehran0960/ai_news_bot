@@ -1,7 +1,8 @@
-"""Four-factor OfferChin ranking.
+"""Three-factor OfferChin ranking (legacy module/API name retained for compatibility).
 
-Scores are bounded 0..100. The aggregate uses a harmonic mean so a strong
-single dimension cannot hide a serious weakness in another one.
+The balanced priority index contains only live demand, product generality and
+verified discount attractiveness. Product price/affordability is not a ranking
+factor, gate, fallback criterion or proxy.
 """
 from __future__ import annotations
 
@@ -11,66 +12,36 @@ from datetime import datetime, timezone
 from typing import Callable
 
 
-POLICY_VERSION = "offerchin_four_factor_harmonic_v4_taxonomy_consistency"
-MIN_PRICE_COHORT_SIZE = 8
-# Versioned, offline benchmark: 1405 minimum base daily wage x 30 / 10 Rial per Toman.
-# It is a conservative public purchasing-power proxy, not an individual's disposable income.
-AFFORDABILITY_REFERENCE_MONTHLY_INCOME_TOMAN = 16_625_550
-AFFORDABILITY_REFERENCE_BASIS = "iran_1405_minimum_base_wage_30day_month"
-AFFORDABILITY_FULL_SCORE_PRICE_SHARE = 0.01
-AFFORDABILITY_LOG_SENSITIVITY = 25.0
-# A weak discount cannot be compensated for by demand, affordability or generality.
+POLICY_VERSION = "offerchin_three_factor_harmonic_v5_no_affordability"
 MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE = 40.0
 
-# Heuristic reach scores, not market-share claims. Missing taxonomy is deliberately
-# scored low rather than being mistaken for a mass-market product.
 GENERALITY_SCORES = {
-    "home_cleaning": 96,
-    "grocery_food": 94,
-    "kitchen_food": 92,
-    "personal_care": 88,
-    "mobile_productivity": 86,
-    "software_tools": 40,
-    "home_living": 84,
-    "lighting_electrical": 82,
-    "audio_visual": 78,
-    "office_study": 74,
-    "baby_care": 70,
-    "books_learning": 68,
-    "fashion_lifestyle": 64,
-    "health_wellness": 62,
-    "sports_fitness": 56,
-    "automotive": 55,
-    "tools_industrial": 53,
-    "local_goods": 52,
-    "outdoor_travel": 47,
-    "pet_care": 44,
-    "gaming": 40,
-    "tabletop_games": 38,
-    "events_decor": 36,
-    "arts_crafts": 34,
-    "general": 22,
-    "unknown": 18,
+    "home_cleaning": 96, "grocery_food": 94, "kitchen_food": 92,
+    "personal_care": 88, "mobile_productivity": 86, "software_tools": 40,
+    "home_living": 84, "lighting_electrical": 82, "audio_visual": 78,
+    "office_study": 74, "baby_care": 70, "books_learning": 68,
+    "fashion_lifestyle": 64, "health_wellness": 62, "sports_fitness": 56,
+    "automotive": 55, "tools_industrial": 53, "local_goods": 52,
+    "outdoor_travel": 47, "pet_care": 44, "gaming": 40,
+    "tabletop_games": 38, "events_decor": 36, "arts_crafts": 34,
+    "general": 22, "unknown": 18,
 }
 
 _TEXT_GROUP_PATTERNS = (
-    # Software is deliberately distinct from phones/hardware so a stale category
-    # label cannot make unrelated driver packs or operating systems look like
-    # high-demand mobile products.
     ("software_tools", r"نرم افزار|نرم‌افزار|سیستم عامل|ویندوز|windows|office|autocad|driver ?pack"),
     ("home_cleaning", r"نظافت|شوینده|تمیزکننده|جارو|دستمال نظافت|اسکاچ"),
-    ("grocery_food", r"مواد غذایی|خوراکی|نوشیدنی|چای|قهوه|شکلات|تنقلات|ادویه|کنسرو"),
-    ("kitchen_food", r"آشپزخانه|آشپزی|قابلمه|تابه|کتری|چای ساز|قهوه ساز|ظروف غذا"),
+    ("kitchen_food", r"آشپزخانه|آشپزی|قابلمه|تابه|کتری|چای ساز|چای‌ساز|قهوه ساز|قهوه‌ساز|ظروف غذا"),
+    ("grocery_food", r"مواد غذایی|خوراکی|نوشیدنی|چای(?!\s*ساز)|قهوه(?!\s*ساز)|شکلات|تنقلات|ادویه|کنسرو|گوشت|مرغ|ماهی|میگو|سوسیس|کالباس|تخم مرغ|لبنیات|ماست|پنیر|شیر|دوغ|کره|خامه|بستنی|میوه|سبزی|صیفی|برنج|جو|گندم|آرد|حبوبات|روغن خوراکی|شکر|قند|نمک|رب|نوشابه|آبمیوه|آب معدنی|پودر سیر|غذای آماده"),
     ("personal_care", r"بهداشتی|آرایشی|مراقبت پوست|مراقبت مو|مسواک|ضدآفتاب|عطر"),
-    ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ.?تاپ|کامپیوتر|شارژر|کابل|حافظه|مودم|روتر|تجهیزات شبکه|شبکه اکتیو|شبکه پسیو|هارد|ssd|رم|ماوس|موس|کیبورد|صفحه کلید|مانیتور|وبکم|فلش مموری"),
+    ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|پوشک|تغذیه کودک|اسباب بازی کودک"),
+    ("books_learning", r"کتاب|رمان|داستان|مجله|زبان آموزی"),
+    ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ.?تاپ|کامپیوتر|شارژر|کابل|حافظه|مودم|روتر|تجهیزات شبکه|شبکه اکتیو|شبکه پسیو|هارد|ssd|(?<![\u0600-\u06ff])رم(?![\u0600-\u06ff])|\bram\b|ماوس|موس|کیبورد|صفحه کلید|مانیتور|وبکم|فلش مموری"),
     ("home_living", r"خانه|اتاق خواب|دکوراسیون|دکوراتیو|ساعت دیواری|ساعت رومیزی|مبلمان|کالای خواب|پتو|ملحفه|پرده"),
     ("lighting_electrical", r"روشنایی|لامپ|چراغ|الکتریکی|سیم برق"),
     ("audio_visual", r"هدفون|هدست|هندزفری|ایرپاد|اسپیکر|تلویزیون|دوربین|آلات موسیقی|میکروفن|میکروفون|دانگل بلوتوث|بلوتوث"),
     ("office_study", r"اداری|لوازم تحریر|مدرسه|دانشجویی|پرینتر|نوشت افزار|صندوق فروشگاهی|ماشین های اداری|پوز|فروشگاهی"),
-    ("baby_care", r"نوزاد|کودک|سیسمونی|پوشک|تغذیه کودک"),
-    ("books_learning", r"کتاب|رمان|داستان|آموزشی|زبان آموزی"),
     ("fashion_lifestyle", r"پوشاک|لباس|کفش|کیف|عینک آفتابی|جوراب|انگشتر|زیورآلات|بوت|شلوار|کلاه"),
-    ("health_wellness", r"سلامت|پزشکی|تجهیزات پزشکی|ارتوپدی"),
+    ("health_wellness", r"سلامت|پزشکی|تجهیزات پزشکی|ارتوپدی|مکمل"),
     ("sports_fitness", r"ورزشی|بدنسازی|باشگاه|دوچرخه|توپ|راکت"),
     ("automotive", r"خودرو|ماشین|لاستیک|تایر|روغن موتور|لوازم خودرو"),
     ("tools_industrial", r"ابزار|هویه|مته|پیچ و مهره|کمپرسور|باغبانی"),
@@ -111,59 +82,11 @@ def generality_score(use_case_group: object) -> float:
     return float(GENERALITY_SCORES.get(group, GENERALITY_SCORES["unknown"]))
 
 
-def affordability_absolute_score(price_toman: object) -> float:
-    """Score the final listed cash price against a versioned conservative income benchmark.
-
-    This is a market-level proxy only. It does not infer a buyer's personal income,
-    disposable budget, eligibility for credit, or checkout/shipping fees.
-    """
-    price = _number(price_toman)
-    if price <= 0:
-        return 0.0
-    reference_price = (
-        AFFORDABILITY_REFERENCE_MONTHLY_INCOME_TOMAN
-        * AFFORDABILITY_FULL_SCORE_PRICE_SHARE
-    )
-    ratio = price / max(1.0, reference_price)
-    return _clamp(100.0 - AFFORDABILITY_LOG_SENSITIVITY * math.log10(max(ratio, 0.01)))
-
-
-def _relative_price_scores(records: list[dict], groups: list[str]) -> dict[int, float]:
-    buckets: dict[str, list[tuple[int, float]]] = {}
-    for index, row in enumerate(records):
-        price = _number(row.get("current_price"))
-        if price > 0:
-            buckets.setdefault(groups[index], []).append((index, price))
-    result: dict[int, float] = {}
-    for items in buckets.values():
-        if len(items) < MIN_PRICE_COHORT_SIZE:
-            continue
-        ordered = sorted(items, key=lambda pair: pair[1])
-        # Mid-rank handles tied prices without arbitrary ordering.
-        cursor = 0
-        while cursor < len(ordered):
-            end = cursor + 1
-            while end < len(ordered) and ordered[end][1] == ordered[cursor][1]:
-                end += 1
-            average_rank = (cursor + end - 1) / 2
-            score = 100.0 * (1.0 - average_rank / max(1, len(ordered) - 1))
-            for position in range(cursor, end):
-                result[ordered[position][0]] = _clamp(score)
-            cursor = end
-    return result
-
-
-def _final_cash_price_toman(row: dict) -> tuple[float, str]:
-    """Use the currently listed cash purchase price, never an installment down payment."""
-    price = _number(row.get("current_price"))
-    if price <= 0:
-        return 0.0, "missing_listed_final_cash_price"
-    return price, "listed_final_cash_price_excluding_unverified_delivery_fees"
-
 def discount_attractiveness_score(
     row: dict,
     independently_verified: bool = False,
 ) -> tuple[float, str]:
+    """Score only consistent markdown arithmetic and evidence confidence; never rank by ticket price."""
     current = _number(row.get("current_price"))
     original = _number(row.get("original_price"))
     discount = _number(row.get("discount_percent"))
@@ -191,7 +114,7 @@ def discount_publish_gate(
     independently_verified: bool = False,
     minimum_score: float = MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE,
 ) -> tuple[bool, float, str]:
-    """Hard publication gate for discount value; other factors cannot compensate for a weak deal."""
+    """A genuinely verified discount remains a hard gate; no other score can disguise a weak offer."""
     score, evidence = discount_attractiveness_score(row, independently_verified)
     try:
         floor = _clamp(float(minimum_score))
@@ -213,74 +136,56 @@ def apply_four_factor_scores(
     use_case_group_fn: Callable[[dict], str],
     discount_verified_fn: Callable[[dict], bool],
     now: datetime | None = None,
-    price_group_fn: Callable[[dict], str] | None = None,
 ) -> list[dict]:
-    """Annotate a candidate cohort in place and return it, preserving input order."""
+    """Legacy-compatible entry point; annotate a price-independent three-factor score."""
     rows = [row for row in records if isinstance(row, dict)]
-    groups = [str(use_case_group_fn(row) or "unknown") for row in rows]
-    price_groups = [
-        str((price_group_fn(row) if price_group_fn else groups[index]) or groups[index])
-        for index, row in enumerate(rows)
-    ]
-    relative_prices = _relative_price_scores(rows, price_groups)
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current_iso = current.astimezone(timezone.utc).isoformat()
 
-    cohort_sizes = {
-        group: sum(1 for index, candidate in enumerate(rows)
-                   if price_groups[index] == group and _number(candidate.get("current_price")) > 0)
-        for group in price_groups
-    }
-    for index, row in enumerate(rows):
+    for row in rows:
         demand = _clamp(_number(live_demand_score_fn(row)))
-        final_cash_price, affordability_basis = _final_cash_price_toman(row)
-        absolute = affordability_absolute_score(final_cash_price)
-        relative = relative_prices.get(index)
-        affordability = absolute if relative is None else 0.65 * absolute + 0.35 * relative
-        generality = generality_score(groups[index])
+        group = str(use_case_group_fn(row) or "unknown")
+        generality = generality_score(group)
         independently_verified = bool(discount_verified_fn(row))
         discount, discount_evidence = discount_attractiveness_score(row, independently_verified)
-        components = [demand, affordability, generality, discount]
+        components = [demand, generality, discount]
         balanced = harmonic_mean(components)
         row["offerchin_four_factor"] = {
             "policy_version": POLICY_VERSION,
             "scored_at": current_iso,
+            "dimensions": ["live_demand", "generality", "discount_attractiveness"],
             "live_demand": round(demand, 2),
-            "affordability": round(_clamp(affordability), 2),
             "generality": round(generality, 2),
             "discount_attractiveness": discount,
             "balanced_score": balanced,
             "weakest_factor_score": round(min(components), 2),
-            "generality_group": groups[index],
-            "affordability_basis": affordability_basis,
-            "affordability_reference_monthly_income_toman": AFFORDABILITY_REFERENCE_MONTHLY_INCOME_TOMAN,
-            "affordability_reference_basis": AFFORDABILITY_REFERENCE_BASIS,
-            "affordability_reference_full_score_price_share": AFFORDABILITY_FULL_SCORE_PRICE_SHARE,
-            "price_cohort_size": cohort_sizes.get(price_groups[index], 0) if relative is not None else 0,
-            "price_cohort_key": price_groups[index],
+            "generality_group": group,
             "discount_evidence": discount_evidence,
-            "score_interpretation": "heuristic_priority_index_not_conversion_probability",
+            "price_independent": True,
+            "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
         }
     return rows
 
 
 def four_factor_sort_key(row: dict) -> tuple:
+    """Legacy-compatible key name; rank only demand, generality and discount."""
     score = row.get("offerchin_four_factor") if isinstance(row, dict) else None
     score = score if isinstance(score, dict) else {}
-    # Incomplete legacy/test cards must fall back to the pre-existing demand/deal
-    # order rather than being spuriously rearranged by partial four-factor data.
     if any(
         _number(score.get(key)) <= 0
-        for key in ("live_demand", "affordability", "generality", "discount_attractiveness")
+        for key in ("live_demand", "generality", "discount_attractiveness")
     ):
-        return (0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        return (0.0, 0.0, 0.0, 0.0, 0.0)
     return (
         _number(score.get("balanced_score")),
         _number(score.get("weakest_factor_score")),
         _number(score.get("live_demand")),
         _number(score.get("discount_attractiveness")),
         _number(score.get("generality")),
-        _number(score.get("affordability")),
     )
+
+
+apply_three_factor_scores = apply_four_factor_scores
+three_factor_sort_key = four_factor_sort_key
