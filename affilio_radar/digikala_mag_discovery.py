@@ -20,7 +20,22 @@ from urllib.parse import urlsplit, urlunsplit
 import requests
 
 FEED_URL = "https://www.digikala.com/mag/feed/"
-SOURCE_LABEL_FA = "دیجی‌کالا مگ"
+ZOOMIT_FEED_URL = "https://www.zoomit.ir/feed/"
+SOURCE_LABEL_FA = "دیجی‌کالا مگ"  # Backwards-compatible label for callers of the original source.
+SOURCE_CONFIGS = {
+    "digikala_mag": {
+        "label": "دیجی‌کالا مگ",
+        "feed_url": FEED_URL,
+        "hosts": {"digikala.com", "www.digikala.com"},
+        "path_prefix": "/mag/",
+    },
+    "zoomit": {
+        "label": "زومیت",
+        "feed_url": ZOOMIT_FEED_URL,
+        "hosts": {"zoomit.ir", "www.zoomit.ir"},
+        "path_prefix": "/",
+    },
+}
 MAX_FEED_BYTES = 5 * 1024 * 1024
 DEFAULT_MAX_AGE_HOURS = 24 * 7
 DEFAULT_MAX_CANDIDATES = 20
@@ -127,8 +142,11 @@ def _parse_datetime(value: str) -> datetime | None:
     return parsed.astimezone(timezone.utc)
 
 
-def canonical_article_url(value: str) -> str | None:
-    """Accept only HTTPS DigiKala Mag article URLs; drop tracking query strings."""
+def canonical_article_url(value: str, source_key: str = "digikala_mag") -> str | None:
+    """Accept only HTTPS article URLs on the selected, explicitly approved source host."""
+    config = SOURCE_CONFIGS.get(str(source_key or "").strip())
+    if not config:
+        return None
     try:
         parsed = urlsplit(str(value or "").strip())
     except ValueError:
@@ -137,14 +155,23 @@ def canonical_article_url(value: str) -> str | None:
     path = parsed.path.rstrip("/")
     if (
         parsed.scheme.lower() != "https"
-        or host not in {"digikala.com", "www.digikala.com"}
+        or host not in config["hosts"]
         or parsed.username
         or parsed.password
-        or not path.startswith("/mag/")
-        or path == "/mag"
+        or not path
+        or path == "/"
+        or path == "/feed"
+        or path.startswith("/feed/")
     ):
         return None
-    return urlunsplit(("https", "www.digikala.com", path + "/", "", ""))
+    prefix = config["path_prefix"]
+    if prefix != "/" and (not path.startswith(prefix) or path == prefix.rstrip("/")):
+        return None
+    canonical_host = {
+        "digikala_mag": "www.digikala.com",
+        "zoomit": "www.zoomit.ir",
+    }[source_key]
+    return urlunsplit(("https", canonical_host, path + "/", "", ""))
 
 
 def _classify(title: str, categories: list[str]) -> tuple[str | None, int]:
@@ -190,8 +217,11 @@ def parse_feed(
     now: datetime | None = None,
     max_age_hours: int = DEFAULT_MAX_AGE_HOURS,
     max_candidates: int = DEFAULT_MAX_CANDIDATES,
+    source_key: str = "digikala_mag",
 ) -> tuple[list[dict[str, Any]], dict[str, int], dict[str, str]]:
     """Parse feed metadata into new candidates without retaining article excerpts."""
+    if source_key not in SOURCE_CONFIGS:
+        raise ValueError("unknown_editorial_source")
     current = now or _now_utc()
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -226,7 +256,7 @@ def parse_feed(
 
     for node in items:
         title = _child_text(node, {"title"})
-        url = canonical_article_url(_entry_link(node))
+        url = canonical_article_url(_entry_link(node), source_key=source_key)
         if not url:
             counts["rejected_invalid_url"] += 1
             continue
@@ -270,7 +300,8 @@ def parse_feed(
 
         candidates.append({
             "candidate_id": candidate_id,
-            "source": SOURCE_LABEL_FA,
+            "source": SOURCE_CONFIGS[source_key]["label"],
+            "source_key": source_key,
             "source_url": url,
             "title": title,
             "published_at": published_at.isoformat(),
@@ -318,18 +349,21 @@ def _write_json(path: Path, value: dict[str, Any]) -> None:
     temporary.replace(path)
 
 
-def fetch_feed(url: str = FEED_URL, *, timeout: tuple[int, int] = (10, 25)) -> bytes:
-    """Fetch only the known public RSS endpoint, never article pages."""
-    parsed = urlsplit(url)
+def fetch_feed(url: str | None = None, *, timeout: tuple[int, int] = (10, 25)) -> bytes:
+    """Fetch only an exact, explicitly approved RSS endpoint; never article pages."""
+    target = str(url or FEED_URL).strip()
+    allowed_urls = {config["feed_url"] for config in SOURCE_CONFIGS.values()}
+    parsed = urlsplit(target)
     if (
-        parsed.scheme != "https"
-        or (parsed.hostname or "").lower() not in {"digikala.com", "www.digikala.com"}
-        or parsed.path.rstrip("/") != "/mag/feed"
+        target not in allowed_urls
+        or parsed.scheme != "https"
+        or parsed.username
+        or parsed.password
     ):
-        raise ValueError("only_official_digikala_mag_rss_is_allowed")
+        raise ValueError("only_known_editorial_rss_endpoints_are_allowed")
     response = requests.get(
-        url,
-        headers={"User-Agent": "OfferChin-Mag-Source-Discovery/1.0"},
+        target,
+        headers={"User-Agent": "OfferChin-Editorial-Source-Discovery/1.0"},
         timeout=timeout,
     )
     response.raise_for_status()
@@ -347,44 +381,105 @@ def run_discovery(
     max_age_hours: int = DEFAULT_MAX_AGE_HOURS,
     max_candidates: int = DEFAULT_MAX_CANDIDATES,
 ) -> dict[str, Any]:
+    """Merge metadata-only candidates from approved RSS feeds into one review queue."""
     state = _load_state(state_path)
-    xml_payload = fetch_feed()
-    candidates, counts, updated_seen = parse_feed(
-        xml_payload,
-        seen=state.get("seen", {}),
-        now=now,
-        max_age_hours=max_age_hours,
-        max_candidates=max_candidates,
-    )
     current = now or _now_utc()
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    previous_seen = dict(state.get("seen", {}))
+    combined: list[dict[str, Any]] = []
+    source_reports: dict[str, dict[str, Any]] = {}
+    aggregate_counts: dict[str, int] = {}
+    successful_sources = 0
+
+    # Give each source enough room for global relevance/date ranking, but only mark
+    # the final output tranche as seen so a busy publisher cannot starve another feed.
+    per_source_limit = max(100, max(1, int(max_candidates)) * 5)
+    for source_key, config in SOURCE_CONFIGS.items():
+        try:
+            xml_payload = fetch_feed(config["feed_url"])
+            candidates, counts, _source_seen = parse_feed(
+                xml_payload,
+                seen=previous_seen,
+                now=current,
+                max_age_hours=max_age_hours,
+                max_candidates=per_source_limit,
+                source_key=source_key,
+            )
+            successful_sources += 1
+            combined.extend(candidates)
+            for key, value in counts.items():
+                aggregate_counts[key] = aggregate_counts.get(key, 0) + int(value)
+            source_reports[source_key] = {
+                "label": config["label"],
+                "feed_url": config["feed_url"],
+                "status": "ok",
+                "counts": counts,
+                "candidate_count": len(candidates),
+            }
+        except Exception as exc:
+            source_reports[source_key] = {
+                "label": config["label"],
+                "feed_url": config["feed_url"],
+                "status": "failed",
+                "error": type(exc).__name__,
+                "candidate_count": 0,
+            }
+
+    if successful_sources == 0:
+        raise RuntimeError("all_editorial_source_feeds_failed")
+
+    deduplicated: dict[str, dict[str, Any]] = {}
+    for candidate in combined:
+        deduplicated.setdefault(str(candidate["candidate_id"]), candidate)
+    ranked = sorted(
+        deduplicated.values(),
+        key=lambda item: (
+            int(item.get("editorial_relevance_score") or 0),
+            str(item.get("published_at") or ""),
+        ),
+        reverse=True,
+    )
+    selected = ranked[: max(1, int(max_candidates))]
+
+    # Keep the existing 45-day identity cache and add only items actually emitted.
+    oldest_seen = current - timedelta(days=SEEN_RETENTION_DAYS)
+    updated_seen = {
+        key: stamp for key, stamp in previous_seen.items()
+        if (_parse_datetime(stamp) or datetime.min.replace(tzinfo=timezone.utc)) >= oldest_seen
+    }
+    for candidate in selected:
+        updated_seen[str(candidate["candidate_id"])] = current.isoformat()
+
+    aggregate_counts["sources_attempted"] = len(SOURCE_CONFIGS)
+    aggregate_counts["sources_succeeded"] = successful_sources
+    aggregate_counts["unique_candidates_before_global_limit"] = len(ranked)
     report = {
-        "generated_at": current.astimezone(timezone.utc).isoformat(),
-        "source": SOURCE_LABEL_FA,
-        "feed_url": FEED_URL,
-        "mode": "metadata_discovery_only",
+        "generated_at": current.isoformat(),
+        "sources": source_reports,
+        "feed_url": "multiple_approved_rss_endpoints",
+        "mode": "multi_source_metadata_discovery",
         "article_pages_fetched": 0,
         "article_text_or_images_stored": False,
         "public_publication_performed": False,
         "public_copy_generated": False,
         "summary_policy_fa": (
-            "نامزدهای این گزارش فقط برای بازبینی‌اند. برای انتشار، متن فارسی مستقل ۳۵ تا ۶۰ "
-            "واژه‌ای با پیوند منبع لازم است؛ متن و تصویر مقاله بازنشر نشود."
+            "این خروجی فقط نامزد سوژه است. انتشار به متن فارسی مستقل، بازبینی انسانی، "
+            "منبع قابل‌ردیابی و تأیید جداگانه نیاز دارد؛ متن/تصویر مقاله کپی نمی‌شود."
         ),
-        "counts": counts,
-        "new_candidates": candidates,
+        "counts": aggregate_counts,
+        "new_candidates": selected,
     }
     _write_json(output_path, report)
     _write_json(state_path, {
-        "last_successful_fetch_at": current.astimezone(timezone.utc).isoformat(),
+        "last_successful_fetch_at": current.isoformat(),
         "seen": updated_seen,
     })
     return report
 
-
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Discover DigiKala Mag editorial source candidates.")
+    parser = argparse.ArgumentParser(description="Discover shopping-adjacent editorial candidates from approved Persian RSS sources.")
     parser.add_argument("--state-path", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--max-age-hours", type=int, default=DEFAULT_MAX_AGE_HOURS)
@@ -404,7 +499,8 @@ def main(argv: list[str] | None = None) -> int:
     print(
         "MAG_SOURCE_DISCOVERY_COMPLETE "
         f"scanned={counts['feed_items']} new={len(report['new_candidates'])} "
-        f"seen={counts['already_seen']} rejected={sum(v for k, v in counts.items() if k.startswith('rejected_'))}"
+        f"seen={counts.get('already_seen', 0)} sources_ok={counts.get('sources_succeeded', 0)} "
+        f"rejected={sum(v for k, v in counts.items() if k.startswith('rejected_'))}"
     )
     return 0
 

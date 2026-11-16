@@ -7,6 +7,7 @@ from unittest.mock import Mock, patch
 
 from digikala_mag_discovery import (
     FEED_URL,
+    ZOOMIT_FEED_URL,
     canonical_article_url,
     fetch_feed,
     parse_feed,
@@ -14,6 +15,26 @@ from digikala_mag_discovery import (
 
 
 NOW = datetime(2026, 11, 14, 9, 0, tzinfo=timezone.utc)
+
+ZOOMIT_RSS = """<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <item>
+      <title>بررسی و مقایسه بهترین گوشی‌های اقتصادی بازار</title>
+      <link>https://www.zoomit.ir/product-review/best-budget-phones/?utm_source=rss</link>
+      <pubDate>Sat, 14 Nov 2026 08:40:00 +0000</pubDate>
+      <category>موبایل و راهنمای خرید</category>
+      <description><![CDATA[این متن نباید ذخیره یا بازنشر شود.]]></description>
+    </item>
+    <item>
+      <title>نتایج مسابقه فوتبال امشب</title>
+      <link>https://www.zoomit.ir/sports/football-results/</link>
+      <pubDate>Sat, 14 Nov 2026 08:45:00 +0000</pubDate>
+      <category>ورزش</category>
+    </item>
+  </channel>
+</rss>
+""".encode("utf-8")
 
 RSS = """<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
@@ -172,6 +193,59 @@ class DigikalaMagDiscoveryTests(unittest.TestCase):
         self.assertEqual(len(second), 1)
         self.assertNotEqual(first[0]["candidate_id"], second[0]["candidate_id"])
 
+    def test_zoomit_source_uses_its_own_https_host_and_relevance_filter(self):
+        self.assertEqual(
+            canonical_article_url(
+                "https://zoomit.ir/product-review/best-budget-phones/?utm_source=rss",
+                source_key="zoomit",
+            ),
+            "https://www.zoomit.ir/product-review/best-budget-phones/",
+        )
+        self.assertIsNone(canonical_article_url("https://www.digikala.com/mag/article/", source_key="zoomit"))
+        self.assertIsNone(canonical_article_url("https://www.zoomit.ir/feed/", source_key="zoomit"))
+        candidates, counts, _seen = parse_feed(ZOOMIT_RSS, now=NOW, source_key="zoomit")
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0]["source"], "زومیت")
+        self.assertEqual(candidates[0]["source_key"], "zoomit")
+        self.assertEqual(candidates[0]["source_url"], "https://www.zoomit.ir/product-review/best-budget-phones/")
+        self.assertEqual(counts["rejected_irrelevant_or_excluded"], 1)
+        self.assertFalse(candidates[0]["public_copy_generated"])
+
+    def test_fetch_feed_accepts_only_exact_approved_rss_endpoints(self):
+        with self.assertRaisesRegex(ValueError, "known_editorial_rss"):
+            fetch_feed("https://example.org/feed/")
+        with patch("digikala_mag_discovery.requests.get") as mocked_get:
+            response = Mock()
+            response.content = ZOOMIT_RSS
+            response.raise_for_status.return_value = None
+            mocked_get.return_value = response
+            self.assertEqual(fetch_feed(ZOOMIT_FEED_URL), ZOOMIT_RSS)
+            mocked_get.assert_called_once()
+            self.assertEqual(mocked_get.call_args.args[0], ZOOMIT_FEED_URL)
+
+    def test_multi_source_run_records_partial_failures_without_publishing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state_path = Path(directory) / "seen.json"
+            output_path = Path(directory) / "report.json"
+            state_path.write_text(json.dumps({"seen": {}}), encoding="utf-8")
+            with patch(
+                "digikala_mag_discovery.fetch_feed",
+                side_effect=[RSS, ZOOMIT_RSS],
+            ):
+                report = __import__("digikala_mag_discovery").run_discovery(
+                    state_path=state_path,
+                    output_path=output_path,
+                    now=NOW,
+                    max_candidates=20,
+                )
+            self.assertEqual(report["mode"], "multi_source_metadata_discovery")
+            self.assertFalse(report["public_publication_performed"])
+            self.assertEqual(report["sources"]["digikala_mag"]["status"], "ok")
+            self.assertEqual(report["sources"]["zoomit"]["status"], "ok")
+            self.assertTrue(all(row["status"] == "discovered_requires_original_persian_summary" for row in report["new_candidates"]))
+            saved = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(len(saved["seen"]), len(report["new_candidates"]))
+
     def test_invalid_xml_fails_closed(self):
         with self.assertRaisesRegex(ValueError, "invalid_xml"):
             parse_feed(b"<rss><item>", now=NOW)
@@ -181,7 +255,7 @@ class DigikalaMagDiscoveryTests(unittest.TestCase):
             parse_feed(b"<rss><channel /></rss>", now=NOW)
 
     def test_feed_fetch_is_restricted_to_official_rss_endpoint(self):
-        with self.assertRaisesRegex(ValueError, "official_digikala_mag_rss"):
+        with self.assertRaisesRegex(ValueError, "known_editorial_rss"):
             fetch_feed("https://example.org/mag/feed/")
         with patch("digikala_mag_discovery.requests.get") as mocked_get:
             response = Mock()

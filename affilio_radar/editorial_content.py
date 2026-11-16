@@ -99,8 +99,8 @@ def editorial_topics_for_product(product: Any) -> set[str]:
     factors = product.get("offerchin_four_factor")
     group = str(factors.get("generality_group") or "").strip().lower() if isinstance(factors, dict) else ""
     mapping = {
-        "mobile_productivity": {"device-compatibility", "warranty-and-service", "privacy-and-security", "product-inspection", "purchase-planning"},
-        "audio_visual": {"device-compatibility", "warranty-and-service", "privacy-and-security", "product-inspection", "review-literacy"},
+        "mobile_productivity": {"device-compatibility", "warranty-and-service", "product-inspection", "purchase-planning"},
+        "audio_visual": {"device-compatibility", "warranty-and-service", "product-inspection", "review-literacy"},
         "home_cleaning": {"maintenance-and-care", "product-safety", "total-cost", "product-inspection"},
         "kitchen_food": {"maintenance-and-care", "product-safety", "total-cost", "product-inspection"},
         "grocery_food": {"product-safety", "product-condition", "total-cost", "seller-check"},

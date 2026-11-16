@@ -1869,35 +1869,48 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertNotIn("aparat_expiry_status", record)
 
 
-    def test_seven_day_retention_deletes_oldest_telegram_and_bale_posts_but_keeps_videos(self):
+    def test_48_hour_retention_deletes_product_posts_but_preserves_editorial_and_videos(self):
         now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-tg-oldest": {
+                "content_type": "product",
                 "title": "پست تلگرام قدیمی‌تر",
-                "ts": (now - timedelta(days=10)).timestamp(),
+                "ts": (now - timedelta(days=4)).timestamp(),
                 "telegram_message_id": 101,
             },
             "dkp-tg-next": {
+                "content_type": "product",
                 "title": "پست تلگرام بعدی",
-                "ts": (now - timedelta(days=8)).timestamp(),
+                "ts": (now - timedelta(days=3)).timestamp(),
                 "telegram_message_id": 102,
             },
             "dkp-tg-new": {
+                "content_type": "product",
                 "title": "پست تلگرام جدید",
-                "ts": (now - timedelta(days=6)).timestamp(),
+                "ts": (now - timedelta(days=1)).timestamp(),
                 "telegram_message_id": 103,
             },
             "dkp-bale-oldest": {
+                "content_type": "product",
                 "title": "پست بله قدیمی‌تر",
-                "ts": (now - timedelta(days=9)).timestamp(),
+                "ts": (now - timedelta(days=3.5)).timestamp(),
                 "bale_message_id": 201,
             },
             "dkp-bale-next": {
+                "content_type": "product",
                 "title": "پست بله بعدی",
-                "ts": (now - timedelta(days=8)).timestamp(),
+                "ts": (now - timedelta(days=2.5)).timestamp(),
                 "bale_message_id": 202,
             },
+            "editorial-evergreen": {
+                "content_type": "editorial",
+                "title": "راهنمای ماندگار خرید",
+                "ts": (now - timedelta(days=30)).timestamp(),
+                "telegram_message_id": 104,
+                "bale_message_id": 204,
+            },
             "dkp-video-only": {
+                "content_type": "product",
                 "youtube_video_id": "youtube-permanent",
                 "aparat_video_hash": "aparat-permanent",
                 "youtube_upload_status": "uploaded",
@@ -1908,7 +1921,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         env = {
             "TELEGRAM_API_ID": "12345",
             "TELEGRAM_API_HASH": "a" * 32,
-            "AFFILIO_CHANNEL_POST_RETENTION_DAYS": "7",
+            "AFFILIO_CHANNEL_POST_RETENTION_DAYS": "2",
             "AFFILIO_CHANNEL_POST_RETENTION_BUFFER_MINUTES": "0",
             "AFFILIO_CHANNEL_RETENTION_MAX_DELETES": "120",
         }
@@ -1928,7 +1941,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(
             telegram_delete.call_args.args[0],
             [101, 102],
-            "Telegram deletion must process the oldest post first",
+            "Telegram deletion must process the oldest expired product post first",
         )
         self.assertEqual([call.args[0] for call in bale_delete.call_args_list], [201, 202])
         self.assertEqual(summary["telegram_deleted"], 2)
@@ -1936,6 +1949,8 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertEqual(published["dkp-tg-oldest"]["telegram_retention_status"], "deleted")
         self.assertEqual(published["dkp-bale-oldest"]["bale_retention_status"], "deleted")
         self.assertNotIn("telegram_retention_status", published["dkp-tg-new"])
+        self.assertNotIn("telegram_retention_status", published["editorial-evergreen"])
+        self.assertNotIn("bale_retention_status", published["editorial-evergreen"])
         self.assertEqual(published["dkp-video-only"]["youtube_video_id"], "youtube-permanent")
         self.assertEqual(published["dkp-video-only"]["aparat_video_hash"], "aparat-permanent")
 
