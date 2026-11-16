@@ -29,6 +29,9 @@ try:
         extract_categories,
         extract_autocomplete_categories,
         extract_product_rows,
+        extract_brand_name,
+        extract_category_label,
+        extract_category_path,
         extract_total_pages,
         _category_page_url,
         _fresh_best_selling_rank,
@@ -1227,6 +1230,51 @@ class CatalogSweepTests(unittest.TestCase):
             )
 
         self.assertEqual([row["product_id"] for row in selected], ["dkp-55"])
+
+
+    def test_brand_and_category_extractors_read_nested_digikala_fields(self):
+        product = {
+            "brand": {"name": "سامسونگ"},
+            "category": {"title_fa": "گوشی موبایل"},
+            "category_path": [
+                {"title": "کالای دیجیتال"},
+                {"name": "گوشی موبایل"},
+            ],
+            "specifications": [
+                {"title": "مشخصات برند", "values": [{"title": "سامسونگ"}]},
+            ],
+        }
+        self.assertEqual(extract_brand_name(product), "سامسونگ")
+        self.assertEqual(extract_category_label(product), "گوشی موبایل")
+        self.assertEqual(extract_category_path(product), "کالای دیجیتال > گوشی موبایل")
+
+    def test_product_rows_keep_brand_and_leaf_taxonomy_for_downstream_selection(self):
+        payload = {
+            "data": {
+                "products": [{
+                    "id": 901234,
+                    "url": "/product/dkp-901234/sample/",
+                    "title_fa": "گوشی موبایل سامسونگ مدل نمونه",
+                    "brand": {"title_fa": "سامسونگ"},
+                    "category": {"name": "گوشی موبایل"},
+                    "category_path": [
+                        {"name": "کالای دیجیتال"},
+                        {"name": "گوشی موبایل"},
+                    ],
+                    "default_variant": {
+                        "price": {
+                            "selling_price_toman": 8_000_000,
+                            "rrp_price_toman": 10_000_000,
+                        },
+                        "marketable": True,
+                    },
+                }]
+            }
+        }
+        row = extract_product_rows(payload)[0]
+        self.assertEqual(row["brand"], "سامسونگ")
+        self.assertEqual(row["category"], "گوشی موبایل")
+        self.assertEqual(row["catalog_category_path"], "کالای دیجیتال > گوشی موبایل")
 
 
 if __name__ == "__main__":
