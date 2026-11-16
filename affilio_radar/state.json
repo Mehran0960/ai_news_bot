@@ -208934,8 +208934,8 @@
       "warranty-terms"
     ],
     "cycle_number": 1,
-    "last_editorial_id": "app-permissions",
-    "last_topic": "privacy-and-security",
+    "last_editorial_id": "energy-use",
+    "last_topic": "maintenance-and-care",
     "used_ids": [
       "accessories-compatibility",
       "account-security",
@@ -208944,6 +208944,7 @@
       "check-box-contents",
       "check-replacement-parts",
       "compare-total-cost",
+      "energy-use",
       "extended-warranty-check",
       "gift-card-warning",
       "inspect-on-arrival",
@@ -210116,6 +210117,56 @@
       "related_product_id": "dkp-6991988",
       "sequence_number": 1370,
       "topic": "privacy-and-security"
+    },
+    {
+      "content_id": "editorial:energy-use",
+      "delivery_duration_seconds": 0.6,
+      "destinations": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-16T17:50:38.928828+00:00",
+          "attempts": 1,
+          "message_id": "2119",
+          "status": "sent",
+          "updated_at": "2026-11-16T17:50:41.436220+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "eitaa_not_enabled_or_credentials_missing",
+          "status": "not_connected",
+          "updated_at": "2026-11-16T17:50:46.719522+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-16T17:50:41.861722+00:00",
+          "attempts": 1,
+          "message_id": "1973929564570588651",
+          "status": "sent",
+          "updated_at": "2026-11-16T17:50:46.298705+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-16T17:50:37.356137+00:00",
+          "attempts": 1,
+          "message_id": "1590",
+          "status": "sent",
+          "updated_at": "2026-11-16T17:50:38.481320+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "editorial_id": "energy-use",
+      "published_at": "2026-11-16T17:50:38.481320+00:00",
+      "related_product_id": "dkp-22707565",
+      "sequence_number": 1371,
+      "topic": "maintenance-and-care"
     }
   ],
   "editorial_delivery_queue": {
@@ -210123,7 +210174,9 @@
       "attempt_count": 0,
       "content_id": "editorial:energy-use",
       "content_type": "editorial",
+      "delivery_duration_seconds": 0.6,
       "delivery_runway_seconds": 33,
+      "delivery_started_at": "2026-11-16T17:50:48.523997+00:00",
       "dispatch_runway_seconds": 93,
       "next_attempt_at": "2026-11-16T17:49:18.904939+00:00",
       "payload": {
@@ -210148,30 +210201,42 @@
         "title": "مصرف انرژی را در انتخاب لوازم برقی فراموش نکن",
         "topic": "maintenance-and-care"
       },
+      "photo_slot_attempted_at": "2026-11-16T17:50:35.585053+00:00",
       "platforms": {
         "aparat": {
           "attempts": 0,
           "status": "pending"
         },
         "bale": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T17:50:38.928828+00:00",
+          "attempts": 1,
+          "message_id": "2119",
+          "status": "sent",
+          "updated_at": "2026-11-16T17:50:41.436220+00:00"
         },
         "eitaa": {
           "attempts": 0,
-          "status": "pending"
+          "last_error": "eitaa_not_enabled_or_credentials_missing",
+          "status": "not_connected",
+          "updated_at": "2026-11-16T17:50:46.719522+00:00"
         },
         "filo": {
           "attempts": 0,
           "status": "pending"
         },
         "rubika": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T17:50:41.861722+00:00",
+          "attempts": 1,
+          "message_id": "1973929564570588651",
+          "status": "sent",
+          "updated_at": "2026-11-16T17:50:46.298705+00:00"
         },
         "telegram": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T17:50:37.356137+00:00",
+          "attempts": 1,
+          "message_id": "1590",
+          "status": "sent",
+          "updated_at": "2026-11-16T17:50:38.481320+00:00"
         },
         "youtube": {
           "attempts": 0,
@@ -210182,7 +210247,7 @@
       "scheduled_at": "2026-11-16T17:49:18.904939+00:00",
       "selected_at": "2026-11-16T17:44:49.022925+00:00",
       "sequence_number": 1371,
-      "status": "queued",
+      "status": "partial",
       "window_closes_at": "2026-11-16T17:53:16.459213+00:00"
     }
   },
@@ -210491,12 +210556,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-16T17:44:48.350665+00:00",
+  "last_channel_published_at": "2026-11-16T17:50:41.436220+00:00",
   "last_content_selection_at": "2026-11-16T17:33:37.882383+00:00",
   "last_editorial_attempt_at": "2026-11-16T17:44:49.022925+00:00",
-  "last_editorial_confirmed_at": "2026-11-16T17:40:12.614077+00:00",
+  "last_editorial_confirmed_at": "2026-11-16T17:50:46.298705+00:00",
   "last_product_channel_published_at": "2026-11-16T17:44:48.350665+00:00",
-  "last_published_at": "2026-11-16T17:44:48.350665+00:00",
+  "last_published_at": "2026-11-16T17:50:41.436220+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -385194,6 +385259,7 @@
     },
     "dkp-6991988": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2117,
       "bale_posted_at": "2026-11-16T17:44:40.314398+00:00",
       "brand": "",
@@ -385260,6 +385326,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_upload_status": "pending",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-16T15:32:41.703575+00:00",
