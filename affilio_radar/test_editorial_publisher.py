@@ -410,8 +410,8 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertNotIn("منابع", message)
         self.assertNotIn("FTC", message)
         self.assertNotIn("consumer.ftc.gov", message)
+        self.assertIn("🔌", message)
         self.assertIn("💡", message)
-        self.assertIn("✅", message)
         self.assertIn('href="https://t.me/OfferChin">عضویت در کانال آفِرچین</a>', message)
 
         bale = _format_message(editorial_item(), html_mode=True, platform="bale")
@@ -457,7 +457,7 @@ class EditorialPublisherTests(unittest.TestCase):
         item["body"] = "جملهٔ اول کامل است. جملهٔ دوم پرسشی است؟\nنکتهٔ سوم هم جداست."
         html_message = _format_message(item, html_mode=True, platform="telegram")
         self.assertIn(
-            "جملهٔ اول کامل است.\n\nجملهٔ دوم پرسشی است؟\n\nنکتهٔ سوم هم جداست.",
+            "💡 جملهٔ اول کامل است.\n📌 جملهٔ دوم پرسشی است؟\n✅ نکتهٔ سوم هم جداست.",
             html_message,
         )
         self.assertIn('href="https://t.me/OfferChin">عضویت در کانال آفِرچین</a>', html_message)
