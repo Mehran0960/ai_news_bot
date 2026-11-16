@@ -136,8 +136,14 @@ def apply_four_factor_scores(
     use_case_group_fn: Callable[[dict], str],
     discount_verified_fn: Callable[[dict], bool],
     now: datetime | None = None,
+    price_group_fn: Callable[[dict], str] | None = None,
 ) -> list[dict]:
-    """Legacy-compatible entry point; annotate a price-independent three-factor score."""
+    """Annotate a price-independent three-factor score.
+
+    ``price_group_fn`` is accepted only for compatibility with catalog-sweep
+    callers from older releases. It is deliberately ignored and cannot affect
+    eligibility, ranking, or any score component.
+    """
     rows = [row for row in records if isinstance(row, dict)]
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
