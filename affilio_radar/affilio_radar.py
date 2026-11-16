@@ -4769,7 +4769,7 @@ def _verified_review_growth_sort_key(
 
 
 def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
-    """Rank valid offers by the balanced live-demand/affordability/generality/value index."""
+    """Rank valid offers by live demand, generality and verified discount value."""
     candidate = p if isinstance(p, dict) else {}
     return (
         *_offerchin_factor_sort_key(candidate, now=now),
@@ -5209,6 +5209,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         return raw if isinstance(raw, (str, int, float, bool)) or raw is None else None
 
     next_channel_due = []
+    pending_product_queue_count = 0
     terminal_queue_statuses = {
         "published", "completed", "cancelled", "stale_selection", "rejected", "failed"
     }
@@ -5231,6 +5232,19 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                     continue
                 platforms = entry.get("platforms")
                 platforms = platforms if isinstance(platforms, dict) else {}
+                if (
+                    collection_name == "content_delivery_queue"
+                    and str(entry.get("content_type") or "product") == "product"
+                ):
+                    has_pending_core_channel = any(
+                        str(
+                            (platforms.get(destination) or {}).get("status")
+                            or "pending"
+                        ).strip().lower() not in terminal_channel_statuses
+                        for destination in core_channel_destinations
+                    )
+                    if has_pending_core_channel:
+                        pending_product_queue_count += 1
                 for destination in core_channel_destinations:
                     target_state = platforms.get(destination)
                     target_state = target_state if isinstance(target_state, dict) else {}
@@ -5355,6 +5369,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         "product_publication_cadence_cycle_id": cadence.get("catalog_cycle_id"),
         "next_channel_content_due_at": next_channel_due_at,
         "next_editorial_planning_at": next_editorial_planning_at,
+        "pending_product_queue_count": pending_product_queue_count,
         "emergency_continuity_active": emergency_continuity_active,
         "emergency_continuity_snapshot_sha256": emergency_sha if emergency_continuity_active else None,
         "emergency_continuity_baseline_completed_at": (
@@ -9295,13 +9310,12 @@ def _emergency_continuity_window_active(
 
 
 def _emergency_continuity_quality_score(product: dict) -> float:
-    """Score affordability, generality and discount only; never invent a demand score."""
+    """Score verified discount and broad usefulness when fresh demand is temporarily unavailable."""
     factors = product.get("offerchin_four_factor")
     if not isinstance(factors, dict):
         return 0.0
     try:
         values = [
-            float(factors.get("affordability") or 0),
             float(factors.get("generality") or 0),
             float(factors.get("discount_attractiveness") or 0),
         ]
@@ -9309,7 +9323,7 @@ def _emergency_continuity_quality_score(product: dict) -> float:
         return 0.0
     if any(value <= 0 for value in values):
         return 0.0
-    return round(len(values) / sum(1.0 / value for value in values), 2)
+    return round(2 / sum(1.0 / value for value in values), 2)
 
 
 def select_discount_fallback_candidates(
@@ -9388,15 +9402,13 @@ def select_discount_fallback_candidates(
             quality_score = _emergency_continuity_quality_score(product)
             try:
                 discount_score = float(factors.get("discount_attractiveness") or 0)
-                affordability_score = float(factors.get("affordability") or 0)
                 generality_score = float(factors.get("generality") or 0)
             except (TypeError, ValueError, OverflowError):
                 continue
-            # This is deliberately stricter than the ordinary four-factor ranking:
-            # a missing demand signal is disclosed, while weak markdown/fit is rejected.
+            # Emergency continuity relaxes only fresh demand. A real discount and
+            # broad usefulness remain required; absolute price is not a factor.
             if (
                 discount_score < 55
-                or affordability_score < 40
                 or generality_score < 50
                 or quality_score < 55
             ):
@@ -9418,7 +9430,7 @@ def select_discount_fallback_candidates(
             print(
                 "EMERGENCY_CONTINUITY_CANDIDATES "
                 f"available={len(quality_eligible)} approved={len(emergency_candidates)} "
-                "ranking=affordability_generality_discount_harmonic "
+                "ranking=generality_discount_harmonic "
                 "fresh_demand_claim=false"
             )
             fresh_candidates.extend(emergency_candidates)
@@ -11465,11 +11477,12 @@ def run(publish=False, selection_only=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
     print(
-        "Ranking mode=full-catalog four-factor-balanced; fresh DigiKala bestseller rank or verified "
+        "Ranking mode=full-catalog three-factor-balanced; fresh DigiKala bestseller rank or verified "
         "recent review-growth proxy is a hard demand gate. Eligible candidates are ranked by the "
-        "harmonic mean of live demand, cash-ticket affordability, use-case generality and discount "
-        "attractiveness; the weakest factor is a tie-break. Missing price/evidence is never invented. "
-        "Clicks and affiliate revenue never rank demand. Live stock, price, product identity, direct "
+        "harmonic mean of live demand, use-case generality and verified discount attractiveness. "
+        "Absolute price is not a score or rejection filter; live price is checked only for offer validity. "
+        "Missing demand/discount evidence is never invented. Clicks and affiliate revenue never rank demand. "
+        "Live stock, price, product identity, direct "
         "Affilio URL, expiry, 24h family/brand/similarity guards and safety checks remain hard controls."
     )
     catalog = load_catalog()
@@ -11741,8 +11754,8 @@ def run(publish=False, selection_only=False):
     enrich_price_history(products, state)
     enrich_market_prices(products, state)
     queue_now = datetime.now(timezone.utc)
-    # Score the comparable live-checked product cohort together so category-relative
-    # affordability is computed from its peers, not from isolated one-item calls.
+    # Score the comparable live-checked product cohort together for consistent
+    # cohort-relative generality and discount comparisons.
     _apply_offerchin_four_factor_scores(products, now=queue_now)
     products.sort(key=deal_sort_key, reverse=True)
     # Independent market/history evidence is diagnostic; it cannot filter a live markdown.
@@ -11992,18 +12005,17 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "The full-catalog scanner requires fresh market-demand evidence before publication. The final offer order balances four equally important dimensions with a harmonic mean: live demand, cash-ticket affordability (with only explicitly verified installment down-payment terms eligible as an entry-price proxy), generality of use, and discount attractiveness. Category-relative cash prices are used only when at least eight comparable candidates exist. A weak dimension cannot be hidden by a strong one. DigiKala bestseller rank is relative within-category evidence, not unit sales; review growth is an indirect proxy, not sales. Clicks never rank market demand. Missing data remains missing.",
-        "four_factor_ranking_policy": {
+        "ranking_note": "The full-catalog scanner requires fresh market-demand evidence before publication. The final offer order balances three dimensions with a harmonic mean: live demand, generality of use, and verified discount attractiveness. Absolute price and installment terms do not affect ranking or publication eligibility; price is used only to recheck the current offer and calculate/verify the markdown. DigiKala bestseller rank is relative within-category evidence, not unit sales; review growth is an indirect proxy, not sales. Clicks never rank market demand. Missing data remains missing.",
+        "three_factor_ranking_policy": {
             "version": OFFERCHIN_FOUR_FACTOR_POLICY_VERSION,
             "aggregation": "equal_weight_harmonic_mean",
-            "dimensions": ["live_demand", "affordability", "generality", "discount_attractiveness"],
-            "affordability": "listed_final_cash_price_vs_versioned_1405_minimum_wage_proxy_plus_within_use_case_price_percentile_when_cohort_size_at_least_8",
-            "verified_installment_terms_required": True,
+            "dimensions": ["live_demand", "generality", "discount_attractiveness"],
+            "price_usage": "current_price_and_discount_arithmetic_validation_only; no_price_penalty_score_or_gate",
             "generality": "taxonomy_and_use_case_reach_heuristic; unknown_taxonomy_scored_low",
             "discount_attractiveness": "verified_percent_and_cash_savings_plus_fresh_history_or_market_evidence_confidence",
             "missing_factor_behavior": "no_invented_values; incomplete legacy cards retain prior fallback order",
             "demand_gate_remains_hard": True,
-            "clicks_affect_demand_or_four_factor_score": False,
+            "clicks_affect_demand_or_three_factor_score": False,
             "score_is_conversion_probability": False,
         },
         "demand_ranking_policy": {
