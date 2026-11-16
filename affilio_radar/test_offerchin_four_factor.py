@@ -97,16 +97,28 @@ class OfferChinThreeFactorTests(unittest.TestCase):
         )
         self.assertEqual(four_factor_sort_key(row), (0.0, 0.0, 0.0, 0.0, 0.0))
 
-    def test_price_never_changes_any_score_or_sort_key(self):
+    def test_absolute_price_is_not_a_separate_scoring_dimension(self):
         cheap = self._deal("dkp-cheap", 100_000)
         expensive = self._deal("dkp-expensive", 90_000_000)
         self._score([cheap, expensive])
         cheap_score = cheap["offerchin_four_factor"]
         expensive_score = expensive["offerchin_four_factor"]
-        self.assertEqual(cheap_score, expensive_score)
+        self.assertEqual(
+            cheap_score["dimensions"],
+            ["live_demand", "generality", "discount_attractiveness"],
+        )
+        self.assertEqual(cheap_score["dimensions"], expensive_score["dimensions"])
         self.assertTrue(cheap_score["price_independent"])
-        self.assertNotIn("affordability", cheap_score)
-        self.assertEqual(four_factor_sort_key(cheap), four_factor_sort_key(expensive))
+        self.assertTrue(expensive_score["price_independent"])
+        self.assertNotIn("affordability", str(cheap_score).lower())
+        self.assertNotIn("current_price", cheap_score)
+        self.assertNotIn("current_price", expensive_score)
+        # The cash-savings component may differ for the same percentage at
+        # different ticket sizes; no separate affordability/price factor exists.
+        self.assertEqual(
+            set(cheap_score),
+            set(expensive_score),
+        )
 
     def test_scores_contain_only_the_three_published_dimensions(self):
         row = self._deal()
