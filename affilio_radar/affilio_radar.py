@@ -24,7 +24,11 @@ from urllib.parse import parse_qs, quote, urlencode, urljoin, urlsplit, urlunspl
 
 import requests
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
-from product_quality import is_prohibited_product_title, is_publishable_product_title
+from product_quality import (
+    is_prohibited_product_title,
+    is_publishable_product_title,
+    normalize_brand_value,
+)
 try:
     from .offerchin_four_factor import (
         POLICY_VERSION as OFFERCHIN_FOUR_FACTOR_POLICY_VERSION,
@@ -1376,6 +1380,19 @@ def parse_product_api(payload: dict, url: str, now: datetime | None = None) -> d
 
     candidates.sort(key=lambda item: item[0], reverse=True)
     _, product_obj, title = candidates[0]
+    data_layer = product_obj.get("data_layer") if isinstance(product_obj.get("data_layer"), dict) else {}
+    brand = ""
+    for raw_brand in (
+        product_obj.get("brand"),
+        product_obj.get("brand_name"),
+        product_obj.get("brand_title"),
+        product_obj.get("brand_en"),
+        data_layer.get("brand"),
+        data_layer.get("brand_name"),
+    ):
+        brand = normalize_brand_value(raw_brand)
+        if brand:
+            break
     variants = product_obj.get("variants")
     if isinstance(variants, dict):
         variants = list(variants.values())
@@ -1503,6 +1520,7 @@ def parse_product_api(payload: dict, url: str, now: datetime | None = None) -> d
         "product_id": product_id(url),
         "product_url": safe_product_url(url),
         "title": title,
+        "brand": brand,
         "image_url": image,
         "current_price": current,
         "original_price": original,
@@ -1894,7 +1912,7 @@ def fetch_product_record(url: str) -> dict:
 
     merged = dict(html_product)
     for key in (
-        "product_id", "product_url", "title", "image_url", "current_price", "original_price",
+        "product_id", "product_url", "title", "brand", "image_url", "current_price", "original_price",
         "variant_label", "rating", "review_count", "deal_expires_at", "expiry_source",
         "expiry_deadline_verified_directly", "expiry_estimated",
     ):
@@ -3532,10 +3550,14 @@ def merge_discovery_queue(
                 except (TypeError, ValueError, OverflowError):
                     return 0
 
-        raw_brand = row.get("brand") or row.get("brand_name") or old.get("brand") or old.get("brand_name") or ""
-        if isinstance(raw_brand, dict):
-            raw_brand = raw_brand.get("name") or raw_brand.get("title") or raw_brand.get("value") or ""
-        brand = re.sub(r"\s+", " ", str(raw_brand or "")).strip()[:100]
+        brand = ""
+        for raw_brand in (
+            row.get("brand"), row.get("brand_name"), row.get("brand_title"),
+            old.get("brand"), old.get("brand_name"), old.get("brand_title"),
+        ):
+            brand = normalize_brand_value(raw_brand)
+            if brand:
+                break
 
         record = {
             **old,
@@ -4678,7 +4700,7 @@ def classify_category(title: str) -> str:
         ("power_backup", r"پاور\s*بانک|شارژر|باتری|چراغ اضطراری|برق اضطراری|چراغ قوه|چراغ دستی"),
         ("lighting", r"چراغ پیشانی|هدلامپ|چراغ مطالعه|چراغ خواب|چراغ روشنایی|چراغ کار|لامپ|نورافکن|چراغ کمپینگ|ریسه روشنایی"),
         ("home_cleaning", r"جارو(?:برقی| شارژی)?|تی زمین شوی|تی چرخشی|زمین شوی|بخارشوی|مواد شوینده|شوینده سطوح|تمیزکننده سطوح|دستمال نظافت|نظافت خانه|اسکاچ|سیم ظرفشویی|اسفنج ظرفشویی"),
-        ("pet_supplies", r"حیوانات خانگی|حیوان خانگی|غذای سگ|غذای گربه|تشویقی سگ|تشویقی گربه|قلاده|خاک گربه|اسکرچر|پد بهداشتی سگ"),
+        ("pet_supplies", r"حیوانات خانگی|حیوان خانگی|غذای سگ|غذای گربه|غذای پرندگان|غذای حیوان|طوطی|عروس هلندی|پرنده زینتی|تشویقی سگ|تشویقی گربه|قلاده|خاک گربه|اسکرچر|پد بهداشتی سگ"),
         ("arts_crafts", r"بوم نقاشی|لوازم نقاشی|لوازم هنری|قلم طراحی|رنگ اکریلیک|رنگ روغن|لوازم خیاطی|چرخ خیاطی|کاموا|قلاب بافی|بافتنی"),
         ("presentation_tools", r"لیزر پوینتر|پوینتر ارائه|ریموت ارائه|کنترل ارائه"),
         ("audio_wearables", r"هندزفری|هدفون|ایرپاد|اسپیکر|ساعت\s*هوشمند|اسمارت\s*واچ"),
@@ -4692,9 +4714,9 @@ def classify_category(title: str) -> str:
         ("books_stationery", r"کتاب|دفتر|خودکار|مداد|لوازم التحریر|لوازم‌التحریر|نوشت افزار"),
         ("beauty_fragrance", r"عطر|ادکلن|ادو\s*پرفیوم|ادوپرفیوم|ادو\s*تویلت|ادوتویلت|تستر\s*ادو|بادی\s*اسپلش"),
         # Food cues must precede the broad skincare word «کرم» (e.g. sesame cream).
-        ("grocery_food", r"خرما|شکلات|کنجد|عسل|حلوا|مربا|شیره|آجیل|خشکبار|غلات|کالای خوراکی|خوراکی|مواد غذایی|کنسرو|ادویه|برنج|جو پرک|گندم|آرد|حبوبات|نبات|چای ارگانیک|قهوه ارگانیک|دمنوش"),
-        ("personal_care", r"پوست|(?<!\w)مو(?!\w)|کرم|سرم|آبرسان|اصلاح|ماساژور|بهداشت|آرایش|ضدآفتاب|مسواک|دندان|سشوار|برس حرارتی|اتو مو|ریش.?تراش|موزن|اپیلاتور|دستگاه بخور|تونر|پاک کننده آرایش|سنگ پا|پاشنه کش|سوهان پا"),
-        ("automotive", r"خودرو|ماشین|موتور سیکلت|داشبورد|کمپرسور باد|لوازم خودرو|شارژر فندکی|روکش صندلی|کفپوش خودرو|مراقبت خودرو"),
+        ("grocery_food", r"روغن کنجد|روغن زیتون|روغن ذرت|روغن آفتابگردان|روغن خوراکی|گوشت|مرغ|ماهی خوراکی|خرما|شکلات|کنجد|عسل|حلوا|مربا|شیره|آجیل|خشکبار|غلات|کالای خوراکی|خوراکی|مواد غذایی|کنسرو|ادویه|برنج|جو پرک|گندم|آرد|حبوبات|نبات|چای ارگانیک|قهوه ارگانیک|دمنوش"),
+        ("personal_care", r"بالم لب|رژ لب|لیپ گلاس|پوست|(?<!\w)مو(?!\w)|کرم|سرم|آبرسان|اصلاح|ماساژور|بهداشت|آرایش|ضدآفتاب|مسواک|دندان|سشوار|برس حرارتی|اتو مو|ریش.?تراش|موزن|اپیلاتور|دستگاه بخور|تونر|پاک کننده آرایش|سنگ پا|پاشنه کش|سوهان پا"),
+        ("automotive", r"خودرو|موتور سیکلت|داشبورد|کمپرسور باد|لوازم خودرو|شارژر فندکی|روکش صندلی|کفپوش خودرو|مراقبت خودرو"),
         ("home", r"آشپزخانه|نظم دهنده|ارگانایزر|خردکن|ظرف|ابزار آشپزخانه|خانه|قهوه ساز|فلاسک|ماگ|قمقمه|بطری آب|ظروف|حمام|سرویس بهداشتی|باغبانی|گلدان"),
         ("fashion", r"تی\s*شرت|تیشرت|پولو\s*شرت|پولوشرت|سویشرت|سوییشرت|هودی|شلوار|بلوز|شومیز|تاپ|مانتو|دامن|پیراهن|پوشاک|لباس|کفش|صندل|بوت|کاپشن|کوله|کیف|جاکارتی|کمربند|کراوات|کلاه|دستکش|جوراب|زیرپوش|شورت|شال|روسری|عینک|ساعت مچی|لباس زیر|مام فیت|پالتو"),
     ]
@@ -7606,31 +7628,36 @@ def _publication_use_case_group(product_or_title) -> str:
 
     # Prefer specific DigiKala taxonomy/use-case signals over broad title keywords.
     patterns = (
-        ("automotive", r"خودرو|ماشین|فندکی|داشبورد|لاستیک|تایر|شارژر خودرو|فیلتر کابین|روغن موتور|ضد یخ خودرو|لوازم خودرو|جانبی خودرو|تجهیزات راحتی سرنشین"),
+        ("home_living", r"ماشین لباسشویی|لباسشویی|ماشین ظرفشویی|ظرفشویی|یخچال|فریزر|اجاق گاز|مایکروویو|کولر گازی|آبگرمکن"),
+        ("automotive", r"خودرو|فندکی|داشبورد|لاستیک|تایر|شارژر خودرو|فیلتر کابین|روغن موتور|ضد یخ خودرو|لوازم خودرو|جانبی خودرو|تجهیزات راحتی سرنشین"),
         ("outdoor_travel", r"کمپینگ|کوهنوردی|چادر مسافرتی|طبیعت گردی|لوازم سفر|مسافرت|ماهیگیری|لوازم ماهیگیری|کیف و کوله سفری|تجهیزات اسکان"),
         ("tabletop_games", r"بوردگیم|بازی فکری|بازی رومیزی|اوریگامی"),
         ("gaming", r"گیمینگ|بازی رایانه|کنسول بازی|پلی استیشن|ایکس باکس|\bxbox\b|دسته بازی"),
         ("office_study", r"اداری|لوازم اداری|میز کار|مطالعه|تحریر|لوازم تحریر|مدرسه|دانشجویی|لوازم ارائه|پوینتر ارائه|پرینتر|کاغذ|نوشت افزار|مهر و استامپ"),
         ("books_learning", r"کتاب|(?<!د)رمان(?:\s|$)|روانشناسی|داستان|مجله|آموزشی|زبان آموزی"),
         ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک|پوشک|اسباب بازی کودک|دهان شویه کودک|خمیردندان کودک|مکمل کمک درمانی کودک"),
-        ("pet_care", r"حیوان خانگی|گربه|سگ|خاک گربه|غذای حیوان|قلاده|آکواریوم"),
+        ("pet_care", r"حیوان خانگی|گربه|سگ|پرنده|طوطی|عروس هلندی|غذای پرندگان|غذای حیوان|قلاده|خاک گربه|آکواریوم|ماهی زینتی"),
         ("home_cleaning", r"اسکاچ|سیم ظرفشویی|اسفنج ظرفشویی|دستمال نظافت|شوینده سطوح|نظافت خانه"),
         ("kitchen_food", r"آشپزخانه|آشپزی|ظرفشویی|پخت و پز|قهوه ساز|اسپرسو|قابلمه|تابه|چای ساز|سرویس کفگیر|کفگیر|ملاقه|قاشق|چنگال|ظروف غذاخوری"),
         ("local_goods", r"محصولات بومی|محصولات محلی|سوغات محلی"),
-        ("grocery_food", r"خوراکی|مواد غذایی|صبحانه|نوشیدنی|چای ارگانیک|قهوه ارگانیک|شکلات|تنقلات|غلات|کنسرو|ادویه|کالای خوراکی"),
+        ("grocery_food", r"روغن خوراکی|روغن کنجد|روغن زیتون|روغن ذرت|روغن آفتابگردان|گوشت|مرغ|ماهی خوراکی|خوراکی|مواد غذایی|صبحانه|نوشیدنی|چای ارگانیک|قهوه ارگانیک|شکلات|تنقلات|غلات|کنسرو|ادویه|کالای خوراکی"),
         ("home_cleaning", r"نظافت|شستشو|شوینده|تمیزکننده|زمین شوی|بخارشوی|جارو|اسکاچ|سیم ظرفشویی|دستمال نظافت"),
-        ("personal_care", r"مراقبت پوست|مراقبت از پوست|مراقبت مو|آرایش|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن|مسواک|دهان شویه|ضدآفتاب|ماسک صورت|ماسک بدن|شانه مو|مداد چشم"),
+        ("personal_care", r"بالم لب|رژ لب|لیپ گلاس|مراقبت پوست|مراقبت از پوست|مراقبت مو|آرایش|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن|مسواک|دهان شویه|ضدآفتاب|ماسک صورت|ماسک بدن|شانه مو|مداد چشم"),
         ("sports_fitness", r"ورزشی|ورزش های توپی|بدنسازی|باشگاه|دوچرخه|توپ فوتبال|فیتنس|تنیس|راکت|زانو بند طبی|لوازم جانبی راکت"),
         ("health_wellness", r"سلامت|پزشکی|مکمل غذایی|مکمل|کمک درمانی|تجهیزات پزشکی|ارتوپدی"),
-        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه|کابل|حافظه|رم|مانیتور|کیبورد|ماوس|مودم"),
+        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه|کابل|حافظه|حافظه رم|رم کامپیوتر|رم لپ تاپ|(?<!\w)رم(?!\w)|(?<!\w)ram(?!\w)|مانیتور|کیبورد|ماوس|مودم"),
         ("audio_visual", r"هدفون|هدست|هندزفری|ایرپاد|اسپیکر|تلویزیون|دوربین عکاسی|پروژکتور|سینما خانگی"),
         ("home_living", r"خانه|اتاق خواب|دکوراسیون|مبلمان|روشنایی منزل|کالای خواب|خواب|پتو|ملحفه|کوسن|پرده"),
         ("fashion_lifestyle", r"پوشاک|لباس|تی شرت|تیشرت|شلوار|کفش|بوت|کیف پول|عینک آفتابی|جوراب|مانتو|اکسسوری زنانه|لباس کار"),
-        ("tools_industrial", r"ابزار|هویه|مته|پیچ و مهره|کمپرسور|تجهیزات ایمنی|ایمنی|لوازم یدکی ابزار|باغبانی|کشاورزی"),
+        ("tools_industrial", r"ابزار|سمپاش|پیچ گوشتی|فازمتر|متر|هویه|مته|پیچ و مهره|کمپرسور|تجهیزات ایمنی|ایمنی|لوازم یدکی ابزار|باغبانی|کشاورزی"),
         ("arts_crafts", r"صنایع دستی|دست بافته|رودوزی|بافتنی|خیاطی|نقاشی|رنگ آمیزی|کاردستی"),
         ("lighting_electrical", r"روشنایی|لامپ|چراغ قوه|چراغ اضطراری|الکتریکی|سیم و کابل برق"),
         ("events_decor", r"پرچم|لوازم تزئینی|وسایل جشن"),
     )
+    # Preserve high-specificity cleaning taxonomy even when downstream
+    # category aliases also contain generic kitchen/household words.
+    if re.search(r"اسکاچ|سیم\s*ظرف\s*شویی|اسفنج\s*ظرف\s*شویی|دستمال\s*نظافت", text, re.I):
+        return "home_cleaning"
     matched = next((name for name, pattern in patterns if re.search(pattern, text, re.I)), None)
     if matched:
         return matched
@@ -7678,10 +7705,11 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     explicit_brand = ""
     if isinstance(product_or_title, dict):
         title = str(product_or_title.get("title") or "")
-        raw_brand = product_or_title.get("brand") or product_or_title.get("brand_name") or ""
-        if isinstance(raw_brand, dict):
-            raw_brand = raw_brand.get("name") or raw_brand.get("title") or raw_brand.get("value") or ""
-        explicit_brand = str(raw_brand or "").strip()
+        raw_brand = (
+            product_or_title.get("brand") or product_or_title.get("brand_name")
+            or product_or_title.get("brand_title") or ""
+        )
+        explicit_brand = normalize_brand_value(raw_brand)
     else:
         title = str(product_or_title or "")
     normalized = title.lower().replace("\u200c", " ")
@@ -7863,18 +7891,63 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         ("antonio_rossini", r"آنتونیو\s*روسینی"),
         ("zanama", r"زاناما"),
         ("dellbesto", r"دلبستو"),
+        ("samsung", r"سامسونگ|(?<!\w)samsung(?!\w)"),
+        ("xiaomi", r"شیائومی|(?<!\w)xiaomi(?!\w)"),
+        ("redmi", r"ردمی|(?<!\w)redmi(?!\w)"),
+        ("poco", r"پوکو|(?<!\w)poco(?!\w)"),
+        ("apple", r"اپل|آیفون|(?<!\w)apple(?!\w)|(?<!\w)iphone(?!\w)"),
+        ("huawei", r"هواوی|(?<!\w)huawei(?!\w)"),
+        ("honor", r"آنر|(?<!\w)honor(?!\w)"),
+        ("nokia", r"نوکیا|(?<!\w)nokia(?!\w)"),
+        ("sony", r"سونی|(?<!\w)sony(?!\w)"),
+        ("jbl", r"جی\s*بی\s*ال|(?<!\w)jbl(?!\w)"),
+        ("anker", r"انکر|(?<!\w)anker(?!\w)"),
+        ("baseus", r"بیسوس|(?<!\w)baseus(?!\w)"),
+        ("qcy", r"کیو\s*سی\s*وای|(?<!\w)qcy(?!\w)"),
+        ("lenovo", r"لنوو|(?<!\w)lenovo(?!\w)"),
+        ("asus", r"ایسوس|(?<!\w)asus(?!\w)"),
+        ("dell", r"(?<!\w)dell(?!\w)|(?<!\w)دل(?!\w)"),
+        ("hp", r"اچ\s*پی|(?<!\w)hp(?!\w)"),
+        ("logitech", r"لاجیتک|(?<!\w)logitech(?!\w)"),
+        ("kingston", r"کینگستون|(?<!\w)kingston(?!\w)"),
+        ("sandisk", r"سن\s*دیسک|(?<!\w)sandisk(?!\w)"),
+        ("philips", r"فیلیپس|(?<!\w)philips(?!\w)"),
+        ("bosch", r"بوش|(?<!\w)bosch(?!\w)"),
+        ("tefal", r"تفال|(?<!\w)tefal(?!\w)"),
+        ("hidroderm", r"هیدرودرم"),
+        ("prime", r"پریم"),
+        ("arden", r"آردن"),
+        ("cinere", r"سینره"),
+        ("lafarrerr", r"لافارر"),
+        ("schoon", r"شون"),
+        ("comeon", r"کامان"),
+        ("my", r"(?<!\w)مای(?!\w)"),
+        ("golha", r"گلها"),
+        ("hoti_kara", r"هاتی\s*کارا"),
+        ("shahsavand", r"شاهسوند"),
     ]
-    brand = next((key for key, pattern in brand_hints if re.search(pattern, brand_search_text, re.I)), "")
-    if not brand and explicit_brand:
+    brand = ""
+    if explicit_brand:
         normalized_explicit_brand = explicit_brand.strip().lower()
+        known_brand_keys = {key for key, _pattern in brand_hints}
         if normalized_explicit_brand.startswith("brand:"):
-            # Publication-history records already store normalized brand slugs.
-            # Keep normalization idempotent when history is read back as a record.
+            # Unknown explicit brand slugs stay stable when history is read back.
+            brand = normalized_explicit_brand
+        elif normalized_explicit_brand in known_brand_keys:
+            # Known aliases such as "muzik_apollo" are already canonical; do not
+            # turn them into "brand:muzik_apollo" during history normalization.
             brand = normalized_explicit_brand
         else:
-            brand_slug = re.sub(r"[^\w\u0600-\u06FF]+", "_", normalized_explicit_brand).strip("_")
-            if brand_slug and brand_slug not in {"unknown", "other", "none", "نامشخص", "-"}:
-                brand = f"brand:{brand_slug}"
+            brand = next((
+                key for key, pattern in brand_hints
+                if re.search(pattern, normalized_explicit_brand, re.I)
+            ), "")
+            if not brand:
+                brand_slug = re.sub(r"[^\w\u0600-\u06FF]+", "_", normalized_explicit_brand).strip("_")
+                if brand_slug and brand_slug not in {"unknown", "other", "none", "نامشخص", "-"}:
+                    brand = f"brand:{brand_slug}"
+    if not brand:
+        brand = next((key for key, pattern in brand_hints if re.search(pattern, family_match_text, re.I)), "")
     return category, family, brand
 
 
@@ -8167,6 +8240,8 @@ def build_publication_diversity_report(
             "minimum_discount_attractiveness_score": MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE,
             "family_repeat_cooldown_hours": FAMILY_REPEAT_COOLDOWN_HOURS,
             "brand_repeat_cooldown_hours": BRAND_REPEAT_COOLDOWN_HOURS,
+            "category_repeat_cooldown_hours": CATEGORY_REPEAT_COOLDOWN_HOURS,
+            "use_case_repeat_cooldown_hours": USE_CASE_REPEAT_COOLDOWN_HOURS,
             "similar_product_repeat_cooldown_hours": PUBLICATION_SIMILARITY_COOLDOWN_HOURS,
             "similarity_jaccard_threshold": PUBLICATION_SIMILARITY_JACCARD_THRESHOLD,
         },
@@ -8312,6 +8387,8 @@ def _order_candidates_by_primary_rank(
     return ordered
 
 PUBLICATION_SIMILARITY_COOLDOWN_HOURS = 24.0
+CATEGORY_REPEAT_COOLDOWN_HOURS = 6.0
+USE_CASE_REPEAT_COOLDOWN_HOURS = 4.0
 PUBLICATION_SIMILARITY_JACCARD_THRESHOLD = 0.50
 PUBLICATION_SIMILARITY_MIN_SHARED_TOKENS = 2
 
@@ -8454,6 +8531,23 @@ def _filter_recent_publication_repeats(
         window_hours=history_window_hours,
     )
 
+    current_ts = current.timestamp()
+    recent_categories: set[str] = set()
+    recent_use_cases: set[str] = set()
+    for previous in history:
+        try:
+            posted_at = float(previous.get("ts") or 0)
+        except (TypeError, ValueError, OverflowError):
+            posted_at = 0.0
+        if posted_at and current_ts - posted_at <= CATEGORY_REPEAT_COOLDOWN_HOURS * 3600:
+            prior_category = str(previous.get("category") or _publication_diversity_group(previous)[0] or "")
+            if prior_category and prior_category not in {"other", "unknown"}:
+                recent_categories.add(prior_category)
+        if posted_at and current_ts - posted_at <= USE_CASE_REPEAT_COOLDOWN_HOURS * 3600:
+            prior_use_case = str(previous.get("use_case") or _publication_use_case_group(previous) or "")
+            if prior_use_case and prior_use_case not in {"general", "catalog_taxonomy_other", "unknown"}:
+                recent_use_cases.add(prior_use_case)
+
     recent_families: set[str] = set()
     recent_brands: set[str] = set()
     for previous in history:
@@ -8465,6 +8559,9 @@ def _filter_recent_publication_repeats(
             recent_brands.add(brand)
 
     selected: list[dict] = []
+    deferred_candidates: list[tuple[dict, list[str]]] = []
+    selected_categories: set[str] = set()
+    selected_use_cases: set[str] = set()
     selected_families: set[str] = set()
     selected_brands: set[str] = set()
     comparison_history = list(history)
@@ -8474,7 +8571,10 @@ def _filter_recent_publication_repeats(
     global _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS
 
     for candidate in source:
+        if limit is not None and len(selected) >= max(1, int(limit)):
+            break
         category, family, brand = _publication_diversity_group(candidate)
+        use_case = _publication_use_case_group(candidate)
         family_key = _publication_family_guard_key(candidate)
         family_match = next((
             previous for previous in comparison_history
@@ -8534,11 +8634,60 @@ def _filter_recent_publication_repeats(
             )
             continue
 
+        soft_reasons = []
+        if category and category not in {"other", "unknown"} and (
+            category in recent_categories or category in selected_categories
+        ):
+            soft_reasons.append("category_repeat")
+        if use_case and use_case not in {"general", "catalog_taxonomy_other", "unknown"} and (
+            use_case in recent_use_cases or use_case in selected_use_cases
+        ):
+            soft_reasons.append("use_case_repeat")
+        if soft_reasons:
+            deferred_candidates.append((candidate, soft_reasons))
+            continue
+
         selected.append(candidate)
         if family_key:
             selected_families.add(family_key)
         if brand:
             selected_brands.add(brand)
+        if category and category not in {"other", "unknown"}:
+            selected_categories.add(category)
+        if use_case and use_case not in {"general", "catalog_taxonomy_other", "unknown"}:
+            selected_use_cases.add(use_case)
+        comparison_history.append(candidate)
+
+    # Fill remaining capacity from soft-deferred candidates; hard repeat checks still apply.
+    for candidate, soft_reasons in deferred_candidates:
+        if limit is not None and len(selected) >= max(1, int(limit)):
+            break
+        _category, _family, _brand = _publication_diversity_group(candidate)
+        family_key = _publication_family_guard_key(candidate)
+        family_repeat = any(
+            family_key and _publication_family_guard_key(previous) == family_key
+            for previous in comparison_history
+        )
+        brand_repeat = bool(_brand and any(
+            _publication_diversity_group(previous)[2] == _brand
+            for previous in comparison_history
+        ))
+        similarity_repeat = any(
+            _publication_products_are_similar(candidate, previous)
+            for previous in comparison_history
+        )
+        if family_repeat or brand_repeat or similarity_repeat:
+            continue
+        selected.append(candidate)
+        if family_key:
+            selected_families.add(family_key)
+        if _brand:
+            selected_brands.add(_brand)
+        if _category and _category not in {"other", "unknown"}:
+            selected_categories.add(_category)
+        _use_case = _publication_use_case_group(candidate)
+        if _use_case and _use_case not in {"general", "catalog_taxonomy_other", "unknown"}:
+            selected_use_cases.add(_use_case)
         comparison_history.append(candidate)
 
     skipped = len(source) - len(selected)
@@ -8547,12 +8696,20 @@ def _filter_recent_publication_repeats(
             f"{label}_REPEAT_GUARD candidates={len(source)} selected={len(selected)} "
             f"deferred={skipped} family_blocked={family_blocked} "
             f"brand_blocked={brand_blocked} similarity_blocked={similarity_blocked} "
+            f"category_deferred={sum(1 for _, reasons in deferred_candidates if 'category_repeat' in reasons)} "
+            f"use_case_deferred={sum(1 for _, reasons in deferred_candidates if 'use_case_repeat' in reasons)} "
             f"family_cooldown_hours={FAMILY_REPEAT_COOLDOWN_HOURS} "
             f"brand_cooldown_hours={BRAND_REPEAT_COOLDOWN_HOURS} "
+            f"category_cooldown_hours={CATEGORY_REPEAT_COOLDOWN_HOURS} "
+            f"use_case_cooldown_hours={USE_CASE_REPEAT_COOLDOWN_HOURS} "
             f"similarity_cooldown_hours={PUBLICATION_SIMILARITY_COOLDOWN_HOURS} "
-            f"rank_order_preserved=true"
+            f"rank_order_preserved_with_soft_diversification=true"
         )
 
+    # Diversification changes which candidates fill a bounded selection window,
+    # not the final demand/deal ordering of the selected items.
+    source_positions = {id(item): index for index, item in enumerate(source)}
+    selected.sort(key=lambda item: source_positions.get(id(item), len(source)))
     if limit is not None:
         return selected[:max(1, int(limit))]
     return selected

@@ -1229,5 +1229,26 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual([row["product_id"] for row in selected], ["dkp-55"])
 
 
+    def test_extract_product_rows_preserves_brand_from_product_or_data_layer(self):
+        payload = {
+            "data": {
+                "products": [{
+                    "id": 12345,
+                    "title_fa": "هدفون بلوتوثی نمونه مدل X",
+                    "brand": {"name_fa": "سونی"},
+                    "data_layer": {"category": "هدفون، هدست و هندزفری"},
+                    "status": "marketable",
+                    "default_variant": {
+                        "status": "marketable",
+                        "price": {"selling_price": 100_000, "rrp_price": 150_000},
+                    },
+                }],
+            }
+        }
+        rows = extract_product_rows(payload)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["brand"], "سونی")
+
+
 if __name__ == "__main__":
     unittest.main()

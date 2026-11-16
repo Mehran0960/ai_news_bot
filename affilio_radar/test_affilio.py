@@ -379,6 +379,7 @@ class AffilioRadarTests(unittest.TestCase):
                 "product": {
                     "id": 22104577,
                     "title_fa": "هدفون بلوتوثی دبلیو کی دیزاین مدل INAIR32",
+                    "brand": {"title_fa": "دبلیو کی دیزاین"},
                     "status": "marketable",
                     "images": ["https://dkstatics-public.digikala.com/digikala-products/sample.jpg"],
                     "default_variant": {
@@ -423,6 +424,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(record["original_price"], 2_500_000)
         self.assertEqual(record["availability"], "in_stock")
         self.assertEqual(record["review_count"], 83)
+        self.assertEqual(record["brand"], "دبلیو کی دیزاین")
         self.assertTrue(record["image_url"].startswith("https://dkstatics-public.digikala.com/"))
         html_fetch.assert_not_called()
 
@@ -1550,6 +1552,8 @@ class AffilioRadarTests(unittest.TestCase):
     def test_family_brand_and_similarity_repeat_guards_are_24_hours(self):
         self.assertEqual(radar_module.FAMILY_REPEAT_COOLDOWN_HOURS, 24)
         self.assertEqual(radar_module.BRAND_REPEAT_COOLDOWN_HOURS, 24)
+        self.assertEqual(radar_module.CATEGORY_REPEAT_COOLDOWN_HOURS, 6)
+        self.assertEqual(radar_module.USE_CASE_REPEAT_COOLDOWN_HOURS, 4)
         self.assertEqual(radar_module.PUBLICATION_SIMILARITY_COOLDOWN_HOURS, 24)
 
     def test_recent_brand_is_blocked_for_24_hours_and_released_afterward(self):
@@ -2344,8 +2348,8 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
 
         self.assertTrue(selected)
-        # Strict demand/discount priority outranks category variety and the
-        # 60% eyewear offer wins when current demand evidence is tied.
+        # Recent use of the broad fashion category defers eyewear to the
+        # available fragrance alternative; hard family/similarity guards remain.
         self.assertEqual(selected[0]["product_id"], "dkp-eyewear-0")
 
 
@@ -2449,6 +2453,26 @@ class AffilioRadarTests(unittest.TestCase):
             }
             for index, title in enumerate(recent_titles)
         ]
+        self.assertEqual(
+            radar_module._publication_diversity_group({"title": recent_titles[0]})[2],
+            "muzik_apollo",
+        )
+        self.assertEqual(
+            radar_module._publication_diversity_group({"title": "هدفون بلوتوثی موزیک آپولو مدل تازه"})[2],
+            "muzik_apollo",
+        )
+        self.assertEqual(
+            radar_module._publication_diversity_group({
+                "title": "باتری قلمی قابل شارژ موزیک آپولو مدل قدیمی",
+                "brand": "muzik_apollo",
+            })[2],
+            "muzik_apollo",
+        )
+        recent_history = radar_module._recent_publication_diversity(
+            published={}, limit=radar_module.PUBLICATION_LEDGER_LIMIT,
+            durable_history=recent_publications, now=now, window_hours=24,
+        )
+        self.assertIn("muzik_apollo", {row["brand"] for row in recent_history})
         candidates = [
             {"product_id": "dkp-muzik-audio-repeat", "title": "هدفون بلوتوثی موزیک آپولو مدل تازه"},
             {"product_id": "dkp-speaker-new-family", "title": "اسپیکر بلوتوثی مدل تازه"},
@@ -2588,7 +2612,7 @@ class AffilioRadarTests(unittest.TestCase):
 
         history = state["recent_publications"]
         entry = next(item for item in history if item["product_id"] == "dkp-123456")
-        self.assertEqual(entry["brand"], "brand:sony")
+        self.assertEqual(entry["brand"], "sony")
 
         now = first_at + timedelta(hours=2)
         candidate = {

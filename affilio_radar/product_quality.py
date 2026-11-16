@@ -32,6 +32,37 @@ def normalize_product_title(value: object) -> str:
     return text.strip(" \t\r\n-–—|:،,؛;.")
 
 
+def normalize_brand_value(value: object) -> str:
+    """Extract a conservative, display-ready brand value from retailer metadata."""
+    if isinstance(value, dict):
+        for key in (
+            "brand_name", "name_fa", "name", "title_fa", "title",
+            "brand_en", "name_en", "value", "label",
+        ):
+            if value.get(key) not in (None, ""):
+                candidate = normalize_brand_value(value[key])
+                if candidate:
+                    return candidate
+        return ""
+    if isinstance(value, (list, tuple)):
+        for item in value:
+            candidate = normalize_brand_value(item)
+            if candidate:
+                return candidate
+        return ""
+    text = normalize_product_title(value).strip(" .،,:;|")
+    if not text or len(text) > 80:
+        return ""
+    if text.casefold() in {
+        "unknown", "other", "none", "null", "نامشخص", "متفرقه",
+        "بدون برند", "بدون نام", "no brand", "generic", "-",
+    }:
+        return ""
+    if not re.search(r"[\w\u0600-\u06FF]", text, re.UNICODE):
+        return ""
+    return text
+
+
 def is_publishable_product_title(value: object) -> bool:
     """Return False for missing/generic titles and clearly truncated final labels."""
     text = normalize_product_title(value)
