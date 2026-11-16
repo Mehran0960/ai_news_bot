@@ -9357,7 +9357,7 @@ def select_discount_fallback_candidates(
         approved_emergency.sort(
             key=lambda row: (
                 float(row.get("emergency_continuity_quality_score") or 0),
-                float((row.get("offerchin_four_factor") or {}).get("discount_attractiveness") or 0),
+                float((row.get("offerchin_three_factor") or {}).get("discount_attractiveness") or 0),
                 int(row.get("savings_toman") or 0),
             ),
             reverse=True,
@@ -9497,7 +9497,7 @@ def select_discount_fallback_candidates(
 
     print(
         f"PUBLICATION_CANDIDATES_READY three_factor_ranked={len(safe_handoff)} "
-        f"top_three_factor={safe_handoff[0].get('offerchin_four_factor', {}).get('balanced_score')} "
+        f"top_three_factor={safe_handoff[0].get('offerchin_three_factor', {}).get('balanced_score')} "
         f"top_bestseller_rank={safe_handoff[0].get('selection_bestseller_rank')} "
         f"top_discount={safe_handoff[0].get('discount_percent')} "
         f"visual_variants={experiment_counts} caption_variants={caption_experiment_counts} "
@@ -11691,8 +11691,8 @@ def run(publish=False, selection_only=False):
     enrich_price_history(products, state)
     enrich_market_prices(products, state)
     queue_now = datetime.now(timezone.utc)
-    # Score the comparable live-checked product cohort together so category-relative
-    # affordability is computed from its peers, not from isolated one-item calls.
+    # Score the live-checked cohort on demand, use-case generality and genuine markdown;
+    # absolute price level and installment down-payment are not selection dimensions.
     _apply_offerchin_three_factor_scores(products, now=queue_now)
     products.sort(key=deal_sort_key, reverse=True)
     # Independent market/history evidence is diagnostic; it cannot filter a live markdown.
