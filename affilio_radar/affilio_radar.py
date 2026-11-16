@@ -7747,7 +7747,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     brand_search_text = (family_match_text + " " + explicit_brand.lower()).strip()
     title_category = classify_category(title)
     catalog_category = classify_category(
-        "", category.get("name", ""), category.get("path", "")
+        "", catalog_context.get("name", ""), catalog_context.get("path", "")
     ) if catalog_text else "other"
     # Official DigiKala taxonomy has priority over heuristic title classification.
     category = catalog_category if catalog_category != "other" else title_category
