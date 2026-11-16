@@ -10,9 +10,12 @@ import {
   videoRecordDue,
   isFiloLoginVerified,
   PUBLISHER_DISCOVERY_RETRY_MS,
+  PUBLISHER_DISCOVERY_QUEUE_LOW_WATERMARK,
+  shouldReplenishPublisherQueue,
   isEmergencyContinuityAvailable,
   isPublisherAttemptRun,
   nextPublisherDueAt,
+  hasDueScheduledPublication,
   readLastChannelPublicationAt,
 } from "./affilio-minute-dispatcher.mjs";
 
@@ -203,6 +206,35 @@ test("publisher chooses the earliest editorial midpoint or product slot", () => 
     next_editorial_planning_at: new Date(editorialAt).toISOString(),
   };
   assert.equal(nextPublisherDueAt(state), editorialAt);
+});
+
+test("already-due selected content is dispatched independently of catalog snapshot readiness", () => {
+  const now = Date.now();
+  const due = {
+    next_channel_content_due_at: new Date(now - 1).toISOString(),
+    next_editorial_planning_at: null,
+  };
+  assert.equal(hasDueScheduledPublication(due, now), true);
+  assert.equal(hasDueScheduledPublication({
+    next_channel_content_due_at: new Date(now + 60_000).toISOString(),
+  }, now), false);
+  assert.equal(hasDueScheduledPublication({}, now), false);
+});
+
+test("publisher replenishes a low product queue before the next scheduled slot", () => {
+  const now = Date.now();
+  const recentAttempt = { updated_at: new Date(now - 60 * 1000).toISOString() };
+  const staleAttempt = { updated_at: new Date(now - 4 * 60 * 1000).toISOString() };
+  const scheduled = {
+    pending_product_queue_count: PUBLISHER_DISCOVERY_QUEUE_LOW_WATERMARK,
+    next_channel_content_due_at: new Date(now + 57 * 60 * 1000).toISOString(),
+  };
+  assert.equal(shouldReplenishPublisherQueue(scheduled, recentAttempt, now), false);
+  assert.equal(shouldReplenishPublisherQueue(scheduled, staleAttempt, now), true);
+  assert.equal(shouldReplenishPublisherQueue({
+    pending_product_queue_count: PUBLISHER_DISCOVERY_QUEUE_LOW_WATERMARK + 1,
+  }, staleAttempt, now), false);
+  assert.equal(shouldReplenishPublisherQueue({}, staleAttempt, now), false);
 });
 
 test("publisher has no standalone editorial schedule when no product slot exists", () => {

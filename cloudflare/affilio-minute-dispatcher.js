@@ -214,6 +214,23 @@ export function isInitialCatalogWarmup(status) {
 // This throttle schedules discovery retries only when no content slot exists.
 // It is never applied to a product or editorial publication timestamp.
 export const PUBLISHER_DISCOVERY_RETRY_MS = 3 * 60 * 1000;
+export const PUBLISHER_DISCOVERY_QUEUE_LOW_WATERMARK = 2;
+
+export function shouldReplenishPublisherQueue(state, latestAttempt, now = Date.now()) {
+  const pending = Number(state && state.pending_product_queue_count);
+  if (!Number.isFinite(pending) || pending > PUBLISHER_DISCOVERY_QUEUE_LOW_WATERMARK) {
+    return false;
+  }
+  const attemptAt = Date.parse(String(
+    latestAttempt && (
+      latestAttempt.updated_at ||
+      latestAttempt.run_started_at ||
+      latestAttempt.created_at
+    ) || ""
+  ));
+  return !Number.isFinite(attemptAt) ||
+    now - attemptAt >= PUBLISHER_DISCOVERY_RETRY_MS;
+}
 
 export function isEmergencyContinuityAvailable(state, now = Date.now()) {
   const expiresAt = Date.parse(String(state && state.emergency_continuity_expires_at || ""));
@@ -233,6 +250,12 @@ export function nextPublisherDueAt(state) {
   const plannedTimes = [scheduledAt, editorialPlanningAt].filter(Number.isFinite);
   // Public posting is event/queue driven. No last-post cooldown is applied here.
   return plannedTimes.length ? Math.min(...plannedTimes) : null;
+}
+
+export function hasDueScheduledPublication(state, now = Date.now()) {
+  const nextDueAt = nextPublisherDueAt(state);
+  const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
+  return nextDueAt !== null && nextDueAt <= timestamp;
 }
 
 async function readOfferChinState(token) {
@@ -325,6 +348,25 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     return;
   }
 
+  const now = tick.getTime();
+  const nextDueAt = nextPublisherDueAt(state);
+  const hasScheduledContent = Number.isFinite(Date.parse(String(state.next_channel_content_due_at || ""))) ||
+    Number.isFinite(Date.parse(String(state.next_editorial_planning_at || "")));
+
+  if (hasDueScheduledPublication(state, now)) {
+    // Previously selected content must not wait for a new clean catalog snapshot.
+    // The Python publisher rechecks product identity, price, stock and affiliate link live.
+    console.log(
+      "OFFERCHIN_PUBLISHER_DUE_QUEUE_PRIORITY next_due_at=" +
+      new Date(nextDueAt).toISOString() +
+      " clean_snapshot_gate=bypassed live_revalidation=required"
+    );
+    await dispatchWorkflowIfIdle(
+      PUBLISHER_API, env.GITHUB_TOKEN, PUBLISHER_WORKFLOW, 28, 28
+    );
+    return;
+  }
+
   const [latestAttempt, catalogStatus] = await Promise.all([
     readLatestPublisherAttempt(env.GITHUB_TOKEN),
     readCatalogSweepStatus(env.GITHUB_TOKEN),
@@ -371,10 +413,6 @@ async function dispatchPublisherWhenDue(env, tick, state) {
       "/" + String(catalogStatus.unscanned_new_category_budget || 0)
     );
   }
-  const now = tick.getTime();
-  const nextDueAt = nextPublisherDueAt(state);
-  const hasScheduledContent = Number.isFinite(Date.parse(String(state.next_channel_content_due_at || ""))) ||
-    Number.isFinite(Date.parse(String(state.next_editorial_planning_at || "")));
   const latestCleanCycleAt = Date.parse(String(
     catalogStatus && catalogStatus.last_clean_cycle_completed_at || ""
   ));
@@ -389,20 +427,29 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     (!Number.isFinite(plannedCleanCycleAt) || latestCleanCycleAt > plannedCleanCycleAt)
   );
 
-  // A clean new catalog cycle refreshes the product cohort even while the next
-  // product slot is in the future. This reflows the floating plan without posting early.
-  if (!newCleanCycleReady && nextDueAt !== null && now < nextDueAt) {
+  // Refill the product backlog before it runs dry, while keeping already scheduled
+  // product/editorial posts at their independent due timestamps.
+  const attemptAt = Date.parse(String(
+    latestAttempt && (latestAttempt.updated_at || latestAttempt.run_started_at || latestAttempt.created_at) || ""
+  ));
+  const queueNeedsReplenishment = shouldReplenishPublisherQueue(state, latestAttempt, now);
+  if (!newCleanCycleReady && nextDueAt !== null && now < nextDueAt &&
+      !queueNeedsReplenishment) {
     console.log("OFFERCHIN_PUBLISHER_NOT_DUE seconds_remaining=" +
       Math.ceil((nextDueAt - now) / 1000) +
       " next_content_due_at=" + new Date(nextDueAt).toISOString());
     return;
   }
-  // A discovery retry is throttled only while no product/editorial slot exists.
-  // Once a slot is scheduled, it is dispatched at its exact timestamp regardless
-  // of how recently the previous public post happened.
-  const attemptAt = Date.parse(String(
-    latestAttempt && (latestAttempt.updated_at || latestAttempt.run_started_at || latestAttempt.created_at) || ""
-  ));
+  if (queueNeedsReplenishment && nextDueAt !== null && now < nextDueAt) {
+    console.log(
+      "OFFERCHIN_PRODUCT_QUEUE_REPLENISHMENT_DUE " +
+      "pending_products=" + String(state.pending_product_queue_count) +
+      " next_product_slot=" + new Date(nextDueAt).toISOString() +
+      " discovery_retry_minutes=3 product_slot_delay=false"
+    );
+  }
+  // Throttle unscheduled discovery retries only. A due publication and an early
+  // queue-replenishment run are never gated by this retry timer.
   if (!hasScheduledContent && !newCleanCycleReady &&
       Number.isFinite(attemptAt) && now - attemptAt < PUBLISHER_DISCOVERY_RETRY_MS) {
     console.log("OFFERCHIN_DISCOVERY_RETRY_WINDOW seconds_remaining=" +
