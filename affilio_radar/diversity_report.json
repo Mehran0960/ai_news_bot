@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T07:47:39.277534+00:00",
+  "generated_at": "2026-11-16T07:57:06.113338+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -396,30 +396,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1505,
+    "all_time_count": 1506,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 408,
+      "family_repeat": 407,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T07:13:24.774666+00:00",
-        "brand": "",
-        "catalog_category_id": "8170",
-        "catalog_category_name": "بذر و تخم گیاهان",
-        "category": "other",
-        "compared_to_product_id": "dkp-882785",
-        "family": "digikala_category:8170",
-        "product_id": "dkp-1792849",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "بذر فلفل تند قرمز آذر سبزینه مدل F52",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-16T07:13:24.774666+00:00",
         "brand": "",
@@ -733,6 +716,22 @@
         ],
         "title": "ست تی‌شرت آستین کوتاه و شلوارک ورزشی مردانه مکران مدل شیراز",
         "use_case": "sports_fitness"
+      },
+      {
+        "at": "2026-11-16T07:57:06.113338+00:00",
+        "brand": "",
+        "catalog_category_id": "9473",
+        "catalog_category_name": "زیرپوش مردانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-7284546",
+        "family": "digikala_category:9473",
+        "product_id": "dkp-720533",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "زیرپوش مردانه آریان نخ باف کد 1211",
+        "use_case": "fashion_lifestyle"
       }
     ]
   }
