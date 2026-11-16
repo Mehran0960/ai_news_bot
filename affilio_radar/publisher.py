@@ -350,14 +350,15 @@ def _valid_emergency_continuity_override(
         return False
     try:
         discount = float(factors.get("discount_attractiveness") or 0)
-        affordability = float(factors.get("affordability") or 0)
         generality = float(factors.get("generality") or 0)
     except (TypeError, ValueError, OverflowError):
         return False
-    if min(discount, affordability, generality) <= 0:
+    # Demand relaxation still requires a verified markdown and broad usefulness.
+    # Absolute price and affordability are never ranking or publication gates.
+    if min(discount, generality) <= 0:
         return False
-    harmonic = 3 / (1 / discount + 1 / affordability + 1 / generality)
-    if discount < 55 or affordability < 40 or generality < 50 or harmonic < 55:
+    harmonic = 2 / (1 / discount + 1 / generality)
+    if discount < 55 or generality < 50 or harmonic < 55:
         return False
     try:
         verified_leads = radar.load_emergency_continuity_candidates(
@@ -891,21 +892,9 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             isinstance(target, dict) and target.get("status") == "sent"
             for target in delivery_targets.values()
         )
-        emergency_override = _valid_emergency_continuity_override(payload, state, now)
-        if (
-            not already_partially_delivered
-            and catalog_context.get("mode") == "blocked"
-            and not emergency_override
-        ):
-            entry["status"] = "queued"
-            entry["last_detail"] = "verified_full_catalog_snapshot_unavailable"
-            entry["next_attempt_at"] = (now + timedelta(minutes=5)).isoformat()
-            _save(state)
-            print(
-                f"PUBLISHER_CATALOG_GATE_BLOCKED product_id={product_id} "
-                "reason=verified_full_catalog_snapshot_unavailable"
-            )
-            continue
+        # The durable queue already passed discovery-time catalog admission.
+        # Do not wait for a later clean snapshot; live demand/price/stock/discount
+        # and affiliate validation remain mandatory immediately below.
         if not already_partially_delivered:
             allowed = radar._filter_recent_publication_repeats(
                 [payload],
@@ -952,7 +941,7 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             entry,
             now,
             catalog_context,
-            require_catalog_membership=not already_partially_delivered,
+            require_catalog_membership=False,
             state=state,
         )
         if fresh is None:
