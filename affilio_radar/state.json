@@ -200417,8 +200417,8 @@
       "sponsored-review"
     ],
     "cycle_number": 1,
-    "last_editorial_id": "shipping-window",
-    "last_topic": "shipping-and-returns",
+    "last_editorial_id": "sponsored-review",
+    "last_topic": "review-literacy",
     "used_ids": [
       "check-delivery-window",
       "inspect-on-arrival",
@@ -200429,7 +200429,8 @@
       "review-patterns",
       "reviews-beyond-stars",
       "seller-and-return-policy",
-      "shipping-window"
+      "shipping-window",
+      "sponsored-review"
     ]
   },
   "editorial_delivery_attempts": [
@@ -201930,83 +201931,59 @@
       "related_product_id": "dkp-22182003",
       "sequence_number": 1402,
       "topic": "shipping-and-returns"
-    }
-  ],
-  "editorial_delivery_queue": {
-    "editorial:sponsored-review": {
-      "attempt_count": 0,
+    },
+    {
       "content_id": "editorial:sponsored-review",
-      "content_type": "editorial",
-      "delivery_runway_seconds": 16,
-      "dispatch_runway_seconds": 76,
-      "next_attempt_at": "2026-11-16T22:27:35.086139+00:00",
-      "payload": {
-        "body": "برخی بررسی‌ها ممکن است با دریافت کالا یا منفعت مالی نوشته شده باشند. ببین نویسنده ارتباط مالی یا تبلیغاتی را اعلام کرده یا نه و بررسی را کنار نظرهای مستقل و تجربه خریداران دیگر بگذار.",
-        "content_id": "editorial:sponsored-review",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 1,
-        "editorial_id": "sponsored-review",
-        "idempotency_key": "08232d65938599bd",
-        "related_product_affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-19192461%2F",
-        "related_product_id": "dkp-19192461",
-        "related_product_title": "کیسه جمع‌آوری فضولات سگ و گربه مدل Reff بسته 10 عددی",
-        "review_due_at": "2027-02-10T18:00:00Z",
-        "reviewed_at": "2026-11-12T18:00:00Z",
-        "sequence_number": 1428,
-        "sources": [
-          {
-            "source_id": "ftc-review-guide",
-            "title": "راهنمای FTC برای نمایش نظرهای مشتریان",
-            "url": "https://www.ftc.gov/business-guidance/resources/featuring-online-customer-reviews-guide-platforms"
-          },
-          {
-            "source_id": "ftc-online-shopping",
-            "title": "راهنمای خرید اینترنتی FTC",
-            "url": "https://consumer.ftc.gov/articles/online-shopping"
-          }
-        ],
-        "title": "نظر تبلیغاتی را از تجربه مستقل جدا کن",
-        "topic": "review-literacy"
-      },
-      "platforms": {
+      "delivery_duration_seconds": 51.1,
+      "destinations": {
         "aparat": {
           "attempts": 0,
           "status": "pending"
         },
         "bale": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T22:29:29.594405+00:00",
+          "attempts": 1,
+          "last_error": "outcome_unknown:ReadTimeout:HTTPSConnectionPool(host='tapi.bale.ai', port=443): Read timed out. (read timeout=15)",
+          "status": "manual_review",
+          "updated_at": "2026-11-16T22:29:49.514672+00:00"
         },
         "eitaa": {
           "attempts": 0,
-          "status": "pending"
+          "last_error": "eitaa_not_enabled_or_credentials_missing",
+          "status": "not_connected",
+          "updated_at": "2026-11-16T22:30:11.776229+00:00"
         },
         "filo": {
           "attempts": 0,
           "status": "pending"
         },
         "rubika": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T22:29:51.370428+00:00",
+          "attempts": 1,
+          "message_id": "1974294739294588651",
+          "status": "sent",
+          "updated_at": "2026-11-16T22:30:09.904727+00:00"
         },
         "telegram": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T22:29:24.950633+00:00",
+          "attempts": 1,
+          "message_id": "1630",
+          "status": "sent",
+          "updated_at": "2026-11-16T22:29:27.712435+00:00"
         },
         "youtube": {
           "attempts": 0,
           "status": "pending"
         }
       },
+      "editorial_id": "sponsored-review",
+      "published_at": "2026-11-16T22:29:27.712435+00:00",
       "related_product_id": "dkp-19192461",
-      "scheduled_at": "2026-11-16T22:27:35.086139+00:00",
-      "selected_at": "2026-11-16T22:25:22.899347+00:00",
-      "sequence_number": 1428,
-      "status": "queued",
-      "window_closes_at": "2026-11-16T22:29:31.777493+00:00"
+      "sequence_number": 1429,
+      "topic": "review-literacy"
     }
-  },
+  ],
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -202322,12 +202299,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-16T22:25:22.394786+00:00",
+  "last_channel_published_at": "2026-11-16T22:29:27.712435+00:00",
   "last_content_selection_at": "2026-11-16T22:24:46.506937+00:00",
-  "last_editorial_attempt_at": "2026-11-16T22:25:22.899347+00:00",
-  "last_editorial_confirmed_at": "2026-11-16T22:14:57.351173+00:00",
+  "last_editorial_attempt_at": "2026-11-16T22:29:17.454270+00:00",
+  "last_editorial_confirmed_at": "2026-11-16T22:30:09.904727+00:00",
   "last_product_channel_published_at": "2026-11-16T22:25:22.394786+00:00",
-  "last_published_at": "2026-11-16T22:25:22.394786+00:00",
+  "last_published_at": "2026-11-16T22:29:27.712435+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -293362,7 +293339,7 @@
       "ts": 1793119008.409393
     }
   },
-  "publication_sequence_counter": 1428,
+  "publication_sequence_counter": 1429,
   "published": {
     "dkp-10002173": {
       "aparat_skip_reason": "verified_expiry_required",
