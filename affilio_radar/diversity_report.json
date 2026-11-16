@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T08:23:59.461479+00:00",
+  "generated_at": "2026-11-16T08:31:23.100241+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -396,179 +396,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1515,
+    "all_time_count": 1525,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 402,
+      "family_repeat": 401,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T07:40:40.240480+00:00",
-        "brand": "",
-        "catalog_category_id": "9473",
-        "catalog_category_name": "زیرپوش مردانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-7284546",
-        "family": "digikala_category:9473",
-        "product_id": "dkp-720533",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "زیرپوش مردانه آریان نخ باف کد 1211",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-16T07:40:40.240480+00:00",
-        "brand": "",
-        "catalog_category_id": "10836",
-        "catalog_category_name": "روغن کنجد",
-        "category": "grocery_food",
-        "compared_to_product_id": "dkp-14568455",
-        "family": "digikala_category:10836",
-        "product_id": "dkp-14568855",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "روغن کنجد تصفیه شده توسکا - 1350 گرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-16T07:47:39.277534+00:00",
-        "brand": "",
-        "catalog_category_id": "9569",
-        "catalog_category_name": "ست لباس راحتی نوزاد",
-        "category": "kids_sports",
-        "compared_to_product_id": "dkp-22568125",
-        "family": "digikala_category:9569",
-        "product_id": "dkp-22097631",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "ست سویشرت و شلوار راحتی نوزادی مدل 10",
-        "use_case": "baby_care"
-      },
-      {
-        "at": "2026-11-16T07:47:39.277534+00:00",
-        "brand": "",
-        "catalog_category_id": "9224",
-        "catalog_category_name": "گوشت گوسفند",
-        "category": "other",
-        "compared_to_product_id": "dkp-20502655",
-        "family": "digikala_category:9224",
-        "product_id": "dkp-21586430",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-16T07:47:39.277534+00:00",
-        "brand": "",
-        "catalog_category_id": "9371",
-        "catalog_category_name": "کفش پاشنه دار زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-6223366",
-        "family": "digikala_category:9371",
-        "product_id": "dkp-3584477",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش زنانه پاتکان کد NIC829",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-16T07:47:39.277534+00:00",
-        "brand": "",
-        "catalog_category_id": "11084",
-        "catalog_category_name": "غذا و دانه پرندگان",
-        "category": "other",
-        "compared_to_product_id": "dkp-5467971",
-        "family": "digikala_category:11084",
-        "product_id": "dkp-12290421",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "غذای خشک طوطی عروس هلندی مای برد مدل پلاس کد Cockatiel+1 وزن یک کیلوگرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-16T07:47:39.277534+00:00",
-        "brand": "",
-        "catalog_category_id": "10727",
-        "catalog_category_name": "غذای آماده",
-        "category": "grocery_food",
-        "compared_to_product_id": "dkp-22004922",
-        "family": "digikala_category:10727",
-        "product_id": "dkp-22004842",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کنسرو گوشت بوقلمون با طعم شوید پارس بوقلمون - 180 گرم",
-        "use_case": "grocery_food"
-      },
-      {
-        "at": "2026-11-16T07:47:39.277534+00:00",
-        "brand": "",
-        "catalog_category_id": "6475",
-        "catalog_category_name": "بالم لب",
-        "category": "other",
-        "compared_to_product_id": "dkp-82099",
-        "family": "digikala_category:6475",
-        "product_id": "dkp-88606",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "بالم لب مای مدل ضد آفتاب با SPF 25، محافظت از لب در برابر اشعه خورشید، نرم‌کننده و ضد خشکی",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-16T07:47:39.277534+00:00",
-        "brand": "",
-        "catalog_category_id": "9462",
-        "catalog_category_name": "شلوارک ورزشی مردانه",
-        "category": "sports_outdoor",
-        "compared_to_product_id": "dkp-17740901",
-        "family": "digikala_category:9462",
-        "product_id": "dkp-3178537",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "شلوارک ورزشی مردانه تکنیک پلاس 07 کد SH-128-AB-GH",
-        "use_case": "sports_fitness"
-      },
-      {
-        "at": "2026-11-16T07:47:39.277534+00:00",
-        "brand": "",
-        "catalog_category_id": "11154",
-        "catalog_category_name": "ست تی‌شرت و شلوارک ورزشی مردانه",
-        "category": "sports_outdoor",
-        "compared_to_product_id": "dkp-18294816",
-        "family": "digikala_category:11154",
-        "product_id": "dkp-17464311",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ست تی‌شرت آستین کوتاه و شلوارک ورزشی مردانه مکران مدل شیراز",
-        "use_case": "sports_fitness"
-      },
       {
         "at": "2026-11-16T07:57:06.113338+00:00",
         "brand": "",
@@ -731,6 +565,175 @@
           "similarity_repeat"
         ],
         "title": "چای کیسه ای صنایع غذایی طلالو بسته 25 عددی",
+        "use_case": "catalog_taxonomy_other"
+      },
+      {
+        "at": "2026-11-16T08:31:23.100241+00:00",
+        "brand": "",
+        "catalog_category_id": "9906",
+        "catalog_category_name": "کفش روزمره مردانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-8995270",
+        "family": "digikala_category:9906",
+        "product_id": "dkp-20865598",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش روزمره مردانه سارزی مدل p.u.m.-p.l.u.s-9871 با رویه چرم مصنوعی، زیره پلی اورتان انعطاف‌پذیر و قابلیت ارتجاعی، کفی قابل تعویض، طراحی بندی و کاهش فشارهای وارده در پیاده‌روی‌های ط",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-16T08:31:23.100241+00:00",
+        "brand": "",
+        "catalog_category_id": "10559",
+        "catalog_category_name": "کتاب زبان خارجی",
+        "category": "books_stationery",
+        "compared_to_product_id": "dkp-2304995",
+        "family": "digikala_category:10559",
+        "product_id": "dkp-3319356",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کتاب Family and Friends 4 اثر Naomi Simmons انتشارات الوندپویان",
+        "use_case": "books_learning"
+      },
+      {
+        "at": "2026-11-16T08:31:23.100241+00:00",
+        "brand": "",
+        "catalog_category_id": "9467",
+        "catalog_category_name": "مایو و لباس شنای مردانه",
+        "category": "sports_outdoor",
+        "compared_to_product_id": "dkp-21678448",
+        "family": "digikala_category:9467",
+        "product_id": "dkp-9634240",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "مایو مردانه تکنیک+07 مدل SH-143-ME",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T08:31:23.100241+00:00",
+        "brand": "",
+        "catalog_category_id": "9744",
+        "catalog_category_name": "کیف پول و کیف لوازم آرایش دخترانه",
+        "category": "personal_care",
+        "compared_to_product_id": "dkp-18692390",
+        "family": "digikala_category:9744",
+        "product_id": "dkp-18707793",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کیف لوازم آرایش دخترانه خندالو مدل قهوه دمی کد 5068",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-16T08:31:23.100241+00:00",
+        "brand": "",
+        "catalog_category_id": "9841",
+        "catalog_category_name": "جوراب زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-7284546",
+        "family": "digikala_category:9841",
+        "product_id": "dkp-1734924",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "جوراب زنانه آریان نخ باف کد 5122-1 بسته 3 عددی",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T08:31:23.100241+00:00",
+        "brand": "",
+        "catalog_category_id": "9473",
+        "catalog_category_name": "زیرپوش مردانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-15583832",
+        "family": "digikala_category:9473",
+        "product_id": "dkp-22583263",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "زیر پوش آستین دار مردانه تافتکس مدل ساده",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T08:31:23.100241+00:00",
+        "brand": "",
+        "catalog_category_id": "6328",
+        "catalog_category_name": "ملحفه",
+        "category": "other",
+        "compared_to_product_id": "dkp-17933571",
+        "family": "digikala_category:6328",
+        "product_id": "dkp-18368399",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ملحفه مترینو طرح کتان دو نفره سایز 160*200 سانتی متر",
+        "use_case": "home_living"
+      },
+      {
+        "at": "2026-11-16T08:31:23.100241+00:00",
+        "brand": "",
+        "catalog_category_id": "11154",
+        "catalog_category_name": "ست تی‌شرت و شلوارک ورزشی مردانه",
+        "category": "sports_outdoor",
+        "compared_to_product_id": "dkp-18294816",
+        "family": "digikala_category:11154",
+        "product_id": "dkp-17464311",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ست تی‌شرت آستین کوتاه و شلوارک ورزشی مردانه مکران مدل شیراز",
+        "use_case": "sports_fitness"
+      },
+      {
+        "at": "2026-11-16T08:31:23.100241+00:00",
+        "brand": "",
+        "catalog_category_id": "10932",
+        "catalog_category_name": "دئودورانت",
+        "category": "other",
+        "compared_to_product_id": "dkp-14915569",
+        "family": "digikala_category:10932",
+        "product_id": "dkp-19399111",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "دئودورانت ضد تعریق زنانه آدرویت مدل مون لایت حجم 50 میلی لیتر",
+        "use_case": "catalog_taxonomy_other"
+      },
+      {
+        "at": "2026-11-16T08:31:23.100241+00:00",
+        "brand": "",
+        "catalog_category_id": "10921",
+        "catalog_category_name": "تقویت‌کننده ابرو",
+        "category": "other",
+        "compared_to_product_id": "dkp-17336104",
+        "family": "digikala_category:10921",
+        "product_id": "dkp-4368715",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "محلول تقویت کننده ابرو و مژه وچه مدل 54564 حجم 11 میلی لیتر",
         "use_case": "catalog_taxonomy_other"
       }
     ]
