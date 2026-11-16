@@ -556,6 +556,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
 
 
     def test_use_case_classifier_does_not_match_ram_inside_gram_and_covers_common_products(self):
+        # Regression coverage for the false-positive RAM token and retailer taxonomy aliases.
         samples = [
             ("روغن کنجد تصفیه شده توسکا - 1350 گرم", "grocery_food"),
             ("بالم لب هیدرودرم مدل SPF40 وزن 4.5 گرم", "personal_care"),
