@@ -26,7 +26,7 @@ from platform_registry import PLATFORM_NAMES
 NOW = datetime(2026, 11, 12, 18, 0, tzinfo=timezone.utc)
 
 
-def editorial_item(editorial_id="test-guide", topic="test-topic"):
+def editorial_item(editorial_id="test-guide", topic="purchase-planning"):
     return {
         "editorial_id": editorial_id,
         "title": "راهنمای کوتاه خرید آگاهانه",
@@ -160,6 +160,46 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertIsNone(entry)
         self.assertFalse(state.get("editorial_delivery_queue"))
         self.assertEqual(state["publication_sequence_counter"], 12)
+
+    def test_removed_or_unrelated_active_queue_item_is_cancelled_before_a_new_relevant_item_is_queued(self):
+        stale = editorial_item("app-permissions", "privacy-and-security")
+        current = editorial_item("device-guide", "device-compatibility")
+        product_at = NOW + timedelta(hours=2)
+        state = {
+            "last_channel_published_at": (NOW - timedelta(minutes=20)).isoformat(),
+            "content_delivery_queue": {
+                "dkp-next": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": product_at.isoformat(),
+                    "payload": {
+                        "product_id": "dkp-next",
+                        "title": "گوشی هوشمند",
+                        "offerchin_four_factor": {"generality_group": "mobile_productivity"},
+                    },
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                }
+            },
+            "editorial_delivery_queue": {
+                "editorial:app-permissions": {
+                    "content_id": "editorial:app-permissions",
+                    "content_type": "editorial",
+                    "related_product_id": "dkp-next",
+                    "status": "queued",
+                    "scheduled_at": (NOW + timedelta(minutes=20)).isoformat(),
+                    "payload": {
+                        **stale,
+                        "content_type": "editorial",
+                        "content_id": "editorial:app-permissions",
+                    },
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                }
+            },
+        }
+        entry = queue_editorial_if_due(state, [current], now=NOW)
+        self.assertEqual(entry["content_id"], "editorial:device-guide")
+        self.assertNotIn("editorial:app-permissions", state["editorial_delivery_queue"])
+        self.assertEqual(entry["payload"]["topic"], "device-compatibility")
 
     def test_editorial_fallback_obeys_shared_daily_channel_post_cap(self):
         state = {}
