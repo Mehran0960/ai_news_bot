@@ -3226,11 +3226,11 @@ class AffilioRadarTests(unittest.TestCase):
             [row["product_id"] for row in expected_order],
         )
         self.assertTrue(all(
-            row.get("offerchin_four_factor", {}).get("policy_version") == radar_module.OFFERCHIN_FOUR_FACTOR_POLICY_VERSION
+            row.get("offerchin_three_factor", {}).get("policy_version") == radar_module.OFFERCHIN_THREE_FACTOR_POLICY_VERSION
             for row in published_order
         ))
         self.assertGreater(
-            len({row["offerchin_four_factor"]["balanced_score"] for row in published_order}),
+            len({row["offerchin_three_factor"]["balanced_score"] for row in published_order}),
             1,
         )
 

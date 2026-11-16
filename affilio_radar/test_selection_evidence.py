@@ -229,7 +229,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             radar.deal_sort_key(stale_bestseller, now=self.now),
         )
 
-    def test_four_factor_balance_can_trade_off_live_demand_against_affordability_and_discount(self):
+    def test_three_factor_balance_can_trade_off_live_demand_against_generality_and_discount(self):
         products = [
             {
                 "product_id": "dkp-popular-low-discount",
@@ -276,16 +276,12 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
 
         self.assertEqual(len(quality), 2)
         scores = {
-            row["product_id"]: row["offerchin_four_factor"]
+            row["product_id"]: row["offerchin_three_factor"]
             for row in selected
         }
         self.assertGreater(
             scores["dkp-popular-low-discount"]["live_demand"],
             scores["dkp-weak-high-discount"]["live_demand"],
-        )
-        self.assertGreater(
-            scores["dkp-weak-high-discount"]["affordability"],
-            scores["dkp-popular-low-discount"]["affordability"],
         )
         self.assertGreater(
             scores["dkp-weak-high-discount"]["discount_attractiveness"],
@@ -375,11 +371,11 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
 
         def score(rows, now=None):
             for row in rows:
-                row["offerchin_four_factor"] = {
-                    "affordability": 75,
+                row["offerchin_three_factor"] = {
                     "generality": 80,
                     "discount_attractiveness": 90,
                     "balanced_score": 81,
+                    "live_demand": 0,
                 }
 
         common_patches = (
@@ -390,10 +386,10 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             patch.object(radar, "is_selection_candidate_rejected", return_value=False),
             patch.object(radar, "is_fresh_selection_candidate", return_value=True),
             patch.object(radar, "_has_active_publication_or_delivery", return_value=False),
-            patch.object(radar, "_apply_offerchin_four_factor_scores", side_effect=score),
+            patch.object(radar, "_apply_offerchin_three_factor_scores", side_effect=score),
             patch.object(radar, "_filter_recent_publication_repeats", side_effect=lambda rows, *args, **kwargs: rows),
             patch.object(radar, "deal_sort_key", side_effect=lambda row, **kwargs: (
-                row["offerchin_four_factor"]["balanced_score"],
+                row["offerchin_three_factor"]["balanced_score"],
                 row["discount_percent"],
                 row["savings_toman"],
             )),
@@ -428,11 +424,11 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
 
         def score(rows, now=None):
             for row in rows:
-                row["offerchin_four_factor"] = {
-                    "affordability": 75,
+                row["offerchin_three_factor"] = {
                     "generality": 80,
                     "discount_attractiveness": 54,
                     "balanced_score": 67,
+                    "live_demand": 0,
                 }
 
         with (
@@ -443,7 +439,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             patch.object(radar, "is_selection_candidate_rejected", return_value=False),
             patch.object(radar, "is_fresh_selection_candidate", return_value=True),
             patch.object(radar, "_has_active_publication_or_delivery", return_value=False),
-            patch.object(radar, "_apply_offerchin_four_factor_scores", side_effect=score),
+            patch.object(radar, "_apply_offerchin_three_factor_scores", side_effect=score),
         ):
             selected, _floor, _quality = radar.select_discount_fallback_candidates(
                 [product], {}, now=self.now, allow_emergency_demand_relaxation=True
