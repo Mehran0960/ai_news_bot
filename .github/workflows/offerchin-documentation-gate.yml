@@ -39,7 +39,10 @@ jobs:
       - name: Check out both sides of the change
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          # The PR merge commit has both base and head as parents; two levels
+          # are enough for the documented base/head diff. Avoid cloning the
+          # full 380MB repository history on every documentation check.
+          fetch-depth: 2
 
       - name: Set up Python
         uses: actions/setup-python@v5
