@@ -177,10 +177,11 @@ def queue_editorial_if_due(
     *,
     now: datetime | None = None,
 ) -> dict | None:
-    """Place one reviewed editorial at the true midpoint before an already queued product.
+    """Place reviewed editorial within the live gap before an already queued product.
 
-    Editorial never publishes on its own and never creates a product slot. If there is no
-    future product in the queue, or its midpoint has already passed, it waits.
+    Editorial never publishes on its own and never creates a product slot. If the
+    ideal midpoint has passed but the related product remains in the future, the
+    editorial uses the remaining gap immediately rather than losing the slot.
     """
     current = now or _now()
     if current.tzinfo is None:
@@ -258,11 +259,14 @@ def queue_editorial_if_due(
         return None
     scheduled_at = anchor + timedelta(seconds=gap_seconds / 2)
     if scheduled_at <= current:
+        # Minute-worker ticks can cross the ideal midpoint. Keep the editorial
+        # opportunity inside the remaining gap rather than silently dropping it.
+        # The product-due check above still takes priority and is never moved.
         print(
-            "EDITORIAL_MIDPOINT_PASSED "
+            "EDITORIAL_MIDPOINT_PASSED_USE_REMAINING_GAP "
             f"product_id={related_product_id} product_slot={product_at.isoformat()}"
         )
-        return None
+        scheduled_at = current
 
     if radar.daily_channel_posts_count(state, current) >= radar.MAX_DAILY_CHANNEL_POSTS:
         print(
