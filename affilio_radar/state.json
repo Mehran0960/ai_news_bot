@@ -251118,8 +251118,8 @@
       "warranty-terms"
     ],
     "cycle_number": 1,
-    "last_editorial_id": "plan-before-buy",
-    "last_topic": "purchase-planning",
+    "last_editorial_id": "seller-and-return-policy",
+    "last_topic": "seller-check",
     "used_ids": [
       "accessories-compatibility",
       "account-security",
@@ -251132,7 +251132,8 @@
       "keep-purchase-records",
       "marketplace-responsibility",
       "negative-review-balance",
-      "plan-before-buy"
+      "plan-before-buy",
+      "seller-and-return-policy"
     ]
   },
   "editorial_delivery_attempts": [
@@ -251994,83 +251995,59 @@
       "related_product_id": "dkp-21883276",
       "sequence_number": 1348,
       "topic": "purchase-planning"
-    }
-  ],
-  "editorial_delivery_queue": {
-    "editorial:seller-and-return-policy": {
-      "attempt_count": 0,
+    },
+    {
       "content_id": "editorial:seller-and-return-policy",
-      "content_type": "editorial",
-      "delivery_runway_seconds": 33,
-      "dispatch_runway_seconds": 93,
-      "next_attempt_at": "2026-11-16T13:43:57.536083+00:00",
-      "payload": {
-        "body": "نام و راه ارتباطی فروشنده را پیدا کن. هزینه و زمان ارسال، شرایط بازگشت کالا، بازپرداخت وجه و هزینه احتمالی ارسال برگشتی را بخوان. اگر درباره کالا یا شرایط معامله ابهامی داری، پاسخ فروشنده را مکتوب نگه دار. در خرید از بازارگاه‌ها، مسئولیت‌ها و پشتیبانی هر پلتفرم ممکن است با دیگری فرق داشته باشد.",
-        "content_id": "editorial:seller-and-return-policy",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 1,
-        "editorial_id": "seller-and-return-policy",
-        "idempotency_key": "f86fc4f46f142069",
-        "related_product_id": "dkp-8078561",
-        "related_product_image_url": "https://dkstatics-public.digikala.com/digikala-products/c42587d38b41e03a8a0666c35b945a9457c4294d_1646995863.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "related_product_title": "جاکلیدی دایان مدل مربع",
-        "review_due_at": "2027-02-10T18:00:00Z",
-        "reviewed_at": "2026-11-12T18:00:00Z",
-        "sequence_number": 1352,
-        "sources": [
-          {
-            "source_id": "ftc-marketplace",
-            "title": "Buying From an Online Marketplace – Consumer Advice",
-            "url": "https://consumer.ftc.gov/articles/buying-online-marketplace"
-          },
-          {
-            "source_id": "ftc-online-shopping",
-            "title": "Online Shopping – Consumer Advice",
-            "url": "https://consumer.ftc.gov/articles/online-shopping"
-          }
-        ],
-        "title": "پیش از پرداخت، فروشنده و شرایط مرجوعی را بررسی کن",
-        "topic": "seller-check"
-      },
-      "platforms": {
+      "delivery_duration_seconds": 15.8,
+      "destinations": {
         "aparat": {
           "attempts": 0,
           "status": "pending"
         },
         "bale": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T13:45:01.573366+00:00",
+          "attempts": 1,
+          "message_id": "2100",
+          "status": "sent",
+          "updated_at": "2026-11-16T13:45:03.712238+00:00"
         },
         "eitaa": {
           "attempts": 0,
-          "status": "pending"
+          "last_error": "eitaa_not_enabled_or_credentials_missing",
+          "status": "not_connected",
+          "updated_at": "2026-11-16T13:45:12.137114+00:00"
         },
         "filo": {
           "attempts": 0,
           "status": "pending"
         },
         "rubika": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T13:45:04.037337+00:00",
+          "attempts": 1,
+          "message_id": "1973676437957588651",
+          "status": "sent",
+          "updated_at": "2026-11-16T13:45:11.831565+00:00"
         },
         "telegram": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T13:44:58.932503+00:00",
+          "attempts": 1,
+          "message_id": "1576",
+          "status": "sent",
+          "updated_at": "2026-11-16T13:45:01.264147+00:00"
         },
         "youtube": {
           "attempts": 0,
           "status": "pending"
         }
       },
+      "editorial_id": "seller-and-return-policy",
+      "published_at": "2026-11-16T13:45:01.264147+00:00",
       "related_product_id": "dkp-8078561",
-      "scheduled_at": "2026-11-16T13:43:57.536083+00:00",
-      "selected_at": "2026-11-16T13:43:02.630771+00:00",
       "sequence_number": 1352,
-      "status": "queued",
-      "window_closes_at": "2026-11-16T13:44:57.536083+00:00"
+      "topic": "seller-check"
     }
-  },
+  ],
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -252376,12 +252353,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-16T13:43:01.856084+00:00",
+  "last_channel_published_at": "2026-11-16T13:45:03.712238+00:00",
   "last_content_selection_at": "2026-11-16T13:38:56.568721+00:00",
   "last_editorial_attempt_at": "2026-11-16T13:43:02.630771+00:00",
-  "last_editorial_confirmed_at": "2026-11-16T13:00:17.442466+00:00",
+  "last_editorial_confirmed_at": "2026-11-16T13:45:11.831565+00:00",
   "last_product_channel_published_at": "2026-11-16T13:43:01.856084+00:00",
-  "last_published_at": "2026-11-16T13:43:01.856084+00:00",
+  "last_published_at": "2026-11-16T13:45:03.712238+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
