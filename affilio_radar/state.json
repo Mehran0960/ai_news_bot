@@ -206977,76 +206977,7 @@
       "topic": "shipping-and-returns"
     }
   ],
-  "editorial_delivery_queue": {
-    "editorial:recall-check": {
-      "attempt_count": 0,
-      "content_id": "editorial:recall-check",
-      "content_type": "editorial",
-      "delivery_runway_seconds": 16,
-      "dispatch_runway_seconds": 76,
-      "next_attempt_at": "2026-11-16T21:42:20.318557+00:00",
-      "payload": {
-        "body": "در گروه‌هایی مثل لوازم برقی، اسباب‌بازی یا تجهیزات کودک، اطلاعات ایمنی و اطلاعیه‌های فراخوان سازنده یا نهادهای معتبر را بررسی کن. اگر درباره مدل دقیق محصول هشدار یا فراخوانی منتشر شده، پیش از استفاده راهنمای رسمی را بخوان.",
-        "content_id": "editorial:recall-check",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 1,
-        "editorial_id": "recall-check",
-        "idempotency_key": "2253d2b9bc14113e",
-        "related_product_affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-11512957%2F",
-        "related_product_id": "dkp-11512957",
-        "related_product_title": "ظرف غذا کودک مدل MN مجموعه 3 عددی",
-        "review_due_at": "2027-02-10T18:00:00Z",
-        "reviewed_at": "2026-11-12T18:00:00Z",
-        "sequence_number": 1414,
-        "sources": [
-          {
-            "source_id": "cpsc-recalls",
-            "title": "پایگاه فراخوان و هشدار ایمنی محصولات CPSC",
-            "url": "https://www.cpsc.gov/Recalls"
-          }
-        ],
-        "title": "برای کالاهای حساس، اطلاعیه‌های ایمنی را هم بررسی کن",
-        "topic": "product-safety"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "related_product_id": "dkp-11512957",
-      "scheduled_at": "2026-11-16T21:42:20.318557+00:00",
-      "selected_at": "2026-11-16T21:40:59.806278+00:00",
-      "sequence_number": 1414,
-      "status": "queued",
-      "window_closes_at": "2026-11-16T21:43:25.487823+00:00"
-    }
-  },
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -352580,6 +352511,7 @@
     },
     "dkp-22257893": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2159,
       "bale_posted_at": "2026-11-16T21:36:36.115474+00:00",
       "brand": "باختر",
@@ -352644,6 +352576,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_upload_status": "pending",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-16T20:59:33.867129+00:00",
