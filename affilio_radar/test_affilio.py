@@ -2692,14 +2692,14 @@ class AffilioRadarTests(unittest.TestCase):
                 "title": "گوشی سامسونگ Galaxy S25",
                 "brand_name": "Samsung",
             })[2],
-            "brand:samsung",
+            "samsung",
         )
         self.assertEqual(
             radar_module._publication_diversity_group({
                 "title": "شارژر سریع",
                 "brand": {"title_fa": "Baseus"},
             })[2],
-            "brand:baseus",
+            "baseus",
         )
 
     def test_category_repeat_is_independent_from_use_case_repeat(self):

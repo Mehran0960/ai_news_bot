@@ -3704,6 +3704,7 @@ def select_discovery_records_for_check(
         recent_publications,
         current,
         label="DISCOVERY_QUEUE",
+        preserve_top_ranked_candidate=True,
     )
     guarded_ids = {
         str(row.get("product_id") or "").strip()
@@ -4705,7 +4706,7 @@ def classify_category(title: str) -> str:
         ("books_stationery", r"کتاب|دفتر|خودکار|مداد|لوازم التحریر|لوازم‌التحریر|نوشت افزار"),
         ("beauty_fragrance", r"عطر|ادکلن|ادو\s*پرفیوم|ادوپرفیوم|ادو\s*تویلت|ادوتویلت|تستر\s*ادو|بادی\s*اسپلش"),
         # Food cues must precede the broad skincare word «کرم» (e.g. sesame cream).
-        ("grocery_food", r"خرما|شکلات|کنجد|عسل|حلوا|مربا|شیره|آجیل|خشکبار|غلات|کالای خوراکی|خوراکی|(?<!\w)مواد\s+غذایی|کنسرو|ادویه|برنج|جو(?:\s*پرک|\s*دوسر)?|گندم|آرد|حبوبات|نبات|چای(?!\s*ساز)|قهوه(?!\s*ساز)|دمنوش|شکر|عدس|لپه|نخود|لوبیا|ماکارونی|پاستا|نودل|نمک|آبمیوه|نوشیدنی|روغن\s+(?:زیتون|ذرت|کنجد|آفتابگردان|مایع)|غذای\s+(?:آماده|نیمه آماده)|تنقلات|بیسکویت|ویفر|آبنبات"),
+        ("grocery_food", r"خرما|شکلات|کنجد|عسل|حلوا|مربا|شیره|آجیل|خشکبار|غلات|کالای خوراکی|خوراکی|(?<!\w)مواد\s+غذایی|کنسرو|ادویه|برنج|(?<!\w)جو(?:\s*پرک|\s*دوسر)?(?!\w)|گندم|آرد|حبوبات|نبات|چای(?!\s*ساز)|قهوه(?!\s*ساز)|دمنوش|شکر|عدس|لپه|نخود|لوبیا|ماکارونی|پاستا|نودل|نمک|آبمیوه|نوشیدنی|روغن\s+(?:زیتون|ذرت|کنجد|آفتابگردان|مایع)|غذای\s+(?:آماده|نیمه آماده)|تنقلات|بیسکویت|ویفر|آبنبات"),
         ("personal_care", r"پوست|(?<!\w)مو(?!\w)|کرم|سرم|آبرسان|اصلاح|ماساژور|بهداشت|آرایش|ضدآفتاب|مسواک|دندان|سشوار|برس حرارتی|اتو مو|ریش.?تراش|موزن|اپیلاتور|دستگاه بخور|تونر|پاک کننده آرایش|سنگ پا|پاشنه کش|سوهان پا"),
         ("automotive", r"خودرو|ماشین|موتور سیکلت|داشبورد|کمپرسور باد|لوازم خودرو|شارژر فندکی|روکش صندلی|کفپوش خودرو|مراقبت خودرو"),
         ("home", r"آشپزخانه|نظم دهنده|ارگانایزر|خردکن|ظرف|ابزار آشپزخانه|خانه|قهوه ساز|فلاسک|ماگ|قمقمه|بطری آب|ظروف|حمام|سرویس بهداشتی|باغبانی|گلدان|مبل|مبلمان|کاور مبل|پادری|حوله|پتو|بالش|ملحفه|روتختی|سرویس خواب"),
@@ -7653,6 +7654,7 @@ def _publication_use_case_group(product_or_title) -> str:
         ("outdoor_travel", r"کمپینگ|کوهنوردی|چادر مسافرتی|طبیعت گردی|لوازم سفر|مسافرت|ماهیگیری|لوازم ماهیگیری|کیف و کوله سفری|تجهیزات اسکان"),
         ("tabletop_games", r"بوردگیم|بازی فکری|بازی رومیزی|اوریگامی"),
         ("gaming", r"گیمینگ|بازی رایانه|کنسول بازی|پلی استیشن|ایکس باکس|\bxbox\b|دسته بازی"),
+        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه|کابل|حافظه|رم|مانیتور|کیبورد|ماوس|مودم"),
         ("office_study", r"اداری|لوازم اداری|میز کار|مطالعه|تحریر|لوازم تحریر|مدرسه|دانشجویی|لوازم ارائه|پوینتر ارائه|پرینتر|کاغذ|نوشت افزار|مهر و استامپ"),
         ("books_learning", r"کتاب|(?<!د)رمان(?:\s|$)|روانشناسی|داستان|مجله|آموزشی|زبان آموزی"),
         ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک|پوشک|اسباب بازی کودک|دهان شویه کودک|خمیردندان کودک|مکمل کمک درمانی کودک"),
@@ -7668,7 +7670,6 @@ def _publication_use_case_group(product_or_title) -> str:
         ("personal_care", r"مراقبت پوست|مراقبت از پوست|مراقبت مو|آرایش|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن|مسواک|دهان شویه|ضدآفتاب|ماسک صورت|ماسک بدن|شانه مو|مداد چشم"),
         ("sports_fitness", r"ورزشی|ورزش های توپی|بدنسازی|باشگاه|دوچرخه|توپ فوتبال|فیتنس|تنیس|راکت|زانو بند طبی|لوازم جانبی راکت"),
         ("health_wellness", r"سلامت|پزشکی|مکمل غذایی|مکمل|کمک درمانی|تجهیزات پزشکی|ارتوپدی"),
-        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه|کابل|حافظه|رم|مانیتور|کیبورد|ماوس|مودم"),
         ("audio_visual", r"هدفون|هدست|هندزفری|ایرپاد|اسپیکر|تلویزیون|دوربین عکاسی|پروژکتور|سینما خانگی"),
         ("home_living", r"خانه|اتاق خواب|دکوراسیون|مبلمان|روشنایی منزل|کالای خواب|خواب|پتو|ملحفه|کوسن|پرده"),
         ("fashion_lifestyle", r"پوشاک|لباس|تی شرت|تیشرت|شلوار|کفش|بوت|کیف پول|عینک آفتابی|جوراب|مانتو|اکسسوری زنانه|لباس کار"),
@@ -7965,6 +7966,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         ("zanama", r"زاناما"),
         ("dellbesto", r"دلبستو"),
     ]
+    # Structured metadata is authoritative; known aliases keep their historic stable slug.
     brand = ""
     if explicit_brand:
         normalized_explicit_brand = explicit_brand.strip().lower()
@@ -7972,18 +7974,20 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
             brand = normalized_explicit_brand
         else:
             brand = next((
-                f"brand:{key}" for key, pattern in brand_hints
+                key for key, pattern in brand_hints
                 if re.search(pattern, explicit_brand, re.I)
             ), "")
-            if not brand:
-                brand_slug = re.sub(r"[^\w\u0600-\u06FF]+", "_", normalized_explicit_brand).strip("_")
-                if brand_slug and brand_slug not in {"unknown", "other", "none", "نامشخص", "-"}:
-                    brand = f"brand:{brand_slug}"
-    else:
+    if not brand:
         brand = next((
-            f"brand:{key}" for key, pattern in brand_hints
+            key for key, pattern in brand_hints
             if re.search(pattern, family_match_text, re.I)
         ), "")
+    if not brand and explicit_brand:
+        normalized_explicit_brand = explicit_brand.strip().lower()
+        if not normalized_explicit_brand.startswith("brand:"):
+            brand_slug = re.sub(r"[^\w\u0600-\u06FF]+", "_", normalized_explicit_brand).strip("_")
+            if brand_slug and brand_slug not in {"unknown", "other", "none", "نامشخص", "-"}:
+                brand = f"brand:{brand_slug}"
     return category, family, brand
 
 
@@ -8536,6 +8540,7 @@ def _filter_recent_publication_repeats(
     *,
     limit: int | None = None,
     label: str = "PUBLISH",
+    preserve_top_ranked_candidate: bool = False,
 ) -> list[dict]:
     """Apply hard family/brand/similarity rules and independent soft rotations.
 
@@ -8594,6 +8599,7 @@ def _filter_recent_publication_repeats(
     comparison_history = list(history)
     family_blocked = brand_blocked = similarity_blocked = 0
     category_blocked = use_case_blocked = 0
+    first_hard_safe_candidate_seen = False
     global _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS
 
     def hard_repeat_details(candidate: dict):
@@ -8668,7 +8674,11 @@ def _filter_recent_publication_repeats(
         use_case_repeat = bool(use_case and (
             use_case in recent_use_cases or use_case in selected_use_cases
         ))
-        if category_repeat or use_case_repeat:
+        preserve_leader = bool(
+            preserve_top_ranked_candidate and not first_hard_safe_candidate_seen
+        )
+        first_hard_safe_candidate_seen = True
+        if (category_repeat or use_case_repeat) and not preserve_leader:
             category_blocked += int(category_repeat)
             use_case_blocked += int(use_case_repeat)
             reasons = [
@@ -8720,7 +8730,7 @@ def _filter_recent_publication_repeats(
             f"category_cooldown_hours={PUBLICATION_CATEGORY_REPEAT_COOLDOWN_HOURS} "
             f"use_case_cooldown_minutes={PUBLICATION_USE_CASE_REPEAT_COOLDOWN_MINUTES} "
             f"similarity_cooldown_hours={PUBLICATION_SIMILARITY_COOLDOWN_HOURS} "
-            "rank_order_preserved=true"
+            f"top_ranked_candidate_preserved={str(preserve_top_ranked_candidate).lower()}"
         )
     if limit is not None:
         return selected[:max(1, int(limit))]
@@ -8747,6 +8757,7 @@ def select_urgent_publication_candidate(
     ranked = _filter_recent_publication_repeats(
         ranked, published, recent_publications, current, limit=1,
         label="URGENT_PUBLICATION",
+        preserve_top_ranked_candidate=True,
     )
     if not ranked:
         return None
@@ -8817,6 +8828,7 @@ def select_publish_candidates(
     return _filter_recent_publication_repeats(
         ordered, published, recent_publications, current,
         label="PUBLISH_SELECTION",
+        preserve_top_ranked_candidate=True,
     )
 
 
@@ -9547,6 +9559,7 @@ def select_discount_fallback_candidates(
     safe_handoff = _filter_recent_publication_repeats(
         handoff, published_records, state.get("recent_publications", []),
         current, label="SELECTION_PREPRIMARY",
+        preserve_top_ranked_candidate=True,
     )
     if not safe_handoff:
         return [], None, quality_eligible

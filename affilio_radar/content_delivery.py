@@ -203,9 +203,12 @@ def calculate_product_publication_cadence(
              or last_product_age_seconds >= MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS)
     )
     if first_slot_due_now:
-        # After a long idle period, the first fresh verified selection is due now.
+        # Initial publication starts at the cycle anchor; overdue recovery follows a real product receipt.
         anchor = current
-        anchor_kind = "cycle_start_after_max_gap"
+        anchor_kind = (
+            "cycle_start" if last_product is None
+            else "cycle_start_after_max_gap"
+        )
     elif last_product is not None:
         # The maximum interval is global across catalog scan-cycle boundaries.
         anchor = last_product
@@ -381,16 +384,18 @@ def reflow_product_queue_after_delivery(
 
     pending_count = 0
     for entry in queue.values():
-        if not isinstance(entry, dict) or entry.get("status") in TERMINAL_QUEUE_STATUSES:
+        if not isinstance(entry, dict) or entry.get("status") in {
+            "published", "completed", "cancelled", "stale_selection", "rejected", "failed"
+        }:
             continue
         if str(entry.get("content_type") or "product") != "product":
             continue
         platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
-        if any(
-            isinstance(platforms.get(name), dict)
-            and platforms[name].get("status") == "sent"
-            for name in ("telegram", "bale", "rubika", "eitaa")
-        ):
+        core_statuses = [
+            str((platforms.get(name) or {}).get("status") or "pending").strip().lower()
+            for name in ("telegram", "bale")
+        ]
+        if all(status in {"sent", "not_connected", "manual_review", "skipped_limit"} for status in core_statuses):
             continue
         pending_count += 1
 
