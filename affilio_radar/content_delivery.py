@@ -1026,6 +1026,12 @@ def promote_fallback_selection(
                 except (TypeError, ValueError, OverflowError):
                     previous_sequence = None
         sequence_number = previous_sequence or allocate_publication_sequence(state)
+        last_product_sent = get_last_product_channel_published_at(state)
+        fallback_slot = max(
+            current,
+            last_product_sent + timedelta(seconds=PRODUCT_PUBLICATION_MIN_INTERVAL_SECONDS)
+            if last_product_sent else current,
+        )
         item["content_id"] = product_id
         item["content_type"] = "product"
         item["sequence_number"] = sequence_number
@@ -1035,8 +1041,8 @@ def promote_fallback_selection(
             "sequence_number": sequence_number,
             "product_id": product_id,
             "selected_at": current.isoformat(),
-            "scheduled_at": current.isoformat(),
-            "next_attempt_at": current.isoformat(),
+            "scheduled_at": fallback_slot.isoformat(),
+            "next_attempt_at": fallback_slot.isoformat(),
             "status": "queued",
             "attempt_count": 0,
             "payload": item,
