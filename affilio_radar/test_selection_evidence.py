@@ -88,8 +88,8 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         travel_category, travel_family, _ = radar._publication_diversity_group(travel)
         self.assertNotEqual(auto_category, travel_category)
         self.assertNotEqual(auto_family, travel_family)
-        self.assertEqual(auto_family, "lighting:automotive_lighting")
-        self.assertEqual(travel_family, "lighting:outdoor_lighting")
+        self.assertEqual(auto_family, "automotive:car_lighting")
+        self.assertEqual(travel_family, "sports_outdoor:camping")
 
 
     def test_live_digikala_taxonomy_categories_do_not_collapse_into_general(self):
