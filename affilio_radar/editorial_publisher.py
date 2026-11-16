@@ -258,11 +258,15 @@ def queue_editorial_if_due(
         return None
     scheduled_at = anchor + timedelta(seconds=gap_seconds / 2)
     if scheduled_at <= current:
+        # Recover a missed midpoint in the remaining gap after a publisher outage.
+        # A product already due is handled above and always keeps priority.
+        scheduled_at = current
         print(
-            "EDITORIAL_MIDPOINT_PASSED "
-            f"product_id={related_product_id} product_slot={product_at.isoformat()}"
+            "EDITORIAL_MIDPOINT_MISSED_RECOVERED "
+            f"product_id={related_product_id} "
+            f"scheduled_at={scheduled_at.isoformat()} "
+            f"product_slot={product_at.isoformat()}"
         )
-        return None
 
     if radar.daily_channel_posts_count(state, current) >= radar.MAX_DAILY_CHANNEL_POSTS:
         print(

@@ -163,6 +163,7 @@ jobs:
       # Independent video workflows consume the persisted published-product records after channel delivery.
       - name: Discover and queue the next verified selection
         if: steps.publication_due.outputs.has_due_slot != 'true'
+        timeout-minutes: 3
         continue-on-error: true
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
