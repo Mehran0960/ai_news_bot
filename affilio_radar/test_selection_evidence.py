@@ -574,7 +574,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             "brand": {"name_fa": "سونی"},
         }
         title_only = {"title": "گوشی موبایل شیائومی Redmi Note مدل جدید"}
-        self.assertEqual(radar._publication_diversity_group(explicit)[2], "sony")
+        self.assertEqual(radar._publication_diversity_group(explicit)[2], "brand:سونی")
         self.assertEqual(radar._publication_diversity_group(title_only)[2], "xiaomi")
 
     def test_category_repeat_is_soft_deferred_but_does_not_starve_a_thin_queue(self):
