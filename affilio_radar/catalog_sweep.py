@@ -33,10 +33,10 @@ except ImportError:
     )
 
 try:
-    from .product_quality import is_prohibited_product_title, is_publishable_product_title
+    from .product_quality import is_prohibited_product_title, is_publishable_product_title, normalize_brand_value
 except ImportError:
     try:
-        from product_quality import is_prohibited_product_title, is_publishable_product_title
+        from product_quality import is_prohibited_product_title, is_publishable_product_title, normalize_brand_value
     except ImportError:  # pragma: no cover - fail closed if safety policy is unavailable
         def is_publishable_product_title(value: object) -> bool:
             text = re.sub(r"\s+", " ", str(value or "")).strip()
@@ -45,6 +45,16 @@ except ImportError:
         def is_prohibited_product_title(value: object) -> bool:
             # Never make the catalog permissive when its safety policy is unavailable.
             return True
+
+        def normalize_brand_value(value: object) -> str:
+            if isinstance(value, dict):
+                for key in ("name_fa", "name", "title_fa", "title", "value", "label"):
+                    result = normalize_brand_value(value.get(key))
+                    if result:
+                        return result
+                return ""
+            text = re.sub(r"\s+", " ", str(value or "")).strip()[:80]
+            return "" if text.casefold() in {"unknown", "other", "none", "نامشخص", "متفرقه", "-"} else text
 
 
 ROOT = Path(__file__).resolve().parent
@@ -792,6 +802,15 @@ def extract_product_rows(payload: Any) -> list[dict]:
         if availability == "unknown" and str(product.get("status") or "").lower() == "marketable":
             availability = "in_stock"
         rating, review_count = _listing_rating(product)
+        data_layer = product.get("data_layer") if isinstance(product.get("data_layer"), dict) else {}
+        brand = ""
+        for raw_brand in (
+            product.get("brand"), product.get("brand_name"), product.get("brand_title"),
+            data_layer.get("brand"), data_layer.get("brand_name"),
+        ):
+            brand = normalize_brand_value(raw_brand)
+            if brand:
+                break
         url = f"https://www.digikala.com/product/{product_id}/"
         rows.append({
             "product_id": product_id,
@@ -805,8 +824,8 @@ def extract_product_rows(payload: Any) -> list[dict]:
             "availability": availability,
             "rating": rating,
             "review_count": review_count,
-            "brand": (product.get("data_layer") or {}).get("brand", "") if isinstance(product.get("data_layer"), dict) else "",
-            "category": (product.get("data_layer") or {}).get("category", "") if isinstance(product.get("data_layer"), dict) else "",
+            "brand": brand,
+            "category": data_layer.get("category", ""),
             "source": "digikala_search_v2",
             "last_seen_at": iso_now(),
         })
