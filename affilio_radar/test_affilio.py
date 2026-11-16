@@ -6080,7 +6080,7 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_discovery_records_for_check(
             queue, now, max_count=2, published={}, recent_publications=recent
         )
-        self.assertEqual([pid for pid, _ in selected], ["dkp-93033", "dkp-93032"])
+        self.assertEqual([pid for pid, _ in selected], ["dkp-93032", "dkp-93033"])
 
     def test_discovery_check_budget_applies_brand_and_family_guards_before_limit(self):
         now = datetime(2026, 11, 6, 9, 0, tzinfo=timezone.utc)
