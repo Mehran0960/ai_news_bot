@@ -122,7 +122,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         second = datetime.fromisoformat(
             state["content_delivery_queue"]["dkp-second"]["scheduled_at"]
         )
-        self.assertEqual(second, self.now + timedelta(minutes=20))
+        self.assertEqual(second, self.now + timedelta(seconds=PRODUCT_MIN_INTERVAL_SECONDS))
 
 
     def test_enqueue_persists_platform_neutral_payload_without_delivery(self):
