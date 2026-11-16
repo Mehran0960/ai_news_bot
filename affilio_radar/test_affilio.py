@@ -6050,7 +6050,7 @@ class AffilioRadarTests(unittest.TestCase):
         merge_discovery_queue(queue, [], now + timedelta(minutes=20))
         self.assertNotIn("dkp-91011", queue)
 
-    def test_discovery_check_budget_applies_24h_family_guard_before_budget(self):
+    def test_discovery_check_budget_applies_family_and_category_guards_before_budget(self):
         now = datetime(2026, 10, 20, 9, 0, tzinfo=timezone.utc)
         recent = [
             {"product_id": f"dkp-recent-audio-{i}", "title": f"هدفون بلوتوثی نمونه {i}",
@@ -6078,7 +6078,7 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_discovery_records_for_check(
             queue, now, max_count=2, published={}, recent_publications=recent
         )
-        self.assertEqual([pid for pid, _ in selected], ["dkp-93032", "dkp-93033"])
+        self.assertEqual([pid for pid, _ in selected], ["dkp-93033"])
 
     def test_discovery_check_budget_applies_brand_and_family_guards_before_limit(self):
         now = datetime(2026, 11, 6, 9, 0, tzinfo=timezone.utc)
