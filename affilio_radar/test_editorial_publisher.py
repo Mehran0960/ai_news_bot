@@ -154,6 +154,32 @@ class EditorialPublisherTests(unittest.TestCase):
             NOW + timedelta(minutes=50),
         )
 
+    def test_passed_editorial_midpoint_uses_remaining_gap_without_moving_product(self):
+        product_at = NOW + timedelta(minutes=40)
+        state = {
+            "last_channel_published_at": (NOW - timedelta(minutes=10)).isoformat(),
+            "content_delivery_queue": {
+                "dkp-next": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": product_at.isoformat(),
+                    "payload": {"product_id": "dkp-next", "title": "گوشی هوشمند"},
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                }
+            },
+        }
+        current = NOW + timedelta(minutes=20)
+        entry = queue_editorial_if_due(state, [editorial_item()], now=current)
+        self.assertIsNotNone(entry)
+        self.assertEqual(datetime.fromisoformat(entry["scheduled_at"]), current)
+        self.assertEqual(
+            datetime.fromisoformat(state["content_delivery_queue"]["dkp-next"]["scheduled_at"]),
+            product_at,
+        )
+
     def test_editorial_does_not_preempt_a_due_product_slot(self):
         state = {
             "last_channel_published_at": (NOW - timedelta(hours=2)).isoformat(),
