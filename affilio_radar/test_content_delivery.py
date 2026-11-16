@@ -609,7 +609,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         state["last_published_at"] = self.now.isoformat()
 
         summary = enqueue_selected_content(
-            state, [self.item("dkp-fresh")], now=self.now + timedelta(minutes=57),
+            state, [self.item("dkp-fresh")], now=self.now + timedelta(minutes=5),
             interval_seconds=1200, max_items=1,
         )
         self.assertEqual(summary["added"], 1)
@@ -1114,7 +1114,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(result["interval_seconds"], 57 * 60)
         self.assertEqual(
             datetime.fromisoformat(state["content_delivery_queue"]["dkp-next-a"]["scheduled_at"]),
-            self.now + timedelta(minutes=5),
+            self.now + timedelta(minutes=57),
         )
         self.assertEqual(
             datetime.fromisoformat(state["content_delivery_queue"]["dkp-next-b"]["scheduled_at"]),
