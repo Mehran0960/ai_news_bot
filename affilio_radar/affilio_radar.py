@@ -4686,9 +4686,23 @@ def discover_product_urls(
 
 
 def classify_category(title: str) -> str:
-    value = (title or "").lower().replace("\u200c", " ")
+    value = str(title or "").lower()
+    value = value.replace("\u200c", " ").replace("\u200f", " ").replace("\u200b", " ")
+    value = value.replace("ي", "ی").replace("ك", "ک")
+    value = re.sub(r"[\u064b-\u065f\u0670ـ]", "", value)
+    value = re.sub(r"[\s،,:;؛|/_\-]+", " ", value).strip()
     # Specific product families first; "other" should be the true fallback.
     patterns = [
+        # High-specificity gaps observed in the live catalog's "other" bucket.
+        ("home_cleaning", r"دستکش نظافت|کیسه فریزر|کیسه زباله|بوگیر و خوشبو کننده هوا"),
+        ("personal_care", r"دئودورانت|ضد تعریق|مام ضد تعریق|رول ضد تعریق|تقویت کننده ابرو|تقویت کننده مژه|ژل ابرو|صابون ابرو|براش آرایشی|لایه بردار پوست|اسکراب|کرم ترک پا|شامپو|تریمر|شیور فویلی"),
+        ("grocery_food", r"آجیل سنتی|چای سیاه|چای کیسه ای|نودل|پاستا|ماکارونی|رشته آش|رشته سوپی|غذای نیمه آماده|پودر کیک|کاپوچینو|کنجد سفید|غذای آماده"),
+        ("home", r"کاور مبل|روکش مبل|ملحفه|حوله|پادری|روتختی|روبالشی|سرویس خواب|لوازم یکبار مصرف آشپزخانه|ارگانایزر آشپزخانه|نظم دهنده کیسه|ظروف کودک"),
+        ("digital_accessories", r"قلم لمسی|قلم استایلوس|استایلوس|کارت حافظه|microsd|محافظ صفحه"),
+        ("tools_industrial", r"سمپاش|متر لیزری|متر نواری|متر خیاطی|پیچ گوشتی|فازمتر"),
+        ("tv_audio_video", r"فیلم سینمایی|فیلم مستند|فیلم کوتاه|سریال"),
+        ("kids_sports", r"اکشن فیگور|فیگور|عروسک|اسباب بازی"),
+        ("jewelry", r"سکه پارسیان|شمش طلا|پلاک طلا|شمش و پلاک"),
         # Keep dedicated families ahead of broad matches; otherwise the rotation can't see them as distinct.
         ("mobile_devices", r"گوشی\s*(?:موبایل|هوشمند)|گوشی\s+(?:سامسونگ|شیائومی|ردمی|پوکو|اپل|آیفون|هواوی|آنر|نوکیا|realme)|آیفون|iphone|smartphone|mobile phone|تبلت|آیپد|ipad"),
         ("tv_audio_video", r"تلویزیون|android\s*tv|smart\s*tv|پروژکتور|سینما خانگی|گیرنده دیجیتال|اندروید باکس|دوربین عکاسی|لنز دوربین|camcorder"),
@@ -4720,6 +4734,8 @@ def classify_category(title: str) -> str:
         if re.search(pattern, value, re.I):
             return category
     return "other"
+
+
 
 
 def score_product(p: dict) -> dict:
@@ -7766,10 +7782,15 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     explicit_brand = ""
     if isinstance(product_or_title, dict):
         title = str(product_or_title.get("title") or "")
-        raw_brand = (
-            product_or_title.get("brand") or product_or_title.get("brand_name")
-            or product_or_title.get("brand_title") or ""
-        )
+        raw_brand = ""
+        for brand_key in (
+            "brand", "brand_name", "brand_title", "brand_en", "brand_fa",
+            "brand_name_fa", "brand_title_fa",
+        ):
+            candidate_brand = normalize_brand_value(product_or_title.get(brand_key))
+            if candidate_brand:
+                raw_brand = candidate_brand
+                break
         explicit_brand = normalize_brand_value(raw_brand)
     else:
         title = str(product_or_title or "")
@@ -7927,6 +7948,25 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     # Keep use-case as an independent dimension in history/reporting; do not let
     # it split one DigiKala family into separate cooldown buckets.
     brand_hints = [
+        # Exact title-brand aliases seen in recent verified DigiKala candidates.
+        ("tuska", r"توسکا|tuska"),
+        ("dat_bar", r"دیت\s*بار|date\s*bar"),
+        ("espitore", r"اسپی\s*توره|espi\s*tore"),
+        ("microsonic", r"میکروسونیک|microsonic"),
+        ("callista", r"کالیستا|callista"),
+        ("poshpak", r"پوشپاک|poshpak"),
+        ("trobyte", r"تروبایت|trobyte"),
+        ("shahdin", r"شهدین|shahdin"),
+        ("karin", r"کارین|karin"),
+        ("maedeh", r"مائده|maedeh"),
+        ("shifteh", r"شیفته|shifteh"),
+        ("viva_kids", r"ویوا\s*کیدز|vivakids"),
+        ("medbase", r"مدبیس|medbase"),
+        ("sarzi", r"سارزی|sarzi"),
+        ("genius", r"جنیوس|genius"),
+        ("mister_star", r"مستر\s*استار|mister\s*star"),
+        ("salina_plast", r"سالینا\s*پلاست|salina\s*plast"),
+        ("zarin_barakat", r"زرین\s*برکت|zarin\s*barakat"),
         ("ufc", r"\bUFC\b|یو\s*اف\s*سی"),
         ("ai_javaher", r"آی\s*جواهر"),
         ("sangboo_climy", r"سانگبو\s*کلایمی"),
@@ -8008,7 +8048,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
                 if brand_slug and brand_slug not in {"unknown", "other", "none", "نامشخص", "-"}:
                     brand = f"brand:{brand_slug}"
     if not brand:
-        brand = next((key for key, pattern in brand_hints if re.search(pattern, family_match_text, re.I)), "")
+        brand = next((key for key, pattern in brand_hints if re.search(pattern, brand_search_text, re.I)), "")
     return category, family, brand
 
 
