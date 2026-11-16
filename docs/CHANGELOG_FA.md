@@ -2780,9 +2780,9 @@
 **فایل‌ها/سامانه‌ها:**  
 affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py، affilio_radar/editorial_bank.json، affilio_radar/editorial_content.py، affilio_radar/digikala_mag_discovery.py، affilio_radar/test_digikala_mag_discovery.py، affilio_radar/expiration_monitor.py، affilio_radar/test_expiration_monitor.py، workflowهای discovery و retention، handbook و policy docs.
 
-**آزمون و نتیجه:** تست‌های رندر تحریریه، فیدهای مجاز و retention به‌روزرسانی شده‌اند؛ اجرای واقعی GitHub Actions/CI پس از PR در انتظار است. هیچ پست عمومی و هیچ دادهٔ live state در شاخه دستکاری نشده است.
+**آزمون و نتیجه:** تست‌های رندر تحریریه، فیدهای مجاز و retention به‌روزرسانی شده‌اند؛ CI روی PR #225 در حال اجرا/بازبینی است. هیچ پست عمومی و هیچ دادهٔ live state در شاخه دستکاری نشده است.
 
-**شواهد/شناسه:** شاخهٔ feat/offerchin-editorial-commerce-focus-20261116؛ PR پس از آماده‌سازی تغییرها ساخته می‌شود.
+**شواهد/شناسه:** شاخهٔ feat/offerchin-editorial-commerce-focus-20261116؛ PR شمارهٔ ۲۲۵.
 
 **ریسک/بازگشت:** فعال شدن retention پس از merge باعث حذف خودکار پست‌های محصول قدیمی‌تر از ۴۸ ساعت در Telegram/Bale خواهد شد؛ rollback با بازگرداندن مقدار retention در workflow و monitor ممکن است. CTA تنها برای لینک‌های محصول تأییدشده کار می‌کند و هیچ deep-link دسته‌بندی را مجاز نمی‌کند. Rollback هر تغییر با revert همان PR ممکن است.
 
