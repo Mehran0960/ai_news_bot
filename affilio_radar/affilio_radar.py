@@ -7569,27 +7569,84 @@ def defer_pending_publication(
 
 
 def _publication_catalog_category_context(product_or_title) -> dict:
-    """Return the best evidenced DigiKala taxonomy node carried by a candidate."""
+    """Return the best evidenced DigiKala leaf taxonomy node and its parent path."""
     if not isinstance(product_or_title, dict):
         return {"id": "", "name": "", "path": ""}
     product = product_or_title
+
+    def node_value(node, keys):
+        if isinstance(node, dict):
+            for key in keys:
+                value = node.get(key)
+                if value not in (None, "") and not isinstance(value, (dict, list, tuple)):
+                    return str(value).strip()
+        return ""
+
+    def path_parts(value):
+        if isinstance(value, (list, tuple)):
+            result = []
+            for item in value:
+                if isinstance(item, dict):
+                    label = node_value(item, ("title_fa", "name_fa", "title", "name", "label"))
+                else:
+                    label = str(item or "").strip()
+                if label and label not in result:
+                    result.append(label)
+            return result
+        if isinstance(value, dict):
+            labels = []
+            for key in ("parent_name", "title_fa", "name_fa", "name", "title", "label"):
+                label = node_value(value, (key,))
+                if label and label not in labels:
+                    labels.append(label)
+            return labels
+        raw = str(value or "").strip()
+        return [part.strip() for part in re.split(r"\s*(?:>|/|»|›)\s*", raw) if part.strip()]
+
     category_id = str(
         product.get("catalog_best_selling_category_id")
         or product.get("catalog_category_id")
+        or product.get("best_selling_category_id")
         or ""
     ).strip()
     category_name = str(
         product.get("catalog_best_selling_category_name")
         or product.get("catalog_category_name")
+        or product.get("best_selling_category_name")
         or ""
     ).strip()
+
+    nested_nodes = []
+    for key in ("categories", "category_path", "parent_categories", "ancestors"):
+        value = product.get(key)
+        if isinstance(value, (list, tuple)):
+            nested_nodes.extend(item for item in value if isinstance(item, dict))
+    for key in ("category", "catalog_category", "best_selling_category"):
+        value = product.get(key)
+        if isinstance(value, dict):
+            parents = value.get("parent_categories") or value.get("ancestors") or value.get("parents")
+            if isinstance(parents, (list, tuple)):
+                nested_nodes.extend(item for item in parents if isinstance(item, dict))
+            nested_nodes.append(value)
+        elif isinstance(value, (list, tuple)):
+            nested_nodes.extend(item for item in value if isinstance(item, dict))
+
+    if nested_nodes:
+        leaf = nested_nodes[-1]
+        if not category_id:
+            category_id = node_value(leaf, ("id", "category_id", "value"))
+        if not category_name:
+            category_name = node_value(
+                leaf, ("title_fa", "name_fa", "title", "name", "label")
+            )
+
     ranks = product.get("catalog_best_selling_ranks_by_category")
     if isinstance(ranks, dict):
         ranked = []
         for raw_id, record in ranks.items():
             if not isinstance(record, dict):
                 continue
-            name = str(record.get("category_name") or "").strip()
+            name = str(record.get("category_name") or record.get("title_fa") or "").strip()
             try:
                 rank = int(record.get("rank") or 0)
             except (TypeError, ValueError, OverflowError):
@@ -7603,77 +7660,67 @@ def _publication_catalog_category_context(product_or_title) -> dict:
             if not category_id:
                 category_id = ranked_id
 
-    raw_path = product.get("catalog_category_path") or product.get("category_path") or ""
-    if isinstance(raw_path, (list, tuple)):
-        parts = [
-            str(item.get("name") or item.get("title") or "").strip()
-            if isinstance(item, dict) else str(item).strip()
-            for item in raw_path
-        ]
-        path = " > ".join(part for part in parts if part)
-    elif isinstance(raw_path, dict):
-        path = " > ".join(
-            str(raw_path.get(key) or "").strip()
-            for key in ("parent_name", "name", "title")
-            if str(raw_path.get(key) or "").strip()
-        )
-    else:
-        path = str(raw_path or "").strip()
+    raw_path = (
+        product.get("catalog_category_path")
+        or product.get("category_path")
+        or product.get("category_ancestors")
+        or product.get("parent_categories")
+    )
+    path_labels = path_parts(raw_path)
+    if not path_labels and nested_nodes:
+        for node in nested_nodes:
+            label = node_value(node, ("title_fa", "name_fa", "title", "name", "label"))
+            if label and label not in path_labels:
+                path_labels.append(label)
+    if category_name and (not path_labels or path_labels[-1] != category_name):
+        path_labels.append(category_name)
+    path = " > ".join(path_labels)
     if not path and category_name:
         path = category_name
     return {"id": category_id, "name": category_name, "path": path}
 
 
 def _publication_use_case_group(product_or_title) -> str:
-    """Classify product use from title and DigiKala taxonomy; reserve general for missing taxonomy."""
+    """Classify practical product use from the title and the complete catalog taxonomy."""
     category = _publication_catalog_category_context(product_or_title)
     title = (
         str(product_or_title.get("title") or "")
         if isinstance(product_or_title, dict) else str(product_or_title or "")
     )
     raw_text = " ".join((title, category.get("name", ""), category.get("path", ""))).lower()
-    # DigiKala category labels can mix Arabic/Persian glyphs, ZWNJ and punctuation.
     text = raw_text.replace("\u200c", " ").replace("\u200f", " ").replace("ي", "ی").replace("ك", "ک")
     text = re.sub(r"[\u064b-\u065f\u0670ـ]", "", text)
     text = re.sub(r"[\s،,:;؛|/_\-]+", " ", text).strip()
 
-    # Prefer specific DigiKala taxonomy/use-case signals over broad title keywords.
+    # Narrow, high-confidence use cases are checked before broad household/food cues.
     patterns = (
-        ("home_living", r"ماشین لباسشویی|لباسشویی|ماشین ظرفشویی|ظرفشویی|یخچال|فریزر|اجاق گاز|مایکروویو|کولر گازی|آبگرمکن"),
-        ("automotive", r"خودرو|فندکی|داشبورد|لاستیک|تایر|شارژر خودرو|فیلتر کابین|روغن موتور|ضد یخ خودرو|لوازم خودرو|جانبی خودرو|تجهیزات راحتی سرنشین"),
+        ("home_cleaning", r"اسکاچ|سیم ظرفشویی|اسفنج ظرفشویی|دستمال نظافت|شوینده سطوح|نظافت خانه|دستکش نظافت|کیسه فریزر|کیسه زباله|بوگیر و خوشبو کننده هوا"),
+        ("automotive", r"خودرو|فندکی|داشبورد|لاستیک|تایر|شارژر خودرو|فیلتر کابین|روغن موتور|ضد یخ خودرو|لوازم خودرو|جانبی خودرو|تجهیزات راحتی سرنشین|نظافت و نگهداری خودرو"),
         ("outdoor_travel", r"کمپینگ|کوهنوردی|چادر مسافرتی|طبیعت گردی|لوازم سفر|مسافرت|ماهیگیری|لوازم ماهیگیری|کیف و کوله سفری|تجهیزات اسکان"),
         ("tabletop_games", r"بوردگیم|بازی فکری|بازی رومیزی|اوریگامی"),
         ("gaming", r"گیمینگ|بازی رایانه|کنسول بازی|پلی استیشن|ایکس باکس|\bxbox\b|دسته بازی"),
-        ("office_study", r"اداری|لوازم اداری|میز کار|مطالعه|تحریر|لوازم تحریر|مدرسه|دانشجویی|لوازم ارائه|پوینتر ارائه|پرینتر|کاغذ|نوشت افزار|مهر و استامپ"),
+        ("office_study", r"اداری|لوازم اداری|میز کار|مطالعه|تحریر|لوازم تحریر|مدرسه|دانشجویی|لوازم ارائه|پوینتر ارائه|پرینتر|کاغذ|نوشت افزار|مهر و استامپ|نشانگر کتاب"),
         ("books_learning", r"کتاب|(?<!د)رمان(?:\s|$)|روانشناسی|داستان|مجله|آموزشی|زبان آموزی"),
-        ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک|پوشک|اسباب بازی کودک|دهان شویه کودک|خمیردندان کودک|مکمل کمک درمانی کودک"),
+        ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک|پوشک|اسباب بازی کودک|دهان شویه کودک|خمیردندان کودک|غذای مادر و کودک"),
         ("pet_care", r"حیوان خانگی|گربه|سگ|پرنده|طوطی|عروس هلندی|غذای پرندگان|غذای حیوان|قلاده|خاک گربه|آکواریوم|ماهی زینتی"),
-        ("home_cleaning", r"اسکاچ|سیم ظرفشویی|اسفنج ظرفشویی|دستمال نظافت|شوینده سطوح|نظافت خانه"),
-        ("kitchen_food", r"آشپزخانه|آشپزی|ظرفشویی|پخت و پز|قهوه ساز|اسپرسو|قابلمه|تابه|چای ساز|سرویس کفگیر|کفگیر|ملاقه|قاشق|چنگال|ظروف غذاخوری"),
-        ("local_goods", r"محصولات بومی|محصولات محلی|سوغات محلی"),
-        ("grocery_food", r"روغن خوراکی|روغن کنجد|روغن زیتون|روغن ذرت|روغن آفتابگردان|گوشت|مرغ|ماهی خوراکی|خوراکی|مواد غذایی|صبحانه|نوشیدنی|چای ارگانیک|قهوه ارگانیک|شکلات|تنقلات|غلات|کنسرو|ادویه|کالای خوراکی"),
-        ("home_cleaning", r"نظافت|شستشو|شوینده|تمیزکننده|زمین شوی|بخارشوی|جارو|اسکاچ|سیم ظرفشویی|دستمال نظافت"),
-        ("personal_care", r"بالم لب|رژ لب|لیپ گلاس|مراقبت پوست|مراقبت از پوست|مراقبت مو|آرایش|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن|مسواک|دهان شویه|ضدآفتاب|ماسک صورت|ماسک بدن|شانه مو|مداد چشم"),
-        ("sports_fitness", r"ورزشی|ورزش های توپی|بدنسازی|باشگاه|دوچرخه|توپ فوتبال|فیتنس|تنیس|راکت|زانو بند طبی|لوازم جانبی راکت"),
+        ("personal_care", r"دئودورانت|ضد تعریق|مام ضد تعریق|رول ضد تعریق|ابرو|مژه|تقویت کننده ابرو|تقویت کننده مژه|براش آرایشی|رژ لب|لایه بردار پوست|اسکراب|مراقبت پوست|مراقبت از پوست|مراقبت مو|آرایش|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن|مسواک|دهان شویه|ضدآفتاب|ماسک صورت|ماسک بدن|شانه مو|مداد چشم|کرم ترک پا|لوسیون و روغن بدن"),
+        ("grocery_food", r"روغن خوراکی|روغن کنجد|روغن زیتون|روغن ذرت|روغن آفتابگردان|گوشت|مرغ|ماهی خوراکی|خوراکی|مواد غذایی|صبحانه|نوشیدنی|چای|دمنوش|قهوه|کاپوچینو|پاستا|ماکارونی|نودل|رشته آش|رشته سوپی|آجیل|خشکبار|پودر کیک|شیرینی|شکلات|تنقلات|غلات|کنسرو|ادویه|برنج|جو|گندم|آرد|حبوبات|نبات|خرما|عسل|مربا|شیره|غذای آماده"),
+        ("kitchen_food", r"آشپزخانه|آشپزی|ظرفشویی|پخت و پز|قهوه ساز|اسپرسو|قابلمه|تابه|چای ساز|فیلتر چای|سرویس کفگیر|کفگیر|ملاقه|قاشق|چنگال|ظروف غذاخوری|لوازم یکبار مصرف آشپزخانه|آبکش|آبگیر|سبد آشپزخانه|ارگانایزر آشپزخانه"),
+        ("sports_fitness", r"ورزشی|ورزش های توپی|بدنسازی|باشگاه|دوچرخه|توپ فوتبال|فیتنس|تنیس|راکت|زانو بند طبی|لوازم جانبی راکت|دمبل"),
         ("health_wellness", r"سلامت|پزشکی|مکمل غذایی|مکمل|کمک درمانی|تجهیزات پزشکی|ارتوپدی"),
-        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه|کابل|حافظه|حافظه رم|رم کامپیوتر|رم لپ تاپ|(?<!\w)رم(?!\w)|(?<!\w)ram(?!\w)|مانیتور|کیبورد|ماوس|مودم"),
-        ("audio_visual", r"هدفون|هدست|هندزفری|ایرپاد|اسپیکر|تلویزیون|دوربین عکاسی|پروژکتور|سینما خانگی"),
-        ("home_living", r"خانه|اتاق خواب|دکوراسیون|مبلمان|روشنایی منزل|کالای خواب|خواب|پتو|ملحفه|کوسن|پرده"),
+        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه|کابل|حافظه|حافظه رم|رم کامپیوتر|رم لپ تاپ|(?<!\w)رم(?!\w)|(?<!\w)ram(?!\w)|مانیتور|کیبورد|ماوس|مودم|قلم لمسی|استایلوس|کارت حافظه|microsd"),
+        ("audio_visual", r"هدفون|هدست|هندزفری|ایرپاد|اسپیکر|تلویزیون|دوربین عکاسی|پروژکتور|سینما خانگی|فیلم سینمایی|فیلم مستند|سریال"),
+        ("home_living", r"خانه|اتاق خواب|دکوراسیون|مبلمان|روشنایی منزل|کالای خواب|خواب|پتو|ملحفه|کوسن|پرده|کاور مبل|روکش مبل|حوله|پادری|روتختی|روبالشی|سرویس خواب"),
         ("fashion_lifestyle", r"پوشاک|لباس|تی شرت|تیشرت|شلوار|کفش|بوت|کیف پول|عینک آفتابی|جوراب|مانتو|اکسسوری زنانه|لباس کار"),
-        ("tools_industrial", r"ابزار|سمپاش|پیچ گوشتی|فازمتر|متر|هویه|مته|پیچ و مهره|کمپرسور|تجهیزات ایمنی|ایمنی|لوازم یدکی ابزار|باغبانی|کشاورزی"),
-        ("arts_crafts", r"صنایع دستی|دست بافته|رودوزی|بافتنی|خیاطی|نقاشی|رنگ آمیزی|کاردستی"),
+        ("tools_industrial", r"ابزار|سمپاش|پیچ گوشتی|فازمتر|متر لیزری|متر نواری|مته|پیچ و مهره|کمپرسور|تجهیزات ایمنی|ایمنی|لوازم یدکی ابزار|باغبانی|کشاورزی"),
+        ("arts_crafts", r"صنایع دستی|دست بافته|رودوزی|بافتنی|خیاطی|نقاشی|رنگ آمیزی|کاردستی|بوم نقاشی|رنگ اکریلیک"),
         ("lighting_electrical", r"روشنایی|لامپ|چراغ قوه|چراغ اضطراری|الکتریکی|سیم و کابل برق"),
         ("events_decor", r"پرچم|لوازم تزئینی|وسایل جشن"),
     )
-    # Preserve high-specificity cleaning taxonomy even when downstream
-    # category aliases also contain generic kitchen/household words.
-    if re.search(r"اسکاچ|سیم\s*ظرف\s*شویی|اسفنج\s*ظرف\s*شویی|دستمال\s*نظافت", text, re.I):
-        return "home_cleaning"
     matched = next((name for name, pattern in patterns if re.search(pattern, text, re.I)), None)
     if matched:
         return matched
 
-    # Broad DigiKala taxonomy is a second fallback; do not call a known category general.
     broad = classify_category(text)
     broad_use_cases = {
         "automotive": "automotive",
@@ -7697,12 +7744,15 @@ def _publication_use_case_group(product_or_title) -> str:
         "large_appliances": "home_living",
         "arts_crafts": "arts_crafts",
         "presentation_tools": "office_study",
+        "grocery_food": "grocery_food",
+        "jewelry": "fashion_lifestyle",
     }
     if broad in broad_use_cases:
         return broad_use_cases[broad]
     if category.get("id") and category.get("name"):
         return "catalog_taxonomy_other"
     return "general"
+
 
 def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     """Return a broad category, narrower product family, and known brand hint."""
