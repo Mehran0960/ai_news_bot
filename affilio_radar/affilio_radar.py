@@ -3411,7 +3411,7 @@ def _offerchin_live_demand_score(record: dict, now: datetime | None = None) -> f
 
 
 def _apply_offerchin_four_factor_scores(records: list[dict], now: datetime | None = None) -> list[dict]:
-    """Annotate a comparable candidate cohort with the shared four-factor policy."""
+    """Annotate a candidate cohort with the price-independent three-factor policy."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -3420,10 +3420,6 @@ def _apply_offerchin_four_factor_scores(records: list[dict], now: datetime | Non
         records,
         live_demand_score_fn=lambda row: _offerchin_live_demand_score(row, now=current),
         use_case_group_fn=_publication_use_case_group,
-        price_group_fn=lambda row: str(
-            row.get("catalog_category_id") or row.get("catalog_best_selling_category_id")
-            or _publication_use_case_group(row)
-        ),
         discount_verified_fn=lambda row: has_attractive_discount_value(row, now=current),
         now=current,
     )
@@ -4692,7 +4688,7 @@ def classify_category(title: str) -> str:
         ("books_stationery", r"کتاب|دفتر|خودکار|مداد|لوازم التحریر|لوازم‌التحریر|نوشت افزار"),
         ("beauty_fragrance", r"عطر|ادکلن|ادو\s*پرفیوم|ادوپرفیوم|ادو\s*تویلت|ادوتویلت|تستر\s*ادو|بادی\s*اسپلش"),
         # Food cues must precede the broad skincare word «کرم» (e.g. sesame cream).
-        ("grocery_food", r"خرما|شکلات|کنجد|عسل|حلوا|مربا|شیره|آجیل|خشکبار|غلات|کالای خوراکی|خوراکی|مواد غذایی|کنسرو|ادویه|برنج|جو پرک|گندم|آرد|حبوبات|نبات|چای ارگانیک|قهوه ارگانیک|دمنوش"),
+        ("grocery_food", r"خرما|شکلات|کنجد|عسل|حلوا|مربا|شیره|آجیل|خشکبار|غلات|کالای خوراکی|خوراکی|مواد غذایی|خواربار|کنسرو|ادویه|برنج|جو پرک|گندم|آرد|حبوبات|نبات|چای ارگانیک|چای(?!\s*ساز)|قهوه ارگانیک|قهوه(?!\s*ساز)|دمنوش|گوشت|مرغ|ماهی|میگو|سوسیس|کالباس|تخم مرغ|لبنیات|ماست|پنیر|شیر|دوغ|کره|خامه|بستنی|میوه|سبزی|صیفی|روغن خوراکی|شکر|قند|نمک|رب|نوشابه|آبمیوه|آب معدنی|پودر سیر|غذای آماده"),
         ("personal_care", r"پوست|(?<!\w)مو(?!\w)|کرم|سرم|آبرسان|اصلاح|ماساژور|بهداشت|آرایش|ضدآفتاب|مسواک|دندان|سشوار|برس حرارتی|اتو مو|ریش.?تراش|موزن|اپیلاتور|دستگاه بخور|تونر|پاک کننده آرایش|سنگ پا|پاشنه کش|سوهان پا"),
         ("automotive", r"خودرو|ماشین|موتور سیکلت|داشبورد|کمپرسور باد|لوازم خودرو|شارژر فندکی|روکش صندلی|کفپوش خودرو|مراقبت خودرو"),
         ("home", r"آشپزخانه|نظم دهنده|ارگانایزر|خردکن|ظرف|ابزار آشپزخانه|خانه|قهوه ساز|فلاسک|ماگ|قمقمه|بطری آب|ظروف|حمام|سرویس بهداشتی|باغبانی|گلدان"),
@@ -4751,7 +4747,7 @@ def _verified_review_growth_sort_key(
 
 
 def deal_sort_key(p: dict, now: datetime | None = None) -> tuple:
-    """Rank valid offers by the balanced live-demand/affordability/generality/value index."""
+    """Rank valid offers by the balanced live-demand/generality/discount-value index."""
     candidate = p if isinstance(p, dict) else {}
     return (
         *_offerchin_factor_sort_key(candidate, now=now),
@@ -7592,37 +7588,30 @@ def _publication_catalog_category_context(product_or_title) -> dict:
 
 
 def _publication_use_case_group(product_or_title) -> str:
-    """Classify product use from title and DigiKala taxonomy; reserve general for missing taxonomy."""
+    """Classify a product's practical use independently from its product family."""
     category = _publication_catalog_category_context(product_or_title)
-    title = (
-        str(product_or_title.get("title") or "")
-        if isinstance(product_or_title, dict) else str(product_or_title or "")
-    )
+    title = str(product_or_title.get("title") or "") if isinstance(product_or_title, dict) else str(product_or_title or "")
     raw_text = " ".join((title, category.get("name", ""), category.get("path", ""))).lower()
-    # DigiKala category labels can mix Arabic/Persian glyphs, ZWNJ and punctuation.
     text = raw_text.replace("\u200c", " ").replace("\u200f", " ").replace("ي", "ی").replace("ك", "ک")
     text = re.sub(r"[\u064b-\u065f\u0670ـ]", "", text)
     text = re.sub(r"[\s،,:;؛|/_\-]+", " ", text).strip()
-
-    # Prefer specific DigiKala taxonomy/use-case signals over broad title keywords.
     patterns = (
         ("automotive", r"خودرو|ماشین|فندکی|داشبورد|لاستیک|تایر|شارژر خودرو|فیلتر کابین|روغن موتور|ضد یخ خودرو|لوازم خودرو|جانبی خودرو|تجهیزات راحتی سرنشین"),
         ("outdoor_travel", r"کمپینگ|کوهنوردی|چادر مسافرتی|طبیعت گردی|لوازم سفر|مسافرت|ماهیگیری|لوازم ماهیگیری|کیف و کوله سفری|تجهیزات اسکان"),
         ("tabletop_games", r"بوردگیم|بازی فکری|بازی رومیزی|اوریگامی"),
         ("gaming", r"گیمینگ|بازی رایانه|کنسول بازی|پلی استیشن|ایکس باکس|\bxbox\b|دسته بازی"),
+        ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک|پوشک|اسباب بازی کودک|دهان شویه کودک|خمیردندان کودک|مکمل کمک درمانی کودک|آموزشی کودک"),
+        ("books_learning", r"کتاب|(?<!د)رمان(?:\s|$)|روانشناسی|داستان|مجله|زبان آموزی"),
         ("office_study", r"اداری|لوازم اداری|میز کار|مطالعه|تحریر|لوازم تحریر|مدرسه|دانشجویی|لوازم ارائه|پوینتر ارائه|پرینتر|کاغذ|نوشت افزار|مهر و استامپ"),
-        ("books_learning", r"کتاب|(?<!د)رمان(?:\s|$)|روانشناسی|داستان|مجله|آموزشی|زبان آموزی"),
-        ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک|پوشک|اسباب بازی کودک|دهان شویه کودک|خمیردندان کودک|مکمل کمک درمانی کودک"),
         ("pet_care", r"حیوان خانگی|گربه|سگ|خاک گربه|غذای حیوان|قلاده|آکواریوم"),
-        ("home_cleaning", r"اسکاچ|سیم ظرفشویی|اسفنج ظرفشویی|دستمال نظافت|شوینده سطوح|نظافت خانه"),
-        ("kitchen_food", r"آشپزخانه|آشپزی|ظرفشویی|پخت و پز|قهوه ساز|اسپرسو|قابلمه|تابه|چای ساز|سرویس کفگیر|کفگیر|ملاقه|قاشق|چنگال|ظروف غذاخوری"),
+        ("home_cleaning", r"اسکاچ|سیم ظرفشویی|اسفنج ظرفشویی|دستمال نظافت|شوینده سطوح|نظافت خانه|شستشو|شوینده|تمیزکننده|زمین شوی|بخارشوی|جارو"),
+        ("kitchen_food", r"آشپزخانه|آشپزی|ظرفشویی|پخت و پز|قهوه ساز|قهوه‌ساز|اسپرسو|قابلمه|تابه|چای ساز|چای‌ساز|سرویس کفگیر|کفگیر|ملاقه|قاشق|چنگال|ظروف غذاخوری"),
+        ("grocery_food", r"خوراکی|مواد غذایی|خواربار|صبحانه|نوشیدنی|چای ارگانیک|چای(?!\s*ساز)|قهوه ارگانیک|قهوه(?!\s*ساز)|شکلات|تنقلات|غلات|کنسرو|ادویه|کالای خوراکی|گوشت|مرغ|ماهی|میگو|سوسیس|کالباس|تخم مرغ|لبنیات|ماست|پنیر|شیر|دوغ|کره|خامه|بستنی|میوه|سبزی|صیفی|برنج|جو|گندم|آرد|حبوبات|روغن خوراکی|شکر|قند|نمک|رب|نوشابه|آبمیوه|آب معدنی|پودر سیر|غذای آماده"),
         ("local_goods", r"محصولات بومی|محصولات محلی|سوغات محلی"),
-        ("grocery_food", r"خوراکی|مواد غذایی|صبحانه|نوشیدنی|چای ارگانیک|قهوه ارگانیک|شکلات|تنقلات|غلات|کنسرو|ادویه|کالای خوراکی"),
-        ("home_cleaning", r"نظافت|شستشو|شوینده|تمیزکننده|زمین شوی|بخارشوی|جارو|اسکاچ|سیم ظرفشویی|دستمال نظافت"),
         ("personal_care", r"مراقبت پوست|مراقبت از پوست|مراقبت مو|آرایش|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن|مسواک|دهان شویه|ضدآفتاب|ماسک صورت|ماسک بدن|شانه مو|مداد چشم"),
         ("sports_fitness", r"ورزشی|ورزش های توپی|بدنسازی|باشگاه|دوچرخه|توپ فوتبال|فیتنس|تنیس|راکت|زانو بند طبی|لوازم جانبی راکت"),
         ("health_wellness", r"سلامت|پزشکی|مکمل غذایی|مکمل|کمک درمانی|تجهیزات پزشکی|ارتوپدی"),
-        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه|کابل|حافظه|رم|مانیتور|کیبورد|ماوس|مودم"),
+        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه|کابل|حافظه|(?<![\u0600-\u06ff])رم(?![\u0600-\u06ff])|\bram\b|مانیتور|کیبورد|ماوس|مودم"),
         ("audio_visual", r"هدفون|هدست|هندزفری|ایرپاد|اسپیکر|تلویزیون|دوربین عکاسی|پروژکتور|سینما خانگی"),
         ("home_living", r"خانه|اتاق خواب|دکوراسیون|مبلمان|روشنایی منزل|کالای خواب|خواب|پتو|ملحفه|کوسن|پرده"),
         ("fashion_lifestyle", r"پوشاک|لباس|تی شرت|تیشرت|شلوار|کفش|بوت|کیف پول|عینک آفتابی|جوراب|مانتو|اکسسوری زنانه|لباس کار"),
@@ -7634,38 +7623,25 @@ def _publication_use_case_group(product_or_title) -> str:
     matched = next((name for name, pattern in patterns if re.search(pattern, text, re.I)), None)
     if matched:
         return matched
-
-    # Broad DigiKala taxonomy is a second fallback; do not call a known category general.
     broad = classify_category(text)
     broad_use_cases = {
-        "automotive": "automotive",
-        "sports_outdoor": "sports_fitness",
-        "gaming": "gaming",
-        "books_stationery": "books_learning",
-        "fashion": "fashion_lifestyle",
-        "personal_care": "personal_care",
-        "beauty_fragrance": "personal_care",
-        "pet_supplies": "pet_care",
-        "kids_sports": "baby_care",
-        "home_cleaning": "home_cleaning",
-        "home": "home_living",
-        "computer_network": "mobile_productivity",
-        "digital_accessories": "mobile_productivity",
-        "mobile_devices": "mobile_productivity",
-        "audio_wearables": "audio_visual",
-        "tv_audio_video": "audio_visual",
-        "power_backup": "lighting_electrical",
-        "lighting": "lighting_electrical",
-        "large_appliances": "home_living",
-        "arts_crafts": "arts_crafts",
-        "presentation_tools": "office_study",
+        "automotive": "automotive", "sports_outdoor": "sports_fitness", "gaming": "gaming",
+        "books_stationery": "books_learning", "fashion": "fashion_lifestyle",
+        "personal_care": "personal_care", "beauty_fragrance": "personal_care",
+        "pet_supplies": "pet_care", "kids_sports": "baby_care",
+        "home_cleaning": "home_cleaning", "home": "home_living",
+        "computer_network": "mobile_productivity", "digital_accessories": "mobile_productivity",
+        "mobile_devices": "mobile_productivity", "audio_wearables": "audio_visual",
+        "tv_audio_video": "audio_visual", "power_backup": "lighting_electrical",
+        "lighting": "lighting_electrical", "large_appliances": "home_living",
+        "arts_crafts": "arts_crafts", "presentation_tools": "office_study",
+        "grocery_food": "grocery_food",
     }
     if broad in broad_use_cases:
         return broad_use_cases[broad]
     if category.get("id") and category.get("name"):
         return "catalog_taxonomy_other"
     return "general"
-
 def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     """Return a broad category, narrower product family, and known brand hint."""
     catalog_context = _publication_catalog_category_context(
@@ -7678,15 +7654,24 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     explicit_brand = ""
     if isinstance(product_or_title, dict):
         title = str(product_or_title.get("title") or "")
-        raw_brand = product_or_title.get("brand") or product_or_title.get("brand_name") or ""
+        raw_brand = (
+            product_or_title.get("brand") or product_or_title.get("brand_name")
+            or product_or_title.get("brand_title") or product_or_title.get("manufacturer")
+            or product_or_title.get("manufacturer_name") or ""
+        )
         if isinstance(raw_brand, dict):
-            raw_brand = raw_brand.get("name") or raw_brand.get("title") or raw_brand.get("value") or ""
+            raw_brand = next((
+                raw_brand.get(key) for key in (
+                    "title_fa", "name_fa", "title", "name", "label", "value", "text"
+                ) if raw_brand.get(key)
+            ), "")
         explicit_brand = str(raw_brand or "").strip()
     else:
         title = str(product_or_title or "")
     normalized = title.lower().replace("\u200c", " ")
     family_match_text = (normalized + " " + catalog_text.lower()).strip()
-    brand_search_text = (family_match_text + " " + explicit_brand.lower()).strip()
+    # Taxonomy is not a manufacturer name; infer a brand from title/brand metadata only.
+    brand_search_text = (normalized + " " + explicit_brand.lower()).strip()
     title_category = classify_category(normalized)
     catalog_category = classify_category(catalog_text.lower()) if catalog_text else "other"
     # Official DigiKala taxonomy has priority over heuristic title classification.
@@ -7863,6 +7848,41 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         ("antonio_rossini", r"آنتونیو\s*روسینی"),
         ("zanama", r"زاناما"),
         ("dellbesto", r"دلبستو"),
+        ("samsung", r"\bsamsung\b|سامسونگ"),
+        ("xiaomi", r"\bxiaomi\b|شیائومی|شیاومی"),
+        ("redmi", r"\bredmi\b|ردمی"),
+        ("poco", r"\bpoco\b|پوکو"),
+        ("apple", r"\bapple\b|\biphone\b|\bipad\b|\bmacbook\b|آیفون|آیپد|مک بوک"),
+        ("huawei", r"\bhuawei\b|هواوی"),
+        ("honor", r"\bhonor\b|آنر"),
+        ("nokia", r"\bnokia\b|نوکیا"),
+        ("realme", r"\brealme\b|ریلمی"),
+        ("lenovo", r"\blenovo\b|لنوو"),
+        ("asus", r"\basus\b|ایسوس"),
+        ("acer", r"\bacer\b|ایسر"),
+        ("hp", r"\bhp\b|اچ پی"),
+        ("dell", r"\bdell\b|دِل"),
+        ("msi", r"\bmsi\b"),
+        ("logitech", r"\blogitech\b|لاجیتک"),
+        ("razer", r"\brazer\b|ریزر"),
+        ("jbl", r"\bjbl\b"),
+        ("sony", r"\bsony\b|سونی"),
+        ("bose", r"\bbose\b|بوز"),
+        ("anker", r"\banker\b|انکر"),
+        ("baseus", r"\bbaseus\b|بیسوس"),
+        ("ugreen", r"\bugreen\b|یوگرین"),
+        ("philips", r"\bphilips\b|فیلیپس"),
+        ("braun", r"\bbraun\b|براون"),
+        ("oral_b", r"\boral[ -]?b\b|اورال بی"),
+        ("bosch", r"\bbosch\b|بوش"),
+        ("panasonic", r"\bpanasonic\b|پاناسونیک"),
+        ("lg", r"\blg\b|ال جی"),
+        ("canon", r"\bcanon\b|کانن"),
+        ("nikon", r"\bnikon\b|نیکون"),
+        ("nike", r"\bnike\b|نایک"),
+        ("adidas", r"\badidas\b|آدیداس"),
+        ("puma", r"\bpuma\b|پوما"),
+        ("asics", r"\basics\b|اسیکس"),
     ]
     brand = next((key for key, pattern in brand_hints if re.search(pattern, brand_search_text, re.I)), "")
     if not brand and explicit_brand:
@@ -8169,6 +8189,8 @@ def build_publication_diversity_report(
             "brand_repeat_cooldown_hours": BRAND_REPEAT_COOLDOWN_HOURS,
             "similar_product_repeat_cooldown_hours": PUBLICATION_SIMILARITY_COOLDOWN_HOURS,
             "similarity_jaccard_threshold": PUBLICATION_SIMILARITY_JACCARD_THRESHOLD,
+            "category_repeat_cooldown_hours": CATEGORY_REPEAT_COOLDOWN_HOURS,
+            "use_case_repeat_cooldown_hours": USE_CASE_REPEAT_COOLDOWN_HOURS,
         },
         "last_24_hours": _publication_distribution_summary(day_records),
         "last_7_days": _publication_distribution_summary(week_records),
@@ -8312,6 +8334,8 @@ def _order_candidates_by_primary_rank(
     return ordered
 
 PUBLICATION_SIMILARITY_COOLDOWN_HOURS = 24.0
+CATEGORY_REPEAT_COOLDOWN_HOURS = 2.0
+USE_CASE_REPEAT_COOLDOWN_HOURS = 3.0
 PUBLICATION_SIMILARITY_JACCARD_THRESHOLD = 0.50
 PUBLICATION_SIMILARITY_MIN_SHARED_TOKENS = 2
 
@@ -8418,107 +8442,88 @@ def _publication_products_are_similar(left, right) -> bool:
 
 
 def _filter_recent_publication_repeats(
-    candidates: list[dict],
-    published: dict | None,
-    recent_publications: list | None,
-    now: datetime,
-    *,
-    limit: int | None = None,
-    label: str = "PUBLISH",
+    candidates: list[dict], published: dict | None, recent_publications: list | None,
+    now: datetime, *, limit: int | None = None, label: str = "PUBLISH",
 ) -> list[dict]:
-    """Keep global demand order while enforcing 24-hour family, brand and similarity guards.
-
-    Candidates are expected in descending DigiKala demand-evidence order, with discount
-    percentage and cash savings used only after demand evidence is tied.
-    A candidate published within any of the repeat windows is skipped, then the
-    next highest-ranked candidate is considered. Already-selected candidates are
-    also added to the rolling guard history so one batch cannot violate the same
-    24-hour rules internally.
-    """
+    """Preserve ranking while independently guarding family, brand, category, use-case and similarity repeats."""
     current = now if now.tzinfo else now.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
     source = [item for item in (candidates or []) if isinstance(item, dict)]
     if not source:
         return []
-
     history_window_hours = max(
-        float(FAMILY_REPEAT_COOLDOWN_HOURS),
-        float(BRAND_REPEAT_COOLDOWN_HOURS),
-        float(PUBLICATION_SIMILARITY_COOLDOWN_HOURS),
+        float(FAMILY_REPEAT_COOLDOWN_HOURS), float(BRAND_REPEAT_COOLDOWN_HOURS),
+        float(PUBLICATION_SIMILARITY_COOLDOWN_HOURS), float(CATEGORY_REPEAT_COOLDOWN_HOURS),
+        float(USE_CASE_REPEAT_COOLDOWN_HOURS),
     )
     history = _recent_publication_diversity(
-        published,
-        limit=PUBLICATION_LEDGER_LIMIT,
-        durable_history=recent_publications,
-        now=current,
-        window_hours=history_window_hours,
+        published, limit=PUBLICATION_LEDGER_LIMIT, durable_history=recent_publications,
+        now=current, window_hours=history_window_hours,
     )
-
     recent_families: set[str] = set()
     recent_brands: set[str] = set()
+    recent_categories: set[str] = set()
+    recent_use_cases: set[str] = set()
+    category_cutoff = current.timestamp() - float(CATEGORY_REPEAT_COOLDOWN_HOURS) * 3600
+    use_case_cutoff = current.timestamp() - float(USE_CASE_REPEAT_COOLDOWN_HOURS) * 3600
     for previous in history:
         family_key = _publication_family_guard_key(previous)
-        _, _, brand = _publication_diversity_group(previous)
+        previous_category, _, brand = _publication_diversity_group(previous)
+        previous_use_case = _publication_use_case_group(previous)
+        previous_ts = _publication_record_ts(previous)
         if family_key:
             recent_families.add(family_key)
         if brand:
             recent_brands.add(brand)
+        if previous_ts >= category_cutoff and previous_category not in {"", "other", "unknown"}:
+            recent_categories.add(previous_category)
+        if previous_ts >= use_case_cutoff and previous_use_case not in {"", "general", "unknown", "catalog_taxonomy_other"}:
+            recent_use_cases.add(previous_use_case)
 
     selected: list[dict] = []
     selected_families: set[str] = set()
     selected_brands: set[str] = set()
+    selected_categories: set[str] = set()
+    selected_use_cases: set[str] = set()
     comparison_history = list(history)
-    family_blocked = 0
-    brand_blocked = 0
-    similarity_blocked = 0
+    family_blocked = brand_blocked = category_blocked = use_case_blocked = similarity_blocked = 0
     global _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS
 
     for candidate in source:
         category, family, brand = _publication_diversity_group(candidate)
+        use_case = _publication_use_case_group(candidate)
         family_key = _publication_family_guard_key(candidate)
-        family_match = next((
-            previous for previous in comparison_history
-            if family_key and _publication_family_guard_key(previous) == family_key
-        ), None)
-        family_repeat = bool(family_key and (
-            family_key in recent_families or family_key in selected_families or family_match
-        ))
-        brand_match = next((
-            previous for previous in comparison_history
-            if brand and _publication_diversity_group(previous)[2] == brand
-        ), None)
-        brand_repeat = bool(brand and (
-            brand in recent_brands or brand in selected_brands or brand_match
-        ))
-        similarity_match = next((
-            previous for previous in comparison_history
-            if _publication_products_are_similar(candidate, previous)
-        ), None)
+        category_key = category if category not in {"", "other", "unknown"} else ""
+        use_case_key = use_case if use_case not in {"", "general", "unknown", "catalog_taxonomy_other"} else ""
+        family_match = next((p for p in comparison_history if family_key and _publication_family_guard_key(p) == family_key), None)
+        family_repeat = bool(family_key and (family_key in recent_families or family_key in selected_families or family_match))
+        brand_match = next((p for p in comparison_history if brand and _publication_diversity_group(p)[2] == brand), None)
+        brand_repeat = bool(brand and (brand in recent_brands or brand in selected_brands or brand_match))
+        category_match = next((p for p in comparison_history if category_key and _publication_diversity_group(p)[0] == category_key), None)
+        category_repeat = bool(category_key and (category_key in recent_categories or category_key in selected_categories or category_match))
+        use_case_match = next((p for p in comparison_history if use_case_key and _publication_use_case_group(p) == use_case_key), None)
+        use_case_repeat = bool(use_case_key and (use_case_key in recent_use_cases or use_case_key in selected_use_cases or use_case_match))
+        similarity_match = next((p for p in comparison_history if _publication_products_are_similar(candidate, p)), None)
         similarity_repeat = bool(similarity_match)
 
-        if family_repeat or brand_repeat or similarity_repeat:
+        if family_repeat or brand_repeat or category_repeat or use_case_repeat or similarity_repeat:
             family_blocked += int(family_repeat)
             brand_blocked += int(brand_repeat)
+            category_blocked += int(category_repeat)
+            use_case_blocked += int(use_case_repeat)
             similarity_blocked += int(similarity_repeat)
-            reasons = [
-                reason for reason, blocked in (
-                    ("family_repeat", family_repeat),
-                    ("brand_repeat", brand_repeat),
-                    ("similarity_repeat", similarity_repeat),
-                ) if blocked
-            ]
+            reasons = [reason for reason, blocked in (
+                ("family_repeat", family_repeat), ("brand_repeat", brand_repeat),
+                ("category_repeat", category_repeat), ("use_case_repeat", use_case_repeat),
+                ("similarity_repeat", similarity_repeat),
+            ) if blocked]
             catalog_context = _publication_catalog_category_context(candidate)
-            use_case = _publication_use_case_group(candidate)
-            compared = family_match or brand_match or similarity_match or {}
+            compared = family_match or brand_match or category_match or use_case_match or similarity_match or {}
             event = {
                 "product_id": str(candidate.get("product_id") or product_id(candidate.get("product_url") or "")),
-                "title": str(candidate.get("title") or "")[:180],
-                "reasons": reasons,
-                "reason": ",".join(reasons),
-                "category": category,
-                "family": family,
-                "brand": brand,
-                "use_case": use_case,
+                "title": str(candidate.get("title") or "")[:180], "reasons": reasons,
+                "reason": ",".join(reasons), "category": category, "family": family,
+                "brand": brand, "use_case": use_case,
                 "catalog_category_id": catalog_context.get("id", ""),
                 "catalog_category_name": catalog_context.get("name", ""),
                 "compared_to_product_id": str(compared.get("product_id") or ""),
@@ -8528,10 +8533,7 @@ def _filter_recent_publication_repeats(
             rejection_events = _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS.setdefault("rejection_events", [])
             rejection_events.append(event)
             del rejection_events[:-100]
-            print(
-                f"{label}_REPEAT_REJECTED "
-                + json.dumps(event, ensure_ascii=False, sort_keys=True)
-            )
+            print(f"{label}_REPEAT_REJECTED " + json.dumps(event, ensure_ascii=False, sort_keys=True))
             continue
 
         selected.append(candidate)
@@ -8539,24 +8541,25 @@ def _filter_recent_publication_repeats(
             selected_families.add(family_key)
         if brand:
             selected_brands.add(brand)
+        if category_key:
+            selected_categories.add(category_key)
+        if use_case_key:
+            selected_use_cases.add(use_case_key)
         comparison_history.append(candidate)
 
     skipped = len(source) - len(selected)
     if skipped:
         print(
-            f"{label}_REPEAT_GUARD candidates={len(source)} selected={len(selected)} "
-            f"deferred={skipped} family_blocked={family_blocked} "
-            f"brand_blocked={brand_blocked} similarity_blocked={similarity_blocked} "
-            f"family_cooldown_hours={FAMILY_REPEAT_COOLDOWN_HOURS} "
+            f"{label}_REPEAT_GUARD candidates={len(source)} selected={len(selected)} deferred={skipped} "
+            f"family_blocked={family_blocked} brand_blocked={brand_blocked} "
+            f"category_blocked={category_blocked} use_case_blocked={use_case_blocked} "
+            f"similarity_blocked={similarity_blocked} family_cooldown_hours={FAMILY_REPEAT_COOLDOWN_HOURS} "
             f"brand_cooldown_hours={BRAND_REPEAT_COOLDOWN_HOURS} "
-            f"similarity_cooldown_hours={PUBLICATION_SIMILARITY_COOLDOWN_HOURS} "
-            f"rank_order_preserved=true"
+            f"category_cooldown_hours={CATEGORY_REPEAT_COOLDOWN_HOURS} "
+            f"use_case_cooldown_hours={USE_CASE_REPEAT_COOLDOWN_HOURS} "
+            f"similarity_cooldown_hours={PUBLICATION_SIMILARITY_COOLDOWN_HOURS} rank_order_preserved=true"
         )
-
-    if limit is not None:
-        return selected[:max(1, int(limit))]
-    return selected
-
+    return selected[:max(1, int(limit))] if limit is not None else selected
 def select_urgent_publication_candidate(
     eligible: list[dict],
     now: datetime | None = None,
@@ -8656,6 +8659,8 @@ PUBLICATION_LEDGER_LIMIT = 2000
 # Repeat guards suppress near-duplicates but never change candidate rank.
 FAMILY_REPEAT_COOLDOWN_HOURS = 24
 BRAND_REPEAT_COOLDOWN_HOURS = 24
+CATEGORY_REPEAT_COOLDOWN_HOURS = 2
+USE_CASE_REPEAT_COOLDOWN_HOURS = 3
 
 
 def _publication_record_ts(record: dict | None) -> float:
@@ -9142,13 +9147,12 @@ def _emergency_continuity_window_active(
 
 
 def _emergency_continuity_quality_score(product: dict) -> float:
-    """Score affordability, generality and discount only; never invent a demand score."""
+    """Score generality and discount only; never invent a demand score or use product price."""
     factors = product.get("offerchin_four_factor")
     if not isinstance(factors, dict):
         return 0.0
     try:
         values = [
-            float(factors.get("affordability") or 0),
             float(factors.get("generality") or 0),
             float(factors.get("discount_attractiveness") or 0),
         ]
@@ -9235,15 +9239,14 @@ def select_discount_fallback_candidates(
             quality_score = _emergency_continuity_quality_score(product)
             try:
                 discount_score = float(factors.get("discount_attractiveness") or 0)
-                affordability_score = float(factors.get("affordability") or 0)
                 generality_score = float(factors.get("generality") or 0)
             except (TypeError, ValueError, OverflowError):
                 continue
-            # This is deliberately stricter than the ordinary four-factor ranking:
-            # a missing demand signal is disclosed, while weak markdown/fit is rejected.
+            # Demand may be relaxed only in this explicit continuity mode. A weak
+            # verified markdown or poor product generality is still rejected; ticket
+            # price/affordability is deliberately not a selection criterion.
             if (
                 discount_score < 55
-                or affordability_score < 40
                 or generality_score < 50
                 or quality_score < 55
             ):
@@ -9265,7 +9268,7 @@ def select_discount_fallback_candidates(
             print(
                 "EMERGENCY_CONTINUITY_CANDIDATES "
                 f"available={len(quality_eligible)} approved={len(emergency_candidates)} "
-                "ranking=affordability_generality_discount_harmonic "
+                "ranking=generality_discount_harmonic price_independent=true "
                 "fresh_demand_claim=false"
             )
             fresh_candidates.extend(emergency_candidates)
@@ -11312,12 +11315,13 @@ def run(publish=False, selection_only=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
     print(
-        "Ranking mode=full-catalog four-factor-balanced; fresh DigiKala bestseller rank or verified "
+        "Ranking mode=full-catalog three-factor-balanced; fresh DigiKala bestseller rank or verified "
         "recent review-growth proxy is a hard demand gate. Eligible candidates are ranked by the "
-        "harmonic mean of live demand, cash-ticket affordability, use-case generality and discount "
-        "attractiveness; the weakest factor is a tie-break. Missing price/evidence is never invented. "
-        "Clicks and affiliate revenue never rank demand. Live stock, price, product identity, direct "
-        "Affilio URL, expiry, 24h family/brand/similarity guards and safety checks remain hard controls."
+        "harmonic mean of live demand, use-case generality and verified discount attractiveness. "
+        "Product price/affordability is not a ranking or eligibility factor; live price, stock, product "
+        "identity, direct Affilio URL and expiry remain independent publication-safety checks. "
+        "Clicks and affiliate revenue never rank demand. Family, brand, category, use-case and "
+        "similarity repeat guards remain independent controls."
     )
     catalog = load_catalog()
     approved = link_map(catalog)
@@ -11839,18 +11843,17 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "The full-catalog scanner requires fresh market-demand evidence before publication. The final offer order balances four equally important dimensions with a harmonic mean: live demand, cash-ticket affordability (with only explicitly verified installment down-payment terms eligible as an entry-price proxy), generality of use, and discount attractiveness. Category-relative cash prices are used only when at least eight comparable candidates exist. A weak dimension cannot be hidden by a strong one. DigiKala bestseller rank is relative within-category evidence, not unit sales; review growth is an indirect proxy, not sales. Clicks never rank market demand. Missing data remains missing.",
-        "four_factor_ranking_policy": {
+        "ranking_note": "The full-catalog scanner requires fresh market-demand evidence before ordinary publication. The priority index is an equal-weight harmonic mean of exactly three dimensions: live demand, generality of use and attractiveness of a mathematically consistent discount. Ticket price, affordability, installment down-payment and cohort price percentile do not influence ranking or product eligibility. Price and stock are revalidated separately immediately before publication. DigiKala bestseller rank is relative within-category evidence, not unit sales; review growth is an indirect proxy, not sales. Clicks never rank market demand. Missing evidence remains missing.",
+        "three_factor_ranking_policy": {
             "version": OFFERCHIN_FOUR_FACTOR_POLICY_VERSION,
             "aggregation": "equal_weight_harmonic_mean",
-            "dimensions": ["live_demand", "affordability", "generality", "discount_attractiveness"],
-            "affordability": "listed_final_cash_price_vs_versioned_1405_minimum_wage_proxy_plus_within_use_case_price_percentile_when_cohort_size_at_least_8",
-            "verified_installment_terms_required": True,
+            "dimensions": ["live_demand", "generality", "discount_attractiveness"],
+            "price_is_not_a_ranking_or_eligibility_factor": True,
             "generality": "taxonomy_and_use_case_reach_heuristic; unknown_taxonomy_scored_low",
-            "discount_attractiveness": "verified_percent_and_cash_savings_plus_fresh_history_or_market_evidence_confidence",
+            "discount_attractiveness": "consistent_percent_and_cash_savings_plus_fresh_history_or_market_evidence_confidence",
             "missing_factor_behavior": "no_invented_values; incomplete legacy cards retain prior fallback order",
             "demand_gate_remains_hard": True,
-            "clicks_affect_demand_or_four_factor_score": False,
+            "clicks_affect_demand_or_three_factor_score": False,
             "score_is_conversion_probability": False,
         },
         "demand_ranking_policy": {
@@ -12283,6 +12286,8 @@ def run(publish=False, selection_only=False):
             state["published"][pid] = record
             ensure_publication_ledger(state)
             category, family, brand = _publication_diversity_group(item)
+            use_case = _publication_use_case_group(item)
+            catalog_context = _publication_catalog_category_context(item)
             history = state.setdefault("recent_publications", [])
             if not isinstance(history, list):
                 history = []
@@ -12294,6 +12299,9 @@ def run(publish=False, selection_only=False):
                 "category": category,
                 "family": family,
                 "brand": brand,
+                "use_case": use_case,
+                "catalog_category_id": catalog_context.get("id", ""),
+                "catalog_category_name": catalog_context.get("name", ""),
                 "retailer": _publication_retailer_group(item),
                 "telegram_message_id": results.get("telegram", {}).get("message_id"),
                 "bale_message_id": results.get("bale", {}).get("message_id"),

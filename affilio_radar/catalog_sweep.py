@@ -733,6 +733,51 @@ def _listing_rating(product: dict) -> tuple[float, int]:
     return round(score, 2), reviews
 
 
+def _metadata_label(value: Any) -> str:
+    """Normalize a DigiKala brand/category label from string, object or taxonomy path."""
+    if isinstance(value, dict):
+        for key in ("title_fa", "name_fa", "title", "name", "label", "value", "text"):
+            if value.get(key) not in (None, ""):
+                return _metadata_label(value.get(key))
+        return ""
+    if isinstance(value, (list, tuple)):
+        labels = [_metadata_label(item) for item in value]
+        return " > ".join(item for item in labels if item)
+    if isinstance(value, (str, int, float)) and not isinstance(value, bool):
+        result = str(value).strip()
+        if result.lower() in {"unknown", "other", "none", "null", "نامشخص", "-"}:
+            return ""
+        return result[:180]
+    return ""
+
+
+def _listing_brand(product: dict) -> str:
+    """Read explicit brand metadata from current/legacy listing response shapes."""
+    data_layer = product.get("data_layer") if isinstance(product.get("data_layer"), dict) else {}
+    variant = product.get("default_variant") if isinstance(product.get("default_variant"), dict) else {}
+    keys = ("brand", "brand_name", "brand_title", "brand_info", "manufacturer", "manufacturer_name", "manufacturer_title")
+    for source in (product, data_layer, variant):
+        for key in keys:
+            if source.get(key) not in (None, ""):
+                label = _metadata_label(source.get(key))
+                if label:
+                    return label
+    return ""
+
+
+def _listing_category(product: dict) -> str:
+    """Read explicit category or category-path metadata without confusing it with a brand."""
+    data_layer = product.get("data_layer") if isinstance(product.get("data_layer"), dict) else {}
+    keys = ("category", "category_name", "catalog_category_name", "category_title", "category_path", "categories")
+    for source in (product, data_layer):
+        for key in keys:
+            if source.get(key) not in (None, ""):
+                label = _metadata_label(source.get(key))
+                if label:
+                    return label
+    return ""
+
+
 def extract_product_rows(payload: Any) -> list[dict]:
     """Normalize legacy product arrays and current DigiKala v2 product widgets."""
     data = payload.get("data") if isinstance(payload, dict) else None
@@ -805,8 +850,10 @@ def extract_product_rows(payload: Any) -> list[dict]:
             "availability": availability,
             "rating": rating,
             "review_count": review_count,
-            "brand": (product.get("data_layer") or {}).get("brand", "") if isinstance(product.get("data_layer"), dict) else "",
-            "category": (product.get("data_layer") or {}).get("category", "") if isinstance(product.get("data_layer"), dict) else "",
+            "brand": _listing_brand(product),
+            "category": _listing_category(product),
+            "catalog_category_name": _listing_category(product),
+            "catalog_category_path": _listing_category(product),
             "source": "digikala_search_v2",
             "last_seen_at": iso_now(),
         })

@@ -1240,10 +1240,11 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertLess(dense["interval_seconds"], sparse["interval_seconds"])
         self.assertGreater(dense["interval_seconds"], 0)
         self.assertGreater(sparse["interval_seconds"], 0)
-        self.assertEqual(
+        self.assertLessEqual(
             sparse["interval_seconds"] * 5,
             sparse["seconds_from_plan_anchor_to_next_scan"],
         )
+        self.assertLessEqual(sparse["interval_seconds"], 57 * 60)
         expected_scan = current_scan_started + timedelta(seconds=cycle_seconds)
         self.assertEqual(
             sparse["estimated_next_clean_scan_at"],
@@ -1263,7 +1264,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(result["interval_seconds"], 0)
 
 
-    def test_product_cadence_is_not_capped_at_six_hours_for_sparse_cycles(self):
+    def test_product_cadence_caps_sparse_cycles_at_57_minutes(self):
         clean_started = self.now - timedelta(hours=50)
         clean_completed = self.now - timedelta(hours=8)
         current_scan_started = self.now - timedelta(minutes=5)
@@ -1276,8 +1277,46 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         result = calculate_product_publication_cadence(
             {}, status, 2, now=self.now, max_daily_posts=72
         )
-        self.assertGreater(result["interval_seconds"], 6 * 60 * 60)
+        self.assertEqual(result["interval_seconds"], 57 * 60)
+        self.assertLessEqual(result["interval_seconds"], 57 * 60)
         self.assertEqual(result["planned_product_slots"], 2)
+
+
+    def test_selected_products_keep_a_bounded_cadence_without_any_scan_eta(self):
+        state = {}
+        result = calculate_product_publication_cadence(
+            state, {}, 3, now=self.now, max_daily_posts=72
+        )
+        self.assertEqual(result["scan_eta_source"], "bounded_57_minute_fallback_window")
+        self.assertEqual(result["interval_seconds"], 57 * 60)
+        self.assertEqual(result["planned_product_slots"], 3)
+        self.assertGreater(
+            datetime.fromisoformat(result["estimated_next_clean_scan_at"]),
+            self.now,
+        )
+
+    def test_reflow_caps_a_long_clean_scan_window_at_57_minutes(self):
+        next_scan = self.now + timedelta(hours=9)
+        last_product = self.now - timedelta(minutes=4)
+        state = {
+            "last_product_channel_published_at": last_product.isoformat(),
+            "product_publication_cadence": {
+                "catalog_cycle_id": "long-scan",
+                "estimated_next_clean_scan_at": next_scan.isoformat(),
+                "scan_eta_source": "catalog_status_estimate",
+                "interval_seconds": 6 * 60 * 60,
+            },
+            "content_delivery_queue": {
+                "dkp-a": {"content_type": "product", "status": "queued", "sequence_number": 1, "platforms": {}},
+                "dkp-b": {"content_type": "product", "status": "queued", "sequence_number": 2, "platforms": {}},
+            },
+        }
+        result = reflow_product_queue_after_delivery(state, now=self.now)
+        self.assertEqual(result["pending_products"], 2)
+        self.assertEqual(result["interval_seconds"], 57 * 60)
+        for entry in state["content_delivery_queue"].values():
+            scheduled = datetime.fromisoformat(entry["scheduled_at"])
+            self.assertLessEqual(scheduled - last_product, timedelta(minutes=114))
 
     def test_product_plan_anchor_ignores_editorial_publication_clock(self):
         editorial_at = self.now - timedelta(minutes=2)

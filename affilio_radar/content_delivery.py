@@ -20,9 +20,10 @@ from product_quality import is_publishable_product_title
 TERMINAL_QUEUE_STATUSES = {"published", "cancelled", "stale_selection"}
 TERMINAL_PLATFORM_STATUSES = {"sent", "not_connected", "manual_review"}
 PENDING_PLATFORM_STATUSES = {"pending", "failed", "retry"}
+MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS = 57 * 60
 
-# Publication intervals are derived only from the selected product count and the
-# estimated next clean catalog scan. No fixed post interval or safety-gap constant exists.
+# Queue spacing remains scan-aware, but a missing/late scan ETA cannot strand
+# selected products. Product slots are capped at a 57-minute maximum spacing.
 PRODUCT_ID_PATTERN = re.compile(r"^(?:dkp|snp)-\d{1,12}$", re.IGNORECASE)
 
 
@@ -172,8 +173,8 @@ def calculate_product_publication_cadence(
         expected_next = current
         eta_source = "no_verified_scan_eta"
 
-    # An overdue or unestimable scan has no remaining publication window. Do not
-    # invent a 24-hour horizon; wait for a real next-scan ETA or the next scan result.
+    # A missing or overdue ETA is handled below with the bounded 57-minute
+    # continuity window. It must never leave a selected product unscheduled.
     horizon_seconds = max(0.0, (expected_next - current).total_seconds())
     cycle_id = clean_completed.isoformat() if clean_completed else (
         clean_started.isoformat() if clean_started else "initial-warmup"
@@ -196,9 +197,19 @@ def calculate_product_publication_cadence(
         anchor_kind = "cycle_start"
 
     remaining_seconds = max(0.0, (expected_next - anchor).total_seconds())
-    if candidates > 0 and remaining_seconds > 0:
+    if candidates > 0:
         planned_slots = candidates
-        interval_seconds = remaining_seconds / candidates
+        if remaining_seconds > 0:
+            interval_seconds = min(
+                MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS,
+                remaining_seconds / candidates,
+            )
+        else:
+            # A selected queue survives unavailable/overdue scan telemetry.
+            interval_seconds = float(MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS)
+            expected_next = anchor + timedelta(seconds=interval_seconds * candidates)
+            remaining_seconds = interval_seconds * candidates
+            eta_source = "bounded_57_minute_fallback_window"
     else:
         planned_slots = 0
         interval_seconds = 0.0
@@ -224,7 +235,8 @@ def calculate_product_publication_cadence(
         "daily_post_limit": daily_limit,
         "interval_seconds": interval_seconds,
         "interval_minutes": round(interval_seconds / 60, 3),
-        "policy": "equal_spacing_pending_selected_products_across_time_until_next_clean_catalog_scan",
+        "maximum_product_interval_seconds": MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS,
+        "policy": "evenly_spaced_scan_window_capped_at_57_minutes_with_bounded_no_eta_fallback",
     }
     state["product_publication_interval_seconds"] = interval_seconds
     state["product_publication_cadence"] = result
@@ -275,7 +287,10 @@ def reschedule_product_queue_evenly(
             plan["updated_at"] = current.isoformat()
         return {"scheduled": 0, "deferred": 0}
 
-    interval = max(0.0, float((cadence or {}).get("interval_seconds") or 0.0))
+    interval = min(
+        float(MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS),
+        max(0.0, float((cadence or {}).get("interval_seconds") or 0.0)),
+    )
     anchor = _utc(state.get("product_publication_plan_anchor_at")) or current
     anchor_kind = str(state.get("product_publication_plan_anchor_kind") or "cycle_start")
     last_product = get_last_product_channel_published_at(state)
@@ -359,34 +374,48 @@ def reflow_product_queue_after_delivery(
         return {"scheduled": 0, "deferred": 0, "pending_products": 0}
 
     scan_eta = _utc(cadence.get("estimated_next_clean_scan_at"))
-    last_product = get_last_product_channel_published_at(state)
-    if scan_eta is None or last_product is None:
-        return {
-            "scheduled": 0,
-            "deferred": pending_count,
-            "pending_products": pending_count,
-            "reason": "verified_scan_eta_or_product_receipt_unavailable",
-        }
+    last_product = get_last_product_channel_published_at(state) or current
+    fallback_used = False
+    if scan_eta is None or scan_eta <= last_product:
+        # Keep selected products publishable when scan telemetry is missing/stale.
+        # This is a bounded fallback horizon, not an added fixed delay per post.
+        fallback_used = True
+        interval_seconds = float(MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS)
+        scan_eta = last_product + timedelta(seconds=interval_seconds * pending_count)
+        remaining_seconds = interval_seconds * pending_count
+    else:
+        remaining_seconds = max(0.0, (scan_eta - last_product).total_seconds())
+        interval_seconds = min(
+            float(MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS),
+            remaining_seconds / pending_count,
+        )
+        if interval_seconds <= 0:
+            fallback_used = True
+            interval_seconds = float(MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS)
+            scan_eta = last_product + timedelta(seconds=interval_seconds * pending_count)
+            remaining_seconds = interval_seconds * pending_count
 
-    remaining_seconds = max(0.0, (scan_eta - last_product).total_seconds())
-    interval_seconds = remaining_seconds / pending_count
     updated_cadence = dict(cadence)
     updated_cadence.update({
         "calculated_at": current.isoformat(),
         "candidate_count": pending_count,
         "planned_product_slots": pending_count,
         "plan_anchor_at": last_product.isoformat(),
-        "plan_anchor_kind": "last_product",
+        "plan_anchor_kind": "last_product" if state.get("last_product_channel_published_at") else "bounded_fallback",
+        "estimated_next_clean_scan_at": scan_eta.isoformat(),
+        "scan_eta_source": "bounded_57_minute_fallback_window" if fallback_used else cadence.get("scan_eta_source"),
         "seconds_until_estimated_next_clean_scan": max(0.0, (scan_eta - current).total_seconds()),
         "seconds_from_plan_anchor_to_next_scan": remaining_seconds,
         "interval_seconds": interval_seconds,
         "interval_minutes": round(interval_seconds / 60, 3),
-        "policy": "equal_spacing_pending_selected_products_across_time_until_next_clean_catalog_scan",
+        "policy": "evenly_spaced_scan_window_capped_at_57_minutes_with_bounded_no_eta_fallback",
     })
     state["product_publication_cadence"] = updated_cadence
     state["product_publication_interval_seconds"] = interval_seconds
     state["product_publication_plan_anchor_at"] = last_product.isoformat()
-    state["product_publication_plan_anchor_kind"] = "last_product"
+    state["product_publication_plan_anchor_kind"] = (
+        "last_product" if state.get("last_product_channel_published_at") else "bounded_fallback"
+    )
 
     result = reschedule_product_queue_evenly(state, updated_cadence, now=current)
     return {

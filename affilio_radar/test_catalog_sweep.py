@@ -533,6 +533,41 @@ class CatalogSweepTests(unittest.TestCase):
         self.assertEqual(rows[1]["current_price"], 900_000)
         self.assertEqual(extract_total_pages(payload, 1, len(rows)), 12)
 
+    def test_extract_product_rows_reads_brand_and_category_metadata_variants(self):
+        payload = {
+            "data": {
+                "products": [
+                    {
+                        "id": 991001,
+                        "title_fa": "اسپیکر بلوتوثی مدل نمونه",
+                        "brand": {"title_fa": "سونی"},
+                        "category": {"name_fa": "صوتی و تصویری"},
+                        "default_variant": {
+                            "price": {"selling_price": 700000, "rrp_price": 1000000},
+                            "is_in_stock": True,
+                        },
+                    },
+                    {
+                        "id": 991002,
+                        "title_fa": "کابل شارژ مدل نمونه",
+                        "data_layer": {
+                            "brand": {"name": "Baseus"},
+                            "category": {"title": "لوازم جانبی دیجیتال"},
+                        },
+                        "default_variant": {
+                            "price": {"selling_price": 200000, "rrp_price": 300000},
+                            "is_in_stock": True,
+                        },
+                    },
+                ]
+            }
+        }
+        rows = extract_product_rows(payload)
+        self.assertEqual(rows[0]["brand"], "سونی")
+        self.assertEqual(rows[0]["category"], "صوتی و تصویری")
+        self.assertEqual(rows[1]["brand"], "Baseus")
+        self.assertEqual(rows[1]["catalog_category_name"], "لوازم جانبی دیجیتال")
+
     def test_extract_product_rows_parses_prices_reviews_and_product_id(self):
         payload = {
             "data": {

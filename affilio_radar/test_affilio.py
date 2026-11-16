@@ -1552,6 +1552,64 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(radar_module.BRAND_REPEAT_COOLDOWN_HOURS, 24)
         self.assertEqual(radar_module.PUBLICATION_SIMILARITY_COOLDOWN_HOURS, 24)
 
+    def test_category_and_use_case_repeat_guards_have_independent_cooldowns(self):
+        self.assertEqual(radar_module.CATEGORY_REPEAT_COOLDOWN_HOURS, 2)
+        self.assertEqual(radar_module.USE_CASE_REPEAT_COOLDOWN_HOURS, 3)
+
+    def test_category_repeat_guard_is_independent_from_family_and_similarity(self):
+        now = datetime(2026, 11, 16, 12, 0, tzinfo=timezone.utc)
+        previous = {"product_id": "dkp-old", "title": "old", "ts": (now - timedelta(hours=1)).timestamp()}
+        candidate = {"product_id": "dkp-new", "title": "new"}
+
+        def group(row):
+            return (
+                "home_cleaning",
+                "home_cleaning:vacuum_cleaning" if row.get("product_id") == "dkp-old" else "home_cleaning:surface_cleaning",
+                "",
+            )
+
+        radar_module._LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS = {"rejection_events": []}
+        with (
+            patch.object(radar_module, "_publication_diversity_group", side_effect=group),
+            patch.object(radar_module, "_publication_family_guard_key", side_effect=lambda row: "family:old" if row.get("product_id") == "dkp-old" else "family:new"),
+            patch.object(radar_module, "_publication_use_case_group", side_effect=lambda row: "home_cleaning" if row.get("product_id") == "dkp-old" else "personal_care"),
+            patch.object(radar_module, "_publication_products_are_similar", return_value=False),
+        ):
+            selected = radar_module._filter_recent_publication_repeats(
+                [candidate], {}, [previous], now, label="TEST_CATEGORY",
+            )
+        self.assertEqual(selected, [])
+        reasons = radar_module._LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS["rejection_events"][-1]["reasons"]
+        self.assertIn("category_repeat", reasons)
+        self.assertNotIn("use_case_repeat", reasons)
+
+    def test_use_case_repeat_guard_is_independent_from_category_family_and_similarity(self):
+        now = datetime(2026, 11, 16, 12, 0, tzinfo=timezone.utc)
+        previous = {"product_id": "dkp-old", "title": "old", "ts": (now - timedelta(hours=2)).timestamp()}
+        candidate = {"product_id": "dkp-new", "title": "new"}
+
+        def group(row):
+            return (
+                "home_cleaning" if row.get("product_id") == "dkp-old" else "personal_care",
+                "home_cleaning:vacuum_cleaning" if row.get("product_id") == "dkp-old" else "personal_care:skincare",
+                "",
+            )
+
+        radar_module._LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS = {"rejection_events": []}
+        with (
+            patch.object(radar_module, "_publication_diversity_group", side_effect=group),
+            patch.object(radar_module, "_publication_family_guard_key", side_effect=lambda row: "family:old" if row.get("product_id") == "dkp-old" else "family:new"),
+            patch.object(radar_module, "_publication_use_case_group", return_value="home_cleaning"),
+            patch.object(radar_module, "_publication_products_are_similar", return_value=False),
+        ):
+            selected = radar_module._filter_recent_publication_repeats(
+                [candidate], {}, [previous], now, label="TEST_USE_CASE",
+            )
+        self.assertEqual(selected, [])
+        reasons = radar_module._LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS["rejection_events"][-1]["reasons"]
+        self.assertIn("use_case_repeat", reasons)
+        self.assertNotIn("category_repeat", reasons)
+
     def test_recent_brand_is_blocked_for_24_hours_and_released_afterward(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
         published = {
@@ -1885,11 +1943,27 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(classify_category("پولوشرت آستین کوتاه مردانه مدل نمونه"), "fashion")
         self.assertEqual(classify_category("چراغ پیشانی شارژی مدل نمونه"), "lighting")
         self.assertEqual(classify_category("غذای گربه مدل نمونه"), "pet_supplies")
+        self.assertEqual(classify_category("گوشت گردن گوسفندی بسته 1 کیلوگرم"), "grocery_food")
+        self.assertEqual(classify_category("ماست پرچرب 900 گرم"), "grocery_food")
+        self.assertEqual(radar_module._publication_use_case_group("پودر سیر شاهسوند - 120 گرم"), "grocery_food")
+        self.assertEqual(radar_module._publication_use_case_group("شورت آموزشی کودک"), "baby_care")
         self.assertEqual(classify_category("جارو شارژی مدل نمونه"), "home_cleaning")
         self.assertEqual(classify_category("بازی فکری کودک مدل نمونه"), "kids_sports")
         self.assertEqual(classify_category("توپ فوتبال مدل نمونه"), "sports_outdoor")
         self.assertEqual(classify_category("لیزر پوینتر ارائه مدل نمونه"), "presentation_tools")
         self.assertEqual(classify_category("لوازم نقاشی و طراحی مدل نمونه"), "arts_crafts")
+
+    def test_nested_brand_metadata_is_normalized_and_not_read_from_taxonomy(self):
+        _, _, brand_nested = radar_module._publication_diversity_group({
+            "title": "اسپیکر بلوتوثی قابل حمل",
+            "brand": {"name_fa": "سونی"},
+        })
+        self.assertEqual(brand_nested, "sony")
+        _, _, brand_title = radar_module._publication_diversity_group({
+            "title": "هدفون Sony مدل WH-1000",
+            "catalog_category_name": "سونی و محصولات صوتی",
+        })
+        self.assertEqual(brand_title, "sony")
 
     def test_sesame_cream_sweets_are_not_misclassified_as_skincare(self):
         food = {
