@@ -577,6 +577,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         self.assertEqual(radar._publication_diversity_group(title_only)[2], "xiaomi")
 
     def test_category_repeat_is_soft_deferred_but_does_not_starve_a_thin_queue(self):
+        # Category and use-case diversity are preferences, not hard publication bans.
         now = self.now
         published = {
             "dkp-old-headphones": {
