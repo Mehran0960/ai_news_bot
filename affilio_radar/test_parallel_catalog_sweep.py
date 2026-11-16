@@ -179,7 +179,7 @@ class ParallelCatalogSweepTests(unittest.TestCase):
     def test_parallel_scan_summary_reports_the_real_demand_first_order(self):
         source = Path(sweep.__file__).read_text(encoding="utf-8")
         self.assertIn(
-            "sort=harmonic_four_factor,demand,affordability,generality,discount_value",
+            "sort=harmonic_three_factor,live_demand,generality,real_discount_value",
             source,
         )
         self.assertNotIn(
