@@ -538,7 +538,9 @@ class EditorialPublisherTests(unittest.TestCase):
             _handle_channel_destination(
                 state, entry, "telegram", b"png-bytes", "editorial test", NOW
             )
-        sender.assert_called_once_with("telegram", b"png-bytes", "editorial test")
+        sender.assert_called_once_with(
+            "telegram", b"png-bytes", "editorial test", item=entry["payload"]
+        )
         self.assertEqual(entry["platforms"]["telegram"]["status"], "sent")
 
     def test_api_acceptance_without_message_id_is_manual_review(self):
