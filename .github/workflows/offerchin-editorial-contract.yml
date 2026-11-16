@@ -10,6 +10,8 @@ on:
       - "affilio_radar/publisher.py"
       - "affilio_radar/affilio_radar.py"
       - "affilio_radar/editorial_bank.json"
+      - "affilio_radar/expiration_monitor.py"
+      - "affilio_radar/test_expiration_monitor.py"
       - "affilio_radar/test_content_delivery.py"
       - "affilio_radar/test_editorial_content.py"
       - "affilio_radar/test_editorial_publisher.py"
@@ -50,7 +52,8 @@ jobs:
             affilio_radar/editorial_publisher.py \
             affilio_radar/editorial_video.py \
             affilio_radar/content_delivery.py \
-            affilio_radar/publisher.py
+            affilio_radar/publisher.py \
+            affilio_radar/expiration_monitor.py
       - name: Validate the reviewed evergreen content bank
         working-directory: affilio_radar
         run: |
@@ -120,3 +123,9 @@ jobs:
             test_editorial_content.py \
             test_editorial_publisher.py \
             test_content_delivery.py
+
+      - name: Verify 48-hour retention with mocked platform deletions
+        working-directory: affilio_radar
+        run: |
+          python -m unittest -v \
+            test_expiration_monitor.ExpirationMonitorTests.test_48_hour_retention_deletes_product_posts_but_preserves_editorial_and_videos
