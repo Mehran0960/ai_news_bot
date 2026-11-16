@@ -126,6 +126,10 @@ class EditorialContentTests(unittest.TestCase):
             "publisher": "دیجی‌کالا مگ",
             "url": "https://www.digikala.com/mag/example/",
         }]
+        local_item["claims"] = [{
+            "text": "راهنمای خرید مرتبط با موضوع",
+            "source_ids": ["digikala-mag"],
+        }]
         chosen = select_editorial_fallback(
             [global_item, local_item], {}, now=NOW, related_product={}
         )
