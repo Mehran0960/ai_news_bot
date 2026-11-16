@@ -2,264 +2,116 @@ from __future__ import annotations
 
 import unittest
 from datetime import datetime, timezone
-from unittest.mock import patch
 
 import affilio_radar as radar
 from offerchin_four_factor import (
     POLICY_VERSION,
-    affordability_absolute_score,
-    apply_four_factor_scores,
+    apply_three_factor_scores,
     discount_attractiveness_score,
     discount_publish_gate,
-    four_factor_sort_key,
-    generality_score,
     infer_use_case_group,
-    harmonic_mean,
+    three_factor_sort_key,
 )
 
 
-class OfferChinFourFactorTests(unittest.TestCase):
+class OfferChinThreeFactorTests(unittest.TestCase):
     def setUp(self):
-        self.now = datetime(2026, 11, 11, 12, 0, tzinfo=timezone.utc)
+        self.now = datetime(2026, 11, 16, 8, 0, tzinfo=timezone.utc)
 
-    def _score(self, rows, independent=None):
-        independent = independent or set()
-        return apply_four_factor_scores(
+    def product(self, **overrides):
+        return {
+            "current_price": 1_000_000,
+            "original_price": 2_000_000,
+            "discount_percent": 50,
+            "savings_toman": 1_000_000,
+            **overrides,
+        }
+
+    def score(self, rows):
+        return apply_three_factor_scores(
             rows,
-            live_demand_score_fn=lambda row: row.get("test_live_demand", 80),
+            live_demand_score_fn=lambda row: row.get("test_demand", 80),
             use_case_group_fn=lambda row: row.get("test_group", "kitchen_food"),
-            discount_verified_fn=lambda row: row.get("product_id") in independent,
+            discount_verified_fn=lambda row: bool(row.get("independent_price_evidence")),
             now=self.now,
         )
 
-    def test_low_percentage_and_low_savings_are_rejected_without_independent_price_evidence(self):
-        row = {
-            "current_price": 9_500_000,
-            "original_price": 10_000_000,
-            "discount_percent": 5,
-            "savings_toman": 500_000,
-        }
+    def test_three_factor_policy_contains_only_demand_generality_and_discount(self):
+        row = self.product()
+        self.score([row])
+        score = row["offerchin_three_factor"]
+        self.assertEqual(score["policy_version"], POLICY_VERSION)
+        self.assertEqual(score["factor_count"], 3)
+        self.assertEqual(
+            set(score) & {"live_demand", "generality", "discount_attractiveness"},
+            {"live_demand", "generality", "discount_attractiveness"},
+        )
+        self.assertNotIn("affordability", score)
+        self.assertEqual(len(three_factor_sort_key(row)), 5)
+
+    def test_affordability_or_price_never_changes_candidate_priority(self):
+        low_price = self.product(current_price=100_000, original_price=200_000, savings_toman=100_000)
+        high_price = self.product(current_price=90_000_000, original_price=180_000_000, savings_toman=90_000_000)
+        self.score([low_price, high_price])
+        self.assertEqual(low_price["offerchin_three_factor"]["balanced_score"],
+                         high_price["offerchin_three_factor"]["balanced_score"])
+        self.assertEqual(three_factor_sort_key(low_price), three_factor_sort_key(high_price))
+
+    def test_false_discount_arithmetic_is_rejected(self):
+        row = self.product(discount_percent=80)
         eligible, score, evidence = discount_publish_gate(row, independently_verified=False)
         self.assertFalse(eligible)
-        self.assertLess(score, 40)
-        self.assertEqual(evidence, "live_retailer_markdown_only")
-
-    def test_small_percentage_can_pass_only_when_independently_verified_and_savings_are_real(self):
-        row = {
-            "current_price": 9_500_000,
-            "original_price": 10_000_000,
-            "discount_percent": 5,
-            "savings_toman": 500_000,
-        }
-        eligible, score, evidence = discount_publish_gate(row, independently_verified=True)
-        self.assertTrue(eligible)
-        self.assertGreaterEqual(score, 40)
-        self.assertEqual(evidence, "fresh_independent_history_or_market")
-
-    def test_other_strong_factors_cannot_override_a_weak_discount_gate(self):
-        row = {
-            "current_price": 9_500_000,
-            "original_price": 10_000_000,
-            "discount_percent": 5,
-            "savings_toman": 500_000,
-            "test_live_demand": 100,
-            "test_group": "home_cleaning",
-        }
-        self._score([row])
-        self.assertGreater(row["offerchin_four_factor"]["live_demand"], 90)
-        self.assertGreater(row["offerchin_four_factor"]["generality"], 90)
-        self.assertLess(row["offerchin_four_factor"]["discount_attractiveness"], 40)
-        eligible, _, _ = discount_publish_gate(row, independently_verified=False)
-        self.assertFalse(eligible)
-
-    def test_product_taxonomy_distinguishes_software_from_mobile_hardware(self):
-        self.assertEqual(
-            infer_use_case_group("", "[MA, نرم افزار]"), "software_tools"
-        )
-        self.assertEqual(
-            infer_use_case_group("", "گوشی 512 گیگابایت"), "mobile_productivity"
-        )
-        self.assertEqual(generality_score("software_tools"), 40)
-
-    def test_harmonic_mean_penalizes_a_single_weak_dimension(self):
-        balanced = harmonic_mean([100, 100, 100, 10])
-        self.assertAlmostEqual(balanced, 30.77, places=2)
-        self.assertLess(balanced, sum([100, 100, 100, 10]) / 4)
-
-    def test_incomplete_four_factor_data_falls_back_without_discount_tiebreak(self):
-        row = {
-            "current_price": 500_000,
-            "original_price": 1_000_000,
-            "discount_percent": 80,
-            "savings_toman": 800_000,
-        }
-        apply_four_factor_scores(
-            [row],
-            live_demand_score_fn=lambda _row: 0,
-            use_case_group_fn=lambda _row: "kitchen_food",
-            discount_verified_fn=lambda _row: True,
-            now=self.now,
-        )
-        self.assertEqual(four_factor_sort_key(row), (0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
-
-    def test_affordability_uses_public_monthly_income_reference_and_final_cash_price(self):
-        from offerchin_four_factor import (
-            AFFORDABILITY_REFERENCE_MONTHLY_INCOME_TOMAN,
-            AFFORDABILITY_FULL_SCORE_PRICE_SHARE,
-        )
-        anchor = AFFORDABILITY_REFERENCE_MONTHLY_INCOME_TOMAN * AFFORDABILITY_FULL_SCORE_PRICE_SHARE
-        self.assertEqual(affordability_absolute_score(anchor), 100)
-        self.assertGreater(affordability_absolute_score(anchor), affordability_absolute_score(anchor * 10))
-        self.assertGreater(affordability_absolute_score(anchor * 10), affordability_absolute_score(anchor * 100))
-        self.assertEqual(affordability_absolute_score(0), 0)
-
-    def test_installment_down_payment_never_replaces_final_cash_price_in_affordability(self):
-        cash_only = {"current_price": 10_000_000}
-        installment_ad = {
-            **cash_only,
-            "installment_down_payment_toman": 1_000_000,
-            "installment_terms_verified": True,
-        }
-        rows = [cash_only, installment_ad]
-        self._score(rows)
-        first, second = rows
-        self.assertEqual(first["offerchin_four_factor"]["affordability_basis"], "listed_final_cash_price_excluding_unverified_delivery_fees")
-        self.assertEqual(second["offerchin_four_factor"]["affordability_basis"], "listed_final_cash_price_excluding_unverified_delivery_fees")
-        self.assertEqual(
-            first["offerchin_four_factor"]["affordability"],
-            second["offerchin_four_factor"]["affordability"],
-        )
-        self.assertEqual(
-            second["offerchin_four_factor"]["affordability_reference_monthly_income_toman"],
-            16_625_550,
-        )
-
-    def test_unknown_use_case_is_not_mistaken_for_general_mass_market(self):
-        self.assertGreater(generality_score("kitchen_food"), generality_score("tabletop_games"))
-        self.assertGreater(generality_score("home_cleaning"), generality_score("unknown"))
-
-    def test_independent_price_evidence_improves_discount_attractiveness(self):
-        row = {
-            "current_price": 500_000,
-            "original_price": 1_000_000,
-            "discount_percent": 50,
-            "savings_toman": 500_000,
-        }
-        listed_score, listed_source = discount_attractiveness_score(row, False)
-        verified_score, verified_source = discount_attractiveness_score(row, True)
-        self.assertGreater(verified_score, listed_score)
-        self.assertEqual(listed_source, "live_retailer_markdown_only")
-        self.assertEqual(verified_source, "fresh_independent_history_or_market")
-
-    def test_inconsistent_discount_arithmetic_gets_no_value_score(self):
-        score, reason = discount_attractiveness_score({
-            "current_price": 500_000,
-            "original_price": 1_000_000,
-            "discount_percent": 70,
-            "savings_toman": 500_000,
-        })
         self.assertEqual(score, 0)
-        self.assertEqual(reason, "inconsistent_markdown_arithmetic")
+        self.assertEqual(evidence, "inconsistent_markdown_arithmetic")
 
-    def test_category_price_cohort_prefers_lower_entry_price(self):
-        rows = []
-        for index in range(8):
-            price = (index + 1) * 100_000
-            rows.append({
-                "product_id": f"dkp-{index + 1}",
-                "current_price": price,
-                "original_price": price * 2,
-                "discount_percent": 50,
-                "savings_toman": price,
-                "test_live_demand": 80,
-                "test_group": "kitchen_food",
-            })
-        self._score(rows)
-        cheapest, most_expensive = rows[0], rows[-1]
-        cheap_scores = cheapest["offerchin_four_factor"]
-        high_scores = most_expensive["offerchin_four_factor"]
-        self.assertEqual(cheap_scores["price_cohort_size"], 8)
-        self.assertGreater(cheap_scores["affordability"], high_scores["affordability"])
-        self.assertGreater(
-            four_factor_sort_key(cheapest),
-            four_factor_sort_key(most_expensive),
+    def test_small_discount_requires_independent_evidence_to_clear_gate(self):
+        row = self.product(
+            current_price=9_500_000,
+            original_price=10_000_000,
+            discount_percent=5,
+            savings_toman=500_000,
         )
+        weak = discount_publish_gate(row, independently_verified=False)
+        strong = discount_publish_gate(row, independently_verified=True)
+        self.assertFalse(weak[0])
+        self.assertTrue(strong[0])
+        self.assertGreater(strong[1], weak[1])
 
-    def test_equal_candidates_are_ranked_by_all_four_dimensions(self):
-        base = {
-            "current_price": 1_000_000,
-            "original_price": 1_500_000,
-            "discount_percent": 33,
-            "savings_toman": 500_000,
-        }
-        candidates = [
-            {"product_id": "cheap_niche", **base, "current_price": 200_000, "original_price": 300_000,
-             "discount_percent": 33, "savings_toman": 100_000, "test_live_demand": 80, "test_group": "tabletop_games"},
-            {"product_id": "balanced_daily", **base, "test_live_demand": 80, "test_group": "kitchen_food"},
-            {"product_id": "weak_demand", **base, "test_live_demand": 35, "test_group": "kitchen_food"},
-        ]
-        self._score(candidates)
-        ranked = sorted(candidates, key=four_factor_sort_key, reverse=True)
-        self.assertEqual(ranked[0]["product_id"], "balanced_daily")
-        self.assertLess(
-            candidates[1]["offerchin_four_factor"]["balanced_score"],
-            80,
+    def test_weak_discount_cannot_be_compensated_by_demand_or_generality(self):
+        row = self.product(
+            current_price=9_500_000,
+            original_price=10_000_000,
+            discount_percent=5,
+            savings_toman=500_000,
+            test_demand=100,
+            test_group="home_cleaning",
         )
+        self.score([row])
+        self.assertLess(row["offerchin_three_factor"]["discount_attractiveness"], 40)
+        self.assertFalse(discount_publish_gate(row)[0])
 
-    def test_clicks_and_synthetic_popularity_fields_do_not_change_any_score(self):
-        baseline = {
-            "current_price": 500_000,
-            "original_price": 1_000_000,
-            "discount_percent": 50,
-            "savings_toman": 500_000,
-            "test_live_demand": 75,
-            "test_group": "kitchen_food",
-        }
-        changed = {
-            **baseline,
-            "click_count_30d": 1_000_000,
-            "demand_score": 100_000,
-            "current_demand_score": 100_000,
-            "review_count": 999_999,
-            "rating": 5,
-        }
-        self._score([baseline, changed])
+    def test_product_title_taxonomy_precedes_parent_catalog_category(self):
         self.assertEqual(
-            baseline["offerchin_four_factor"],
-            changed["offerchin_four_factor"],
+            infer_use_case_group("دفترچه یادداشت طرح گربه", "آرایشی و بهداشتی"),
+            "books_learning",
+        )
+        self.assertEqual(
+            radar.classify_category("دفترچه یادداشت طرح گربه"),
+            "books_stationery",
         )
 
-    def test_live_publication_selector_uses_batch_four_factor_scores(self):
-        products = []
-        for index in range(8):
-            price = (index + 1) * 100_000
-            pid = f"dkp-{100 + index}"
-            products.append({
-                "product_id": pid,
-                "title": f"چای ساز کاربردی مدل {index}",
-                "current_price": price,
-                "original_price": price * 2,
-                "discount_percent": 50,
-                "savings_toman": price,
-                "selection_discount_floor": 1,
-                "test_group": "kitchen_food",
-                "test_live_demand": 80,
-            })
-        queue = {row["product_id"]: {} for row in products}
-        eligible = {row["product_id"]: row for row in products}
-        with patch.object(radar, "has_verified_market_demand", return_value=True), \
-             patch.object(radar, "has_attractive_discount_value", return_value=False), \
-             patch.object(radar, "_publication_use_case_group", side_effect=lambda row: row["test_group"]), \
-             patch.object(radar, "_offerchin_live_demand_score", side_effect=lambda row, now=None: row["test_live_demand"]):
-            selected = radar.select_publish_candidates(
-                queue, eligible, now=self.now, published={}, recent_publications=[]
-            )
-        self.assertTrue(selected)
-        self.assertEqual(selected[0]["product_id"], "dkp-100")
+    def test_generic_animal_artwork_is_not_pet_care(self):
         self.assertEqual(
-            selected[0]["offerchin_four_factor"]["policy_version"],
-            POLICY_VERSION,
+            infer_use_case_group("دفترچه یادداشت طرح گربه", ""),
+            "books_learning",
         )
+
+    def test_food_and_automotive_titles_get_specific_use_cases(self):
+        self.assertEqual(infer_use_case_group("کره نارگیل طبیعی", "آرایشی و بهداشتی"), "grocery_food")
+        self.assertEqual(infer_use_case_group("ضدیخ و مایع رادیاتور خودرو", ""), "automotive")
+
+    def test_category_metadata_remains_a_fallback_when_title_is_unknown(self):
+        self.assertEqual(infer_use_case_group("کالای مدل X", "نرم افزار و سیستم عامل"), "software_tools")
 
 
 if __name__ == "__main__":
