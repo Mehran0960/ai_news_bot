@@ -235342,8 +235342,8 @@
       "warranty-terms"
     ],
     "cycle_number": 1,
-    "last_editorial_id": "product-description-details",
-    "last_topic": "product-inspection",
+    "last_editorial_id": "review-patterns",
+    "last_topic": "review-literacy",
     "used_ids": [
       "accessories-compatibility",
       "account-security",
@@ -235358,6 +235358,7 @@
       "negative-review-balance",
       "plan-before-buy",
       "product-description-details",
+      "review-patterns",
       "seller-and-return-policy"
     ]
   },
@@ -236320,6 +236321,56 @@
       "related_product_id": "dkp-22153796",
       "sequence_number": 1355,
       "topic": "product-inspection"
+    },
+    {
+      "content_id": "editorial:review-patterns",
+      "delivery_duration_seconds": 0.7,
+      "destinations": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-16T15:05:49.241388+00:00",
+          "attempts": 1,
+          "message_id": "2107",
+          "status": "sent",
+          "updated_at": "2026-11-16T15:05:51.253392+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "eitaa_not_enabled_or_credentials_missing",
+          "status": "not_connected",
+          "updated_at": "2026-11-16T15:05:58.669656+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-16T15:05:51.551161+00:00",
+          "attempts": 1,
+          "message_id": "1973751472186588651",
+          "status": "sent",
+          "updated_at": "2026-11-16T15:05:58.364264+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-16T15:05:47.769170+00:00",
+          "attempts": 1,
+          "message_id": "1581",
+          "status": "sent",
+          "updated_at": "2026-11-16T15:05:48.930330+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "editorial_id": "review-patterns",
+      "published_at": "2026-11-16T15:05:48.930330+00:00",
+      "related_product_id": "dkp-20428381",
+      "sequence_number": 1356,
+      "topic": "review-literacy"
     }
   ],
   "editorial_delivery_queue": {
@@ -236327,7 +236378,9 @@
       "attempt_count": 0,
       "content_id": "editorial:review-patterns",
       "content_type": "editorial",
+      "delivery_duration_seconds": 0.7,
       "delivery_runway_seconds": 33,
+      "delivery_started_at": "2026-11-16T15:05:59.925051+00:00",
       "dispatch_runway_seconds": 93,
       "next_attempt_at": "2026-11-16T15:04:42.771750+00:00",
       "payload": {
@@ -236354,30 +236407,42 @@
         "title": "افزایش ناگهانی نظرها را با احتیاط بررسی کن",
         "topic": "review-literacy"
       },
+      "photo_slot_attempted_at": "2026-11-16T15:05:45.934835+00:00",
       "platforms": {
         "aparat": {
           "attempts": 0,
           "status": "pending"
         },
         "bale": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T15:05:49.241388+00:00",
+          "attempts": 1,
+          "message_id": "2107",
+          "status": "sent",
+          "updated_at": "2026-11-16T15:05:51.253392+00:00"
         },
         "eitaa": {
           "attempts": 0,
-          "status": "pending"
+          "last_error": "eitaa_not_enabled_or_credentials_missing",
+          "status": "not_connected",
+          "updated_at": "2026-11-16T15:05:58.669656+00:00"
         },
         "filo": {
           "attempts": 0,
           "status": "pending"
         },
         "rubika": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T15:05:51.551161+00:00",
+          "attempts": 1,
+          "message_id": "1973751472186588651",
+          "status": "sent",
+          "updated_at": "2026-11-16T15:05:58.364264+00:00"
         },
         "telegram": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T15:05:47.769170+00:00",
+          "attempts": 1,
+          "message_id": "1581",
+          "status": "sent",
+          "updated_at": "2026-11-16T15:05:48.930330+00:00"
         },
         "youtube": {
           "attempts": 0,
@@ -236388,7 +236453,7 @@
       "scheduled_at": "2026-11-16T15:04:42.771750+00:00",
       "selected_at": "2026-11-16T14:59:09.724175+00:00",
       "sequence_number": 1356,
-      "status": "queued",
+      "status": "partial",
       "window_closes_at": "2026-11-16T15:09:43.566455+00:00"
     }
   },
@@ -236697,12 +236762,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-16T14:59:08.977045+00:00",
+  "last_channel_published_at": "2026-11-16T15:05:51.253392+00:00",
   "last_content_selection_at": "2026-11-16T14:43:14.737618+00:00",
   "last_editorial_attempt_at": "2026-11-16T14:59:09.724175+00:00",
-  "last_editorial_confirmed_at": "2026-11-16T14:52:54.527190+00:00",
+  "last_editorial_confirmed_at": "2026-11-16T15:05:58.364264+00:00",
   "last_product_channel_published_at": "2026-11-16T14:59:08.977045+00:00",
-  "last_published_at": "2026-11-16T14:59:08.977045+00:00",
+  "last_published_at": "2026-11-16T15:05:51.253392+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
