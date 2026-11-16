@@ -20,15 +20,15 @@ from typing import Any
 import requests
 
 try:
-    from .offerchin_four_factor import (
-        apply_four_factor_scores as _apply_four_factor_scores,
-        four_factor_sort_key as _four_factor_sort_key,
+    from .offerchin_three_factor import (
+        apply_three_factor_scores as _apply_three_factor_scores,
+        three_factor_sort_key as _three_factor_sort_key,
         infer_use_case_group as _infer_use_case_group,
     )
 except ImportError:
-    from offerchin_four_factor import (
-        apply_four_factor_scores as _apply_four_factor_scores,
-        four_factor_sort_key as _four_factor_sort_key,
+    from offerchin_three_factor import (
+        apply_three_factor_scores as _apply_three_factor_scores,
+        three_factor_sort_key as _three_factor_sort_key,
         infer_use_case_group as _infer_use_case_group,
     )
 
@@ -1020,7 +1020,7 @@ def catalog_category_is_consistent(row: dict, catalog_category_name: object) -> 
 
 
 def _score_catalog_candidate_cohort(rows: list[dict]) -> None:
-    _apply_four_factor_scores(
+    _apply_three_factor_scores(
         rows,
         live_demand_score_fn=_catalog_live_demand_score,
         use_case_group_fn=lambda row: _infer_use_case_group(
@@ -1042,8 +1042,8 @@ def _score_catalog_candidate_cohort(rows: list[dict]) -> None:
 
 
 def catalog_candidate_sort_key(row: dict) -> tuple:
-    """Use balanced four-factor priority; retain demand/value order for incomplete cards."""
-    if not isinstance(row.get("offerchin_four_factor"), dict):
+    """Use balanced three-factor priority; retain demand/value order for incomplete cards."""
+    if not isinstance(row.get("offerchin_three_factor"), dict):
         _score_catalog_candidate_cohort([row])
     rank = _fresh_best_selling_rank(row)
     rank_strength = (
@@ -1051,7 +1051,7 @@ def catalog_candidate_sort_key(row: dict) -> tuple:
         if rank is not None else 0
     )
     return (
-        *_four_factor_sort_key(row),
+        *_three_factor_sort_key(row),
         _candidate_demand(row),
         rank_strength,
         max(0, _normal_int(row.get("discount_percent"))),
