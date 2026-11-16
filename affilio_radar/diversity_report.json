@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T06:35:23.124340+00:00",
+  "generated_at": "2026-11-16T06:42:03.416882+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -396,146 +396,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1471,
+    "all_time_count": 1479,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 422,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T05:35:39.136583+00:00",
-        "brand": "",
-        "catalog_category_id": "10727",
-        "catalog_category_name": "غذای آماده",
-        "category": "grocery_food",
-        "compared_to_product_id": "dkp-22004885",
-        "family": "digikala_category:10727",
-        "product_id": "dkp-22004842",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کنسرو گوشت بوقلمون با طعم شوید پارس بوقلمون - 180 گرم",
-        "use_case": "grocery_food"
-      },
-      {
-        "at": "2026-11-16T05:35:39.136583+00:00",
-        "brand": "",
-        "catalog_category_id": "6475",
-        "catalog_category_name": "بالم لب",
-        "category": "other",
-        "compared_to_product_id": "dkp-9089280",
-        "family": "digikala_category:6475",
-        "product_id": "dkp-88606",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "بالم لب مای مدل ضد آفتاب با SPF 25، محافظت از لب در برابر اشعه خورشید، نرم‌کننده و ضد خشکی",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-16T05:35:39.136583+00:00",
-        "brand": "",
-        "catalog_category_id": "9286",
-        "catalog_category_name": "ست رسمی زنانه",
-        "category": "grocery_food",
-        "compared_to_product_id": "dkp-21663217",
-        "family": "digikala_category:9286",
-        "product_id": "dkp-21438607",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ست 3 تکه لباس رسمی زنانه السانا مدل گندمک کد 2457",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-16T05:35:39.136583+00:00",
-        "brand": "",
-        "catalog_category_id": "10932",
-        "catalog_category_name": "دئودورانت",
-        "category": "other",
-        "compared_to_product_id": "dkp-14915569",
-        "family": "digikala_category:10932",
-        "product_id": "dkp-21526168",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "رول دئودورانت مردانه سینره مدل FROST PEAK حجم 50 میلی‌لیتر",
-        "use_case": "catalog_taxonomy_other"
-      },
-      {
-        "at": "2026-11-16T05:45:06.908065+00:00",
-        "brand": "",
-        "catalog_category_id": "9224",
-        "catalog_category_name": "گوشت گوسفند",
-        "category": "other",
-        "compared_to_product_id": "dkp-20502655",
-        "family": "digikala_category:9224",
-        "product_id": "dkp-21586430",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-16T05:45:06.908065+00:00",
-        "brand": "",
-        "catalog_category_id": "9473",
-        "catalog_category_name": "زیرپوش مردانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-7284546",
-        "family": "digikala_category:9473",
-        "product_id": "dkp-720533",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "زیرپوش مردانه آریان نخ باف کد 1211",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-16T05:45:06.908065+00:00",
-        "brand": "",
-        "catalog_category_id": "10836",
-        "catalog_category_name": "روغن کنجد",
-        "category": "grocery_food",
-        "compared_to_product_id": "dkp-14568455",
-        "family": "digikala_category:10836",
-        "product_id": "dkp-14568855",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "روغن کنجد تصفیه شده توسکا - 1350 گرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-16T05:53:04.988731+00:00",
-        "brand": "",
-        "catalog_category_id": "9371",
-        "catalog_category_name": "کفش پاشنه دار زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-6223366",
-        "family": "digikala_category:9371",
-        "product_id": "dkp-21219236",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش پاشنه‌دار زنانه مدل jzi-852",
-        "use_case": "fashion_lifestyle"
-      },
       {
         "at": "2026-11-16T05:53:04.988731+00:00",
         "brand": "",
@@ -730,6 +597,142 @@
         ],
         "title": "شورت پسرانه آریان نخ باف مدل 4311",
         "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T06:42:03.416882+00:00",
+        "brand": "",
+        "catalog_category_id": "9371",
+        "catalog_category_name": "کفش پاشنه دار زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-6223366",
+        "family": "digikala_category:9371",
+        "product_id": "dkp-3584477",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش زنانه پاتکان کد NIC829",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T06:42:03.416882+00:00",
+        "brand": "",
+        "catalog_category_id": "10727",
+        "catalog_category_name": "غذای آماده",
+        "category": "grocery_food",
+        "compared_to_product_id": "dkp-22004885",
+        "family": "digikala_category:10727",
+        "product_id": "dkp-22004842",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کنسرو گوشت بوقلمون با طعم شوید پارس بوقلمون - 180 گرم",
+        "use_case": "grocery_food"
+      },
+      {
+        "at": "2026-11-16T06:42:03.416882+00:00",
+        "brand": "",
+        "catalog_category_id": "6765",
+        "catalog_category_name": "شورت آموزشی کودک",
+        "category": "kids_sports",
+        "compared_to_product_id": "dkp-16470746",
+        "family": "digikala_category:6765",
+        "product_id": "dkp-16470620",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "شورت آموزشی کودک وی کر مدل دکمه دار طرح bear boy کد U808",
+        "use_case": "books_learning"
+      },
+      {
+        "at": "2026-11-16T06:42:03.416882+00:00",
+        "brand": "",
+        "catalog_category_id": "10836",
+        "catalog_category_name": "روغن کنجد",
+        "category": "grocery_food",
+        "compared_to_product_id": "dkp-20727904",
+        "family": "digikala_category:10836",
+        "product_id": "dkp-21730827",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "روغن کنجد تصفیه شده توسکا لایت - 450 گرم",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-16T06:42:03.416882+00:00",
+        "brand": "",
+        "catalog_category_id": "9286",
+        "catalog_category_name": "ست رسمی زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-21531244",
+        "family": "digikala_category:9286",
+        "product_id": "dkp-21727687",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ست 3 تکه لباس رسمی زنانه السانا مدل سایلین کد 2531",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T06:42:03.416882+00:00",
+        "brand": "",
+        "catalog_category_id": "8303",
+        "catalog_category_name": "کتابخانه",
+        "category": "books_stationery",
+        "compared_to_product_id": "dkp-15163493",
+        "family": "digikala_category:8303",
+        "product_id": "dkp-15515844",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کتابخانه رومیزی چوبیکو مدل bookshelf480",
+        "use_case": "books_learning"
+      },
+      {
+        "at": "2026-11-16T06:42:03.416882+00:00",
+        "brand": "",
+        "catalog_category_id": "6266",
+        "catalog_category_name": "پتو",
+        "category": "other",
+        "compared_to_product_id": "dkp-18604812",
+        "family": "digikala_category:6266",
+        "product_id": "dkp-13147312",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "پتو مسافرتی سیمین مدل هلیا کد AR64 سایز 220x150 سانتی متر",
+        "use_case": "outdoor_travel"
+      },
+      {
+        "at": "2026-11-16T06:42:03.416882+00:00",
+        "brand": "",
+        "catalog_category_id": "10895",
+        "catalog_category_name": "چای سیاه کیسه‌ای",
+        "category": "other",
+        "compared_to_product_id": "dkp-20836009",
+        "family": "digikala_category:10895",
+        "product_id": "dkp-3177987",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "چای کیسه ای صنایع غذایی طلالو بسته 25 عددی",
+        "use_case": "catalog_taxonomy_other"
       }
     ]
   }
