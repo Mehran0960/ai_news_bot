@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T00:38:09.995657+00:00",
+  "generated_at": "2026-11-16T00:43:47.986520+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -399,47 +399,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1391,
+    "all_time_count": 1393,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 462,
+      "family_repeat": 461,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-15T23:26:34.136330+00:00",
-        "brand": "",
-        "catalog_category_id": "9906",
-        "catalog_category_name": "کفش روزمره مردانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-20865598",
-        "family": "digikala_category:9906",
-        "product_id": "dkp-22634892",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش طبی مردانه کروماکی چرم طبیعی مدل km336",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-15T23:26:34.136330+00:00",
-        "brand": "",
-        "catalog_category_id": "8942",
-        "catalog_category_name": "زردچوبه",
-        "category": "other",
-        "compared_to_product_id": "dkp-1764174",
-        "family": "digikala_category:8942",
-        "product_id": "dkp-20836128",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "پودر زردچوبه شاهسوند - 75 گرم",
-        "use_case": "mobile_productivity"
-      },
       {
         "at": "2026-11-15T23:26:34.136330+00:00",
         "brand": "",
@@ -736,6 +702,39 @@
         ],
         "title": "سویا پروتئین آجیلی ممتاز سرمد - 650 گرم",
         "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-16T00:43:47.986520+00:00",
+        "brand": "",
+        "catalog_category_id": "9369",
+        "catalog_category_name": "کفش تخت زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-13050880",
+        "family": "digikala_category:9369",
+        "product_id": "dkp-21836000",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش زنانه مدل مش لایت",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T00:43:47.986520+00:00",
+        "brand": "",
+        "catalog_category_id": "9788",
+        "catalog_category_name": "شورت پسرانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-7284546",
+        "family": "digikala_category:9788",
+        "product_id": "dkp-8477415",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "شورت پسرانه آریان نخ باف مدل 4311",
+        "use_case": "fashion_lifestyle"
       }
     ]
   }
