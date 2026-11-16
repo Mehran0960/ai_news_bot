@@ -7890,13 +7890,8 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
                 family = f"{category}:{subfamily}"
                 break
 
-    # Prefer the real DigiKala leaf node as the canonical family boundary.
-    # The title and use-case remain part of the classification and similarity guard.
-    catalog_category_id = str(catalog_context.get("id") or "").strip()
-    if catalog_category_id:
-        family = f"digikala_category:{catalog_category_id}"
-    # Keep use-case as an independent dimension in history/reporting; do not let
-    # it split one DigiKala family into separate cooldown buckets.
+    # Product family is inferred from product use/function, not set equal to taxonomy.
+    # Exact leaf-category repetition is checked independently by _publication_category_guard_key.
     brand_hints = [
         ("ufc", r"\bUFC\b|یو\s*اف\s*سی"),
         ("ai_javaher", r"آی\s*جواهر"),
