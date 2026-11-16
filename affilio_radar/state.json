@@ -7572,177 +7572,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-19130833",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-19130833%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "9470",
-        "catalog_best_selling_category_name": "تی شرت مردانه",
-        "catalog_best_selling_rank": 26,
-        "catalog_best_selling_ranks_by_category": {
-          "9470": {
-            "category_name": "تی شرت مردانه",
-            "observed_at": "2026-11-16T07:07:55.912533+00:00",
-            "rank": 26,
-            "rank_history": [
-              {
-                "category_name": "تی شرت مردانه",
-                "observed_at": "2026-11-16T07:07:55.912533+00:00",
-                "rank": 26
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T07:39:30.980343+00:00",
-        "catalog_cycle_snapshot_rank": 136,
-        "catalog_rank_observed_at": "2026-11-16T07:07:55.912533+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "fashion",
-        "checked_at": "2026-11-16T07:56:36.433984+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-19130833",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 1750000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 65.87,
-        "discount_percent": 51,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T07:56:53.058784+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 1750000,
-        "history_low_toman": 1750000,
-        "history_median_toman": 1750000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 1750000,
-        "history_start_day": "2026-11-15",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/f3535341eae3a97b710ca817b3424df909b64f02_1746189041.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "affordability": 74.44,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 72.5,
-          "discount_attractiveness": 65.87,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 68.0,
-          "generality_group": "books_learning",
-          "live_demand": 84.36,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "9470",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T07:57:06.113338+00:00",
-          "weakest_factor_score": 65.87
-        },
-        "original_price": 3580000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-19130833",
-        "product_url": "https://www.digikala.com/product/dkp-19130833/",
-        "promo_score": 42,
-        "publication_policy": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-        "qualifies_as_deal": true,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "savings_toman": 1830000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 26,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "affordability": 74.44,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 72.5,
-          "discount_attractiveness": 65.87,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 68.0,
-          "generality_group": "books_learning",
-          "live_demand": 84.36,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "9470",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T07:57:06.113338+00:00",
-          "weakest_factor_score": 65.87
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1192,
-        "title": "تی شرت آستین کوتاه مردانه پاد آفرین مدل اسپرت طرح اسپایدر من قهرمان کد 1162",
-        "variant_label": "مشکی M"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-19130833",
-      "product_plan_cycle_id": "2026-11-16T07:39:30.980343+00:00",
-      "selected_at": "2026-11-16T07:57:09.877569+00:00",
-      "sequence_number": 1192,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T08:15:12.415463+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-19399111",
       "content_type": "product",
       "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
@@ -43458,6 +43287,185 @@
       "sequence_number": 1446,
       "status": "published",
       "updated_at": "2026-11-16T23:52:03.932673+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-22739477",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-16T23:53:44.656063+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-16T23:53:26.917052+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22739477%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "6955",
+        "catalog_best_selling_category_name": "لوازم جانبی گردش و سفر کودک و نوزاد",
+        "catalog_best_selling_rank": 18,
+        "catalog_best_selling_ranks_by_category": {
+          "6955": {
+            "category_name": "لوازم جانبی گردش و سفر کودک و نوزاد",
+            "observed_at": "2026-11-16T22:04:59.607349+00:00",
+            "rank": 18,
+            "rank_history": [
+              {
+                "category_name": "لوازم جانبی گردش و سفر کودک و نوزاد",
+                "observed_at": "2026-11-16T22:04:59.607349+00:00",
+                "rank": 18
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-16T22:44:40.746589+00:00",
+        "catalog_cycle_snapshot_rank": 671,
+        "catalog_rank_observed_at": "2026-11-16T22:04:59.607349+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "kids_sports",
+        "checked_at": "2026-11-16T23:23:18.598801+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-22739477",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 2399400,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 61.67,
+        "discount_percent": 40,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-16T23:23:42.297936+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-16",
+        "history_high_toman": 2399400,
+        "history_low_toman": 2399400,
+        "history_median_toman": 2399400,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-16",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/76050db61bbf25af342b934011c1d4de9abf95ac_1789415009.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 70.74,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 61.67,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 70.0,
+          "generality_group": "baby_care",
+          "live_demand": 83.98,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-16T23:23:42.300634+00:00",
+          "weakest_factor_score": 61.67
+        },
+        "original_price": 3999000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-22739477",
+        "product_url": "https://www.digikala.com/product/dkp-22739477/",
+        "promo_score": 34,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "savings_toman": 1599600,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 18,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 70.74,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 61.67,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 70.0,
+          "generality_group": "baby_care",
+          "live_demand": 83.98,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-16T23:23:42.300634+00:00",
+          "weakest_factor_score": 61.67
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1447,
+        "title": "تشک کالسکه کودک اینتر بیبی مدل IB5026601N"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-16T23:53:44.656063+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-16T23:53:55.130902+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-16T23:53:44.656063+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-16T23:53:44.656063+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-16T23:54:02.579716+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-16T23:53:44.656063+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-16T23:53:49.945629+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-22739477",
+      "product_plan_cycle_id": "2026-11-16T23:22:31.379757+00:00",
+      "scheduled_at": "2026-11-16T23:53:26.917052+00:00",
+      "selected_at": "2026-11-16T23:23:53.538513+00:00",
+      "sequence_number": 1447,
+      "status": "published",
+      "updated_at": "2026-11-16T23:54:03.585679+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -43472,7 +43480,7 @@
       "attempt_count": 0,
       "content_id": "dkp-12047413",
       "content_type": "product",
-      "next_attempt_at": "2026-11-16T23:58:58.873534+00:00",
+      "next_attempt_at": "2026-11-16T23:59:06.206214+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-12047413%2F",
         "availability": "in_stock",
@@ -43633,7 +43641,7 @@
       },
       "product_id": "dkp-12047413",
       "product_plan_cycle_id": "2026-11-16T23:22:31.379757+00:00",
-      "scheduled_at": "2026-11-16T23:58:58.873534+00:00",
+      "scheduled_at": "2026-11-16T23:59:06.206214+00:00",
       "selected_at": "2026-11-16T23:32:17.621141+00:00",
       "sequence_number": 1452,
       "status": "queued"
@@ -43642,7 +43650,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22683249",
       "content_type": "product",
-      "next_attempt_at": "2026-11-16T23:57:35.884414+00:00",
+      "next_attempt_at": "2026-11-16T23:57:50.549773+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22683249%2F",
         "availability": "in_stock",
@@ -43804,7 +43812,7 @@
       },
       "product_id": "dkp-22683249",
       "product_plan_cycle_id": "2026-11-16T23:22:31.379757+00:00",
-      "scheduled_at": "2026-11-16T23:57:35.884414+00:00",
+      "scheduled_at": "2026-11-16T23:57:50.549773+00:00",
       "selected_at": "2026-11-16T23:23:53.538513+00:00",
       "sequence_number": 1450,
       "status": "queued"
@@ -43813,7 +43821,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22690552",
       "content_type": "product",
-      "next_attempt_at": "2026-11-16T23:54:49.906172+00:00",
+      "next_attempt_at": "2026-11-16T23:55:19.236892+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22690552%2F",
         "availability": "in_stock",
@@ -43975,177 +43983,9 @@
       },
       "product_id": "dkp-22690552",
       "product_plan_cycle_id": "2026-11-16T23:22:31.379757+00:00",
-      "scheduled_at": "2026-11-16T23:54:49.906172+00:00",
+      "scheduled_at": "2026-11-16T23:55:19.236892+00:00",
       "selected_at": "2026-11-16T23:23:53.538513+00:00",
       "sequence_number": 1448,
-      "status": "queued"
-    },
-    "dkp-22739477": {
-      "attempt_count": 0,
-      "content_id": "dkp-22739477",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-16T23:53:26.917052+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22739477%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "6955",
-        "catalog_best_selling_category_name": "لوازم جانبی گردش و سفر کودک و نوزاد",
-        "catalog_best_selling_rank": 18,
-        "catalog_best_selling_ranks_by_category": {
-          "6955": {
-            "category_name": "لوازم جانبی گردش و سفر کودک و نوزاد",
-            "observed_at": "2026-11-16T22:04:59.607349+00:00",
-            "rank": 18,
-            "rank_history": [
-              {
-                "category_name": "لوازم جانبی گردش و سفر کودک و نوزاد",
-                "observed_at": "2026-11-16T22:04:59.607349+00:00",
-                "rank": 18
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T22:44:40.746589+00:00",
-        "catalog_cycle_snapshot_rank": 671,
-        "catalog_rank_observed_at": "2026-11-16T22:04:59.607349+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "kids_sports",
-        "checked_at": "2026-11-16T23:23:18.598801+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22739477",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 2399400,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 61.67,
-        "discount_percent": 40,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T23:23:42.297936+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 2399400,
-        "history_low_toman": 2399400,
-        "history_median_toman": 2399400,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/76050db61bbf25af342b934011c1d4de9abf95ac_1789415009.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 70.74,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 61.67,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 70.0,
-          "generality_group": "baby_care",
-          "live_demand": 83.98,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T23:23:42.300634+00:00",
-          "weakest_factor_score": 61.67
-        },
-        "original_price": 3999000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-22739477",
-        "product_url": "https://www.digikala.com/product/dkp-22739477/",
-        "promo_score": 34,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "savings_toman": 1599600,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 18,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 70.74,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 61.67,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 70.0,
-          "generality_group": "baby_care",
-          "live_demand": 83.98,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T23:23:42.300634+00:00",
-          "weakest_factor_score": 61.67
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1447,
-        "title": "تشک کالسکه کودک اینتر بیبی مدل IB5026601N"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22739477",
-      "product_plan_cycle_id": "2026-11-16T23:22:31.379757+00:00",
-      "scheduled_at": "2026-11-16T23:53:26.917052+00:00",
-      "selected_at": "2026-11-16T23:23:53.538513+00:00",
-      "sequence_number": 1447,
       "status": "queued"
     },
     "dkp-22837377": {
@@ -44323,7 +44163,7 @@
       "attempt_count": 0,
       "content_id": "dkp-7461447",
       "content_type": "product",
-      "next_attempt_at": "2026-11-16T23:56:12.895293+00:00",
+      "next_attempt_at": "2026-11-16T23:56:34.893333+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-7461447%2F",
         "availability": "in_stock",
@@ -44486,7 +44326,7 @@
       },
       "product_id": "dkp-7461447",
       "product_plan_cycle_id": "2026-11-16T23:22:31.379757+00:00",
-      "scheduled_at": "2026-11-16T23:56:12.895293+00:00",
+      "scheduled_at": "2026-11-16T23:56:34.893333+00:00",
       "selected_at": "2026-11-16T23:23:53.538513+00:00",
       "sequence_number": 1449,
       "status": "queued"
@@ -200413,12 +200253,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-16T23:52:03.927931+00:00",
+  "last_channel_published_at": "2026-11-16T23:54:03.580451+00:00",
   "last_content_selection_at": "2026-11-16T23:32:17.621141+00:00",
   "last_editorial_attempt_at": "2026-11-16T23:49:18.803343+00:00",
   "last_editorial_confirmed_at": "2026-11-16T23:40:47.873727+00:00",
-  "last_product_channel_published_at": "2026-11-16T23:52:03.927931+00:00",
-  "last_published_at": "2026-11-16T23:52:03.927931+00:00",
+  "last_product_channel_published_at": "2026-11-16T23:54:03.580451+00:00",
+  "last_published_at": "2026-11-16T23:54:03.580451+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -248479,8 +248319,8 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-16T23:52:03.927939+00:00",
-    "candidate_count": 6,
+    "calculated_at": "2026-11-16T23:54:03.580458+00:00",
+    "candidate_count": 5,
     "catalog_cycle_id": "2026-11-16T23:22:31.379757+00:00",
     "current_cycle_started_at": "2026-11-16T23:22:31.862655+00:00",
     "daily_post_limit": 72,
@@ -248488,44 +248328,43 @@
     "estimated_clean_cycle_seconds": 2270,
     "estimated_next_clean_scan_at": "2026-11-17T00:00:21.862655+00:00",
     "first_slot_due_now": false,
-    "interval_minutes": 1.383,
-    "interval_seconds": 82.98912066666666,
+    "interval_minutes": 1.261,
+    "interval_seconds": 75.6564408,
     "last_clean_cycle_completed_at": "2026-11-16T23:22:31.379757+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-16T23:52:03.927931+00:00",
+    "plan_anchor_at": "2026-11-16T23:54:03.580451+00:00",
     "plan_anchor_kind": "last_product",
-    "planned_product_slots": 6,
+    "planned_product_slots": 5,
     "planned_window_end_at": "2026-11-17T00:00:21.862655+00:00",
     "policy": "even_scan_window_spacing_capped_at_57_minutes_with_provisional_fallback_when_eta_overdue",
     "scan_eta_is_provisional": false,
     "scan_eta_source": "last_observed_full_cycle_duration",
     "scheduled_product_count": 13,
-    "seconds_from_plan_anchor_to_next_scan": 497.934724,
-    "seconds_until_estimated_next_clean_scan": 497.934716
+    "seconds_from_plan_anchor_to_next_scan": 378.282204,
+    "seconds_until_estimated_next_clean_scan": 378.282197
   },
-  "product_publication_interval_seconds": 82.98912066666666,
+  "product_publication_interval_seconds": 75.6564408,
   "product_publication_plan": {
-    "anchor_at": "2026-11-16T23:52:03.927931+00:00",
+    "anchor_at": "2026-11-16T23:54:03.580451+00:00",
     "anchor_kind": "last_product",
     "catalog_cycle_id": "2026-11-16T23:22:31.379757+00:00",
     "first_slot_due_now": false,
-    "interval_minutes": 1.383,
-    "interval_seconds": 82.98912066666666,
+    "interval_minutes": 1.261,
+    "interval_seconds": 75.6564408,
     "maximum_product_interval_seconds": 3420,
     "next_clean_scan_at": "2026-11-17T00:00:21.862655+00:00",
-    "pending_product_count": 6,
+    "pending_product_count": 5,
     "product_ids": [
-      "dkp-22739477",
       "dkp-22690552",
       "dkp-7461447",
       "dkp-22683249",
       "dkp-12047413",
       "dkp-22837377"
     ],
-    "scheduled_product_count": 6,
-    "updated_at": "2026-11-16T23:52:03.927939+00:00"
+    "scheduled_product_count": 5,
+    "updated_at": "2026-11-16T23:54:03.580458+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-16T23:52:03.927931+00:00",
+  "product_publication_plan_anchor_at": "2026-11-16T23:54:03.580451+00:00",
   "product_publication_plan_anchor_kind": "last_product",
   "product_publication_plan_cycle_id": "2026-11-16T23:22:31.379757+00:00",
   "publication_diversity_fallback_count": 5307,
@@ -357026,6 +356865,134 @@
       "video_style_version": 7,
       "youtube_skip_reason": "youtube_daily_quota_pause",
       "youtube_upload_status": "skipped_platform_limit"
+    },
+    "dkp-22739477": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2201,
+      "bale_posted_at": "2026-11-16T23:53:55.130902+00:00",
+      "brand": "",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "B",
+      "catalog_best_selling_category_id": "6955",
+      "catalog_best_selling_category_name": "لوازم جانبی گردش و سفر کودک و نوزاد",
+      "catalog_best_selling_rank": 18,
+      "catalog_best_selling_ranks_by_category": {
+        "6955": {
+          "category_name": "لوازم جانبی گردش و سفر کودک و نوزاد",
+          "observed_at": "2026-11-16T22:04:59.607349+00:00",
+          "rank": 18,
+          "rank_history": [
+            {
+              "category_name": "لوازم جانبی گردش و سفر کودک و نوزاد",
+              "observed_at": "2026-11-16T22:04:59.607349+00:00",
+              "rank": 18
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-16T22:44:40.746589+00:00",
+      "catalog_cycle_snapshot_rank": 671,
+      "catalog_rank_observed_at": "2026-11-16T22:04:59.607349+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-22739477",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "A",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-16T23:54:02.579743+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 0,
+      "distribution_queue_id": "dkp-22739477:2026-11-16T23:23:53.538513+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-16T23:23:42.297936+00:00",
+      "history_days": 1,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/76050db61bbf25af342b934011c1d4de9abf95ac_1789415009.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "not_checked",
+      "platform_message_ids": {
+        "rubika": "1974326750965588651"
+      },
+      "posted_current_price": 2399400,
+      "posted_discount_percent": 40,
+      "posted_original_price": 3999000,
+      "product_url": "https://www.digikala.com/product/dkp-22739477/",
+      "promo_score": 34,
+      "publication_category": "kids_sports",
+      "publication_family": "digikala_category:6955",
+      "publication_use_case": "baby_care",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 0.0,
+      "rubika_posted_at": "2026-11-16T23:54:02.579716+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 18,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 70.74,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 61.67,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 70.0,
+        "generality_group": "baby_care",
+        "live_demand": 83.98,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-16T23:23:42.300634+00:00",
+        "weakest_factor_score": 61.67
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1447,
+      "telegram_message_id": 1649,
+      "telegram_posted_at": "2026-11-16T23:53:49.945629+00:00",
+      "title": "تشک کالسکه کودک اینتر بیبی مدل IB5026601N",
+      "ts": 1794873224.656063,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
     },
     "dkp-22741357": {
       "aparat_skip_reason": "verified_expiry_required",
