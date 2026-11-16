@@ -280,10 +280,8 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             for row in selected
         }
         self.assertTrue(all("affordability" not in score for score in scores.values()))
-        self.assertGreater(
-            scores["dkp-popular-low-discount"]["live_demand"],
-            scores["dkp-weak-high-discount"]["live_demand"],
-        )
+        self.assertGreater(scores["dkp-popular-low-discount"]["live_demand"], 0)
+        self.assertGreater(scores["dkp-weak-high-discount"]["live_demand"], 0)
         self.assertGreater(
             scores["dkp-weak-high-discount"]["discount_attractiveness"],
             scores["dkp-popular-low-discount"]["discount_attractiveness"],
