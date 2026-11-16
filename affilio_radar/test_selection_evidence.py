@@ -568,6 +568,7 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
                 self.assertEqual(radar._publication_use_case_group(title), expected)
 
     def test_brand_classifier_uses_explicit_metadata_and_common_title_hints(self):
+        # Metadata and high-confidence title aliases both feed brand diversity guards.
         explicit = {
             "title": "هدفون بی‌سیم مدل جدید",
             "brand": {"name_fa": "سونی"},
