@@ -427,8 +427,8 @@ class EditorialPublisherTests(unittest.TestCase):
 
     def test_bale_editorial_photo_has_a_real_clickable_membership_button(self):
         caption = _format_message(editorial_item(), html_mode=True, platform="bale")
-        with patch("editorial_publisher.radar.BALE_BOT_TOKEN", "test-token"), \\
-             patch("editorial_publisher.radar.BALE_CHANNEL_ID", "@OfferChin"), \\
+        with patch("editorial_publisher.radar.BALE_BOT_TOKEN", "test-token"), \
+             patch("editorial_publisher.radar.BALE_CHANNEL_ID", "@OfferChin"), \
              patch("editorial_publisher.requests.post") as post:
             post.return_value.json.return_value = {
                 "ok": True, "result": {"message_id": 77}
