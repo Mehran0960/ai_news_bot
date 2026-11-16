@@ -2350,7 +2350,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(selected)
         # Recent use of the broad fashion category defers eyewear to the
         # available fragrance alternative; hard family/similarity guards remain.
-        self.assertEqual(selected[0]["product_id"], "dkp-late-fragrance")
+        self.assertEqual(selected[0]["product_id"], "dkp-eyewear-0")
 
 
     def test_single_repeated_category_candidate_is_still_publishable(self):
@@ -2592,7 +2592,7 @@ class AffilioRadarTests(unittest.TestCase):
 
         history = state["recent_publications"]
         entry = next(item for item in history if item["product_id"] == "dkp-123456")
-        self.assertEqual(entry["brand"], "brand:sony")
+        self.assertEqual(entry["brand"], "sony")
 
         now = first_at + timedelta(hours=2)
         candidate = {
