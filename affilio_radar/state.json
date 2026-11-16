@@ -206039,63 +206039,52 @@
     },
     {
       "content_id": "editorial:compare-total-cost",
+      "delivery_duration_seconds": 14.5,
       "destinations": {
         "aparat": {
-          "attempt_started_at": "2026-11-14T21:50:09.592594+00:00",
-          "attempts": 1,
-          "message_id": "hnqs43x",
-          "status": "sent",
-          "updated_at": "2026-11-14T21:50:14.356930+00:00",
-          "url": "https://www.aparat.com/v/hnqs43x"
+          "attempts": 0,
+          "status": "pending"
         },
         "bale": {
-          "attempt_started_at": "2026-11-14T21:46:32.531658+00:00",
+          "attempt_started_at": "2026-11-16T21:39:34.657161+00:00",
           "attempts": 1,
-          "message_id": "1967",
+          "message_id": "2160",
           "status": "sent",
-          "updated_at": "2026-11-14T21:46:33.524253+00:00"
+          "updated_at": "2026-11-16T21:39:41.008846+00:00"
         },
         "eitaa": {
           "attempts": 0,
           "last_error": "eitaa_not_enabled_or_credentials_missing",
           "status": "not_connected",
-          "updated_at": "2026-11-14T21:46:37.656211+00:00"
+          "updated_at": "2026-11-16T21:39:46.508975+00:00"
         },
         "filo": {
-          "attempt_started_at": "2026-11-14T21:50:14.901370+00:00",
-          "attempts": 1,
-          "last_error": "filo_submitted_pending_approval_not_public",
-          "status": "manual_review",
-          "updated_at": "2026-11-14T21:50:43.902557+00:00",
-          "url": "https://ifilo.net/v/Z9B4EQw"
+          "attempts": 0,
+          "status": "pending"
         },
         "rubika": {
-          "attempt_started_at": "2026-11-14T21:46:33.868643+00:00",
+          "attempt_started_at": "2026-11-16T21:39:41.348158+00:00",
           "attempts": 1,
-          "message_id": "1972262767795588651",
+          "message_id": "1974254720787588651",
           "status": "sent",
-          "updated_at": "2026-11-14T21:46:37.310011+00:00"
+          "updated_at": "2026-11-16T21:39:46.171911+00:00"
         },
         "telegram": {
-          "attempt_started_at": "2026-11-14T21:46:31.462569+00:00",
+          "attempt_started_at": "2026-11-16T21:39:32.864048+00:00",
           "attempts": 1,
-          "message_id": "1481",
+          "message_id": "1619",
           "status": "sent",
-          "updated_at": "2026-11-14T21:46:32.184814+00:00"
+          "updated_at": "2026-11-16T21:39:34.306633+00:00"
         },
         "youtube": {
-          "attempt_started_at": "2026-11-14T21:50:06.949617+00:00",
-          "attempts": 1,
-          "message_id": "5flNjln0U2U",
-          "status": "sent",
-          "updated_at": "2026-11-14T21:50:09.045834+00:00",
-          "url": "https://www.youtube.com/shorts/5flNjln0U2U"
+          "attempts": 0,
+          "status": "pending"
         }
       },
       "editorial_id": "compare-total-cost",
       "published_at": "2026-11-14T21:46:32.184814+00:00",
       "related_product_id": "",
-      "sequence_number": 29,
+      "sequence_number": 1413,
       "topic": "total-cost"
     },
     {
@@ -207151,81 +207140,7 @@
       "topic": "shipping-and-returns"
     }
   ],
-  "editorial_delivery_queue": {
-    "editorial:compare-total-cost": {
-      "attempt_count": 0,
-      "content_id": "editorial:compare-total-cost",
-      "content_type": "editorial",
-      "delivery_runway_seconds": 16,
-      "dispatch_runway_seconds": 76,
-      "next_attempt_at": "2026-11-16T21:38:27.345502+00:00",
-      "payload": {
-        "body": "برای مقایسه دو گزینه، هزینه ارسال، لوازم جانبی ضروری، هزینه نصب یا راه‌اندازی و شرایط بازگشت را هم حساب کن. ممکن است گزینه‌ای با قیمت اولیه پایین‌تر، بعد از اضافه‌شدن هزینه‌های جانبی انتخاب بهتری نباشد. قیمت و شرایط را در لحظه تصمیم‌گیری از صفحه همان فروشنده بررسی کن.",
-        "content_id": "editorial:compare-total-cost",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 1,
-        "editorial_id": "compare-total-cost",
-        "idempotency_key": "362874f5f630b516",
-        "related_product_affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21172326%2F",
-        "related_product_id": "dkp-21172326",
-        "related_product_title": "سمنو سنتر - 499 گرم",
-        "review_due_at": "2027-02-10T18:00:00Z",
-        "reviewed_at": "2026-11-12T18:00:00Z",
-        "sequence_number": 1412,
-        "sources": [
-          {
-            "source_id": "ftc-infographic",
-            "title": "Shopping Online – Federal Trade Commission",
-            "url": "https://consumer.ftc.gov/sites/default/files/articles/pdf/0041-shopping-online-infographic.pdf"
-          },
-          {
-            "source_id": "ftc-security-tips",
-            "title": "Online Shopping – Security Tips, Federal Trade Commission",
-            "url": "https://www.ftc.gov/media/79929"
-          }
-        ],
-        "title": "قیمت نهایی مهم است، نه فقط عدد بزرگ روی صفحه",
-        "topic": "total-cost"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "related_product_id": "dkp-21172326",
-      "scheduled_at": "2026-11-16T21:38:27.345502+00:00",
-      "selected_at": "2026-11-16T21:37:00.465156+00:00",
-      "sequence_number": 1412,
-      "status": "queued",
-      "window_closes_at": "2026-11-16T21:39:38.936088+00:00"
-    }
-  },
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -207541,12 +207456,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-16T21:36:59.754915+00:00",
+  "last_channel_published_at": "2026-11-16T21:39:41.008846+00:00",
   "last_content_selection_at": "2026-11-16T21:27:17.571169+00:00",
-  "last_editorial_attempt_at": "2026-11-16T21:37:00.465156+00:00",
-  "last_editorial_confirmed_at": "2026-11-16T21:19:53.378148+00:00",
+  "last_editorial_attempt_at": "2026-11-16T21:39:31.357742+00:00",
+  "last_editorial_confirmed_at": "2026-11-16T21:39:46.171911+00:00",
   "last_product_channel_published_at": "2026-11-16T21:36:59.754915+00:00",
-  "last_published_at": "2026-11-16T21:36:59.754915+00:00",
+  "last_published_at": "2026-11-16T21:39:41.008846+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -298376,7 +298291,7 @@
       "ts": 1793119008.409393
     }
   },
-  "publication_sequence_counter": 1412,
+  "publication_sequence_counter": 1413,
   "published": {
     "dkp-10002173": {
       "aparat_skip_reason": "verified_expiry_required",
