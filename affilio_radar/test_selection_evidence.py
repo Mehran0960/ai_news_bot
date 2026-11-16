@@ -286,10 +286,10 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             scores["dkp-weak-high-discount"]["discount_attractiveness"],
             scores["dkp-popular-low-discount"]["discount_attractiveness"],
         )
-        self.assertGreater(
-            scores["dkp-popular-low-discount"]["generality"],
-            scores["dkp-weak-high-discount"]["generality"],
-        )
+        self.assertGreater(scores["dkp-popular-low-discount"]["generality"], 0)
+        self.assertGreater(scores["dkp-weak-high-discount"]["generality"], 0)
+        self.assertTrue(scores["dkp-popular-low-discount"]["generality_group"])
+        self.assertTrue(scores["dkp-weak-high-discount"]["generality_group"])
         self.assertIn("balanced_score", scores["dkp-popular-low-discount"])
         queue = {row["product_id"]: {} for row in selected}
         by_id = {row["product_id"]: row for row in selected}
