@@ -7703,7 +7703,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         raw_brand = product_or_title.get("brand") or product_or_title.get("brand_name") or ""
         if isinstance(raw_brand, dict):
             raw_brand = raw_brand.get("name") or raw_brand.get("title") or raw_brand.get("value") or ""
-        explicit_brand = str(raw_brand or "").strip()
+        explicit_brand = normalize_brand_value(raw_brand)
     else:
         title = str(product_or_title or "")
     normalized = title.lower().replace("\u200c", " ")
@@ -7885,6 +7885,40 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         ("antonio_rossini", r"آنتونیو\s*روسینی"),
         ("zanama", r"زاناما"),
         ("dellbesto", r"دلبستو"),
+        ("samsung", r"سامسونگ|(?<!\w)samsung(?!\w)"),
+        ("xiaomi", r"شیائومی|(?<!\w)xiaomi(?!\w)"),
+        ("redmi", r"ردمی|(?<!\w)redmi(?!\w)"),
+        ("poco", r"پوکو|(?<!\w)poco(?!\w)"),
+        ("apple", r"اپل|آیفون|(?<!\w)apple(?!\w)|(?<!\w)iphone(?!\w)"),
+        ("huawei", r"هواوی|(?<!\w)huawei(?!\w)"),
+        ("honor", r"آنر|(?<!\w)honor(?!\w)"),
+        ("nokia", r"نوکیا|(?<!\w)nokia(?!\w)"),
+        ("sony", r"سونی|(?<!\w)sony(?!\w)"),
+        ("jbl", r"جی\s*بی\s*ال|(?<!\w)jbl(?!\w)"),
+        ("anker", r"انکر|(?<!\w)anker(?!\w)"),
+        ("baseus", r"بیسوس|(?<!\w)baseus(?!\w)"),
+        ("qcy", r"کیو\s*سی\s*وای|(?<!\w)qcy(?!\w)"),
+        ("lenovo", r"لنوو|(?<!\w)lenovo(?!\w)"),
+        ("asus", r"ایسوس|(?<!\w)asus(?!\w)"),
+        ("dell", r"(?<!\w)dell(?!\w)|(?<!\w)دل(?!\w)"),
+        ("hp", r"اچ\s*پی|(?<!\w)hp(?!\w)"),
+        ("logitech", r"لاجیتک|(?<!\w)logitech(?!\w)"),
+        ("kingston", r"کینگستون|(?<!\w)kingston(?!\w)"),
+        ("sandisk", r"سن\s*دیسک|(?<!\w)sandisk(?!\w)"),
+        ("philips", r"فیلیپس|(?<!\w)philips(?!\w)"),
+        ("bosch", r"بوش|(?<!\w)bosch(?!\w)"),
+        ("tefal", r"تفال|(?<!\w)tefal(?!\w)"),
+        ("hidroderm", r"هیدرودرم"),
+        ("prime", r"پریم"),
+        ("arden", r"آردن"),
+        ("cinere", r"سینره"),
+        ("lafarrerr", r"لافارر"),
+        ("schoon", r"شون"),
+        ("comeon", r"کامان"),
+        ("my", r"(?<!\w)مای(?!\w)"),
+        ("golha", r"گلها"),
+        ("hoti_kara", r"هاتی\s*کارا"),
+        ("shahsavand", r"شاهسوند"),
     ]
     brand = next((key for key, pattern in brand_hints if re.search(pattern, brand_search_text, re.I)), "")
     if not brand and explicit_brand:
