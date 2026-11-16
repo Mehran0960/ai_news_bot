@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 import affilio_radar as radar
-from publisher import _eligible_fallback_candidates
+from publisher import _eligible_fallback_candidates, _valid_emergency_continuity_override
 
 
 class OfferChinSelectionEvidenceTests(unittest.TestCase):
@@ -357,6 +357,39 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         self.assertEqual(selected, [])
         self.assertEqual(quality, [])
         self.assertEqual(queued, [])
+
+    def test_emergency_publisher_gate_does_not_require_affordability(self):
+        snapshot_sha = "a" * 64
+        baseline_completed = self.now.isoformat()
+        payload = {
+            "product_id": "dkp-emergency-no-price-cap",
+            "selection_continuity_mode": "temporary_three_factor_demand_relaxation",
+            "selection_demand_evidence": "not_verified_emergency_continuity_override",
+            "selection_demand_quality": "demand_not_verified_three_factor_proxy_only",
+            "emergency_continuity_snapshot_sha256": snapshot_sha,
+            "emergency_continuity_baseline_completed_at": baseline_completed,
+            "selection_three_factor": {
+                "factor_count": 3,
+                "live_demand": 0,
+                "generality": 85,
+                "discount_attractiveness": 90,
+                "balanced_score": 0,
+            },
+        }
+        state = {
+            "emergency_continuity": {
+                "status": "active",
+                "expires_at": (self.now + timedelta(hours=1)).isoformat(),
+                "baseline_snapshot_sha256": snapshot_sha,
+                "baseline_clean_cycle_completed_at": baseline_completed,
+            }
+        }
+        with patch.object(
+            radar,
+            "load_emergency_continuity_candidates",
+            return_value={"candidates": [{"product_id": payload["product_id"]}]},
+        ):
+            self.assertTrue(_valid_emergency_continuity_override(payload, state, self.now))
 
     def test_emergency_continuity_relaxes_only_the_demand_gate_for_strong_live_deals(self):
         product = {
