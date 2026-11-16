@@ -7516,178 +7516,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-655711",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-655711%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "11609",
-        "catalog_best_selling_category_name": "کتاب زندگینامه و بیوگرافی",
-        "catalog_best_selling_rank": 49,
-        "catalog_best_selling_ranks_by_category": {
-          "11609": {
-            "category_name": "کتاب زندگینامه و بیوگرافی",
-            "observed_at": "2026-11-16T06:34:40.801875+00:00",
-            "rank": 49,
-            "rank_history": [
-              {
-                "category_name": "کتاب زندگینامه و بیوگرافی",
-                "observed_at": "2026-11-16T06:34:40.801875+00:00",
-                "rank": 49
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T07:05:48.787472+00:00",
-        "catalog_cycle_snapshot_rank": 195,
-        "catalog_rank_observed_at": "2026-11-16T06:34:40.801875+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "books_stationery",
-        "checked_at": "2026-11-16T07:13:02.282070+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-655711",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 150000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 13.5,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 59.21,
-        "discount_percent": 50,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T07:13:24.772456+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 150000,
-        "history_low_toman": 150000,
-        "history_median_toman": 150000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 150000,
-        "history_start_day": "2026-11-15",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/2862037.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "affordability": 100.0,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 71.47,
-          "discount_attractiveness": 59.21,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 68.0,
-          "generality_group": "books_learning",
-          "live_demand": 69.58,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "11609",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T07:13:24.774666+00:00",
-          "weakest_factor_score": 59.21
-        },
-        "original_price": 300000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-655711",
-        "product_url": "https://www.digikala.com/product/dkp-655711/",
-        "promo_score": 35,
-        "publication_policy": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-        "qualifies_as_deal": true,
-        "rating": 4.5,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 8,
-        "savings_toman": 150000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 49,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "affordability": 100.0,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 71.47,
-          "discount_attractiveness": 59.21,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 68.0,
-          "generality_group": "books_learning",
-          "live_demand": 69.58,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "11609",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T07:13:24.774666+00:00",
-          "weakest_factor_score": 59.21
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1125,
-        "title": "کتاب خلاصه زندگانی چهارده معصوم علیهم السلام اثر یوسف درودگر"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-655711",
-      "product_plan_cycle_id": "2026-11-16T07:05:48.787472+00:00",
-      "selected_at": "2026-11-16T07:13:27.669783+00:00",
-      "sequence_number": 1125,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T07:40:44.979262+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-82099",
       "content_type": "product",
       "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
@@ -43087,6 +42915,188 @@
       "sequence_number": 1386,
       "status": "published",
       "updated_at": "2026-11-16T20:45:18.717779+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-2822004",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-16T20:46:36.959306+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-16T20:46:04.162066+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-2822004%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "آردن",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "10962",
+        "catalog_best_selling_category_name": "پرایمر",
+        "catalog_best_selling_rank": 15,
+        "catalog_best_selling_ranks_by_category": {
+          "10962": {
+            "category_name": "پرایمر",
+            "observed_at": "2026-11-16T19:34:16.031220+00:00",
+            "rank": 15,
+            "rank_history": [
+              {
+                "category_name": "پرایمر",
+                "observed_at": "2026-11-16T19:34:16.031220+00:00",
+                "rank": 15
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-16T20:12:33.932599+00:00",
+        "catalog_cycle_snapshot_rank": 163,
+        "catalog_rank_observed_at": "2026-11-16T19:34:16.031220+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "grocery_food",
+        "checked_at": "2026-11-16T20:37:19.856876+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-2822004",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 581500,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 62.37,
+        "discount_percent": 49,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-16T20:38:10.659648+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-16",
+        "history_high_toman": 581500,
+        "history_low_toman": 581500,
+        "history_median_toman": 581500,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-16",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/911797326179403faad0ac9546a832bf5318d1cc_1632214032.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 77.82,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 62.37,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 94.0,
+          "generality_group": "grocery_food",
+          "live_demand": 84.17,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-16T20:38:10.661706+00:00",
+          "weakest_factor_score": 62.37
+        },
+        "original_price": 1150000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-2822004",
+        "product_url": "https://www.digikala.com/product/dkp-2822004/",
+        "promo_score": 37,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.2,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 198,
+        "savings_toman": 568500,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 15,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 77.82,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 62.37,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 94.0,
+          "generality_group": "grocery_food",
+          "live_demand": 84.17,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-16T20:38:10.661706+00:00",
+          "weakest_factor_score": 62.37
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1387,
+        "title": "پرایمر آردن اکسپرت ایج حجم 30 میلی لیتر"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-16T20:46:36.959306+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-16T20:46:46.216234+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-16T20:46:36.959306+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-16T20:46:36.959306+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-16T20:46:54.434451+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-16T20:46:36.959306+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-16T20:46:43.081630+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-2822004",
+      "product_plan_cycle_id": "2026-11-16T20:12:33.932599+00:00",
+      "scheduled_at": "2026-11-16T20:46:04.162066+00:00",
+      "selected_at": "2026-11-16T20:38:18.110746+00:00",
+      "sequence_number": 1387,
+      "status": "published",
+      "updated_at": "2026-11-16T20:46:55.690742+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -43101,7 +43111,7 @@
       "attempt_count": 0,
       "content_id": "dkp-117895",
       "content_type": "product",
-      "next_attempt_at": "2026-11-16T20:47:35.060852+00:00",
+      "next_attempt_at": "2026-11-16T20:48:11.862970+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-117895%2F",
         "availability": "in_stock",
@@ -43263,7 +43273,7 @@
       },
       "product_id": "dkp-117895",
       "product_plan_cycle_id": "2026-11-16T20:12:33.932599+00:00",
-      "scheduled_at": "2026-11-16T20:47:35.060852+00:00",
+      "scheduled_at": "2026-11-16T20:48:11.862970+00:00",
       "selected_at": "2026-11-16T20:38:18.110746+00:00",
       "sequence_number": 1389,
       "status": "queued"
@@ -43272,7 +43282,7 @@
       "attempt_count": 0,
       "content_id": "dkp-19873348",
       "content_type": "product",
-      "next_attempt_at": "2026-11-16T20:46:49.611459+00:00",
+      "next_attempt_at": "2026-11-16T20:47:33.774000+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-19873348%2F",
         "availability": "in_stock",
@@ -43434,7 +43444,7 @@
       },
       "product_id": "dkp-19873348",
       "product_plan_cycle_id": "2026-11-16T20:12:33.932599+00:00",
-      "scheduled_at": "2026-11-16T20:46:49.611459+00:00",
+      "scheduled_at": "2026-11-16T20:47:33.774000+00:00",
       "selected_at": "2026-11-16T20:38:18.110746+00:00",
       "sequence_number": 1388,
       "status": "queued"
@@ -43612,7 +43622,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22962866",
       "content_type": "product",
-      "next_attempt_at": "2026-11-16T20:50:36.858423+00:00",
+      "next_attempt_at": "2026-11-16T20:50:44.218847+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22962866%2F",
         "availability": "in_stock",
@@ -43773,187 +43783,16 @@
       },
       "product_id": "dkp-22962866",
       "product_plan_cycle_id": "2026-11-16T20:12:33.932599+00:00",
-      "scheduled_at": "2026-11-16T20:50:36.858423+00:00",
+      "scheduled_at": "2026-11-16T20:50:44.218847+00:00",
       "selected_at": "2026-11-16T20:38:18.110746+00:00",
       "sequence_number": 1393,
-      "status": "queued"
-    },
-    "dkp-2822004": {
-      "attempt_count": 0,
-      "content_id": "dkp-2822004",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-16T20:46:04.162066+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-2822004%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "آردن",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "10962",
-        "catalog_best_selling_category_name": "پرایمر",
-        "catalog_best_selling_rank": 15,
-        "catalog_best_selling_ranks_by_category": {
-          "10962": {
-            "category_name": "پرایمر",
-            "observed_at": "2026-11-16T19:34:16.031220+00:00",
-            "rank": 15,
-            "rank_history": [
-              {
-                "category_name": "پرایمر",
-                "observed_at": "2026-11-16T19:34:16.031220+00:00",
-                "rank": 15
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T20:12:33.932599+00:00",
-        "catalog_cycle_snapshot_rank": 163,
-        "catalog_rank_observed_at": "2026-11-16T19:34:16.031220+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "grocery_food",
-        "checked_at": "2026-11-16T20:37:19.856876+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-2822004",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 581500,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 62.37,
-        "discount_percent": 49,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T20:38:10.659648+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 581500,
-        "history_low_toman": 581500,
-        "history_median_toman": 581500,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/911797326179403faad0ac9546a832bf5318d1cc_1632214032.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 77.82,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 62.37,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 84.17,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T20:38:10.661706+00:00",
-          "weakest_factor_score": 62.37
-        },
-        "original_price": 1150000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-2822004",
-        "product_url": "https://www.digikala.com/product/dkp-2822004/",
-        "promo_score": 37,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.2,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 198,
-        "savings_toman": 568500,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 15,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 77.82,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 62.37,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 84.17,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T20:38:10.661706+00:00",
-          "weakest_factor_score": 62.37
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1387,
-        "title": "پرایمر آردن اکسپرت ایج حجم 30 میلی لیتر"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-2822004",
-      "product_plan_cycle_id": "2026-11-16T20:12:33.932599+00:00",
-      "scheduled_at": "2026-11-16T20:46:04.162066+00:00",
-      "selected_at": "2026-11-16T20:38:18.110746+00:00",
-      "sequence_number": 1387,
       "status": "queued"
     },
     "dkp-4622784": {
       "attempt_count": 0,
       "content_id": "dkp-4622784",
       "content_type": "product",
-      "next_attempt_at": "2026-11-16T20:49:51.409030+00:00",
+      "next_attempt_at": "2026-11-16T20:50:06.129877+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-4622784%2F",
         "availability": "in_stock",
@@ -44115,7 +43954,7 @@
       },
       "product_id": "dkp-4622784",
       "product_plan_cycle_id": "2026-11-16T20:12:33.932599+00:00",
-      "scheduled_at": "2026-11-16T20:49:51.409030+00:00",
+      "scheduled_at": "2026-11-16T20:50:06.129877+00:00",
       "selected_at": "2026-11-16T20:38:18.110746+00:00",
       "sequence_number": 1392,
       "status": "queued"
@@ -44124,7 +43963,7 @@
       "attempt_count": 0,
       "content_id": "dkp-580801",
       "content_type": "product",
-      "next_attempt_at": "2026-11-16T20:49:05.959637+00:00",
+      "next_attempt_at": "2026-11-16T20:49:28.040908+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-580801%2F",
         "availability": "in_stock",
@@ -44292,7 +44131,7 @@
       },
       "product_id": "dkp-580801",
       "product_plan_cycle_id": "2026-11-16T20:12:33.932599+00:00",
-      "scheduled_at": "2026-11-16T20:49:05.959637+00:00",
+      "scheduled_at": "2026-11-16T20:49:28.040908+00:00",
       "selected_at": "2026-11-16T20:38:18.110746+00:00",
       "sequence_number": 1391,
       "status": "queued"
@@ -44301,7 +44140,7 @@
       "attempt_count": 0,
       "content_id": "dkp-8994322",
       "content_type": "product",
-      "next_attempt_at": "2026-11-16T20:48:20.510245+00:00",
+      "next_attempt_at": "2026-11-16T20:48:49.951939+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-8994322%2F",
         "availability": "in_stock",
@@ -44468,7 +44307,7 @@
       },
       "product_id": "dkp-8994322",
       "product_plan_cycle_id": "2026-11-16T20:12:33.932599+00:00",
-      "scheduled_at": "2026-11-16T20:48:20.510245+00:00",
+      "scheduled_at": "2026-11-16T20:48:49.951939+00:00",
       "selected_at": "2026-11-16T20:38:18.110746+00:00",
       "sequence_number": 1390,
       "status": "queued"
@@ -210925,12 +210764,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-16T20:45:18.712673+00:00",
+  "last_channel_published_at": "2026-11-16T20:46:55.685031+00:00",
   "last_content_selection_at": "2026-11-16T20:38:18.110746+00:00",
   "last_editorial_attempt_at": "2026-11-16T18:31:06.983279+00:00",
   "last_editorial_confirmed_at": "2026-11-16T18:26:51.937427+00:00",
-  "last_product_channel_published_at": "2026-11-16T20:45:18.712673+00:00",
-  "last_published_at": "2026-11-16T20:45:18.712673+00:00",
+  "last_product_channel_published_at": "2026-11-16T20:46:55.685031+00:00",
+  "last_published_at": "2026-11-16T20:46:55.685031+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -218934,23 +218773,6 @@
       "publish_failure_count": 0,
       "savings_toman": 301000,
       "title": "روکش یکبارمصرف توالت فرنگی ایلکا مدل کاوری کد m66 بسته 20 عددی",
-      "urgent": false
-    },
-    "dkp-2822004": {
-      "current_price": 581500,
-      "deal_expires_at": "",
-      "discount_percent": 49,
-      "first_seen_at": "2026-11-16T19:58:26.998519+00:00",
-      "last_publish_failure": "",
-      "last_publish_failure_at": "",
-      "next_publish_attempt_at": "",
-      "original_price": 1150000,
-      "product_id": "dkp-2822004",
-      "product_url": "https://www.digikala.com/product/dkp-2822004/",
-      "promo_score": 37,
-      "publish_failure_count": 0,
-      "savings_toman": 568500,
-      "title": "پرایمر آردن اکسپرت ایج حجم 30 میلی لیتر",
       "urgent": false
     },
     "dkp-4622784": {
@@ -259322,8 +259144,8 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-16T20:45:18.712685+00:00",
-    "candidate_count": 8,
+    "calculated_at": "2026-11-16T20:46:55.685040+00:00",
+    "candidate_count": 7,
     "catalog_cycle_id": "2026-11-16T20:12:33.932599+00:00",
     "current_cycle_started_at": "2026-11-16T20:12:34.307816+00:00",
     "daily_post_limit": 72,
@@ -259331,34 +259153,33 @@
     "estimated_clean_cycle_seconds": 2328,
     "estimated_next_clean_scan_at": "2026-11-16T20:51:22.307816+00:00",
     "first_slot_due_now": false,
-    "interval_minutes": 0.757,
-    "interval_seconds": 45.449392875,
+    "interval_minutes": 0.635,
+    "interval_seconds": 38.08896928571429,
     "last_clean_cycle_completed_at": "2026-11-16T20:12:33.932599+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-16T20:45:18.712673+00:00",
+    "plan_anchor_at": "2026-11-16T20:46:55.685031+00:00",
     "plan_anchor_kind": "last_product",
-    "planned_product_slots": 8,
+    "planned_product_slots": 7,
     "planned_window_end_at": "2026-11-16T20:51:22.307816+00:00",
     "policy": "even_scan_window_spacing_capped_at_57_minutes_with_provisional_fallback_when_eta_overdue",
     "scan_eta_is_provisional": false,
     "scan_eta_source": "last_observed_full_cycle_duration",
     "scheduled_product_count": 12,
-    "seconds_from_plan_anchor_to_next_scan": 363.595143,
-    "seconds_until_estimated_next_clean_scan": 363.595131
+    "seconds_from_plan_anchor_to_next_scan": 266.622785,
+    "seconds_until_estimated_next_clean_scan": 266.622776
   },
-  "product_publication_interval_seconds": 45.449392875,
+  "product_publication_interval_seconds": 38.08896928571429,
   "product_publication_plan": {
-    "anchor_at": "2026-11-16T20:45:18.712673+00:00",
+    "anchor_at": "2026-11-16T20:46:55.685031+00:00",
     "anchor_kind": "last_product",
     "catalog_cycle_id": "2026-11-16T20:12:33.932599+00:00",
     "first_slot_due_now": false,
-    "interval_minutes": 0.757,
-    "interval_seconds": 45.449392875,
+    "interval_minutes": 0.635,
+    "interval_seconds": 38.08896928571429,
     "maximum_product_interval_seconds": 3420,
     "next_clean_scan_at": "2026-11-16T20:51:22.307816+00:00",
-    "pending_product_count": 8,
+    "pending_product_count": 7,
     "product_ids": [
-      "dkp-2822004",
       "dkp-19873348",
       "dkp-117895",
       "dkp-8994322",
@@ -259367,10 +259188,10 @@
       "dkp-22962866",
       "dkp-22182003"
     ],
-    "scheduled_product_count": 8,
-    "updated_at": "2026-11-16T20:45:18.712685+00:00"
+    "scheduled_product_count": 7,
+    "updated_at": "2026-11-16T20:46:55.685040+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-16T20:45:18.712673+00:00",
+  "product_publication_plan_anchor_at": "2026-11-16T20:46:55.685031+00:00",
   "product_publication_plan_anchor_kind": "last_product",
   "product_publication_plan_cycle_id": "2026-11-16T20:12:33.932599+00:00",
   "publication_diversity_fallback_count": 5307,
@@ -357278,6 +357099,7 @@
     },
     "dkp-22382004": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2137,
       "bale_posted_at": "2026-11-16T20:38:27.873847+00:00",
       "brand": "یونیک",
@@ -357342,6 +357164,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_upload_status": "pending",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-16T20:38:10.659612+00:00",
@@ -376664,6 +376487,134 @@
       "video_generation_status": "skipped_expiring_soon",
       "youtube_upload_status": "skipped_expiring_soon"
     },
+    "dkp-2822004": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2144,
+      "bale_posted_at": "2026-11-16T20:46:46.216234+00:00",
+      "brand": "آردن",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "B",
+      "catalog_best_selling_category_id": "10962",
+      "catalog_best_selling_category_name": "پرایمر",
+      "catalog_best_selling_rank": 15,
+      "catalog_best_selling_ranks_by_category": {
+        "10962": {
+          "category_name": "پرایمر",
+          "observed_at": "2026-11-16T19:34:16.031220+00:00",
+          "rank": 15,
+          "rank_history": [
+            {
+              "category_name": "پرایمر",
+              "observed_at": "2026-11-16T19:34:16.031220+00:00",
+              "rank": 15
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-16T20:12:33.932599+00:00",
+      "catalog_cycle_snapshot_rank": 163,
+      "catalog_rank_observed_at": "2026-11-16T19:34:16.031220+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-2822004",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "A",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-16T20:46:54.434475+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 0,
+      "distribution_queue_id": "dkp-2822004:2026-11-16T20:38:18.110746+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-16T20:38:10.659648+00:00",
+      "history_days": 1,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/911797326179403faad0ac9546a832bf5318d1cc_1632214032.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "not_checked",
+      "platform_message_ids": {
+        "rubika": "1974185691291588651"
+      },
+      "posted_current_price": 581500,
+      "posted_discount_percent": 49,
+      "posted_original_price": 1150000,
+      "product_url": "https://www.digikala.com/product/dkp-2822004/",
+      "promo_score": 37,
+      "publication_category": "grocery_food",
+      "publication_family": "digikala_category:10962",
+      "publication_use_case": "grocery_food",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 0.0,
+      "rubika_posted_at": "2026-11-16T20:46:54.434451+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 15,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 77.82,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 62.37,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 94.0,
+        "generality_group": "grocery_food",
+        "live_demand": 84.17,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-16T20:38:10.661706+00:00",
+        "weakest_factor_score": 62.37
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1387,
+      "telegram_message_id": 1607,
+      "telegram_posted_at": "2026-11-16T20:46:43.081630+00:00",
+      "title": "پرایمر آردن اکسپرت ایج حجم 30 میلی لیتر",
+      "ts": 1794861996.959306,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
+    },
     "dkp-2833096": {
       "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expired_deleted_at": "2026-11-04T21:38:06.759718+00:00",
@@ -390363,6 +390314,7 @@
     },
     "dkp-7696150": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2139,
       "bale_posted_at": "2026-11-16T20:41:02.238894+00:00",
       "brand": "تروبایت",
@@ -390439,6 +390391,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_upload_status": "pending",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-16T20:38:10.659628+00:00",
