@@ -100,20 +100,27 @@ class OfferChinThreeFactorTests(unittest.TestCase):
 
     def test_product_ticket_size_never_changes_selection_score(self):
         base = {
+            "current_price": 500_000,
             "original_price": 1_000_000,
             "discount_percent": 50,
             "savings_toman": 500_000,
             "test_live_demand": 75,
             "test_group": "kitchen_food",
         }
-        low_ticket = {"current_price": 500_000, **base}
-        high_ticket = {"current_price": 50_000_000, **base}
-        self._score([low_ticket, high_ticket])
+        ordinary = {**base}
+        affordability_metadata_only = {
+            **base,
+            "monthly_income_toman": 1_000_000,
+            "installment_down_payment_toman": 10_000,
+            "installment_terms_verified": True,
+            "price_to_income_ratio": 999,
+        }
+        self._score([ordinary, affordability_metadata_only])
         self.assertEqual(
-            low_ticket["offerchin_three_factor"],
-            high_ticket["offerchin_three_factor"],
+            ordinary["offerchin_three_factor"],
+            affordability_metadata_only["offerchin_three_factor"],
         )
-        self.assertNotIn("affordability", low_ticket["offerchin_three_factor"])
+        self.assertNotIn("affordability", ordinary["offerchin_three_factor"])
 
     def test_unknown_use_case_is_not_mistaken_for_general_mass_market(self):
         self.assertGreater(generality_score("kitchen_food"), generality_score("tabletop_games"))
