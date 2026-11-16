@@ -27,17 +27,17 @@ from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from product_quality import is_prohibited_product_title, is_publishable_product_title
 try:
     from .offerchin_four_factor import (
-        POLICY_VERSION as OFFERCHIN_FOUR_FACTOR_POLICY_VERSION,
-        apply_four_factor_scores as _apply_four_factor_scores,
-        four_factor_sort_key as _four_factor_sort_key,
+        POLICY_VERSION as OFFERCHIN_THREE_FACTOR_POLICY_VERSION,
+        apply_three_factor_scores as _apply_three_factor_scores,
+        three_factor_sort_key as _three_factor_sort_key,
         discount_publish_gate as _discount_publish_gate,
         MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE,
     )
 except ImportError:
     from offerchin_four_factor import (
-        POLICY_VERSION as OFFERCHIN_FOUR_FACTOR_POLICY_VERSION,
-        apply_four_factor_scores as _apply_four_factor_scores,
-        four_factor_sort_key as _four_factor_sort_key,
+        POLICY_VERSION as OFFERCHIN_THREE_FACTOR_POLICY_VERSION,
+        apply_three_factor_scores as _apply_three_factor_scores,
+        three_factor_sort_key as _three_factor_sort_key,
         discount_publish_gate as _discount_publish_gate,
         MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE,
     )
@@ -3410,20 +3410,16 @@ def _offerchin_live_demand_score(record: dict, now: datetime | None = None) -> f
     return 0.0
 
 
-def _apply_offerchin_four_factor_scores(records: list[dict], now: datetime | None = None) -> list[dict]:
-    """Annotate a comparable candidate cohort with the shared four-factor policy."""
+def _apply_offerchin_three_factor_scores(records: list[dict], now: datetime | None = None) -> list[dict]:
+    """Score candidates using only live demand, broad usefulness and genuine discount value."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
-    return _apply_four_factor_scores(
+    return _apply_three_factor_scores(
         records,
         live_demand_score_fn=lambda row: _offerchin_live_demand_score(row, now=current),
         use_case_group_fn=_publication_use_case_group,
-        price_group_fn=lambda row: str(
-            row.get("catalog_category_id") or row.get("catalog_best_selling_category_id")
-            or _publication_use_case_group(row)
-        ),
         discount_verified_fn=lambda row: has_attractive_discount_value(row, now=current),
         now=current,
     )
@@ -3443,11 +3439,11 @@ def _offerchin_factor_sort_key(record: dict, now: datetime | None = None) -> tup
     )
     if (
         not isinstance(score, dict)
-        or score.get("policy_version") != OFFERCHIN_FOUR_FACTOR_POLICY_VERSION
+        or score.get("policy_version") != OFFERCHIN_THREE_FACTOR_POLICY_VERSION
         or not -0.1 <= age_minutes <= 15
     ):
-        _apply_offerchin_four_factor_scores([record], now=current)
-    return _four_factor_sort_key(record)
+        _apply_offerchin_three_factor_scores([record], now=current)
+    return _three_factor_sort_key(record)
 
 
 def has_verified_market_demand(record: dict, now: datetime | None = None) -> bool:
@@ -8676,7 +8672,7 @@ def select_urgent_publication_candidate(
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
     eligible_rows = [product for product in (eligible or []) if isinstance(product, dict)]
-    _apply_offerchin_four_factor_scores(eligible_rows, now=current)
+    _apply_offerchin_three_factor_scores(eligible_rows, now=current)
     ranked = sorted(
         eligible_rows,
         key=lambda record: deal_sort_key(record, now=current),
@@ -8746,7 +8742,7 @@ def select_publish_candidates(
         for tier in selected_by_floor.values()
         for product in tier
     ]
-    _apply_offerchin_four_factor_scores(ready_products, now=current)
+    _apply_offerchin_three_factor_scores(ready_products, now=current)
     ordered = sorted(
         ready_products,
         key=lambda record: deal_sort_key(record, now=current),
@@ -9251,13 +9247,12 @@ def _emergency_continuity_window_active(
 
 
 def _emergency_continuity_quality_score(product: dict) -> float:
-    """Score affordability, generality and discount only; never invent a demand score."""
-    factors = product.get("offerchin_four_factor")
+    """Score broad usefulness and genuine discount only; never invent a demand score."""
+    factors = product.get("offerchin_three_factor")
     if not isinstance(factors, dict):
         return 0.0
     try:
         values = [
-            float(factors.get("affordability") or 0),
             float(factors.get("generality") or 0),
             float(factors.get("discount_attractiveness") or 0),
         ]
@@ -9337,22 +9332,20 @@ def select_discount_fallback_candidates(
 
     fallback_mode = "normal"
     if allow_emergency_demand_relaxation:
-        _apply_offerchin_four_factor_scores(emergency_candidates, now=current)
+        _apply_offerchin_three_factor_scores(emergency_candidates, now=current)
         approved_emergency = []
         for product in emergency_candidates:
-            factors = product.get("offerchin_four_factor") if isinstance(product.get("offerchin_four_factor"), dict) else {}
+            factors = product.get("offerchin_three_factor") if isinstance(product.get("offerchin_three_factor"), dict) else {}
             quality_score = _emergency_continuity_quality_score(product)
             try:
                 discount_score = float(factors.get("discount_attractiveness") or 0)
-                affordability_score = float(factors.get("affordability") or 0)
                 generality_score = float(factors.get("generality") or 0)
             except (TypeError, ValueError, OverflowError):
                 continue
-            # This is deliberately stricter than the ordinary four-factor ranking:
-            # a missing demand signal is disclosed, while weak markdown/fit is rejected.
+            # This remains stricter than normal publication: demand relaxation is
+            # disclosed, while a weak markdown or narrow use case is still rejected.
             if (
                 discount_score < 55
-                or affordability_score < 40
                 or generality_score < 50
                 or quality_score < 55
             ):
@@ -9374,7 +9367,7 @@ def select_discount_fallback_candidates(
             print(
                 "EMERGENCY_CONTINUITY_CANDIDATES "
                 f"available={len(quality_eligible)} approved={len(emergency_candidates)} "
-                "ranking=affordability_generality_discount_harmonic "
+                "ranking=generality_discount_harmonic "
                 "fresh_demand_claim=false"
             )
             fresh_candidates.extend(emergency_candidates)
@@ -9426,7 +9419,7 @@ def select_discount_fallback_candidates(
         )
         return [], None, quality_eligible
 
-    _apply_offerchin_four_factor_scores(fresh_candidates, now=current)
+    _apply_offerchin_three_factor_scores(fresh_candidates, now=current)
     ranked = sorted(
         fresh_candidates,
         key=lambda record: deal_sort_key(record, now=current),
@@ -9444,10 +9437,10 @@ def select_discount_fallback_candidates(
         )
         selected["selection_discount_floor"] = int(floor)
         selected["selection_discount_band"] = discount_fallback_band_label(int(floor), None)
-        selected["publication_policy"] = OFFERCHIN_FOUR_FACTOR_POLICY_VERSION
-        selected["selection_four_factor"] = dict(
-            selected.get("offerchin_four_factor")
-            if isinstance(selected.get("offerchin_four_factor"), dict) else {}
+        selected["publication_policy"] = OFFERCHIN_THREE_FACTOR_POLICY_VERSION
+        selected["selection_three_factor"] = dict(
+            selected.get("offerchin_three_factor")
+            if isinstance(selected.get("offerchin_three_factor"), dict) else {}
         )
         bestseller_evidence = _fresh_digikala_bestseller_evidence(product, now=current)
         if selected.get("selection_continuity_mode") == "temporary_three_factor_demand_relaxation":
@@ -9503,8 +9496,8 @@ def select_discount_fallback_candidates(
             caption_experiment_counts[caption_variant] += 1
 
     print(
-        f"PUBLICATION_CANDIDATES_READY four_factor_ranked={len(safe_handoff)} "
-        f"top_four_factor={safe_handoff[0].get('offerchin_four_factor', {}).get('balanced_score')} "
+        f"PUBLICATION_CANDIDATES_READY three_factor_ranked={len(safe_handoff)} "
+        f"top_three_factor={safe_handoff[0].get('offerchin_four_factor', {}).get('balanced_score')} "
         f"top_bestseller_rank={safe_handoff[0].get('selection_bestseller_rank')} "
         f"top_discount={safe_handoff[0].get('discount_percent')} "
         f"visual_variants={experiment_counts} caption_variants={caption_experiment_counts} "
@@ -10178,7 +10171,7 @@ def _has_pending_video_destination(
 def _video_upload_candidate_sort_key(row: tuple) -> tuple:
     """Preserve the canonical product-selection order on every video destination.
 
-    The publisher has already made the discovery, four-factor ranking, diversity
+    The publisher has already made the discovery, three-factor ranking, diversity
     choice and last-mile live validation. Every destination consumes the same selected
     hand-off FIFO; markdown must not reorder it independently.
     """
@@ -11421,12 +11414,13 @@ def run(publish=False, selection_only=False):
     print("Affilio radar: independent from Dayan and TrendsUploader.")
     print(f"delivery_configuration telegram={bool(BOT_TOKEN)} bale={bool(BALE_BOT_TOKEN and BALE_CHANNEL_ID)}")
     print(
-        "Ranking mode=full-catalog four-factor-balanced; fresh DigiKala bestseller rank or verified "
-        "recent review-growth proxy is a hard demand gate. Eligible candidates are ranked by the "
-        "harmonic mean of live demand, cash-ticket affordability, use-case generality and discount "
-        "attractiveness; the weakest factor is a tie-break. Missing price/evidence is never invented. "
-        "Clicks and affiliate revenue never rank demand. Live stock, price, product identity, direct "
-        "Affilio URL, expiry, 24h family/brand/similarity guards and safety checks remain hard controls."
+        "Ranking mode=full-catalog three-factor-balanced; fresh DigiKala bestseller rank or verified "
+        "recent review-growth proxy remains a hard demand gate. Eligible candidates are ranked by the "
+        "harmonic mean of live demand, use-case generality and genuine discount attractiveness. "
+        "Affordability, item price level and installment down-payment are not ranking factors or filters. "
+        "Missing evidence is never invented. Clicks and affiliate revenue never rank demand. Live stock, "
+        "price, product identity, direct Affilio URL, expiry, 24h family/brand/similarity and independent "
+        "category/use-case diversity checks remain in force."
     )
     catalog = load_catalog()
     approved = link_map(catalog)
@@ -11699,7 +11693,7 @@ def run(publish=False, selection_only=False):
     queue_now = datetime.now(timezone.utc)
     # Score the comparable live-checked product cohort together so category-relative
     # affordability is computed from its peers, not from isolated one-item calls.
-    _apply_offerchin_four_factor_scores(products, now=queue_now)
+    _apply_offerchin_three_factor_scores(products, now=queue_now)
     products.sort(key=deal_sort_key, reverse=True)
     # Independent market/history evidence is diagnostic; it cannot filter a live markdown.
     listed_eligible_count = sum(
@@ -11948,18 +11942,17 @@ def run(publish=False, selection_only=False):
 
     report = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "ranking_note": "The full-catalog scanner requires fresh market-demand evidence before publication. The final offer order balances four equally important dimensions with a harmonic mean: live demand, cash-ticket affordability (with only explicitly verified installment down-payment terms eligible as an entry-price proxy), generality of use, and discount attractiveness. Category-relative cash prices are used only when at least eight comparable candidates exist. A weak dimension cannot be hidden by a strong one. DigiKala bestseller rank is relative within-category evidence, not unit sales; review growth is an indirect proxy, not sales. Clicks never rank market demand. Missing data remains missing.",
-        "four_factor_ranking_policy": {
-            "version": OFFERCHIN_FOUR_FACTOR_POLICY_VERSION,
+        "ranking_note": "The full-catalog scanner requires fresh market-demand evidence before publication. The final offer order balances exactly three dimensions with a harmonic mean: live demand, use-case generality, and genuine discount attractiveness. Affordability, price level and installment down-payment are not ranking factors or filters. A weak dimension cannot be hidden by a strong one. DigiKala bestseller rank is relative within-category evidence, not unit sales; review growth is an indirect proxy, not sales. Clicks never rank market demand. Missing data remains missing.",
+        "three_factor_ranking_policy": {
+            "version": OFFERCHIN_THREE_FACTOR_POLICY_VERSION,
             "aggregation": "equal_weight_harmonic_mean",
-            "dimensions": ["live_demand", "affordability", "generality", "discount_attractiveness"],
-            "affordability": "listed_final_cash_price_vs_versioned_1405_minimum_wage_proxy_plus_within_use_case_price_percentile_when_cohort_size_at_least_8",
-            "verified_installment_terms_required": True,
-            "generality": "taxonomy_and_use_case_reach_heuristic; unknown_taxonomy_scored_low",
+            "dimensions": ["live_demand", "generality", "discount_attractiveness"],
+            "affordability": "not_used_in_selection_or_filtering",
+            "generality": "title_first_taxonomy_and_use_case_reach_heuristic; unknown_taxonomy_scored_low",
             "discount_attractiveness": "verified_percent_and_cash_savings_plus_fresh_history_or_market_evidence_confidence",
-            "missing_factor_behavior": "no_invented_values; incomplete legacy cards retain prior fallback order",
+            "missing_factor_behavior": "no_invented_values; all three factors required for balanced_score",
             "demand_gate_remains_hard": True,
-            "clicks_affect_demand_or_four_factor_score": False,
+            "clicks_affect_demand_or_three_factor_score": False,
             "score_is_conversion_probability": False,
         },
         "demand_ranking_policy": {
