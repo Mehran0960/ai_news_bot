@@ -388,7 +388,7 @@ def _topic_emoji(item: dict) -> str:
     return mapping.get(topic, "💡")
 
 
-def _readable_editorial_body(value: Any) -> str:def _readable_editorial_body(value: Any) -> str:
+def _readable_editorial_body(value: Any) -> str:
     """Separate authored lines and complete sentences into readable paragraphs."""
     normalized = str(value or "").replace("\r\n", "\n").replace("\r", "\n")
     paragraphs: list[str] = []
@@ -551,7 +551,7 @@ def _send_bot_photo(platform: str, image_bytes: bytes, caption: str) -> dict:
     return {"message_id": str(message_id)}
 
 
-def _send_rubika_image(image_bytes: bytes, caption: str) -> dict:def _send_rubika_image(image_bytes: bytes, caption: str) -> dict:
+def _send_rubika_image(image_bytes: bytes, caption: str) -> dict:
     import messenger_adapters as adapters
 
     token = os.getenv("RUBIKA_BOT_TOKEN", "").strip()
@@ -828,7 +828,7 @@ def _video_description(item: dict) -> str:
     return "\n".join(parts)[:2900]
 
 
-def _handle_video_destination(def _handle_video_destination(
+def _handle_video_destination(
     state: dict, entry: dict, destination: str, video_path: Path, now: datetime
 ) -> None:
     target = _target(entry, destination)
