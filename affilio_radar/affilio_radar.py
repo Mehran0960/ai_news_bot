@@ -3720,11 +3720,9 @@ def select_discovery_records_for_check(
         due.append((pid, record))
     due.sort(key=lambda pair: discovery_queue_sort_key(pair[1], current), reverse=True)
 
-    # Apply the exact same rolling 24-hour family/brand/similarity guards to the
-    # complete due pool BEFORE consuming scarce live-detail slots. Previously the
-    # top 48 could all be rejected later by the publisher, starving valid offers
-    # ranked just below them. This is a temporary selection filter only: blocked
-    # queue entries remain queued and become eligible when their cooldown expires.
+    # Apply rolling 24-hour family/brand/similarity and 6-hour category/use-case
+    # guards to the complete due pool BEFORE consuming scarce live-detail slots.
+    # Blocked queue entries remain queued and become eligible after their cooldown.
     guard_rows = [
         {**record, "product_id": pid}
         for pid, record in due
@@ -3748,8 +3746,8 @@ def select_discovery_records_for_check(
     ]
     blocked_by_repeat_guard = len(due) - len(guarded_due)
 
-    # Filtering does not reorder the remaining rows: global discount/savings
-    # priority remains intact and family/brand/similarity checks are independent 24h guards.
+    # Filtering does not reorder remaining rows: the original demand/discount
+    # ordering remains intact after hard and soft repeat guards are applied.
     selected = guarded_due[:limit]
     print(
         f"DISCOVERY_QUEUE_CHECK_BATCH due={len(due)} "
@@ -4730,7 +4728,7 @@ def classify_category(title: str) -> str:
         ("computer_network", r"لپ\s*تاپ|لپتاپ|کامپیوتر|مینی\s*پی\s*سی|کارت گرافیک|پردازنده|\bcpu\b|\bgpu\b|حافظه\s*(?:اس\s*اس\s*دی|ssd|رم)|\bram\b|\bssd\b|مودم|روتر|مانیتور|پرینتر|کیبورد|ماوس"),
         # Put children before sport terms so «کفش ورزشی کودک» remains a kids product.
         ("kids_sports", r"نوزاد|نوزادی|کودک|اسباب\s*بازی|بازی فکری|بازی آموزشی"),
-        ("sports_outdoor", r"ورزشی|کمپینگ|کوهنوردی|سفر و طبیعت|دوچرخه|اسکی|شنا|بدنسازی|دمبل|تردمیل|توپ فوتبال|چادر مسافرتی|اور\s*گریپ|آور\s*گریپ|over\s*grip|overgrip|over-grip|aver\s*grip|avergrip"),
+        ("sports_outdoor", r"ورزشی|کمپینگ|کوهنوردی|سفر و طبیعت|دوچرخه|اسکی|(?<![آ-ی])شنا(?![آ-ی])|بدنسازی|دمبل|تردمیل|توپ فوتبال|چادر مسافرتی|اور\s*گریپ|آور\s*گریپ|over\s*grip|overgrip|over-grip|aver\s*grip|avergrip"),
         ("gaming", r"گیم|بازی ویدیویی|بازی رایانه.?ای|بازی کامپیوتری|کنسول|پلی\s*استیشن|xbox"),
         ("jewelry", r"زیورآلات|بدلیجات|گوشواره|انگشتر|دستبند|گردنبند|نقره زنانه|نقره مردانه|پرسته"),
         ("books_stationery", r"کتاب|دفترچه یادداشت|دفترچه|دفتر|خودکار|مداد رنگی|مداد تحریر|لوازم التحریر|لوازم‌التحریر|نوشت افزار"),
@@ -7824,6 +7822,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         "automotive": [
             ("tires", r"لاستیک\s*خودرو|تایر"),
             ("car_electronics", r"شارژر\s*فندکی|دوربین\s*خودرو|مانیتور\s*خودرو|کمپرسور\s*باد"),
+            ("car_lighting", r"چراغ\s*خودرو|چراغ\s*ماشین|روشنایی\s*خودرو"),
             ("car_care", r"مراقبت\s*خودرو|واکس\s*بدنه|تمیزکننده\s*خودرو"),
             ("car_accessories", r"روکش\s*صندلی|کفپوش\s*خودرو|داشبورد|لوازم\s*یدکی"),
         ],
