@@ -733,6 +733,86 @@ def _listing_rating(product: dict) -> tuple[float, int]:
     return round(score, 2), reviews
 
 
+
+def _clean_catalog_label(value: Any) -> str:
+    if isinstance(value, dict):
+        for key in ("name", "title_fa", "title", "value", "name_fa", "brand_name", "brand"):
+            candidate = value.get(key)
+            if isinstance(candidate, (str, int)) and str(candidate).strip():
+                value = candidate
+                break
+    if isinstance(value, (list, tuple)):
+        value = " > ".join(_clean_catalog_label(item) for item in value if _clean_catalog_label(item))
+    text = str(value or "").replace("\u200c", " ").replace("\u200f", " ")
+    text = re.sub(r"\s+", " ", text).strip(" \t\r\n|-/")
+    if text.lower() in {"", "unknown", "other", "none", "null", "-", "نامشخص", "سایر", "برند متفرقه"}:
+        return ""
+    return text[:120]
+
+
+def extract_brand_name(product: dict) -> str:
+    """Extract a real manufacturer/brand label across current and legacy DigiKala cards."""
+    if not isinstance(product, dict):
+        return ""
+    data_layer = product.get("data_layer") if isinstance(product.get("data_layer"), dict) else {}
+    for source in (product, data_layer):
+        for key in (
+            "brand", "brand_name", "brand_title", "brand_fa", "brand_title_fa",
+            "brand_en", "manufacturer", "manufacturer_name", "brandName",
+        ):
+            value = _clean_catalog_label(source.get(key))
+            if value:
+                return value
+    # DigiKala sometimes nests the brand under a product specification/attribute row.
+    stack = [product]
+    seen = set()
+    while stack:
+        node = stack.pop()
+        if isinstance(node, dict):
+            identity = id(node)
+            if identity in seen:
+                continue
+            seen.add(identity)
+            for key, value in node.items():
+                key_norm = str(key).lower().replace("-", "_")
+                if key_norm in {"brand", "brand_name", "brand_title", "manufacturer"}:
+                    label = _clean_catalog_label(value)
+                    if label:
+                        return label
+                if isinstance(value, (dict, list, tuple)):
+                    stack.append(value)
+        elif isinstance(node, (list, tuple)):
+            stack.extend(node)
+    return ""
+
+
+def extract_category_label(product: dict) -> str:
+    """Prefer the most specific structured category carried by a product card."""
+    if not isinstance(product, dict):
+        return ""
+    data_layer = product.get("data_layer") if isinstance(product.get("data_layer"), dict) else {}
+    for source in (product, data_layer):
+        for key in (
+            "category_name", "category_title", "category", "category_name_fa",
+            "category_title_fa", "categoryName",
+        ):
+            value = _clean_catalog_label(source.get(key))
+            if value:
+                return value
+    return ""
+
+
+def extract_category_path(product: dict) -> str:
+    if not isinstance(product, dict):
+        return ""
+    for key in ("category_path", "category_tree", "breadcrumb", "categories"):
+        value = product.get(key)
+        if value:
+            label = _clean_catalog_label(value)
+            if label:
+                return label
+    return ""
+
 def extract_product_rows(payload: Any) -> list[dict]:
     """Normalize legacy product arrays and current DigiKala v2 product widgets."""
     data = payload.get("data") if isinstance(payload, dict) else None
@@ -805,8 +885,9 @@ def extract_product_rows(payload: Any) -> list[dict]:
             "availability": availability,
             "rating": rating,
             "review_count": review_count,
-            "brand": (product.get("data_layer") or {}).get("brand", "") if isinstance(product.get("data_layer"), dict) else "",
-            "category": (product.get("data_layer") or {}).get("category", "") if isinstance(product.get("data_layer"), dict) else "",
+            "brand": extract_brand_name(product),
+            "category": extract_category_label(product),
+            "catalog_category_path": extract_category_path(product),
             "source": "digikala_search_v2",
             "last_seen_at": iso_now(),
         })
@@ -1023,8 +1104,8 @@ def _score_catalog_candidate_cohort(rows: list[dict]) -> None:
 
 
 def catalog_candidate_sort_key(row: dict) -> tuple:
-    """Use balanced four-factor priority; retain demand/value order for incomplete cards."""
-    if not isinstance(row.get("offerchin_four_factor"), dict):
+    """Use demand, generality and discount quality; listed price is not a ranking factor."""
+    if not isinstance(row.get("offerchin_three_factor"), dict):
         _score_catalog_candidate_cohort([row])
     rank = _fresh_best_selling_rank(row)
     rank_strength = (
