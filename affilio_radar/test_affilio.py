@@ -1970,7 +1970,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(is_prohibited_product_title("شربت ال آرژنین پلاس فیشر کیندر"))
         self.assertTrue(is_prohibited_product_title("مکمل کلسیم کودکان"))
 
-    def test_publish_selection_blocks_recently_repeated_audio_families(self):
+    def test_publish_selection_blocks_recent_power_backup_category(self):
         now = datetime(2026, 10, 22, 9, 0, tzinfo=timezone.utc)
         published = {}
         for index in range(6):
@@ -1996,7 +1996,7 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
         self.assertEqual(
             [p["product_id"] for p in selected],
-            ["dkp-power-new", "dkp-fashion-new"],
+            ["dkp-fashion-new"],
         )
 
 
@@ -2344,9 +2344,9 @@ class AffilioRadarTests(unittest.TestCase):
         selected = select_publish_candidates(queue, eligible, now, published)
 
         self.assertTrue(selected)
-        # Strict demand/discount priority outranks category variety and the
-        # 60% eyewear offer wins when current demand evidence is tied.
-        self.assertEqual(selected[0]["product_id"], "dkp-eyewear-0")
+        # Recent fashion-category publication prefers the best valid offer
+        # from a different category, even if it appears later in the scan.
+        self.assertEqual(selected[0]["product_id"], "dkp-late-fragrance")
 
 
     def test_single_repeated_category_candidate_is_still_publishable(self):
@@ -3202,11 +3202,12 @@ class AffilioRadarTests(unittest.TestCase):
             [row["product_id"] for row in expected_order],
         )
         self.assertTrue(all(
-            row.get("offerchin_four_factor", {}).get("policy_version") == radar_module.OFFERCHIN_FOUR_FACTOR_POLICY_VERSION
+            row.get("offerchin_three_factor", {}).get("policy_version") == radar_module.OFFERCHIN_THREE_FACTOR_POLICY_VERSION
             for row in published_order
         ))
+        self.assertTrue(all("affordability" not in row["offerchin_three_factor"] for row in published_order))
         self.assertGreater(
-            len({row["offerchin_four_factor"]["balanced_score"] for row in published_order}),
+            len({row["offerchin_three_factor"]["balanced_score"] for row in published_order}),
             1,
         )
 
