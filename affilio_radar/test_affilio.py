@@ -2454,21 +2454,21 @@ class AffilioRadarTests(unittest.TestCase):
             for index, title in enumerate(recent_titles)
         ]
         self.assertEqual(
-            radar._publication_diversity_group({"title": recent_titles[0]})[2],
+            radar_module._publication_diversity_group({"title": recent_titles[0]})[2],
             "muzik_apollo",
         )
         self.assertEqual(
-            radar._publication_diversity_group({"title": "هدفون بلوتوثی موزیک آپولو مدل تازه"})[2],
+            radar_module._publication_diversity_group({"title": "هدفون بلوتوثی موزیک آپولو مدل تازه"})[2],
             "muzik_apollo",
         )
         self.assertEqual(
-            radar._publication_diversity_group({
+            radar_module._publication_diversity_group({
                 "title": "باتری قلمی قابل شارژ موزیک آپولو مدل قدیمی",
                 "brand": "muzik_apollo",
             })[2],
             "muzik_apollo",
         )
-        recent_history = radar._recent_publication_diversity(
+        recent_history = radar_module._recent_publication_diversity(
             published={}, limit=radar.PUBLICATION_LEDGER_LIMIT,
             durable_history=recent_publications, now=now, window_hours=24,
         )
