@@ -34,15 +34,14 @@ jobs:
   enforce-docs:
     name: enforce-docs
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - name: Check out both sides of the change
         uses: actions/checkout@v4
         with:
-          # The PR merge commit has both base and head as parents; two levels
-          # are enough for the documented base/head diff. Avoid cloning the
-          # full 380MB repository history on every documentation check.
-          fetch-depth: 2
+          # The validator compares the exact PR base/head commit SHAs; retain
+          # the full graph so both refs are guaranteed to be available.
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
