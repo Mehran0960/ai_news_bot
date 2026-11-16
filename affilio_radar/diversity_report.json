@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T03:38:41.902656+00:00",
+  "generated_at": "2026-11-16T03:52:00.847166+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -311,7 +311,7 @@
       "گوشی پوکو": 1
     },
     "category_post_counts": {
-      "audio_wearables": 4,
+      "audio_wearables": 3,
       "automotive": 2,
       "beauty_fragrance": 3,
       "books_stationery": 8,
@@ -329,42 +329,42 @@
       "sports_outdoor": 7
     },
     "category_share_percent": {
-      "audio_wearables": 2.8,
+      "audio_wearables": 2.1,
       "automotive": 1.4,
       "beauty_fragrance": 2.1,
-      "books_stationery": 5.5,
+      "books_stationery": 5.6,
       "digital_accessories": 0.7,
       "fashion": 7.6,
-      "grocery_food": 5.5,
-      "home": 4.1,
+      "grocery_food": 5.6,
+      "home": 4.2,
       "kids_sports": 2.1,
       "large_appliances": 1.4,
       "lighting": 1.4,
       "mobile_devices": 2.8,
-      "other": 36.6,
-      "personal_care": 20.0,
+      "other": 36.8,
+      "personal_care": 20.1,
       "power_backup": 1.4,
-      "sports_outdoor": 4.8
+      "sports_outdoor": 4.9
     },
     "distinct_catalog_categories": 105,
     "distinct_categories": 16,
     "distinct_families": 123,
     "distinct_retailers": 1,
     "distinct_use_cases": 19,
-    "known_brand_posts": 7,
-    "posts": 145,
+    "known_brand_posts": 6,
+    "posts": 144,
     "repeated_brand_count": 1,
     "repeated_brands": {
       "habsan": 2
     },
     "retailer_post_counts": {
-      "digikala": 145
+      "digikala": 144
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
-      "audio_visual": 3,
+      "audio_visual": 2,
       "automotive": 6,
       "baby_care": 3,
       "books_learning": 9,
@@ -399,97 +399,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1428,
+    "all_time_count": 1433,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 444,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T01:58:05.368973+00:00",
-        "brand": "",
-        "catalog_category_id": "9788",
-        "catalog_category_name": "شورت پسرانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-7284546",
-        "family": "digikala_category:9788",
-        "product_id": "dkp-8477415",
-        "reason": "similarity_repeat",
-        "reasons": [
-          "similarity_repeat"
-        ],
-        "title": "شورت پسرانه آریان نخ باف مدل 4311",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-16T02:06:17.001637+00:00",
-        "brand": "",
-        "catalog_category_id": "9369",
-        "catalog_category_name": "کفش تخت زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-16520582",
-        "family": "digikala_category:9369",
-        "product_id": "dkp-13050880",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش زنانه مدل دوگره کد sh.p.p.d.g",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-16T02:14:28.466263+00:00",
-        "brand": "",
-        "catalog_category_id": "9467",
-        "catalog_category_name": "مایو و لباس شنای مردانه",
-        "category": "sports_outdoor",
-        "compared_to_product_id": "dkp-21678448",
-        "family": "digikala_category:9467",
-        "product_id": "dkp-9634240",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "مایو مردانه تکنیک+07 مدل SH-143-ME",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-16T02:14:28.466263+00:00",
-        "brand": "",
-        "catalog_category_id": "9369",
-        "catalog_category_name": "کفش تخت زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-16520582",
-        "family": "digikala_category:9369",
-        "product_id": "dkp-13050880",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش زنانه مدل دوگره کد sh.p.p.d.g",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-16T02:14:28.466263+00:00",
-        "brand": "",
-        "catalog_category_id": "9371",
-        "catalog_category_name": "کفش پاشنه دار زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-21219236",
-        "family": "digikala_category:9371",
-        "product_id": "dkp-3584477",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش زنانه پاتکان کد NIC829",
-        "use_case": "fashion_lifestyle"
-      },
       {
         "at": "2026-11-16T02:14:28.466263+00:00",
         "brand": "",
@@ -733,6 +649,91 @@
           "similarity_repeat"
         ],
         "title": "شورت پسرانه آریان نخ باف مدل 4311",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T03:52:00.847166+00:00",
+        "brand": "",
+        "catalog_category_id": "9371",
+        "catalog_category_name": "کفش پاشنه دار زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-6223366",
+        "family": "digikala_category:9371",
+        "product_id": "dkp-3584477",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش زنانه پاتکان کد NIC829",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T03:52:00.847166+00:00",
+        "brand": "",
+        "catalog_category_id": "6765",
+        "catalog_category_name": "شورت آموزشی کودک",
+        "category": "kids_sports",
+        "compared_to_product_id": "dkp-16470889",
+        "family": "digikala_category:6765",
+        "product_id": "dkp-16470746",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "شورت آموزشی کودک وی کر مدل دکمه دار طرح Bear Girl کد U808",
+        "use_case": "books_learning"
+      },
+      {
+        "at": "2026-11-16T03:52:00.847166+00:00",
+        "brand": "",
+        "catalog_category_id": "10727",
+        "catalog_category_name": "غذای آماده",
+        "category": "grocery_food",
+        "compared_to_product_id": "dkp-22004922",
+        "family": "digikala_category:10727",
+        "product_id": "dkp-22004842",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کنسرو گوشت بوقلمون با طعم شوید پارس بوقلمون - 180 گرم",
+        "use_case": "grocery_food"
+      },
+      {
+        "at": "2026-11-16T03:52:00.847166+00:00",
+        "brand": "",
+        "catalog_category_id": "9473",
+        "catalog_category_name": "زیرپوش مردانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-22583263",
+        "family": "digikala_category:9473",
+        "product_id": "dkp-720533",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "زیرپوش مردانه آریان نخ باف کد 1211",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T03:52:00.847166+00:00",
+        "brand": "",
+        "catalog_category_id": "9286",
+        "catalog_category_name": "ست رسمی زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-21663217",
+        "family": "digikala_category:9286",
+        "product_id": "dkp-21768867",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ست کت و شلوار رسمی زنانه السانا مدل آنیما کد 2547",
         "use_case": "fashion_lifestyle"
       }
     ]
