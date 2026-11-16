@@ -206220,42 +206220,42 @@
     },
     {
       "content_id": "editorial:product-description-details",
-      "delivery_duration_seconds": 1.6,
+      "delivery_duration_seconds": 11.4,
       "destinations": {
         "aparat": {
           "attempts": 0,
           "status": "pending"
         },
         "bale": {
-          "attempt_started_at": "2026-11-16T14:52:45.346807+00:00",
+          "attempt_started_at": "2026-11-16T21:46:39.009107+00:00",
           "attempts": 1,
-          "message_id": "2104",
+          "message_id": "2165",
           "status": "sent",
-          "updated_at": "2026-11-16T14:52:47.828291+00:00"
+          "updated_at": "2026-11-16T21:46:41.518235+00:00"
         },
         "eitaa": {
           "attempts": 0,
           "last_error": "eitaa_not_enabled_or_credentials_missing",
           "status": "not_connected",
-          "updated_at": "2026-11-16T14:52:54.944361+00:00"
+          "updated_at": "2026-11-16T21:46:47.691541+00:00"
         },
         "filo": {
           "attempts": 0,
           "status": "pending"
         },
         "rubika": {
-          "attempt_started_at": "2026-11-16T14:52:48.183712+00:00",
+          "attempt_started_at": "2026-11-16T21:46:41.859917+00:00",
           "attempts": 1,
-          "message_id": "1973739466099588651",
+          "message_id": "1974263723675588651",
           "status": "sent",
-          "updated_at": "2026-11-16T14:52:54.527190+00:00"
+          "updated_at": "2026-11-16T21:46:47.357664+00:00"
         },
         "telegram": {
-          "attempt_started_at": "2026-11-16T14:52:43.523652+00:00",
+          "attempt_started_at": "2026-11-16T21:46:37.310203+00:00",
           "attempts": 1,
-          "message_id": "1579",
+          "message_id": "1622",
           "status": "sent",
-          "updated_at": "2026-11-16T14:52:44.984417+00:00"
+          "updated_at": "2026-11-16T21:46:38.662064+00:00"
         },
         "youtube": {
           "attempts": 0,
@@ -206265,7 +206265,7 @@
       "editorial_id": "product-description-details",
       "published_at": "2026-11-16T14:52:44.984417+00:00",
       "related_product_id": "dkp-22153796",
-      "sequence_number": 1355,
+      "sequence_number": 1416,
       "topic": "product-inspection"
     },
     {
@@ -206819,81 +206819,7 @@
       "topic": "shipping-and-returns"
     }
   ],
-  "editorial_delivery_queue": {
-    "editorial:product-description-details": {
-      "attempt_count": 0,
-      "content_id": "editorial:product-description-details",
-      "content_type": "editorial",
-      "delivery_runway_seconds": 16,
-      "dispatch_runway_seconds": 76,
-      "next_attempt_at": "2026-11-16T21:46:06.756273+00:00",
-      "payload": {
-        "body": "فقط به عکس و عنوان محصول اکتفا نکن. وضعیت کالا، مدل دقیق، لوازم داخل جعبه، شرایط گارانتی و توضیحات تکمیلی را بخوان. عباراتی مثل دست‌دوم، بازسازی‌شده یا فروش نهایی می‌توانند وضعیت کالا را تغییر دهند. اگر عکس‌ها یا مشخصات مبهم‌اند، قبل از سفارش از فروشنده سؤال کن.",
-        "content_id": "editorial:product-description-details",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 1,
-        "editorial_id": "product-description-details",
-        "idempotency_key": "c3c79564f574b2bd",
-        "related_product_affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22689922%2F",
-        "related_product_id": "dkp-22689922",
-        "related_product_title": "ست تونیک و شلوار بافت دخترانه مدل آهو کد 855",
-        "review_due_at": "2027-02-10T18:00:00Z",
-        "reviewed_at": "2026-11-12T18:00:00Z",
-        "sequence_number": 1415,
-        "sources": [
-          {
-            "source_id": "ftc-online-shopping",
-            "title": "Online Shopping – Consumer Advice",
-            "url": "https://consumer.ftc.gov/articles/online-shopping"
-          },
-          {
-            "source_id": "ftc-marketplace",
-            "title": "Buying From an Online Marketplace – Consumer Advice",
-            "url": "https://consumer.ftc.gov/articles/buying-online-marketplace"
-          }
-        ],
-        "title": "قبل از خرید، توضیحات ریز کالا را هم بخوان",
-        "topic": "product-inspection"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "related_product_id": "dkp-22689922",
-      "scheduled_at": "2026-11-16T21:46:06.756273+00:00",
-      "selected_at": "2026-11-16T21:45:00.589828+00:00",
-      "sequence_number": 1415,
-      "status": "queued",
-      "window_closes_at": "2026-11-16T21:47:06.756273+00:00"
-    }
-  },
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -207209,12 +207135,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-16T21:45:00.061047+00:00",
+  "last_channel_published_at": "2026-11-16T21:46:41.518235+00:00",
   "last_content_selection_at": "2026-11-16T21:27:17.571169+00:00",
-  "last_editorial_attempt_at": "2026-11-16T21:45:00.589828+00:00",
-  "last_editorial_confirmed_at": "2026-11-16T21:39:46.171911+00:00",
+  "last_editorial_attempt_at": "2026-11-16T21:46:35.660268+00:00",
+  "last_editorial_confirmed_at": "2026-11-16T21:46:47.357664+00:00",
   "last_product_channel_published_at": "2026-11-16T21:45:00.061047+00:00",
-  "last_published_at": "2026-11-16T21:45:00.061047+00:00",
+  "last_published_at": "2026-11-16T21:46:41.518235+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -298042,7 +297968,7 @@
       "ts": 1793119008.409393
     }
   },
-  "publication_sequence_counter": 1415,
+  "publication_sequence_counter": 1416,
   "published": {
     "dkp-10002173": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -339253,6 +339179,7 @@
     },
     "dkp-21172326": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2162,
       "bale_posted_at": "2026-11-16T21:40:42.326542+00:00",
       "brand": "",
@@ -339317,6 +339244,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_upload_status": "pending",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-16T21:26:53.007997+00:00",
