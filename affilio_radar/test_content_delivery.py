@@ -187,8 +187,8 @@ class ContentDeliveryQueueTests(unittest.TestCase):
                 {"content_id": "editorial:latest", "published_at": self.now.isoformat()}
             ],
             "content_delivery_queue": {
-                "dkp-partial-receipt": {
-                    "content_id": "dkp-partial-receipt",
+                "dkp-123456789": {
+                    "content_id": "dkp-123456789",
                     "status": "partial",
                     "platforms": {
                         "telegram": {"status": "sent", "updated_at": sent_at.isoformat()},
