@@ -1,4 +1,5 @@
 import unittest
+import json
 from unittest.mock import patch
 import os
 import tempfile
@@ -12,6 +13,8 @@ from editorial_publisher import (
     _handle_channel_destination,
     _record_failure,
     _format_message,
+    _send_bot_photo,
+    _video_description,
     queue_editorial_if_due,
 )
 from editorial_video import render_editorial_poster, render_editorial_video
@@ -395,38 +398,59 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertIsNotNone(entry)
         self.assertEqual(entry["related_product_id"], "dkp-related")
         self.assertEqual(entry["payload"]["editorial_id"], "device-fit")
-        self.assertEqual(
-            entry["payload"]["related_product_image_url"],
-            "https://dkstatics-public.digikala.com/digikala-products/test.jpg",
-        )
+        self.assertNotIn("related_product_image_url", entry["payload"])
+        self.assertNotIn("related_product_title", entry["payload"])
         self.assertEqual(
             datetime.fromisoformat(entry["scheduled_at"]),
             NOW + timedelta(hours=1),
         )
 
-    def test_editorial_message_has_separated_attributed_clickable_sources_and_cta(self):
+    def test_editorial_message_hides_sources_and_keeps_platform_cta(self):
         message = _format_message(editorial_item(), html_mode=True, platform="telegram")
-        self.assertIn("<b>منابع:</b>", message)
-        self.assertIn("کمیسیون تجارت فدرال آمریکا (FTC)", message)
-        self.assertIn("«منبع رسمی راهنمای خرید»:", message)
-        self.assertIn('<a href="https://consumer.ftc.gov/articles/online-shopping">مشاهدهٔ منبع</a>', message)
+        self.assertNotIn("منابع", message)
+        self.assertNotIn("FTC", message)
+        self.assertNotIn("consumer.ftc.gov", message)
+        self.assertIn("💡", message)
+        self.assertIn("✅", message)
         self.assertIn('href="https://t.me/OfferChin">عضویت در کانال آفِرچین</a>', message)
-        plain = _format_message(editorial_item(), html_mode=False, platform="bale")
-        self.assertIn("منابع:\n• کمیسیون تجارت فدرال آمریکا (FTC)", plain)
-        self.assertIn("\nhttps://consumer.ftc.gov/articles/online-shopping", plain)
-        self.assertIn("https://ble.ir/OfferChin", plain)
 
-    def test_known_ftc_sources_are_labeled_in_persian_with_clear_organization(self):
-        item = editorial_item()
-        item["sources"] = [{
-            "source_id": "ftc-online-shopping",
-            "title": "Online Shopping – Consumer Advice",
-            "url": "https://consumer.ftc.gov/articles/online-shopping",
-        }]
-        message = _format_message(item, html_mode=True, platform="telegram")
-        self.assertIn("کمیسیون تجارت فدرال آمریکا (FTC) — «راهنمای خرید اینترنتی»:", message)
-        self.assertIn('<a href="https://consumer.ftc.gov/articles/online-shopping">مشاهدهٔ منبع</a>', message)
-        self.assertIn('href="https://t.me/OfferChin">عضویت در کانال آفِرچین</a>', message)
+        bale = _format_message(editorial_item(), html_mode=True, platform="bale")
+        self.assertNotIn("منابع", bale)
+        self.assertNotIn("consumer.ftc.gov", bale)
+        self.assertIn("دکمهٔ زیر را بزن", bale)
+        self.assertNotIn("https://ble.ir/OfferChin", bale)
+
+        plain = _format_message(editorial_item(), html_mode=False, platform="rubika")
+        self.assertNotIn("منابع", plain)
+        self.assertNotIn("consumer.ftc.gov", plain)
+        self.assertIn("https://rubika.ir/offerchin", plain)
+
+    def test_bale_editorial_photo_has_a_real_clickable_membership_button(self):
+        caption = _format_message(editorial_item(), html_mode=True, platform="bale")
+        with patch("editorial_publisher.radar.BALE_BOT_TOKEN", "test-token"), \\
+             patch("editorial_publisher.radar.BALE_CHANNEL_ID", "@OfferChin"), \\
+             patch("editorial_publisher.requests.post") as post:
+            post.return_value.json.return_value = {
+                "ok": True, "result": {"message_id": 77}
+            }
+            receipt = _send_bot_photo("bale", b"png-bytes", caption)
+
+        self.assertEqual(receipt, {"message_id": "77"})
+        payload = post.call_args.kwargs["data"]
+        self.assertEqual(payload["parse_mode"], "HTML")
+        self.assertNotIn("consumer.ftc.gov", payload["caption"])
+        markup = json.loads(payload["reply_markup"])
+        button = markup["inline_keyboard"][0][0]
+        self.assertEqual(button["text"], "➕ عضویت در کانال آفِرچین")
+        self.assertEqual(button["url"], "https://ble.ir/OfferChin")
+
+    def test_video_description_has_no_source_citations(self):
+        description = _video_description(editorial_item())
+        self.assertNotIn("منابع", description)
+        self.assertNotIn("FTC", description)
+        self.assertNotIn("consumer.ftc.gov", description)
+        self.assertIn("https://t.me/OfferChin", description)
+        self.assertIn("https://ble.ir/OfferChin", description)
 
     def test_editorial_body_sentences_and_list_items_render_as_separate_paragraphs(self):
         item = editorial_item()
@@ -458,12 +482,16 @@ class EditorialPublisherTests(unittest.TestCase):
             self.assertTrue(target.is_file())
             self.assertGreater(target.stat().st_size, 1024)
 
-    def test_video_poster_is_valid_vertical_image(self):
-        poster = render_editorial_poster(editorial_item())
+    def test_video_poster_is_topic_led_and_ignores_related_product_photos(self):
+        item = editorial_item()
+        item["related_product_image_url"] = "https://dkstatics-public.digikala.com/digikala-products/product.jpg"
+        with patch("editorial_video._load_related_product_image",
+                   side_effect=AssertionError("product photography must not be requested"),
+                   create=True):
+            poster = render_editorial_poster(item)
         image = Image.open(BytesIO(poster))
         self.assertEqual(image.size, (720, 1280))
         self.assertEqual(image.format, "PNG")
-        # An original topic illustration fills the visual area when no cleared photo exists.
         self.assertNotEqual(image.getpixel((360, 310)), (14, 25, 43))
 
     def test_telegram_and_bale_editorial_photo_paths_use_send_photo(self):
