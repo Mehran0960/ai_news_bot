@@ -841,9 +841,25 @@ def parse_product_page(url: str, page_html: str) -> dict:
     rating = None
     review_count = 0
     currency = ""
+    brand = ""
+    category = ""
 
     if product_obj:
         title = _clean_title(product_obj.get("name"))
+        raw_brand = product_obj.get("brand") or product_obj.get("manufacturer") or ""
+        if isinstance(raw_brand, dict):
+            brand = str(raw_brand.get("name") or raw_brand.get("legalName") or raw_brand.get("title") or "").strip()
+        elif isinstance(raw_brand, list):
+            brand = next((str(item.get("name") or item.get("title") or "").strip()
+                          for item in raw_brand if isinstance(item, dict)
+                          and (item.get("name") or item.get("title"))), "")
+        else:
+            brand = str(raw_brand or "").strip()
+        category = product_obj.get("category") or ""
+        if isinstance(category, list):
+            category = " > ".join(str(item).strip() for item in category if item)
+        elif isinstance(category, dict):
+            category = str(category.get("name") or category.get("title") or "")
         images = _as_list(product_obj.get("image"))
         if images and isinstance(images[0], str):
             image = images[0]
@@ -917,6 +933,8 @@ def parse_product_page(url: str, page_html: str) -> dict:
         "product_id": product_id(url),
         "product_url": safe_product_url(url),
         "title": title,
+        "brand": brand,
+        "category": str(category or "").strip(),
         "image_url": image,
         "current_price": current_price,
         "original_price": original_price,
@@ -1491,6 +1509,25 @@ def parse_product_api(payload: dict, url: str, now: datetime | None = None) -> d
         if label:
             variant_label_parts.append(str(label).strip())
     variant_label = " ".join(variant_label_parts) or _clean_title(variant.get("title_fa") or variant.get("title") or "")
+    brand = ""
+    raw_brand = product_obj.get("brand") or product_obj.get("brand_name") or product_obj.get("manufacturer") or ""
+    if isinstance(raw_brand, dict):
+        brand = str(raw_brand.get("name") or raw_brand.get("title_fa") or raw_brand.get("title") or raw_brand.get("value") or "").strip()
+    elif isinstance(raw_brand, list):
+        brand = next((str(item.get("name") or item.get("title_fa") or item.get("title") or "").strip()
+                      for item in raw_brand if isinstance(item, dict)
+                      and (item.get("name") or item.get("title_fa") or item.get("title"))), "")
+    else:
+        brand = str(raw_brand or "").strip()
+    raw_category = product_obj.get("category") or product_obj.get("category_name") or ""
+    if isinstance(raw_category, dict):
+        raw_category = raw_category.get("name") or raw_category.get("title_fa") or raw_category.get("title") or ""
+    elif isinstance(raw_category, list):
+        raw_category = " > ".join(
+            str(item.get("name") or item.get("title_fa") or item.get("title") or "").strip()
+            if isinstance(item, dict) else str(item).strip()
+            for item in raw_category
+        )
     direct_deadline = ""
     for _score, candidate_obj, _candidate_title in candidates:
         candidate_id = str(candidate_obj.get("product_id") or candidate_obj.get("id") or "")
@@ -1503,6 +1540,8 @@ def parse_product_api(payload: dict, url: str, now: datetime | None = None) -> d
         "product_id": product_id(url),
         "product_url": safe_product_url(url),
         "title": title,
+        "brand": brand,
+        "category": str(raw_category or "").strip(),
         "image_url": image,
         "current_price": current,
         "original_price": original,
@@ -1894,7 +1933,7 @@ def fetch_product_record(url: str) -> dict:
 
     merged = dict(html_product)
     for key in (
-        "product_id", "product_url", "title", "image_url", "current_price", "original_price",
+        "product_id", "product_url", "title", "brand", "category", "image_url", "current_price", "original_price",
         "variant_label", "rating", "review_count", "deal_expires_at", "expiry_source",
         "expiry_deadline_verified_directly", "expiry_estimated",
     ):
@@ -7695,15 +7734,21 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         title = str(product_or_title.get("title") or "")
         raw_brand = product_or_title.get("brand") or product_or_title.get("brand_name") or ""
         if isinstance(raw_brand, dict):
-            raw_brand = raw_brand.get("name") or raw_brand.get("title") or raw_brand.get("value") or ""
+            raw_brand = (
+                raw_brand.get("name") or raw_brand.get("title_fa")
+                or raw_brand.get("title") or raw_brand.get("value")
+                or raw_brand.get("brand_name") or ""
+            )
         explicit_brand = str(raw_brand or "").strip()
     else:
         title = str(product_or_title or "")
     normalized = title.lower().replace("\u200c", " ")
     family_match_text = (normalized + " " + catalog_text.lower()).strip()
     brand_search_text = (family_match_text + " " + explicit_brand.lower()).strip()
-    title_category = classify_category(normalized)
-    catalog_category = classify_category(catalog_text.lower()) if catalog_text else "other"
+    title_category = classify_category(title)
+    catalog_category = classify_category(
+        "", category.get("name", ""), category.get("path", "")
+    ) if catalog_text else "other"
     # Official DigiKala taxonomy has priority over heuristic title classification.
     category = catalog_category if catalog_category != "other" else title_category
     family_patterns = {
