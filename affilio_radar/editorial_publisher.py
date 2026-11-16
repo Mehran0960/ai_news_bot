@@ -319,8 +319,6 @@ def queue_editorial_if_due(
         print("EDITORIAL_FALLBACK_EMPTY reason=no_valid_reviewed_item_or_bank_cycle")
         return None
 
-    item["related_product_image_url"] = str(related_product.get("image_url") or "")
-    item["related_product_title"] = str(related_product.get("title") or "")[:180]
     sequence_number = allocate_publication_sequence(state)
     item["sequence_number"] = sequence_number
     item["related_product_id"] = related_product_id
@@ -359,50 +357,31 @@ def queue_editorial_if_due(
     return entry
 
 
-def _source_organization(source: dict) -> str:
-    url = str(source.get("url") or "").strip().lower()
-    title = str(source.get("title") or "").strip()
-    if "consumer.ftc.gov" in url or "ftc.gov" in url:
-        return "کمیسیون تجارت فدرال آمریکا (FTC)"
-    if "digikala.com/mag" in url:
-        return "دیجی‌کالا مگ"
-    if "digikala.com" in url:
-        return "دیجی‌کالا"
-    return str(source.get("publisher") or source.get("organization") or title or "منبع معتبر").strip()
-
-
-def _source_display_title(source: dict) -> str:
-    """Prefer a concise Persian label while retaining the exact source URL."""
-    source_id = str(source.get("source_id") or "").strip().lower()
-    localized = {
-        "ftc-infographic": "اینفوگرافیک خرید اینترنتی",
-        "ftc-online-shopping": "راهنمای خرید اینترنتی",
-        "ftc-marketplace": "راهنمای خرید از بازارگاه آنلاین",
-    }
-    return str(
-        source.get("title_fa")
-        or localized.get(source_id)
-        or source.get("title")
-        or "راهنمای رسمی"
-    ).strip()
-
-
 def _topic_emoji(item: dict) -> str:
+    """Return a small topic-specific marker for an editorial title."""
     topic = str(item.get("topic") or "").strip().lower()
     mapping = {
         "purchase-planning": "🛒",
         "review-literacy": "⭐",
         "seller-check": "🛍️",
+        "seller-verification": "🔎",
         "purchase-records": "🧾",
-        "product-inspection": "🔎",
+        "product-inspection": "🔍",
+        "product-condition": "📦",
         "total-cost": "💰",
         "fit-and-size": "📏",
         "device-compatibility": "🔌",
+        "warranty-and-service": "🛠️",
+        "maintenance-and-care": "🧰",
+        "privacy-and-security": "🛡️",
+        "safe-payment": "💳",
+        "product-safety": "⚠️",
+        "shipping-and-returns": "🚚",
+        "parcel-check": "📦",
+        "delivery": "🚚",
         "security": "🔐",
         "account-security": "🔐",
         "privacy": "🛡️",
-        "parcel-check": "📦",
-        "delivery": "🚚",
         "home-care": "🏠",
         "mobile": "📱",
     }
@@ -423,14 +402,14 @@ def _readable_editorial_body(value: Any) -> str:
 
 
 def _format_message(item: dict, *, html_mode: bool = True, platform: str = "telegram") -> str:
-    """Build a readable Persian post with attributed source lines and a clickable CTA."""
+    """Build a lively, source-free Persian post with a platform-appropriate membership CTA."""
     title = str(item.get("title") or "").strip()
     body = _readable_editorial_body(item.get("body"))
+    if len(body) > 560:
+        shortened = body[:557].rsplit(" ", 1)[0].rstrip()
+        body = shortened + "…"
+    paragraphs = [part.strip() for part in body.split("\n\n") if part.strip()]
     emoji = _topic_emoji(item)
-    source_rows = [
-        source for source in (item.get("sources") or [])
-        if isinstance(source, dict) and str(source.get("url") or "").startswith("https://")
-    ][:2]
     channel_urls = {
         "telegram": "https://t.me/OfferChin",
         "bale": "https://ble.ir/OfferChin",
@@ -439,30 +418,25 @@ def _format_message(item: dict, *, html_mode: bool = True, platform: str = "tele
     }
     channel_url = channel_urls.get(platform) or channel_urls["telegram"]
 
-    lines = [
-        "🧭 راهنمای کاربردی آفِرچین",
-        "",
-        f"{emoji} {title}",
-        "",
-        body,
-        "",
-        "منابع:",
-    ]
-    for source in source_rows:
-        organization = _source_organization(source)
-        source_title = _source_display_title(source)
-        url = str(source.get("url") or "").strip()
-        lines.extend([
-            f"• {organization} — «{source_title}»:",
-            url,
-            "",
-        ])
-    lines.extend([
-        "آفِرچین",
-        "t.me/OfferChin" if platform == "telegram" else channel_url,
-    ])
+    def marked_paragraph(index: int, value: str) -> str:
+        marker = "💡" if index == 0 else (
+            "✅" if index == len(paragraphs) - 1 and len(paragraphs) > 1 else "📌"
+        )
+        return f"{marker} {value}"
 
     if not html_mode:
+        lines = [
+            "🧭 راهنمای کاربردی آفِرچین",
+            "",
+            f"{emoji} {title}",
+            "",
+        ]
+        lines.extend(marked_paragraph(index, value) for index, value in enumerate(paragraphs))
+        lines.extend(["", "آفِرچین"])
+        if platform == "bale":
+            lines.append("برای عضویت، دکمهٔ زیر را بزن 👇")
+        else:
+            lines.append(channel_url)
         return "\n".join(lines).rstrip()[:3400]
 
     rendered = [
@@ -470,26 +444,39 @@ def _format_message(item: dict, *, html_mode: bool = True, platform: str = "tele
         "",
         f"{emoji} <b>{html.escape(title)}</b>",
         "",
-        html.escape(body),
-        "",
-        "<b>منابع:</b>",
     ]
-    for source in source_rows:
-        organization = _source_organization(source)
-        source_title = _source_display_title(source)
-        url = str(source.get("url") or "").strip()
-        escaped_url = html.escape(url, quote=True)
-        rendered.extend([
-            f"• {html.escape(organization)} — «{html.escape(source_title)}»:",
-            f'<a href="{escaped_url}">مشاهدهٔ منبع</a>',
-            "",
-        ])
-    escaped_channel = html.escape(channel_url, quote=True)
-    rendered.extend([
-        "<b>آفِرچین</b>",
-        f'<a href="{escaped_channel}">عضویت در کانال آفِرچین</a>',
-    ])
+    rendered.extend(
+        f"{'💡' if index == 0 else ('✅' if index == len(paragraphs) - 1 and len(paragraphs) > 1 else '📌')} "
+        f"{html.escape(value)}"
+        for index, value in enumerate(paragraphs)
+    )
+    rendered.extend(["", "<b>آفِرچین</b>"])
+    if platform == "bale":
+        rendered.append("برای عضویت، دکمهٔ زیر را بزن 👇")
+    else:
+        escaped_channel = html.escape(channel_url, quote=True)
+        rendered.append(
+            f'<a href="{escaped_channel}">عضویت در کانال آفِرچین</a>'
+        )
     return "\n".join(rendered).rstrip()[:1000]
+
+
+def _membership_reply_markup(platform: str) -> str | None:
+    """Return a real URL button for Bale; do not rely on a caption auto-link."""
+    if platform != "bale":
+        return None
+    return json.dumps(
+        {
+            "inline_keyboard": [[
+                {
+                    "text": "➕ عضویت در کانال آفِرچین",
+                    "url": "https://ble.ir/OfferChin",
+                }
+            ]]
+        },
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
 
 
 def _send_bot_message(platform: str, message: str) -> dict:
@@ -506,8 +493,11 @@ def _send_bot_message(platform: str, message: str) -> dict:
     if not token or not chat_id:
         raise RuntimeError("destination_credentials_missing")
     payload_data = {"chat_id": chat_id, "text": message, "disable_web_page_preview": "true"}
-    if "<a href=" in message:
+    if "<b>" in message or "<a href=" in message:
         payload_data["parse_mode"] = "HTML"
+    reply_markup = _membership_reply_markup(platform)
+    if reply_markup:
+        payload_data["reply_markup"] = reply_markup
     response = requests.post(
         endpoint,
         data=payload_data,
@@ -538,8 +528,12 @@ def _send_bot_photo(platform: str, image_bytes: bytes, caption: str) -> dict:
     if not token or not chat_id:
         raise RuntimeError("destination_credentials_missing")
     data = {"chat_id": chat_id, "caption": caption[:1000]}
-    if "<a href=" in caption:
+    if "<b>" in caption or "<a href=" in caption:
         data["parse_mode"] = "HTML"
+    reply_markup = _membership_reply_markup(platform)
+    if reply_markup:
+        # Bale's Bot API accepts reply_markup with sendPhoto multipart requests.
+        data["reply_markup"] = reply_markup
     response = requests.post(
         endpoint,
         data=data,
@@ -822,11 +816,15 @@ def _handle_channel_destination(
 
 
 def _video_description(item: dict) -> str:
-    parts = [str(item.get("body") or "").strip(), "", "منابع:"]
-    for source in item.get("sources") or []:
-        if isinstance(source, dict) and str(source.get("url") or "").startswith("https://"):
-            parts.append(f"{source.get('title')}: {source.get('url')}")
-    parts.extend(["", "t.me/OfferChin", "ble.ir/OfferChin"])
+    """Publish the editorial body and OfferChin membership links, never source citations."""
+    body = _readable_editorial_body(item.get("body"))
+    parts = [
+        body,
+        "",
+        "آفِرچین",
+        "عضویت در کانال تلگرام: https://t.me/OfferChin",
+        "عضویت در کانال بله: https://ble.ir/OfferChin",
+    ]
     return "\n".join(parts)[:2900]
 
 
