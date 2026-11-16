@@ -2787,3 +2787,6 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** فعال شدن retention پس از merge باعث حذف خودکار پست‌های محصول قدیمی‌تر از ۴۸ ساعت در Telegram/Bale خواهد شد؛ rollback با بازگرداندن مقدار retention در workflow و monitor ممکن است. CTA تنها برای لینک‌های محصول تأییدشده کار می‌کند و هیچ deep-link دسته‌بندی را مجاز نمی‌کند. Rollback هر تغییر با revert همان PR ممکن است.
 
 **وضعیت:** تغییرات روی شاخهٔ ویژگی انجام شده؛ CI و بازبینی نهایی در انتظار.
+
+
+**تکمیل اتصال منبع محلی به چرخهٔ انتخاب:** مشخص شد که `_load_bank()` از قبل `editorial_approved_items.json` را با بانک evergreen ادغام می‌کند؛ یک مورد مستقل DigiKala Mag در آن ثبت است. در این PR تست صریح ادغام و انتخاب این آیتم اضافه و CI برای اعتبارسنجی هر دو فایل اصلاح شد. بانک evergreen ۳۳ مورد و فایل تأییدشده یک مورد محلی دارد؛ جمع مؤثر ۳۴ مورد.
