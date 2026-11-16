@@ -7056,177 +7056,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-18692390",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-18692390%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "9744",
-        "catalog_best_selling_category_name": "کیف پول و کیف لوازم آرایش دخترانه",
-        "catalog_best_selling_rank": 29,
-        "catalog_best_selling_ranks_by_category": {
-          "9744": {
-            "category_name": "کیف پول و کیف لوازم آرایش دخترانه",
-            "observed_at": "2026-11-16T05:59:25.529811+00:00",
-            "rank": 29,
-            "rank_history": [
-              {
-                "category_name": "کیف پول و کیف لوازم آرایش دخترانه",
-                "observed_at": "2026-11-16T05:59:25.529811+00:00",
-                "rank": 29
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T06:31:46.291607+00:00",
-        "catalog_cycle_snapshot_rank": 579,
-        "catalog_rank_observed_at": "2026-11-16T05:59:25.529811+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "personal_care",
-        "checked_at": "2026-11-16T07:01:14.283475+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-18692390",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 319000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 49.53,
-        "discount_percent": 29,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T07:01:38.699865+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 319000,
-        "history_low_toman": 319000,
-        "history_median_toman": 319000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 319000,
-        "history_start_day": "2026-11-15",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/221459185ccfb35627736ff678d66792c5862859_1742576513.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "affordability": 92.92,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 73.81,
-          "discount_attractiveness": 49.53,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 84.19,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "9744",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T07:01:38.702986+00:00",
-          "weakest_factor_score": 49.53
-        },
-        "original_price": 450000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-18692390",
-        "product_url": "https://www.digikala.com/product/dkp-18692390/",
-        "promo_score": 21,
-        "publication_policy": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-        "qualifies_as_deal": true,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "savings_toman": 131000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 29,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "affordability": 92.92,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 73.81,
-          "discount_attractiveness": 49.53,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 84.19,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "9744",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T07:01:38.702986+00:00",
-          "weakest_factor_score": 49.53
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1108,
-        "title": "کیف لوازم آرایش دخترانه خندالو مدل هیونجین گروه موسیقی استری کیدز Stray Kids کد 1377",
-        "variant_label": "چند رنگ"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-18692390",
-      "product_plan_cycle_id": "2026-11-16T06:31:46.291607+00:00",
-      "selected_at": "2026-11-16T07:01:42.205474+00:00",
-      "sequence_number": 1108,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T07:13:27.669783+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-21219236",
       "content_type": "product",
       "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
@@ -42199,6 +42028,178 @@
       "sequence_number": 1315,
       "status": "stale_selection",
       "updated_at": "2026-11-16T12:59:44.196103+00:00"
+    },
+    {
+      "attempt_count": 0,
+      "content_id": "dkp-21883276",
+      "content_type": "product",
+      "last_detail": "recent_product_family_or_brand_cooldown",
+      "next_attempt_at": "2026-11-16T13:00:37.631217+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21883276%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "11339",
+        "catalog_best_selling_category_name": "آینه های آرایشی",
+        "catalog_best_selling_rank": 1,
+        "catalog_best_selling_ranks_by_category": {
+          "11339": {
+            "category_name": "آینه های آرایشی",
+            "observed_at": "2026-11-16T09:35:42.658151+00:00",
+            "rank": 1,
+            "rank_history": [
+              {
+                "category_name": "آینه های آرایشی",
+                "observed_at": "2026-11-16T09:35:42.658151+00:00",
+                "rank": 1
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-16T10:07:39.742838+00:00",
+        "catalog_cycle_snapshot_rank": 20,
+        "catalog_rank_observed_at": "2026-11-16T09:35:42.658151+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "personal_care",
+        "checked_at": "2026-11-16T10:33:40.906788+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-21883276",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 189000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 56.68,
+        "discount_percent": 43,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-16T10:34:15.486373+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-16",
+        "history_high_toman": 189000,
+        "history_low_toman": 189000,
+        "history_median_toman": 189000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-16",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/9feca7086b8a8fee22028c37f42b6a39c351ba36_1779714237.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 76.73,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 56.68,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 99.1,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-16T10:34:27.709147+00:00",
+          "weakest_factor_score": 56.68
+        },
+        "original_price": 330000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-21883276",
+        "product_url": "https://www.digikala.com/product/dkp-21883276/",
+        "promo_score": 30,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.3,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 43,
+        "savings_toman": 141000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 1,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 76.73,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 56.68,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 99.1,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-16T10:34:27.709147+00:00",
+          "weakest_factor_score": 56.68
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1316,
+        "title": "آینه آرایشی تاشو جیبی مدل 01 به همراه شانه"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-21883276",
+      "product_plan_cycle_id": "2026-11-16T12:41:29.903931+00:00",
+      "scheduled_at": "2026-11-16T13:00:37.631217+00:00",
+      "selected_at": "2026-11-16T10:34:36.018986+00:00",
+      "sequence_number": 1316,
+      "status": "stale_selection",
+      "updated_at": "2026-11-16T13:02:07.032536+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -45003,176 +45004,6 @@
       "scheduled_at": "2026-11-16T13:04:17.559802+00:00",
       "selected_at": "2026-11-16T10:34:36.018986+00:00",
       "sequence_number": 1320,
-      "status": "queued"
-    },
-    "dkp-21883276": {
-      "attempt_count": 0,
-      "content_id": "dkp-21883276",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-16T13:00:37.631217+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21883276%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "11339",
-        "catalog_best_selling_category_name": "آینه های آرایشی",
-        "catalog_best_selling_rank": 1,
-        "catalog_best_selling_ranks_by_category": {
-          "11339": {
-            "category_name": "آینه های آرایشی",
-            "observed_at": "2026-11-16T09:35:42.658151+00:00",
-            "rank": 1,
-            "rank_history": [
-              {
-                "category_name": "آینه های آرایشی",
-                "observed_at": "2026-11-16T09:35:42.658151+00:00",
-                "rank": 1
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T10:07:39.742838+00:00",
-        "catalog_cycle_snapshot_rank": 20,
-        "catalog_rank_observed_at": "2026-11-16T09:35:42.658151+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "personal_care",
-        "checked_at": "2026-11-16T10:33:40.906788+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-21883276",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 189000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 56.68,
-        "discount_percent": 43,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T10:34:15.486373+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 189000,
-        "history_low_toman": 189000,
-        "history_median_toman": 189000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/9feca7086b8a8fee22028c37f42b6a39c351ba36_1779714237.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 76.73,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 56.68,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.1,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T10:34:27.709147+00:00",
-          "weakest_factor_score": 56.68
-        },
-        "original_price": 330000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-21883276",
-        "product_url": "https://www.digikala.com/product/dkp-21883276/",
-        "promo_score": 30,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.3,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 43,
-        "savings_toman": 141000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 1,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 76.73,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 56.68,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.1,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T10:34:27.709147+00:00",
-          "weakest_factor_score": 56.68
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1316,
-        "title": "آینه آرایشی تاشو جیبی مدل 01 به همراه شانه"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-21883276",
-      "product_plan_cycle_id": "2026-11-16T12:41:29.903931+00:00",
-      "scheduled_at": "2026-11-16T13:00:37.631217+00:00",
-      "selected_at": "2026-11-16T10:34:36.018986+00:00",
-      "sequence_number": 1316,
       "status": "queued"
     },
     "dkp-21978137": {
@@ -264110,94 +263941,7 @@
       "topic": "purchase-planning"
     }
   ],
-  "editorial_delivery_queue": {
-    "editorial:plan-before-buy": {
-      "attempt_count": 0,
-      "content_id": "editorial:plan-before-buy",
-      "content_type": "editorial",
-      "delivery_duration_seconds": 32.5,
-      "delivery_runway_seconds": 10,
-      "delivery_started_at": "2026-11-16T12:59:45.620541+00:00",
-      "dispatch_runway_seconds": 70,
-      "next_attempt_at": "2026-11-16T12:59:45.172145+00:00",
-      "payload": {
-        "body": "۱) دقیقاً چه نیازی را می‌خواهم برطرف کنم؟\n۲) کدام ویژگی‌ها واقعاً ضروری‌اند و کدام فقط جذاب به نظر می‌رسند؟\n۳) سقف بودجه‌ام با هزینه ارسال و هزینه‌های جانبی چقدر است؟\n۴) اگر کالا مناسب نبود، شرایط بازگشت و بازپرداخت چیست؟\nاین چهار سؤال ساده کمک می‌کند به‌جای خرید هیجانی، گزینه‌ای را انتخاب کنی که واقعاً به کارت می‌آید.",
-        "content_id": "editorial:plan-before-buy",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 1,
-        "editorial_id": "plan-before-buy",
-        "idempotency_key": "b42263c0c5f5690d",
-        "related_product_id": "dkp-21883276",
-        "related_product_image_url": "https://dkstatics-public.digikala.com/digikala-products/9feca7086b8a8fee22028c37f42b6a39c351ba36_1779714237.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "related_product_title": "آینه آرایشی تاشو جیبی مدل 01 به همراه شانه",
-        "review_due_at": "2027-02-10T18:00:00Z",
-        "reviewed_at": "2026-11-12T18:00:00Z",
-        "sequence_number": 1348,
-        "sources": [
-          {
-            "source_id": "ftc-infographic",
-            "title": "Shopping Online – Federal Trade Commission",
-            "url": "https://consumer.ftc.gov/sites/default/files/articles/pdf/0041-shopping-online-infographic.pdf"
-          },
-          {
-            "source_id": "ftc-online-shopping",
-            "title": "Online Shopping – Consumer Advice",
-            "url": "https://consumer.ftc.gov/articles/online-shopping"
-          }
-        ],
-        "title": "قبل از خرید، این ۴ سؤال را از خودت بپرس",
-        "topic": "purchase-planning"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-16T12:59:49.121927+00:00",
-          "attempts": 1,
-          "last_error": "outcome_unknown:ConnectionError:('Connection aborted.', TimeoutError('The write operation timed out'))",
-          "status": "manual_review",
-          "updated_at": "2026-11-16T13:00:11.968240+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "eitaa_not_enabled_or_credentials_missing",
-          "status": "not_connected",
-          "updated_at": "2026-11-16T13:00:17.791157+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-16T13:00:12.252996+00:00",
-          "attempts": 1,
-          "message_id": "1973640422394588651",
-          "status": "sent",
-          "updated_at": "2026-11-16T13:00:17.442466+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-16T12:59:47.265881+00:00",
-          "attempts": 1,
-          "message_id": "1559",
-          "status": "sent",
-          "updated_at": "2026-11-16T12:59:48.781944+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "related_product_id": "dkp-21883276",
-      "scheduled_at": "2026-11-16T12:59:45.172145+00:00",
-      "selected_at": "2026-11-16T12:59:45.172145+00:00",
-      "sequence_number": 1348,
-      "status": "partial",
-      "window_closes_at": "2026-11-16T13:00:27.631217+00:00"
-    }
-  },
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
