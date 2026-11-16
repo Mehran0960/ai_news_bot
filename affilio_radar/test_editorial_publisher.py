@@ -253,6 +253,39 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertIsNotNone(entry)
         self.assertEqual(entry["status"], "queued")
 
+    def test_missed_editorial_midpoint_is_recovered_immediately_before_future_product(self):
+        product_at = NOW + timedelta(minutes=10)
+        product = {
+            "product_id": "dkp-midpoint-recovery",
+            "title": "گوشی هوشمند",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/test.jpg",
+            "offerchin_four_factor": {"generality_group": "mobile_productivity"},
+        }
+        state = {
+            "last_channel_published_at": (NOW - timedelta(hours=5)).isoformat(),
+            "content_delivery_queue": {
+                "dkp-midpoint-recovery": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "selected_at": (NOW - timedelta(hours=5)).isoformat(),
+                    "scheduled_at": product_at.isoformat(),
+                    "payload": product,
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                }
+            },
+        }
+        entry = queue_editorial_if_due(
+            state,
+            [editorial_item("recovered-guide", "device-compatibility")],
+            now=NOW,
+        )
+        self.assertIsNotNone(entry)
+        self.assertEqual(datetime.fromisoformat(entry["scheduled_at"]), NOW)
+        self.assertLess(datetime.fromisoformat(entry["scheduled_at"]), product_at)
+
     def test_related_editorial_is_scheduled_midway_before_its_product(self):
         product_at = NOW + timedelta(hours=2)
         product = {
