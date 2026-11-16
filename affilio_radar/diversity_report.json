@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T08:03:38.559262+00:00",
+  "generated_at": "2026-11-16T08:09:45.126177+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -396,30 +396,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1507,
+    "all_time_count": 1508,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 406,
+      "family_repeat": 405,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T07:13:24.774666+00:00",
-        "brand": "",
-        "catalog_category_id": "6802",
-        "catalog_category_name": "کاور دستمال کاغذی و سطل کودک و نوزاد",
-        "category": "kids_sports",
-        "compared_to_product_id": "dkp-19825845",
-        "family": "digikala_category:6802",
-        "product_id": "dkp-19825376",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کیسه بهداشتی پوشک وی کر مدل Nappy Bags دو بسته 24 عددی",
-        "use_case": "office_study"
-      },
       {
         "at": "2026-11-16T07:13:24.774666+00:00",
         "brand": "",
@@ -731,6 +714,22 @@
         ],
         "title": "روغن کنجد تصفیه شده توسکا - 1350 گرم",
         "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-16T08:09:45.126177+00:00",
+        "brand": "",
+        "catalog_category_id": "9841",
+        "catalog_category_name": "جوراب زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-7284546",
+        "family": "digikala_category:9841",
+        "product_id": "dkp-1734924",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "جوراب زنانه آریان نخ باف کد 5122-1 بسته 3 عددی",
+        "use_case": "fashion_lifestyle"
       }
     ]
   }
