@@ -14,6 +14,7 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 import requests
 
@@ -319,6 +320,14 @@ def queue_editorial_if_due(
         print("EDITORIAL_FALLBACK_EMPTY reason=no_valid_reviewed_item_or_bank_cycle")
         return None
 
+    # A commercial CTA is allowed only when it points to the exact related product
+    # through the account's already-verified Affilio product-link template.
+    related_product_url = str(related_product.get("product_url") or "").strip()
+    related_affiliate_url = radar.build_affilio_tracking_link(related_product_url)
+    if related_affiliate_url:
+        item["related_product_affiliate_url"] = related_affiliate_url
+        item["related_product_title"] = str(related_product.get("title") or "").strip()
+
     sequence_number = allocate_publication_sequence(state)
     item["sequence_number"] = sequence_number
     item["related_product_id"] = related_product_id
@@ -401,8 +410,51 @@ def _readable_editorial_body(value: Any) -> str:
     return "\n\n".join(paragraphs)
 
 
+def _editorial_source_rows(item: dict) -> list[tuple[str, str]]:
+    """Return a small, safe source attribution list for the public editorial copy."""
+    rows: list[tuple[str, str]] = []
+    sources = item.get("sources") if isinstance(item, dict) else None
+    if not isinstance(sources, list):
+        return rows
+    host_labels = {
+        "digikala.com": "دیجی‌کالا مگ",
+        "zoomit.ir": "زومیت",
+        "ftc.gov": "FTC",
+        "cpsc.gov": "CPSC",
+    }
+    for source in sources[:2]:
+        if not isinstance(source, dict):
+            continue
+        url = str(source.get("url") or "").strip()
+        try:
+            parsed = urlsplit(url)
+        except ValueError:
+            continue
+        host = (parsed.hostname or "").lower()
+        if parsed.scheme != "https" or not host or parsed.username or parsed.password:
+            continue
+        label = str(source.get("publisher") or "").strip()
+        if not label:
+            label = next(
+                (name for domain, name in host_labels.items() if host == domain or host.endswith("." + domain)),
+                host.removeprefix("www."),
+            )
+        rows.append((label[:48], url))
+    return rows
+
+
+def _editorial_affiliate_url(item: dict | None) -> str:
+    """Return only a current-contract Affilio product deep link; reject generic destinations."""
+    if not isinstance(item, dict):
+        return ""
+    return radar.tracked_affiliate_button_url(
+        str(item.get("related_product_affiliate_url") or ""),
+        source="editorial_related_product",
+    )
+
+
 def _format_message(item: dict, *, html_mode: bool = True, platform: str = "telegram") -> str:
-    """Build a lively, source-free Persian post with a platform-appropriate membership CTA."""
+    """Build a topic-led editorial post with visible provenance and one relevant disclosed CTA."""
     title = str(item.get("title") or "").strip()
     body = _readable_editorial_body(item.get("body"))
     if len(body) > 560:
@@ -410,67 +462,56 @@ def _format_message(item: dict, *, html_mode: bool = True, platform: str = "tele
         body = shortened + "…"
     paragraphs = [part.strip() for part in body.split("\n\n") if part.strip()]
     emoji = _topic_emoji(item)
-    channel_urls = {
-        "telegram": "https://t.me/OfferChin",
-        "bale": "https://ble.ir/OfferChin",
-        "rubika": "https://rubika.ir/offerchin",
-        "eitaa": str(os.getenv("EITAA_CHANNEL_URL") or "").strip(),
-    }
-    channel_url = channel_urls.get(platform) or channel_urls["telegram"]
+    source_rows = _editorial_source_rows(item)
+    affiliate_url = _editorial_affiliate_url(item)
 
-    def marked_paragraph(index: int, value: str) -> str:
+    rendered = [f"{emoji} {html.escape(title) if html_mode else title}", ""]
+    for index, value in enumerate(paragraphs):
         marker = "💡" if index == 0 else (
             "✅" if index == len(paragraphs) - 1 and len(paragraphs) > 1 else "📌"
         )
-        return f"{marker} {value}"
+        rendered.append(f"{marker} {html.escape(value) if html_mode else value}")
 
-    if not html_mode:
-        lines = [
-            "🧭 راهنمای کاربردی آفِرچین",
-            "",
-            f"{emoji} {title}",
-            "",
-        ]
-        lines.extend(marked_paragraph(index, value) for index, value in enumerate(paragraphs))
-        lines.extend(["", "آفِرچین"])
+    if source_rows:
+        rendered.append("")
+        source_parts = []
+        for label, url in source_rows:
+            if html_mode:
+                source_parts.append(
+                    f'<a href="{html.escape(url, quote=True)}">{html.escape(label)}</a>'
+                )
+            else:
+                source_parts.append(f"{label}: {url}")
+        rendered.append("📚 منبع: " + "، ".join(source_parts))
+
+    if affiliate_url:
+        rendered.append("")
         if platform == "bale":
-            lines.append("برای عضویت، دکمهٔ زیر را بزن 👇")
+            rendered.append("🛒 برای دیدن پیشنهاد مرتبط، دکمهٔ خرید پایین پست را بزن.")
+        elif html_mode:
+            rendered.append(
+                f'🛒 <a href="{html.escape(affiliate_url, quote=True)}">'
+                "مشاهدهٔ پیشنهاد مرتبط (پیوند همکاری در فروش)</a>"
+            )
         else:
-            lines.append(channel_url)
-        return "\n".join(lines).rstrip()[:3400]
+            rendered.append(
+                "🛒 مشاهدهٔ پیشنهاد مرتبط (پیوند همکاری در فروش): " + affiliate_url
+            )
 
-    rendered = [
-        "🧭 <b>راهنمای کاربردی آفِرچین</b>",
-        "",
-        f"{emoji} <b>{html.escape(title)}</b>",
-        "",
-    ]
-    rendered.extend(
-        f"{'💡' if index == 0 else ('✅' if index == len(paragraphs) - 1 and len(paragraphs) > 1 else '📌')} "
-        f"{html.escape(value)}"
-        for index, value in enumerate(paragraphs)
-    )
-    rendered.extend(["", "<b>آفِرچین</b>"])
-    if platform == "bale":
-        rendered.append("برای عضویت، دکمهٔ زیر را بزن 👇")
-    else:
-        escaped_channel = html.escape(channel_url, quote=True)
-        rendered.append(
-            f'<a href="{escaped_channel}">عضویت در کانال آفِرچین</a>'
-        )
-    return "\n".join(rendered).rstrip()[:1000]
+    return "\n".join(rendered).rstrip()[:1000 if html_mode else 3400]
 
 
-def _membership_reply_markup(platform: str) -> str | None:
-    """Return a real URL button for Bale; do not rely on a caption auto-link."""
-    if platform != "bale":
+def _editorial_reply_markup(platform: str, item: dict | None = None) -> str | None:
+    """Expose a Bale shopping button only when the related product link is verified."""
+    affiliate_url = _editorial_affiliate_url(item)
+    if platform != "bale" or not affiliate_url:
         return None
     return json.dumps(
         {
             "inline_keyboard": [[
                 {
-                    "text": "➕ عضویت در کانال آفِرچین",
-                    "url": "https://ble.ir/OfferChin",
+                    "text": "🛒 مشاهدهٔ پیشنهاد مرتبط",
+                    "url": affiliate_url,
                 }
             ]]
         },
@@ -479,7 +520,7 @@ def _membership_reply_markup(platform: str) -> str | None:
     )
 
 
-def _send_bot_message(platform: str, message: str) -> dict:
+def _send_bot_message(platform: str, message: str, item: dict | None = None) -> dict:
     if platform == "telegram":
         token = radar.BOT_TOKEN
         chat_id = radar.TARGET_CHAT
@@ -495,7 +536,7 @@ def _send_bot_message(platform: str, message: str) -> dict:
     payload_data = {"chat_id": chat_id, "text": message, "disable_web_page_preview": "true"}
     if "<b>" in message or "<a href=" in message:
         payload_data["parse_mode"] = "HTML"
-    reply_markup = _membership_reply_markup(platform)
+    reply_markup = _editorial_reply_markup(platform, item)
     if reply_markup:
         payload_data["reply_markup"] = reply_markup
     response = requests.post(
@@ -514,7 +555,9 @@ def _send_bot_message(platform: str, message: str) -> dict:
     return {"message_id": str(message_id)}
 
 
-def _send_bot_photo(platform: str, image_bytes: bytes, caption: str) -> dict:
+def _send_bot_photo(
+    platform: str, image_bytes: bytes, caption: str, item: dict | None = None
+) -> dict:
     if platform == "telegram":
         token = radar.BOT_TOKEN
         chat_id = radar.TARGET_CHAT
@@ -530,7 +573,7 @@ def _send_bot_photo(platform: str, image_bytes: bytes, caption: str) -> dict:
     data = {"chat_id": chat_id, "caption": caption[:1000]}
     if "<b>" in caption or "<a href=" in caption:
         data["parse_mode"] = "HTML"
-    reply_markup = _membership_reply_markup(platform)
+    reply_markup = _editorial_reply_markup(platform, item)
     if reply_markup:
         # Bale's Bot API accepts reply_markup with sendPhoto multipart requests.
         data["reply_markup"] = reply_markup
@@ -782,9 +825,10 @@ def _handle_channel_destination(
     _save(state)
     try:
         if destination in {"telegram", "bale"}:
+            editorial_payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
             receipt = (
-                _send_bot_photo(destination, image_bytes, message)
-                if image_bytes else _send_bot_message(destination, message)
+                _send_bot_photo(destination, image_bytes, message, item=editorial_payload)
+                if image_bytes else _send_bot_message(destination, message, item=editorial_payload)
             )
         elif destination == "rubika":
             receipt = _send_rubika_image(image_bytes, message)
@@ -816,16 +860,17 @@ def _handle_channel_destination(
 
 
 def _video_description(item: dict) -> str:
-    """Publish the editorial body and OfferChin membership links, never source citations."""
+    """Publish the original editorial copy with traceable source and relevant disclosed CTA."""
     body = _readable_editorial_body(item.get("body"))
-    parts = [
-        body,
-        "",
-        "آفِرچین",
-        "عضویت در کانال تلگرام: https://t.me/OfferChin",
-        "عضویت در کانال بله: https://ble.ir/OfferChin",
-    ]
-    return "\n".join(parts)[:2900]
+    parts = [body]
+    for label, url in _editorial_source_rows(item):
+        parts.append(f"📚 منبع: {label} — {url}")
+    affiliate_url = _editorial_affiliate_url(item)
+    if affiliate_url:
+        parts.append(
+            "🛒 پیشنهاد مرتبط (پیوند همکاری در فروش): " + affiliate_url
+        )
+    return "\n\n".join(part for part in parts if part).strip()[:2900]
 
 
 def _handle_video_destination(
@@ -860,7 +905,7 @@ def _handle_video_destination(
     entry["status"] = "publishing"
     _save(state)
     item = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
-    title = "راهنمای آفِرچین: " + str(item.get("title") or "")
+    title = str(item.get("title") or "راهنمای خرید کاربردی")
     description = _video_description(item)
     try:
         if destination == "youtube":
