@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T09:31:27.657795+00:00",
+  "generated_at": "2026-11-16T09:46:48.735445+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -324,7 +324,7 @@
       "large_appliances": 2,
       "lighting": 2,
       "mobile_devices": 4,
-      "other": 47,
+      "other": 46,
       "personal_care": 30,
       "power_backup": 2,
       "sports_outdoor": 7
@@ -333,38 +333,37 @@
       "audio_wearables": 2.1,
       "automotive": 1.4,
       "beauty_fragrance": 2.1,
-      "books_stationery": 5.6,
+      "books_stationery": 5.7,
       "digital_accessories": 0.7,
-      "fashion": 7.0,
+      "fashion": 7.1,
       "grocery_food": 8.5,
-      "home": 4.2,
+      "home": 4.3,
       "kids_sports": 2.1,
       "large_appliances": 1.4,
       "lighting": 1.4,
       "mobile_devices": 2.8,
-      "other": 33.1,
-      "personal_care": 21.1,
+      "other": 32.6,
+      "personal_care": 21.3,
       "power_backup": 1.4,
-      "sports_outdoor": 4.9
+      "sports_outdoor": 5.0
     },
     "distinct_catalog_categories": 104,
     "distinct_categories": 16,
     "distinct_families": 122,
     "distinct_retailers": 1,
     "distinct_use_cases": 19,
-    "known_brand_posts": 25,
-    "posts": 142,
-    "repeated_brand_count": 8,
+    "known_brand_posts": 24,
+    "posts": 141,
+    "repeated_brand_count": 7,
     "repeated_brands": {
       "arden": 3,
       "comeon": 2,
       "my": 2,
       "samsung": 3,
-      "schoon": 2,
       "xiaomi": 2
     },
     "retailer_post_counts": {
-      "digikala": 142
+      "digikala": 141
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -376,7 +375,7 @@
       "books_learning": 8,
       "catalog_taxonomy_other": 25,
       "fashion_lifestyle": 8,
-      "general": 15,
+      "general": 14,
       "grocery_food": 9,
       "health_wellness": 1,
       "home_cleaning": 2,
@@ -407,64 +406,13 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1530,
+    "all_time_count": 1533,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 400,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T08:23:59.461479+00:00",
-        "brand": "",
-        "catalog_category_id": "9906",
-        "catalog_category_name": "کفش روزمره مردانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-20865598",
-        "family": "digikala_category:9906",
-        "product_id": "dkp-22634892",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش طبی روزمره مردانه کروماکی مدل km336 از چرم طبیعی با زیره پلی اورتان انعطاف‌پذیر، کفی قابل تعویض و قابلیت ارتجاعی، نوک پهن و کاهش فشار وارده برای راحتی بیشتر",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-16T08:23:59.461479+00:00",
-        "brand": "",
-        "catalog_category_id": "10727",
-        "catalog_category_name": "غذای آماده",
-        "category": "grocery_food",
-        "compared_to_product_id": "dkp-22004922",
-        "family": "digikala_category:10727",
-        "product_id": "dkp-3623869",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کنسرو خورش قیمه بادمجان بدون گوشت گیلانی - 460 گرم",
-        "use_case": "grocery_food"
-      },
-      {
-        "at": "2026-11-16T08:23:59.461479+00:00",
-        "brand": "",
-        "catalog_category_id": "6802",
-        "catalog_category_name": "کاور دستمال کاغذی و سطل کودک و نوزاد",
-        "category": "kids_sports",
-        "compared_to_product_id": "dkp-19825376",
-        "family": "digikala_category:6802",
-        "product_id": "dkp-17612057",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کیسه بهداشتی پوشک وی کر مدل Nappy Bags بسته 24 عددی",
-        "use_case": "office_study"
-      },
       {
         "at": "2026-11-16T08:23:59.461479+00:00",
         "brand": "",
@@ -749,6 +697,57 @@
           "similarity_repeat"
         ],
         "title": "لپه ریز زرین برکت - 2.5 کیلوگرم",
+        "use_case": "catalog_taxonomy_other"
+      },
+      {
+        "at": "2026-11-16T09:46:48.735445+00:00",
+        "brand": "",
+        "catalog_category_id": "9569",
+        "catalog_category_name": "ست لباس راحتی نوزاد",
+        "category": "kids_sports",
+        "compared_to_product_id": "dkp-21625592",
+        "family": "digikala_category:9569",
+        "product_id": "dkp-12197230",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ست 3 تکه لباس نوزادی مدل cloud",
+        "use_case": "baby_care"
+      },
+      {
+        "at": "2026-11-16T09:46:48.735445+00:00",
+        "brand": "",
+        "catalog_category_id": "9906",
+        "catalog_category_name": "کفش روزمره مردانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-15500250",
+        "family": "digikala_category:9906",
+        "product_id": "dkp-16770957",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کفش روزمره مردانه مدل 1111 سبک با رویه پارچه‌ای، زیره پلی اورتان مقاوم و ضد لغزش، انعطاف‌پذیر و نرم، بند کشی و مناسب پیاده‌روی طولانی و استفاده روزانه، ساخت ایران",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T09:46:48.735445+00:00",
+        "brand": "cinere",
+        "catalog_category_id": "10932",
+        "catalog_category_name": "دئودورانت",
+        "category": "other",
+        "compared_to_product_id": "dkp-19399111",
+        "family": "digikala_category:10932",
+        "product_id": "dkp-21526168",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "رول دئودورانت مردانه سینره مدل FROST PEAK حجم 50 میلی‌لیتر",
         "use_case": "catalog_taxonomy_other"
       }
     ]
