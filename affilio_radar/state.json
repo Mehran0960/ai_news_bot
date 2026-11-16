@@ -7532,178 +7532,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-12374358",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-12374358%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "10559",
-        "catalog_best_selling_category_name": "کتاب زبان خارجی",
-        "catalog_best_selling_rank": 44,
-        "catalog_best_selling_ranks_by_category": {
-          "10559": {
-            "category_name": "کتاب زبان خارجی",
-            "observed_at": "2026-11-16T07:08:26.885492+00:00",
-            "rank": 44,
-            "rank_history": [
-              {
-                "category_name": "کتاب زبان خارجی",
-                "observed_at": "2026-11-16T07:08:26.885492+00:00",
-                "rank": 44
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T07:39:30.980343+00:00",
-        "catalog_cycle_snapshot_rank": 389,
-        "catalog_rank_observed_at": "2026-11-16T07:08:26.885492+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "books_stationery",
-        "checked_at": "2026-11-16T08:03:20.748830+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-12374358",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 332550,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 11.6,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 65.15,
-        "discount_percent": 61,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T08:03:38.556967+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 332550,
-        "history_low_toman": 332550,
-        "history_median_toman": 332550,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 332550,
-        "history_start_day": "2026-11-15",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/c3b5d49cc9fb5a11a217380c0edeccd11685fbc4_1691969064.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "affordability": 92.47,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 72.36,
-          "discount_attractiveness": 65.15,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 68.0,
-          "generality_group": "books_learning",
-          "live_demand": 69.41,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "10559",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T08:03:38.559262+00:00",
-          "weakest_factor_score": 65.15
-        },
-        "original_price": 850000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-12374358",
-        "product_url": "https://www.digikala.com/product/dkp-12374358/",
-        "promo_score": 44,
-        "publication_policy": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-        "qualifies_as_deal": true,
-        "rating": 4.47,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 50,
-        "savings_toman": 517450,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 44,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "affordability": 92.47,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 72.36,
-          "discount_attractiveness": 65.15,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 68.0,
-          "generality_group": "books_learning",
-          "live_demand": 69.41,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "10559",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T08:03:38.559262+00:00",
-          "weakest_factor_score": 65.15
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1206,
-        "title": "کتاب مکالمات روزمره ترکی استانبولی اثر نگین آهویی انتشارات یوشیتا"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-12374358",
-      "product_plan_cycle_id": "2026-11-16T07:39:30.980343+00:00",
-      "selected_at": "2026-11-16T08:03:41.789254+00:00",
-      "sequence_number": 1206,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T08:15:12.415463+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-12942777",
       "content_type": "product",
       "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
@@ -43305,6 +43133,180 @@
       "sequence_number": 1421,
       "status": "published",
       "updated_at": "2026-11-16T22:31:24.820912+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-9986231",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-16T22:35:36.846299+00:00",
+      "last_detail": "live_product_details_incomplete",
+      "next_attempt_at": "2026-11-16T22:35:25.939588+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-9986231%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "شامینه",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "10737",
+        "catalog_best_selling_category_name": "کنسرو ذرت",
+        "catalog_best_selling_rank": 18,
+        "catalog_best_selling_ranks_by_category": {
+          "10737": {
+            "category_name": "کنسرو ذرت",
+            "observed_at": "2026-11-16T21:22:01.989427+00:00",
+            "rank": 18,
+            "rank_history": [
+              {
+                "category_name": "کنسرو ذرت",
+                "observed_at": "2026-11-16T21:22:01.989427+00:00",
+                "rank": 18
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-16T22:04:34.865678+00:00",
+        "catalog_cycle_snapshot_rank": 325,
+        "catalog_rank_observed_at": "2026-11-16T21:22:01.989427+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "grocery_food",
+        "checked_at": "2026-11-16T22:24:16.519037+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-9986231",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 691000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 56.23,
+        "discount_percent": 36,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-16T22:24:41.490873+00:00",
+        "history_days": 2,
+        "history_end_day": "2026-11-16",
+        "history_high_toman": 691000,
+        "history_low_toman": 691000,
+        "history_median_toman": 691000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": 691000,
+        "history_start_day": "2026-11-15",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/d7f13cffaffd3310b76d096ce4b836305bd43de6_1669626869.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 74.44,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 56.23,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 94.0,
+          "generality_group": "grocery_food",
+          "live_demand": 84.19,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-16T22:24:41.492399+00:00",
+          "weakest_factor_score": 56.23
+        },
+        "original_price": 1080000,
+        "pct_above_stable_low": 0,
+        "product_id": "dkp-9986231",
+        "product_url": "https://www.digikala.com/product/dkp-9986231/",
+        "promo_score": 28,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.2,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 115,
+        "savings_toman": 389000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 18,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 74.44,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 56.23,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 94.0,
+          "generality_group": "grocery_food",
+          "live_demand": 84.19,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-16T22:24:41.492399+00:00",
+          "weakest_factor_score": 56.23
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1424,
+        "title": "کنسرو ذرت شیرین شامینه - 350 گرم بسته 4 عددی"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-9986231",
+      "product_plan_cycle_id": "2026-11-16T22:04:34.865678+00:00",
+      "scheduled_at": "2026-11-16T22:35:25.939588+00:00",
+      "selected_at": "2026-11-16T22:24:46.506937+00:00",
+      "sequence_number": 1424,
+      "status": "stale_selection",
+      "updated_at": "2026-11-16T22:35:36.846299+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -43828,177 +43830,6 @@
       "scheduled_at": "2026-11-16T22:39:27.062498+00:00",
       "selected_at": "2026-11-16T22:24:46.506937+00:00",
       "sequence_number": 1425,
-      "status": "queued"
-    },
-    "dkp-9986231": {
-      "attempt_count": 0,
-      "content_id": "dkp-9986231",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-16T22:35:25.939588+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-9986231%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "شامینه",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "10737",
-        "catalog_best_selling_category_name": "کنسرو ذرت",
-        "catalog_best_selling_rank": 18,
-        "catalog_best_selling_ranks_by_category": {
-          "10737": {
-            "category_name": "کنسرو ذرت",
-            "observed_at": "2026-11-16T21:22:01.989427+00:00",
-            "rank": 18,
-            "rank_history": [
-              {
-                "category_name": "کنسرو ذرت",
-                "observed_at": "2026-11-16T21:22:01.989427+00:00",
-                "rank": 18
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T22:04:34.865678+00:00",
-        "catalog_cycle_snapshot_rank": 325,
-        "catalog_rank_observed_at": "2026-11-16T21:22:01.989427+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "grocery_food",
-        "checked_at": "2026-11-16T22:24:16.519037+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-9986231",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 691000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 56.23,
-        "discount_percent": 36,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T22:24:41.490873+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 691000,
-        "history_low_toman": 691000,
-        "history_median_toman": 691000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 691000,
-        "history_start_day": "2026-11-15",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/d7f13cffaffd3310b76d096ce4b836305bd43de6_1669626869.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 74.44,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 56.23,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 84.19,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T22:24:41.492399+00:00",
-          "weakest_factor_score": 56.23
-        },
-        "original_price": 1080000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-9986231",
-        "product_url": "https://www.digikala.com/product/dkp-9986231/",
-        "promo_score": 28,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.2,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 115,
-        "savings_toman": 389000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 18,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 74.44,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 56.23,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 84.19,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T22:24:41.492399+00:00",
-          "weakest_factor_score": 56.23
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1424,
-        "title": "کنسرو ذرت شیرین شامینه - 350 گرم بسته 4 عددی"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-9986231",
-      "product_plan_cycle_id": "2026-11-16T22:04:34.865678+00:00",
-      "scheduled_at": "2026-11-16T22:35:25.939588+00:00",
-      "selected_at": "2026-11-16T22:24:46.506937+00:00",
-      "sequence_number": 1424,
       "status": "queued"
     }
   },
@@ -200242,20 +200073,22 @@
   },
   "editorial_cycle": {
     "bank_ids": [
+      "check-box-contents",
       "check-delivery-window",
+      "check-model-number",
       "compare-total-cost",
       "inspect-on-arrival",
       "keep-purchase-records",
+      "measure-room-size",
       "negative-review-balance",
       "plan-before-buy",
-      "recall-check",
+      "product-description-details",
       "return-shipping-cost",
       "review-patterns",
       "reviews-beyond-stars",
       "seller-and-return-policy",
       "shipping-window",
-      "sponsored-review",
-      "used-refurbished"
+      "sponsored-review"
     ],
     "cycle_number": 1,
     "last_editorial_id": "sponsored-review",
@@ -201824,7 +201657,81 @@
       "topic": "review-literacy"
     }
   ],
-  "editorial_delivery_queue": {},
+  "editorial_delivery_queue": {
+    "editorial:compare-total-cost": {
+      "attempt_count": 0,
+      "content_id": "editorial:compare-total-cost",
+      "content_type": "editorial",
+      "delivery_runway_seconds": 33,
+      "dispatch_runway_seconds": 93,
+      "next_attempt_at": "2026-11-16T22:37:06.636441+00:00",
+      "payload": {
+        "body": "برای مقایسه دو گزینه، هزینه ارسال، لوازم جانبی ضروری، هزینه نصب یا راه‌اندازی و شرایط بازگشت را هم حساب کن. ممکن است گزینه‌ای با قیمت اولیه پایین‌تر، بعد از اضافه‌شدن هزینه‌های جانبی انتخاب بهتری نباشد. قیمت و شرایط را در لحظه تصمیم‌گیری از صفحه همان فروشنده بررسی کن.",
+        "content_id": "editorial:compare-total-cost",
+        "content_type": "editorial",
+        "delivery_status": "selected_not_published",
+        "editorial_cycle_number": 1,
+        "editorial_id": "compare-total-cost",
+        "idempotency_key": "362874f5f630b516",
+        "related_product_affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-6500928%2F",
+        "related_product_id": "dkp-6500928",
+        "related_product_title": "کوسن مدل پارچه تدی کد CU001A011",
+        "review_due_at": "2027-02-10T18:00:00Z",
+        "reviewed_at": "2026-11-12T18:00:00Z",
+        "sequence_number": 1432,
+        "sources": [
+          {
+            "source_id": "ftc-infographic",
+            "title": "Shopping Online – Federal Trade Commission",
+            "url": "https://consumer.ftc.gov/sites/default/files/articles/pdf/0041-shopping-online-infographic.pdf"
+          },
+          {
+            "source_id": "ftc-security-tips",
+            "title": "Online Shopping – Security Tips, Federal Trade Commission",
+            "url": "https://www.ftc.gov/media/79929"
+          }
+        ],
+        "title": "قیمت نهایی مهم است، نه فقط عدد بزرگ روی صفحه",
+        "topic": "total-cost"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "related_product_id": "dkp-6500928",
+      "scheduled_at": "2026-11-16T22:37:06.636441+00:00",
+      "selected_at": "2026-11-16T22:36:52.474589+00:00",
+      "sequence_number": 1432,
+      "status": "queued",
+      "window_closes_at": "2026-11-16T22:38:54.062498+00:00"
+    }
+  },
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -202142,7 +202049,7 @@
   },
   "last_channel_published_at": "2026-11-16T22:34:46.210385+00:00",
   "last_content_selection_at": "2026-11-16T22:24:46.506937+00:00",
-  "last_editorial_attempt_at": "2026-11-16T22:34:39.771252+00:00",
+  "last_editorial_attempt_at": "2026-11-16T22:36:52.474589+00:00",
   "last_editorial_confirmed_at": "2026-11-16T22:34:52.370287+00:00",
   "last_product_channel_published_at": "2026-11-16T22:31:24.816678+00:00",
   "last_published_at": "2026-11-16T22:34:46.210385+00:00",
@@ -210175,23 +210082,6 @@
       "publish_failure_count": 0,
       "savings_toman": 380000,
       "title": "کوسن مدل پارچه تدی کد CU001A011",
-      "urgent": false
-    },
-    "dkp-9986231": {
-      "current_price": 691000,
-      "deal_expires_at": "",
-      "discount_percent": 36,
-      "first_seen_at": "2026-11-16T22:24:41.492399+00:00",
-      "last_publish_failure": "",
-      "last_publish_failure_at": "",
-      "next_publish_attempt_at": "",
-      "original_price": 1080000,
-      "product_id": "dkp-9986231",
-      "product_url": "https://www.digikala.com/product/dkp-9986231/",
-      "promo_score": 28,
-      "publish_failure_count": 0,
-      "savings_toman": 389000,
-      "title": "کنسرو ذرت شیرین شامینه - 350 گرم بسته 4 عددی",
       "urgent": false
     }
   },
@@ -293179,7 +293069,7 @@
       "ts": 1793119008.409393
     }
   },
-  "publication_sequence_counter": 1431,
+  "publication_sequence_counter": 1432,
   "published": {
     "dkp-10002173": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -402472,6 +402362,13 @@
       "reason": "live_product_details_incomplete",
       "rejected_at": "2026-11-03T12:48:51.271926+00:00",
       "retry_after": "2026-11-03T13:08:51.271926+00:00"
+    },
+    "dkp-9986231": {
+      "current_price": 691000,
+      "original_price": 1080000,
+      "reason": "live_product_details_incomplete",
+      "rejected_at": "2026-11-16T22:35:36.846299+00:00",
+      "retry_after": "2026-11-16T22:55:36.846299+00:00"
     }
   },
   "snappshop_api_ids": {},
