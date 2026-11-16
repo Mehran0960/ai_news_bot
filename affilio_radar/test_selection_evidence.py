@@ -555,5 +555,68 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         }))
 
 
+    def test_use_case_classifier_does_not_match_ram_inside_gram_and_covers_common_products(self):
+        samples = [
+            ("روغن کنجد تصفیه شده توسکا - 1350 گرم", "grocery_food"),
+            ("بالم لب هیدرودرم مدل SPF40 وزن 4.5 گرم", "personal_care"),
+            ("غذای خشک طوطی عروس هلندی مای برد وزن یک کیلوگرم", "pet_care"),
+            ("رم کامپیوتر DDR4 ظرفیت 16 گیگابایت", "mobile_productivity"),
+            ("ماشین لباسشویی اتوماتیک 8 کیلوگرمی", "home_living"),
+        ]
+        for title, expected in samples:
+            with self.subTest(title=title):
+                self.assertEqual(radar._publication_use_case_group(title), expected)
+
+    def test_brand_classifier_uses_explicit_metadata_and_common_title_hints(self):
+        explicit = {
+            "title": "هدفون بی‌سیم مدل جدید",
+            "brand": {"name_fa": "سونی"},
+        }
+        title_only = {"title": "گوشی موبایل شیائومی Redmi Note مدل جدید"}
+        self.assertEqual(radar._publication_diversity_group(explicit)[2], "sony")
+        self.assertEqual(radar._publication_diversity_group(title_only)[2], "xiaomi")
+
+    def test_category_repeat_is_soft_deferred_but_does_not_starve_a_thin_queue(self):
+        now = self.now
+        published = {
+            "dkp-old-headphones": {
+                "title": "هدفون بلوتوثی مدل قدیمی",
+                "telegram_message_id": 701,
+                "ts": (now - timedelta(minutes=30)).timestamp(),
+            }
+        }
+        candidates = [
+            {"product_id": "dkp-new-speaker", "title": "اسپیکر قابل حمل مدل تازه"},
+            {"product_id": "dkp-new-book", "title": "کتاب داستان نوجوان چاپ تازه"},
+        ]
+        selected = radar._filter_recent_publication_repeats(
+            candidates, published, [], now, limit=1, label="TEST_CATEGORY_SOFT_GUARD"
+        )
+        self.assertEqual([row["product_id"] for row in selected], ["dkp-new-book"])
+
+        alone = radar._filter_recent_publication_repeats(
+            [candidates[0]], published, [], now, limit=1, label="TEST_CATEGORY_FALLBACK"
+        )
+        self.assertEqual([row["product_id"] for row in alone], ["dkp-new-speaker"])
+
+    def test_use_case_repeat_is_independent_from_broad_category_repeat(self):
+        now = self.now
+        published = {
+            "dkp-old-phone": {
+                "title": "گوشی موبایل سامسونگ مدل قبلی",
+                "telegram_message_id": 702,
+                "ts": (now - timedelta(minutes=30)).timestamp(),
+            }
+        }
+        candidates = [
+            {"product_id": "dkp-new-laptop", "title": "لپ تاپ لنوو مدل تازه"},
+            {"product_id": "dkp-new-tea", "title": "چای سیاه معطر شاهسوند بسته 500 گرم"},
+        ]
+        selected = radar._filter_recent_publication_repeats(
+            candidates, published, [], now, limit=1, label="TEST_USE_CASE_SOFT_GUARD"
+        )
+        self.assertEqual([row["product_id"] for row in selected], ["dkp-new-tea"])
+
+
 if __name__ == "__main__":
     unittest.main()
