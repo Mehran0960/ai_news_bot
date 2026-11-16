@@ -7934,7 +7934,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
             if brand_slug and brand_slug not in {"unknown", "other", "none", "نامشخص", "-"}:
                 brand = f"brand:{brand_slug}"
     if not brand:
-        brand = next((key for key, pattern in brand_hints if re.search(pattern, title_search_text, re.I)), "")
+        brand = next((key for key, pattern in brand_hints if re.search(pattern, family_match_text, re.I)), "")
     return category, family, brand
 
 
