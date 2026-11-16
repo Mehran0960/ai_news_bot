@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T06:29:34.474292+00:00",
+  "generated_at": "2026-11-16T06:35:23.124340+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -396,47 +396,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1469,
+    "all_time_count": 1471,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 424,
+      "family_repeat": 422,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T05:35:39.136583+00:00",
-        "brand": "",
-        "catalog_category_id": "8942",
-        "catalog_category_name": "زردچوبه",
-        "category": "other",
-        "compared_to_product_id": "dkp-1764174",
-        "family": "digikala_category:8942",
-        "product_id": "dkp-1764171",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "زردچوبه شاهسوند -100 گرم",
-        "use_case": "mobile_productivity"
-      },
-      {
-        "at": "2026-11-16T05:35:39.136583+00:00",
-        "brand": "",
-        "catalog_category_id": "6765",
-        "catalog_category_name": "شورت آموزشی کودک",
-        "category": "kids_sports",
-        "compared_to_product_id": "dkp-16470889",
-        "family": "digikala_category:6765",
-        "product_id": "dkp-16470746",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "شورت آموزشی کودک وی کر مدل دکمه دار طرح Bear Girl کد U808",
-        "use_case": "books_learning"
-      },
       {
         "at": "2026-11-16T05:35:39.136583+00:00",
         "brand": "",
@@ -732,6 +698,38 @@
         ],
         "title": "روغن کنجد تصفیه شده توسکا - 1350 گرم",
         "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-16T06:35:23.124340+00:00",
+        "brand": "",
+        "catalog_category_id": "9224",
+        "catalog_category_name": "گوشت گوسفند",
+        "category": "other",
+        "compared_to_product_id": "dkp-20502655",
+        "family": "digikala_category:9224",
+        "product_id": "dkp-21586430",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
+        "use_case": "mobile_productivity"
+      },
+      {
+        "at": "2026-11-16T06:35:23.124340+00:00",
+        "brand": "",
+        "catalog_category_id": "9788",
+        "catalog_category_name": "شورت پسرانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-7284546",
+        "family": "digikala_category:9788",
+        "product_id": "dkp-8477415",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "شورت پسرانه آریان نخ باف مدل 4311",
+        "use_case": "fashion_lifestyle"
       }
     ]
   }
