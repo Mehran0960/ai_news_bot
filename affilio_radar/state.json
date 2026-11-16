@@ -293674,8 +293674,8 @@
       "warranty-terms"
     ],
     "cycle_number": 1,
-    "last_editorial_id": "marketplace-responsibility",
-    "last_topic": "seller-verification",
+    "last_editorial_id": "negative-review-balance",
+    "last_topic": "review-literacy",
     "used_ids": [
       "accessories-compatibility",
       "account-security",
@@ -293686,7 +293686,8 @@
       "gift-card-warning",
       "inspect-on-arrival",
       "keep-purchase-records",
-      "marketplace-responsibility"
+      "marketplace-responsibility",
+      "negative-review-balance"
     ]
   },
   "editorial_delivery_attempts": [
@@ -294448,6 +294449,56 @@
       "related_product_id": "",
       "sequence_number": 34,
       "topic": "seller-verification"
+    },
+    {
+      "content_id": "editorial:negative-review-balance",
+      "delivery_duration_seconds": 1.2,
+      "destinations": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-16T11:10:48.164615+00:00",
+          "attempts": 1,
+          "message_id": "2044",
+          "status": "sent",
+          "updated_at": "2026-11-16T11:10:51.269724+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "eitaa_not_enabled_or_credentials_missing",
+          "status": "not_connected",
+          "updated_at": "2026-11-16T11:11:06.203668+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-16T11:10:51.761384+00:00",
+          "attempts": 1,
+          "message_id": "1973547379687588651",
+          "status": "sent",
+          "updated_at": "2026-11-16T11:11:05.717296+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-16T11:10:46.315940+00:00",
+          "attempts": 1,
+          "message_id": "1537",
+          "status": "sent",
+          "updated_at": "2026-11-16T11:10:47.679242+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "editorial_id": "negative-review-balance",
+      "published_at": "2026-11-16T11:10:47.679242+00:00",
+      "related_product_id": "dkp-7665408",
+      "sequence_number": 1321,
+      "topic": "review-literacy"
     }
   ],
   "editorial_delivery_queue": {
@@ -294455,7 +294506,9 @@
       "attempt_count": 0,
       "content_id": "editorial:negative-review-balance",
       "content_type": "editorial",
+      "delivery_duration_seconds": 1.2,
       "delivery_runway_seconds": 30,
+      "delivery_started_at": "2026-11-16T11:11:08.188973+00:00",
       "dispatch_runway_seconds": 90,
       "next_attempt_at": "2026-11-16T11:09:30.018294+00:00",
       "payload": {
@@ -294487,30 +294540,42 @@
         "title": "فقط نظرهای مثبت را نخوان",
         "topic": "review-literacy"
       },
+      "photo_slot_attempted_at": "2026-11-16T11:10:43.000406+00:00",
       "platforms": {
         "aparat": {
           "attempts": 0,
           "status": "pending"
         },
         "bale": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T11:10:48.164615+00:00",
+          "attempts": 1,
+          "message_id": "2044",
+          "status": "sent",
+          "updated_at": "2026-11-16T11:10:51.269724+00:00"
         },
         "eitaa": {
           "attempts": 0,
-          "status": "pending"
+          "last_error": "eitaa_not_enabled_or_credentials_missing",
+          "status": "not_connected",
+          "updated_at": "2026-11-16T11:11:06.203668+00:00"
         },
         "filo": {
           "attempts": 0,
           "status": "pending"
         },
         "rubika": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T11:10:51.761384+00:00",
+          "attempts": 1,
+          "message_id": "1973547379687588651",
+          "status": "sent",
+          "updated_at": "2026-11-16T11:11:05.717296+00:00"
         },
         "telegram": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-16T11:10:46.315940+00:00",
+          "attempts": 1,
+          "message_id": "1537",
+          "status": "sent",
+          "updated_at": "2026-11-16T11:10:47.679242+00:00"
         },
         "youtube": {
           "attempts": 0,
@@ -294521,8 +294586,8 @@
       "scheduled_at": "2026-11-16T11:09:30.018294+00:00",
       "selected_at": "2026-11-16T10:41:00.741550+00:00",
       "sequence_number": 1321,
-      "status": "queued",
-      "window_closes_at": "2026-11-16T11:42:23.193168+00:00"
+      "status": "partial",
+      "window_closes_at": "2026-11-16T11:42:30.193168+00:00"
     }
   },
   "emergency_continuity": {
@@ -294830,12 +294895,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-16T10:45:53.193168+00:00",
+  "last_channel_published_at": "2026-11-16T11:10:51.269724+00:00",
   "last_content_selection_at": "2026-11-16T10:34:36.018986+00:00",
   "last_editorial_attempt_at": "2026-11-16T10:41:00.741550+00:00",
-  "last_editorial_confirmed_at": "2026-11-15T04:11:03.124798+00:00",
+  "last_editorial_confirmed_at": "2026-11-16T11:11:05.717296+00:00",
   "last_product_channel_published_at": "2026-11-16T10:45:53.193168+00:00",
-  "last_published_at": "2026-11-16T10:45:53.193168+00:00",
+  "last_published_at": "2026-11-16T11:10:51.269724+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -419352,6 +419417,7 @@
     },
     "dkp-21111292": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2043,
       "bale_posted_at": "2026-11-16T10:45:51.695808+00:00",
       "brand": "ورژن",
@@ -419421,6 +419487,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_upload_status": "pending",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-16T09:58:13.750510+00:00",
