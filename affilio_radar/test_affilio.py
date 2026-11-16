@@ -2453,6 +2453,19 @@ class AffilioRadarTests(unittest.TestCase):
             }
             for index, title in enumerate(recent_titles)
         ]
+        self.assertEqual(
+            radar._publication_diversity_group({"title": recent_titles[0]})[2],
+            "muzik_apollo",
+        )
+        self.assertEqual(
+            radar._publication_diversity_group({"title": "هدفون بلوتوثی موزیک آپولو مدل تازه"})[2],
+            "muzik_apollo",
+        )
+        recent_history = radar._recent_publication_diversity(
+            published={}, limit=radar.PUBLICATION_LEDGER_LIMIT,
+            durable_history=recent_publications, now=now, window_hours=24,
+        )
+        self.assertIn("muzik_apollo", {row["brand"] for row in recent_history})
         candidates = [
             {"product_id": "dkp-muzik-audio-repeat", "title": "هدفون بلوتوثی موزیک آپولو مدل تازه"},
             {"product_id": "dkp-speaker-new-family", "title": "اسپیکر بلوتوثی مدل تازه"},
