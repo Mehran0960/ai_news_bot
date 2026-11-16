@@ -5,7 +5,7 @@ import math
 from datetime import datetime, timedelta, timezone
 
 from content_delivery import (
-    calculate_product_publication_cadence,
+    PRODUCT_MIN_INTERVAL_SECONDS, calculate_product_publication_cadence,
     due_content, due_unpublished_selection, enqueue_selected_content,
     finish_queue_item, get_last_channel_published_at, get_last_product_channel_published_at,
     has_fresh_unpublished_selection, allocate_publication_sequence, promote_fallback_selection,
@@ -578,7 +578,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(
             datetime.fromisoformat(queue["dkp-2"]["scheduled_at"])
             - datetime.fromisoformat(queue["dkp-1"]["scheduled_at"]),
-            timedelta(seconds=1200),
+            timedelta(seconds=PRODUCT_MIN_INTERVAL_SECONDS),
         )
         again = enqueue_selected_content(state, items, now=self.now, interval_seconds=1200, max_items=2)
         self.assertEqual(again["added"], 0)
@@ -603,7 +603,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         old["status"] = "partial"
         old["platforms"]["telegram"]["status"] = "sent"
         old["platforms"]["bale"]["status"] = "failed"
-        next_slot = self.now + timedelta(minutes=20)
+        next_slot = self.now + timedelta(seconds=PRODUCT_MIN_INTERVAL_SECONDS)
         old["scheduled_at"] = next_slot.isoformat()
         old["next_attempt_at"] = next_slot.isoformat()
         state["last_published_at"] = self.now.isoformat()
@@ -666,7 +666,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
                                  now=self.now, interval_seconds=1200, max_items=2)
         due_now = due_content(state, now=self.now, limit=5)
         self.assertEqual([pid for pid, _entry in due_now], ["dkp-1"])
-        later = due_content(state, now=self.now + timedelta(minutes=21), limit=5)
+        later = due_content(state, now=self.now + timedelta(seconds=PRODUCT_MIN_INTERVAL_SECONDS + 60), limit=5)
         self.assertEqual({pid for pid, _entry in later}, {"dkp-1", "dkp-2"})
 
 
@@ -1005,7 +1005,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             max_items=1,
         )
         self.assertEqual(fresh["added"], 1)
-        due = due_content(state, now=self.now + timedelta(minutes=21), limit=1)
+        due = due_content(state, now=self.now + timedelta(seconds=PRODUCT_MIN_INTERVAL_SECONDS + 60), limit=1)
         self.assertEqual([product_id for product_id, _entry in due], ["dkp-after-rubika"])
 
     def test_terminal_queue_item_moves_to_bounded_history(self):
@@ -1358,6 +1358,84 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             (ordered[-1] - last_product).total_seconds(),
             3 * 3600,
         )
+
+    def test_product_posts_are_never_scheduled_less_than_57_minutes_apart(self):
+        state = {}
+        items = [self.item("dkp-cadence-a"), self.item("dkp-cadence-b")]
+        summary = enqueue_selected_content(
+            state, items, now=self.now, interval_seconds=5 * 60, max_items=2
+        )
+        self.assertEqual(summary["added"], 2)
+        first = datetime.fromisoformat(
+            state["content_delivery_queue"]["dkp-cadence-a"]["scheduled_at"]
+        )
+        second = datetime.fromisoformat(
+            state["content_delivery_queue"]["dkp-cadence-b"]["scheduled_at"]
+        )
+        self.assertEqual((second - first).total_seconds(), PRODUCT_MIN_INTERVAL_SECONDS)
+
+    def test_late_workflow_makes_overdue_product_due_now_then_keeps_57_minute_spacing(self):
+        last_product = self.now - timedelta(hours=3)
+        state = {
+            "last_product_channel_published_at": last_product.isoformat(),
+            "content_delivery_queue": {
+                "dkp-late-a": {
+                    "content_type": "product", "status": "queued", "sequence_number": 1,
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                },
+                "dkp-late-b": {
+                    "content_type": "product", "status": "queued", "sequence_number": 2,
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                },
+            },
+        }
+        result = reschedule_product_queue_evenly(
+            state, {"interval_seconds": 0}, now=self.now
+        )
+        self.assertEqual(result["scheduled"], 2)
+        first = datetime.fromisoformat(state["content_delivery_queue"]["dkp-late-a"]["scheduled_at"])
+        second = datetime.fromisoformat(state["content_delivery_queue"]["dkp-late-b"]["scheduled_at"])
+        self.assertEqual(first, self.now)
+        self.assertEqual((second - first).total_seconds(), PRODUCT_MIN_INTERVAL_SECONDS)
+
+    def test_missing_scan_eta_builds_a_rolling_product_publication_plan(self):
+        state = {}
+        cadence = calculate_product_publication_cadence(
+            state, {}, 3, now=self.now, max_daily_posts=72
+        )
+        self.assertEqual(cadence["scan_eta_source"], "rolling_57_min_product_fallback")
+        self.assertEqual(cadence["planned_product_slots"], 3)
+        self.assertGreaterEqual(cadence["interval_seconds"], PRODUCT_MIN_INTERVAL_SECONDS)
+        self.assertGreater(
+            datetime.fromisoformat(cadence["estimated_next_clean_scan_at"]),
+            self.now,
+        )
+        self.assertEqual(
+            cadence["policy"],
+            "equal_spacing_selected_products_with_57_minimum_interval_and_rolling_fallback",
+        )
+
+    def test_reflow_without_scan_eta_keeps_queue_scheduled_after_last_product(self):
+        state = {
+            "last_product_channel_published_at": (self.now - timedelta(hours=2)).isoformat(),
+            "product_publication_cadence": {},
+            "content_delivery_queue": {
+                "dkp-reflow-a": {
+                    "content_type": "product", "status": "queued", "sequence_number": 1,
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                },
+                "dkp-reflow-b": {
+                    "content_type": "product", "status": "queued", "sequence_number": 2,
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                },
+            },
+        }
+        result = reflow_product_queue_after_delivery(state, now=self.now)
+        self.assertEqual(result["scheduled"], 2)
+        first = datetime.fromisoformat(state["content_delivery_queue"]["dkp-reflow-a"]["scheduled_at"])
+        second = datetime.fromisoformat(state["content_delivery_queue"]["dkp-reflow-b"]["scheduled_at"])
+        self.assertEqual(first, self.now)
+        self.assertEqual((second - first).total_seconds(), PRODUCT_MIN_INTERVAL_SECONDS)
 
 if __name__ == "__main__":
     unittest.main()
