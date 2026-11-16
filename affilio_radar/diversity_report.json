@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T07:01:38.702986+00:00",
+  "generated_at": "2026-11-16T07:07:52.609928+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل سنتی": 1,
@@ -396,30 +396,13 @@
     "similarity_jaccard_threshold": 0.5
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1484,
+    "all_time_count": 1485,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "family_repeat": 418,
+      "family_repeat": 417,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T06:07:05.146075+00:00",
-        "brand": "",
-        "catalog_category_id": "10727",
-        "catalog_category_name": "غذای آماده",
-        "category": "grocery_food",
-        "compared_to_product_id": "dkp-3578863",
-        "family": "digikala_category:10727",
-        "product_id": "dkp-3623869",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کنسرو خورش قیمه بادمجان بدون گوشت گیلانی - 460 گرم",
-        "use_case": "grocery_food"
-      },
       {
         "at": "2026-11-16T06:16:02.288740+00:00",
         "brand": "",
@@ -732,6 +715,22 @@
         ],
         "title": "کفش زنانه سیی 1966 مدل پاپیونی طلقی کد 2449",
         "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-16T07:07:52.609928+00:00",
+        "brand": "",
+        "catalog_category_id": "9224",
+        "catalog_category_name": "گوشت گوسفند",
+        "category": "other",
+        "compared_to_product_id": "dkp-20502655",
+        "family": "digikala_category:9224",
+        "product_id": "dkp-21586430",
+        "reason": "similarity_repeat",
+        "reasons": [
+          "similarity_repeat"
+        ],
+        "title": "گوشت گردن گوسفندی تکه ای بهین - 1کیلوگرم",
+        "use_case": "mobile_productivity"
       }
     ]
   }
