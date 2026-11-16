@@ -892,20 +892,10 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             for target in delivery_targets.values()
         )
         emergency_override = _valid_emergency_continuity_override(payload, state, now)
-        if (
-            not already_partially_delivered
-            and catalog_context.get("mode") == "blocked"
-            and not emergency_override
-        ):
-            entry["status"] = "queued"
-            entry["last_detail"] = "verified_full_catalog_snapshot_unavailable"
-            entry["next_attempt_at"] = (now + timedelta(minutes=5)).isoformat()
-            _save(state)
-            print(
-                f"PUBLISHER_CATALOG_GATE_BLOCKED product_id={product_id} "
-                "reason=verified_full_catalog_snapshot_unavailable"
-            )
-            continue
+        # This item already entered the durable queue through the selector, which
+        # required a valid catalog snapshot. Do not re-gate the queued item against
+        # the *next* scan: preserve demand freshness and live price/stock/link checks
+        # below, but never strand a previously selected slot waiting for a full scan.
         if not already_partially_delivered:
             allowed = radar._filter_recent_publication_repeats(
                 [payload],
@@ -952,7 +942,7 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             entry,
             now,
             catalog_context,
-            require_catalog_membership=not already_partially_delivered,
+            require_catalog_membership=False,
             state=state,
         )
         if fresh is None:

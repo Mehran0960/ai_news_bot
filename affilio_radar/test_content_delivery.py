@@ -929,7 +929,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertIn("dkp-99002", state["published"])
 
     
-    def test_publisher_blocks_new_delivery_when_catalog_snapshot_is_unavailable(self):
+    def test_already_selected_product_revalidates_live_when_catalog_snapshot_is_unavailable(self):
         state = {}
         enqueue_selected_content(
             state, [self.item("dkp-99004")], now=self.now, interval_seconds=1200,
@@ -939,17 +939,17 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             patch("publisher.radar.load_state", return_value=state),
             patch("publisher.radar.publication_catalog_context", return_value={"mode": "blocked", "snapshot": None}),
             patch("publisher._save"),
-            patch("publisher._fresh_selected_item") as revalidate,
+            patch("publisher.radar.mark_selection_candidate_rejected"),
+            patch("publisher._fresh_selected_item", return_value=(None, "live_stock_not_confirmed")) as revalidate,
             patch("publisher._process_photo_destination") as send_photo,
         ):
             self.assertEqual(publish_due_queue(), 0)
 
-        revalidate.assert_not_called()
+        revalidate.assert_called_once()
+        self.assertFalse(revalidate.call_args.kwargs["require_catalog_membership"])
         send_photo.assert_not_called()
-        entry = state["content_delivery_queue"]["dkp-99004"]
-        self.assertEqual(entry["status"], "queued")
-        self.assertEqual(entry["last_detail"], "verified_full_catalog_snapshot_unavailable")
-        self.assertEqual(entry["next_attempt_at"], (self.now + timedelta(minutes=5)).isoformat())
+        self.assertNotIn("dkp-99004", state["content_delivery_queue"])
+        self.assertNotIn("dkp-99004", state.get("pending_queue", {}))
 
 
     def test_rubika_failure_is_optional_after_telegram_and_bale_delivery(self):
@@ -1240,10 +1240,9 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertLess(dense["interval_seconds"], sparse["interval_seconds"])
         self.assertGreater(dense["interval_seconds"], 0)
         self.assertGreater(sparse["interval_seconds"], 0)
-        self.assertEqual(
-            sparse["interval_seconds"] * 5,
-            sparse["seconds_from_plan_anchor_to_next_scan"],
-        )
+        self.assertEqual(sparse["interval_seconds"], 57 * 60)
+        self.assertEqual(sparse["maximum_product_interval_seconds"], 57 * 60)
+        self.assertTrue(sparse["first_slot_due_now"])
         expected_scan = current_scan_started + timedelta(seconds=cycle_seconds)
         self.assertEqual(
             sparse["estimated_next_clean_scan_at"],
@@ -1276,8 +1275,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         result = calculate_product_publication_cadence(
             {}, status, 2, now=self.now, max_daily_posts=72
         )
-        self.assertGreater(result["interval_seconds"], 6 * 60 * 60)
+        self.assertEqual(result["interval_seconds"], 57 * 60)
+        self.assertEqual(result["maximum_product_interval_seconds"], 57 * 60)
         self.assertEqual(result["planned_product_slots"], 2)
+        self.assertTrue(result["first_slot_due_now"])
 
     def test_product_plan_anchor_ignores_editorial_publication_clock(self):
         editorial_at = self.now - timedelta(minutes=2)
@@ -1295,7 +1296,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(result["plan_anchor_kind"], "cycle_start")
         self.assertEqual(result["plan_anchor_at"], self.now.isoformat())
 
-    def test_new_cycle_preserves_a_product_published_after_the_scan_started_as_spacing_anchor(self):
+    def test_new_cycle_with_product_older_than_57_minutes_makes_next_slot_due_now(self):
         clean_started = self.now - timedelta(hours=42)
         clean_completed = self.now - timedelta(hours=8)
         current_scan_started = self.now - timedelta(hours=6)
@@ -1317,12 +1318,12 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
 
         expected_next_scan = current_scan_started + timedelta(seconds=cycle_seconds)
-        expected_interval = (expected_next_scan - last_product).total_seconds() / 4
-        self.assertEqual(result["plan_anchor_kind"], "last_product")
-        self.assertEqual(result["plan_anchor_at"], last_product.isoformat())
+        self.assertEqual(result["plan_anchor_kind"], "cycle_start_after_max_gap")
+        self.assertEqual(result["plan_anchor_at"], self.now.isoformat())
         self.assertEqual(result["estimated_next_clean_scan_at"], expected_next_scan.isoformat())
         self.assertEqual(result["planned_product_slots"], 4)
-        self.assertEqual(result["interval_seconds"], expected_interval)
+        self.assertEqual(result["interval_seconds"], 57 * 60)
+        self.assertTrue(result["first_slot_due_now"])
 
     def test_product_queue_slots_are_evenly_rescheduled(self):
         last_product = self.now - timedelta(minutes=10)
@@ -1352,11 +1353,11 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         ]
         self.assertEqual(
             [(ordered[i + 1] - ordered[i]).total_seconds() for i in range(2)],
-            [3600, 3600],
+            [57 * 60, 57 * 60],
         )
         self.assertEqual(
             (ordered[-1] - last_product).total_seconds(),
-            3 * 3600,
+            3 * 57 * 60,
         )
 
 if __name__ == "__main__":

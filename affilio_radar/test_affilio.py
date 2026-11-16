@@ -2615,6 +2615,152 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual([item["product_id"] for item in selected], ["dkp-other-speaker"])
 
 
+    def test_dispatch_sidecar_exposes_pending_products_for_queue_replenishment(self):
+        now = datetime(2026, 11, 16, 8, 0, tzinfo=timezone.utc)
+        state = {
+            "content_delivery_queue": {
+                "dkp-pending-a": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": (now + timedelta(minutes=40)).isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                },
+                "dkp-pending-b": {
+                    "content_type": "product",
+                    "status": "partial",
+                    "scheduled_at": (now + timedelta(minutes=80)).isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "sent"},
+                        "bale": {"status": "pending"},
+                    },
+                },
+                "editorial:guide": {
+                    "content_type": "editorial",
+                    "status": "queued",
+                    "scheduled_at": (now + timedelta(minutes=20)).isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                    },
+                },
+                "dkp-published": {
+                    "content_type": "product",
+                    "status": "published",
+                    "platforms": {
+                        "telegram": {"status": "sent"},
+                        "bale": {"status": "sent"},
+                    },
+                },
+            }
+        }
+        projection = radar_module.build_video_upload_dispatch_state(state, now=now)
+        self.assertEqual(projection["pending_product_queue_count"], 2)
+
+    def test_product_api_extracts_structured_brand_metadata(self):
+        payload = {
+            "data": {
+                "product": {
+                    "id": 123456,
+                    "title_fa": "هدفون بی‌سیم مدل تست",
+                    "brand": {"id": 10, "title_fa": "Sony"},
+                    "default_variant": {
+                        "price": {"selling_price_rial": 1_000_000},
+                        "marketable": True,
+                    },
+                    "images": [],
+                }
+            }
+        }
+        parsed = parse_product_api(
+            payload, "https://www.digikala.com/product/dkp-123456/"
+        )
+        self.assertEqual(parsed["brand"], "Sony")
+        self.assertEqual(parsed["brand_name"], "Sony")
+
+    def test_classifier_covers_food_tools_furniture_and_instruments(self):
+        self.assertEqual(classify_category("شکر سفید"), "grocery_food")
+        self.assertEqual(classify_category("هویه دیجیتال"), "tools_industrial")
+        self.assertEqual(classify_category("پادری حمام"), "home")
+        self.assertEqual(classify_category("گیتار کلاسیک"), "musical_instruments")
+
+    def test_product_diversity_recognizes_common_major_brands(self):
+        self.assertEqual(
+            radar_module._publication_diversity_group({
+                "title": "گوشی سامسونگ Galaxy S25",
+                "brand_name": "Samsung",
+            })[2],
+            "brand:samsung",
+        )
+        self.assertEqual(
+            radar_module._publication_diversity_group({
+                "title": "شارژر سریع",
+                "brand": {"title_fa": "Baseus"},
+            })[2],
+            "brand:baseus",
+        )
+
+    def test_category_repeat_is_independent_from_use_case_repeat(self):
+        now = datetime(2026, 11, 16, 8, 0, tzinfo=timezone.utc)
+        recent = {
+            "dkp-coffee-maker": {
+                "title": "قهوه ساز برقی مدل قدیمی",
+                "ts": (now - timedelta(minutes=20)).timestamp(),
+                "telegram_message_id": 3001,
+            }
+        }
+        same_category_other_use = {
+            "product_id": "dkp-bath-mat",
+            "title": "پادری حمام ضد لغزش",
+            "brand": "IKEA",
+        }
+        other_category = {
+            "product_id": "dkp-cookbook",
+            "title": "کتاب آشپزی ایرانی",
+            "brand": "انتشارات نمونه",
+        }
+        selected = radar_module._filter_recent_publication_repeats(
+            [same_category_other_use, other_category],
+            recent,
+            None,
+            now,
+            limit=1,
+            label="TEST_CATEGORY",
+        )
+        self.assertEqual([row["product_id"] for row in selected], ["dkp-cookbook"])
+
+    def test_use_case_repeat_is_independent_from_category_repeat(self):
+        now = datetime(2026, 11, 16, 8, 0, tzinfo=timezone.utc)
+        recent = {
+            "dkp-phone": {
+                "title": "گوشی سامسونگ Galaxy S25",
+                "brand": "Samsung",
+                "ts": (now - timedelta(minutes=20)).timestamp(),
+                "telegram_message_id": 3002,
+            }
+        }
+        same_use_other_category = {
+            "product_id": "dkp-laptop",
+            "title": "لپ تاپ لنوو ThinkPad",
+            "brand": "Lenovo",
+        }
+        other_use = {
+            "product_id": "dkp-cookbook",
+            "title": "کتاب آشپزی ایرانی",
+            "brand": "انتشارات نمونه",
+        }
+        selected = radar_module._filter_recent_publication_repeats(
+            [same_use_other_category, other_use],
+            recent,
+            None,
+            now,
+            limit=1,
+            label="TEST_USE_CASE",
+        )
+        self.assertEqual([row["product_id"] for row in selected], ["dkp-cookbook"])
+
     def test_repeat_product_requires_real_price_drop_to_bypass_product_cooldown(self):
         now = datetime(2026, 10, 17, 0, 0, tzinfo=timezone.utc)
         previous = {
