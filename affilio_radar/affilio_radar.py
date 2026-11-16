@@ -4733,7 +4733,7 @@ def classify_category(title: str) -> str:
         ("sports_outdoor", r"ورزشی|کمپینگ|کوهنوردی|سفر و طبیعت|دوچرخه|اسکی|شنا|بدنسازی|دمبل|تردمیل|توپ فوتبال|چادر مسافرتی|اور\s*گریپ|آور\s*گریپ|over\s*grip|overgrip|over-grip|aver\s*grip|avergrip"),
         ("gaming", r"گیم|بازی ویدیویی|بازی رایانه.?ای|بازی کامپیوتری|کنسول|پلی\s*استیشن|xbox"),
         ("jewelry", r"زیورآلات|بدلیجات|گوشواره|انگشتر|دستبند|گردنبند|نقره زنانه|نقره مردانه|پرسته"),
-        ("books_stationery", r"کتاب|دفترچه یادداشت|دفترچه|دفتر|خودکار|مداد|لوازم التحریر|لوازم‌التحریر|نوشت افزار"),
+        ("books_stationery", r"کتاب|دفترچه یادداشت|دفترچه|دفتر|خودکار|مداد رنگی|مداد تحریر|لوازم التحریر|لوازم‌التحریر|نوشت افزار"),
         ("beauty_fragrance", r"عطر|ادکلن|ادو\s*پرفیوم|ادوپرفیوم|ادو\s*تویلت|ادوتویلت|تستر\s*ادو|بادی\s*اسپلش"),
         # Food cues must precede the broad skincare word «کرم» (e.g. sesame cream).
         ("grocery_food", r"خرما|شکلات|کنجد|عسل|حلوا|مربا|شیره|آجیل|خشکبار|غلات|کالای خوراکی|خوراکی|مواد غذایی|کنسرو|ادویه|برنج|جو پرک|گندم|آرد|حبوبات|نبات|چای ارگانیک|قهوه ارگانیک|دمنوش|کره نارگیل|کره بادام زمینی"),
@@ -7659,7 +7659,7 @@ def _publication_use_case_group(product_or_title) -> str:
         ("tabletop_games", r"بوردگیم|بازی فکری|بازی رومیزی|اوریگامی"),
         ("gaming", r"گیمینگ|بازی رایانه|کنسول بازی|پلی استیشن|ایکس باکس|\bxbox\b|دسته بازی"),
         ("office_study", r"اداری|لوازم اداری|میز کار|مطالعه|تحریر|لوازم تحریر|مدرسه|دانشجویی|لوازم ارائه|پوینتر ارائه|پرینتر|کاغذ|نوشت افزار|مهر و استامپ"),
-        ("books_learning", r"کتاب|دفترچه|دفتر یادداشت|دفتر|(?<!د)رمان(?:\s|$)|روانشناسی|داستان|مجله|آموزشی|زبان آموزی|خودکار|مداد"),
+        ("books_learning", r"کتاب|دفترچه|دفتر یادداشت|دفتر|(?<!د)رمان(?:\s|$)|روانشناسی|داستان|مجله|آموزشی|زبان آموزی|خودکار|مداد رنگی|مداد تحریر"),
         ("baby_care", r"نوزاد|نوزادی|کودک|سیسمونی|تغذیه کودک|پوشک|اسباب بازی کودک|دهان شویه کودک|خمیردندان کودک|مکمل کمک درمانی کودک"),
         ("pet_care", r"حیوان خانگی|غذای سگ|غذای گربه|تشویقی سگ|تشویقی گربه|خاک گربه|غذای حیوان|قلاده|اسکرچر|آکواریوم"),
         ("home_cleaning", r"اسکاچ|سیم ظرفشویی|اسفنج ظرفشویی|دستمال نظافت|شوینده سطوح|نظافت خانه|نظافت|شستشو|شوینده|تمیزکننده|زمین شوی|بخارشوی|جارو"),
@@ -7669,9 +7669,9 @@ def _publication_use_case_group(product_or_title) -> str:
         ("personal_care", r"مراقبت پوست|مراقبت از پوست|مراقبت مو|آرایش|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن|مسواک|دهان شویه|ضدآفتاب|ماسک صورت|ماسک بدن|شانه مو|مداد چشم|سشوار|اتو مو"),
         ("sports_fitness", r"ورزشی|ورزش های توپی|بدنسازی|باشگاه|دوچرخه|توپ فوتبال|فیتنس|تنیس|راکت|زانو بند طبی|لوازم جانبی راکت"),
         ("health_wellness", r"سلامت|پزشکی|مکمل غذایی|مکمل|کمک درمانی|تجهیزات پزشکی|ارتوپدی"),
-        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|شارژر همراه|کابل|حافظه|فلش مموری|رم|مانیتور|کیبورد|ماوس|مودم|روتر"),
+        ("mobile_productivity", r"گوشی|موبایل|تبلت|لپ تاپ|لپتاپ|کامپیوتر|دانگل بلوتوث|دانگل|شارژر همراه|کابل|حافظه|فلش مموری|رم|مانیتور|کیبورد|ماوس|مودم|روتر"),
         ("audio_visual", r"هدفون|هدست|هندزفری|ایرپاد|اسپیکر|تلویزیون|دوربین عکاسی|پروژکتور|سینما خانگی|میکروفن|میکروفون"),
-        ("home_living", r"خانه|اتاق خواب|دکوراسیون|مبلمان|روشنایی منزل|کالای خواب|خواب|پتو|ملحفه|کوسن|پرده"),
+        ("home_living", r"خانه|اتاق خواب|دکوراسیون|دکوراتیو|مبلمان|روشنایی منزل|کالای خواب|خواب|پتو|ملحفه|کوسن|پرده"),
         ("fashion_lifestyle", r"پوشاک|لباس|تی شرت|تیشرت|شلوار|کفش|بوت|کیف پول|عینک آفتابی|جوراب|مانتو|اکسسوری زنانه|لباس کار|سوتین"),
         ("tools_industrial", r"ابزار|هویه|مته|پیچ و مهره|کمپرسور|تجهیزات ایمنی|ایمنی|لوازم یدکی ابزار|باغبانی|کشاورزی"),
         ("arts_crafts", r"صنایع دستی|دست بافته|رودوزی|بافتنی|خیاطی|نقاشی|رنگ آمیزی|کاردستی"),
@@ -7740,7 +7740,8 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
     family_patterns = {
         "lighting": [
             ("desk_lighting", r"چراغ مطالعه|چراغ خواب"),
-            ("outdoor_lighting", r"چراغ پیشانی|هدلامپ|چراغ کمپینگ|نورافکن"),
+            ("outdoor_lighting", r"چراغ پیشانی|هدلامپ|چراغ کمپینگ|چراغ کوهنوردی|چراغ مسافرتی|نورافکن"),
+            ("automotive_lighting", r"چراغ خودرو|چراغ ماشین|روشنایی خودرو"),
             ("bulbs_and_strips", r"لامپ|ریسه روشنایی"),
         ],
         "home_cleaning": [
@@ -7774,7 +7775,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
             ("charger", r"شارژر|آداپتور"),
             ("emergency_light", r"چراغ اضطراری|برق اضطراری"),
             ("flashlights", r"چراغ\s*قوه|چراغ\s*دستی|چراغ\s*پلیسی"),
-            ("power_bank", r"پاور\s*بانک|پاوربانک"),
+            ("power_bank", r"پاور\s*بانک|پاوربانک|شارژر\s*همراه"),
         ],
         "audio_wearables": [
             ("headphones", r"هدفون|هندزفری|ایرپاد|هدست"),
@@ -8519,8 +8520,6 @@ def _filter_recent_publication_repeats(
     selected: list[dict] = []
     selected_families: set[str] = set()
     selected_brands: set[str] = set()
-    selected_categories: set[str] = set()
-    selected_use_cases: set[str] = set()
     comparison_history = list(history)
     soft_diversity_candidates: list[tuple[dict, dict]] = []
     family_blocked = brand_blocked = category_blocked = use_case_blocked = similarity_blocked = 0
@@ -8551,7 +8550,7 @@ def _filter_recent_publication_repeats(
             and age_hours(previous) < CATEGORY_REPEAT_COOLDOWN_HOURS
         ), None)
         category_repeat = bool(category and category not in {"other", "unknown"} and (
-            category in recent_categories or category in selected_categories or category_match
+            category in recent_categories or category_match
         ))
         use_case_match = next((
             previous for previous in comparison_history
@@ -8559,7 +8558,7 @@ def _filter_recent_publication_repeats(
             and age_hours(previous) < USE_CASE_REPEAT_COOLDOWN_HOURS
         ), None)
         use_case_repeat = bool(use_case and use_case not in {"general", "unknown", "catalog_taxonomy_other"} and (
-            use_case in recent_use_cases or use_case in selected_use_cases or use_case_match
+            use_case in recent_use_cases or use_case_match
         ))
         similarity_match = next((
             previous for previous in comparison_history
@@ -8618,10 +8617,6 @@ def _filter_recent_publication_repeats(
             selected_families.add(family_key)
         if brand:
             selected_brands.add(brand)
-        if category and category not in {"other", "unknown"}:
-            selected_categories.add(category)
-        if use_case and use_case not in {"general", "unknown", "catalog_taxonomy_other"}:
-            selected_use_cases.add(use_case)
         comparison_history.append(candidate)
 
     # Preserve continuity when soft diversity alone would empty the queue. Never
