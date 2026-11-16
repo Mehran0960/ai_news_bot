@@ -733,7 +733,10 @@ def enqueue_selected_content(
     if now.tzinfo is None:
         now = now.replace(tzinfo=timezone.utc)
     now = now.astimezone(timezone.utc)
-    interval_seconds = max(0.0, float(interval_seconds))
+    interval_seconds = max(
+        float(PRODUCT_MIN_INTERVAL_SECONDS),
+        float(interval_seconds or 0.0),
+    )
     max_items = max(1, int(max_items))
     minimum_runway_minutes = max(0, int(minimum_runway_minutes))
     queue_limit = _configured_queue_limit(max_active_items)
