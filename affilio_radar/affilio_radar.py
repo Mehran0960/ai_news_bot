@@ -4705,7 +4705,7 @@ def classify_category(title: str) -> str:
         ("books_stationery", r"کتاب|دفتر|خودکار|مداد|لوازم التحریر|لوازم‌التحریر|نوشت افزار"),
         ("beauty_fragrance", r"عطر|ادکلن|ادو\s*پرفیوم|ادوپرفیوم|ادو\s*تویلت|ادوتویلت|تستر\s*ادو|بادی\s*اسپلش"),
         # Food cues must precede the broad skincare word «کرم» (e.g. sesame cream).
-        ("grocery_food", r"خرما|شکلات|کنجد|عسل|حلوا|مربا|شیره|آجیل|خشکبار|غلات|کالای خوراکی|خوراکی|مواد غذایی|کنسرو|ادویه|برنج|جو(?:\s*پرک|\s*دوسر)?|گندم|آرد|حبوبات|نبات|چای|قهوه|دمنوش|شکر|عدس|لپه|نخود|لوبیا|ماکارونی|پاستا|نودل|نمک|آبمیوه|نوشیدنی|روغن\s+(?:زیتون|ذرت|کنجد|آفتابگردان|مایع)|غذای\s+(?:آماده|نیمه آماده)|تنقلات|بیسکویت|ویفر|آبنبات"),
+        ("grocery_food", r"خرما|شکلات|کنجد|عسل|حلوا|مربا|شیره|آجیل|خشکبار|غلات|کالای خوراکی|خوراکی|(?<!\w)مواد\s+غذایی|کنسرو|ادویه|برنج|جو(?:\s*پرک|\s*دوسر)?|گندم|آرد|حبوبات|نبات|چای(?!\s*ساز)|قهوه(?!\s*ساز)|دمنوش|شکر|عدس|لپه|نخود|لوبیا|ماکارونی|پاستا|نودل|نمک|آبمیوه|نوشیدنی|روغن\s+(?:زیتون|ذرت|کنجد|آفتابگردان|مایع)|غذای\s+(?:آماده|نیمه آماده)|تنقلات|بیسکویت|ویفر|آبنبات"),
         ("personal_care", r"پوست|(?<!\w)مو(?!\w)|کرم|سرم|آبرسان|اصلاح|ماساژور|بهداشت|آرایش|ضدآفتاب|مسواک|دندان|سشوار|برس حرارتی|اتو مو|ریش.?تراش|موزن|اپیلاتور|دستگاه بخور|تونر|پاک کننده آرایش|سنگ پا|پاشنه کش|سوهان پا"),
         ("automotive", r"خودرو|ماشین|موتور سیکلت|داشبورد|کمپرسور باد|لوازم خودرو|شارژر فندکی|روکش صندلی|کفپوش خودرو|مراقبت خودرو"),
         ("home", r"آشپزخانه|نظم دهنده|ارگانایزر|خردکن|ظرف|ابزار آشپزخانه|خانه|قهوه ساز|فلاسک|ماگ|قمقمه|بطری آب|ظروف|حمام|سرویس بهداشتی|باغبانی|گلدان|مبل|مبلمان|کاور مبل|پادری|حوله|پتو|بالش|ملحفه|روتختی|سرویس خواب"),
@@ -4718,11 +4718,12 @@ def classify_category(title: str) -> str:
         ("media_entertainment", r"فیلم\s+سینمایی|مجموعه\s+تلویزیونی|اشتراک\s+فیلم|آلبوم\s+موسیقی|محتوای\s+دیجیتال"),
         ("musical_instruments", r"ساز\s+موسیقی|گیتار|تار|سه\s+تار|دف|تنبک|کیبورد\s+موسیقی|پیانو|ویولن"),
     )
-    for category, pattern in supplemental_patterns:
+
+    for category, pattern in patterns:
         if re.search(pattern, value, re.I):
             return category
 
-    for category, pattern in patterns:
+    for category, pattern in supplemental_patterns:
         if re.search(pattern, value, re.I):
             return category
     return "other"
@@ -7662,7 +7663,7 @@ def _publication_use_case_group(product_or_title) -> str:
         ("tools_industrial", r"ابزارآلات|پیچ\s*گوشتی|فازمتر|آچار|انبردست|دریل|مته|هویه|سمپاش|چکش|تجهیزات\s+ایمنی|رنگ\s+ساختمانی|لوازم\s+باغبانی"),
         ("media_entertainment", r"فیلم\s+سینمایی|مجموعه\s+تلویزیونی|اشتراک\s+فیلم|آلبوم\s+موسیقی|محتوای\s+دیجیتال"),
         ("music_creation", r"ساز\s+موسیقی|گیتار|سه\s+تار|دف|تنبک|پیانو|ویولن"),
-        ("grocery_food", r"خوراکی|مواد غذایی|صبحانه|نوشیدنی|چای|قهوه|شکلات|تنقلات|غلات|کنسرو|ادویه|کالای خوراکی|شکر|عدس|لپه|نخود|لوبیا|ماکارونی|پاستا|نودل|نمک|آبمیوه|روغن\s+(?:زیتون|ذرت|کنجد|آفتابگردان|مایع)|بیسکویت|ویفر|آبنبات"),
+        ("grocery_food", r"خوراکی|(?<!\w)مواد\s+غذایی|صبحانه|نوشیدنی|چای(?!\s*ساز)|قهوه(?!\s*ساز)|شکلات|تنقلات|غلات|کنسرو|ادویه|کالای خوراکی|شکر|عدس|لپه|نخود|لوبیا|ماکارونی|پاستا|نودل|نمک|آبمیوه|روغن\s+(?:زیتون|ذرت|کنجد|آفتابگردان|مایع)|بیسکویت|ویفر|آبنبات"),
         ("home_cleaning", r"نظافت|شستشو|شوینده|تمیزکننده|زمین شوی|بخارشوی|جارو|اسکاچ|سیم ظرفشویی|دستمال نظافت"),
         ("personal_care", r"مراقبت پوست|مراقبت از پوست|مراقبت مو|آرایش|آرایشی|بهداشتی|اصلاح صورت|عطر و ادکلن|مسواک|دهان شویه|ضدآفتاب|ماسک صورت|ماسک بدن|شانه مو|مداد چشم"),
         ("sports_fitness", r"ورزشی|ورزش های توپی|بدنسازی|باشگاه|دوچرخه|توپ فوتبال|فیتنس|تنیس|راکت|زانو بند طبی|لوازم جانبی راکت"),
@@ -7902,7 +7903,7 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         ("lenovo", r"\bLenovo\b|لنوو"),
         ("asus", r"ایسوس|\bASUS\b"),
         ("hp", r"\bHP\b|اچ\s*پی"),
-        ("dell", r"\bDell\b|دل"),
+        ("dell", r"\bDell\b|(?<!\w)دل(?!\w)"),
         ("acer", r"\bAcer\b|ایسر"),
         ("huawei", r"هواوی|\bHuawei\b"),
         ("honor", r"آنر|\bHonor\b"),
@@ -7964,17 +7965,25 @@ def _publication_diversity_group(product_or_title) -> tuple[str, str, str]:
         ("zanama", r"زاناما"),
         ("dellbesto", r"دلبستو"),
     ]
-    brand = next((key for key, pattern in brand_hints if re.search(pattern, brand_search_text, re.I)), "")
-    if not brand and explicit_brand:
+    brand = ""
+    if explicit_brand:
         normalized_explicit_brand = explicit_brand.strip().lower()
         if normalized_explicit_brand.startswith("brand:"):
-            # Publication-history records already store normalized brand slugs.
-            # Keep normalization idempotent when history is read back as a record.
             brand = normalized_explicit_brand
         else:
-            brand_slug = re.sub(r"[^\w\u0600-\u06FF]+", "_", normalized_explicit_brand).strip("_")
-            if brand_slug and brand_slug not in {"unknown", "other", "none", "نامشخص", "-"}:
-                brand = f"brand:{brand_slug}"
+            brand = next((
+                f"brand:{key}" for key, pattern in brand_hints
+                if re.search(pattern, explicit_brand, re.I)
+            ), "")
+            if not brand:
+                brand_slug = re.sub(r"[^\w\u0600-\u06FF]+", "_", normalized_explicit_brand).strip("_")
+                if brand_slug and brand_slug not in {"unknown", "other", "none", "نامشخص", "-"}:
+                    brand = f"brand:{brand_slug}"
+    else:
+        brand = next((
+            f"brand:{key}" for key, pattern in brand_hints
+            if re.search(pattern, family_match_text, re.I)
+        ), "")
     return category, family, brand
 
 
@@ -8611,6 +8620,7 @@ def _filter_recent_publication_repeats(
         return category, family, brand, family_key, family_match, family_repeat, brand_match, brand_repeat, similarity_match
 
     def record_event(candidate: dict, reasons: list[str], compared: dict | None, *, deferred: bool):
+        global _LAST_PUBLICATION_DIVERSITY_DIAGNOSTICS
         category, family, brand = _publication_diversity_group(candidate)
         catalog_context = _publication_catalog_category_context(candidate)
         event = {

@@ -948,9 +948,8 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         revalidate.assert_called_once()
         self.assertFalse(revalidate.call_args.kwargs["require_catalog_membership"])
         send_photo.assert_not_called()
-        entry = state["content_delivery_queue"]["dkp-99004"]
-        self.assertEqual(entry["status"], "stale_selection")
-        self.assertEqual(entry["last_detail"], "live_stock_not_confirmed")
+        self.assertNotIn("dkp-99004", state["content_delivery_queue"])
+        self.assertNotIn("dkp-99004", state.get("pending_queue", {}))
 
 
     def test_rubika_failure_is_optional_after_telegram_and_bale_delivery(self):
@@ -1276,8 +1275,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         result = calculate_product_publication_cadence(
             {}, status, 2, now=self.now, max_daily_posts=72
         )
-        self.assertGreater(result["interval_seconds"], 6 * 60 * 60)
+        self.assertEqual(result["interval_seconds"], 57 * 60)
+        self.assertEqual(result["maximum_product_interval_seconds"], 57 * 60)
         self.assertEqual(result["planned_product_slots"], 2)
+        self.assertTrue(result["first_slot_due_now"])
 
     def test_product_plan_anchor_ignores_editorial_publication_clock(self):
         editorial_at = self.now - timedelta(minutes=2)
