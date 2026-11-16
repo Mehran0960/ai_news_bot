@@ -26,7 +26,12 @@ from content_delivery import (
     get_last_channel_published_at,
     refresh_unpublished_selections,
 )
-from editorial_content import record_editorial_delivery, select_editorial_fallback
+from editorial_content import (
+    has_local_market_source,
+    record_editorial_delivery,
+    select_editorial_fallback,
+    validate_editorial_item,
+)
 from platform_registry import PLATFORM_NAMES
 
 ROOT = Path(__file__).resolve().parent
@@ -99,6 +104,44 @@ def _load_bank() -> list[dict]:
         if editorial_id:
             by_id[editorial_id] = item
     return list(by_id.values())
+
+
+def _cancel_stale_unapproved_editorials(
+    state: dict,
+    bank: list[dict],
+    *,
+    now: datetime,
+) -> int:
+    """Stop queued editorial payloads unless they match a current reviewed local item."""
+    queue = state.get("editorial_delivery_queue")
+    if not isinstance(queue, dict):
+        return 0
+    approved_by_id: dict[str, dict] = {}
+    for candidate in bank if isinstance(bank, list) else []:
+        valid, _reason = validate_editorial_item(candidate, now=now)
+        if valid and has_local_market_source(candidate):
+            approved_by_id[str(candidate.get("editorial_id") or "")] = candidate
+
+    cancelled = 0
+    for entry in queue.values():
+        if not isinstance(entry, dict) or entry.get("status") in {"completed", "cancelled", "failed"}:
+            continue
+        payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
+        editorial_id = str(payload.get("editorial_id") or "")
+        approved = approved_by_id.get(editorial_id)
+        same_reviewed_content = bool(approved) and all(
+            payload.get(key) == approved.get(key)
+            for key in ("title", "body", "topic", "reviewed_at", "review_due_at", "sources")
+        )
+        if same_reviewed_content and "claims" in payload:
+            same_reviewed_content = payload.get("claims") == approved.get("claims")
+        if same_reviewed_content:
+            continue
+        entry["status"] = "cancelled"
+        entry["last_detail"] = "editorial_payload_not_in_current_reviewed_local_source_bank"
+        entry["cancelled_at"] = now.astimezone(timezone.utc).isoformat()
+        cancelled += 1
+    return cancelled
 
 
 def _active_editorial_entries(state: dict) -> list[dict]:
@@ -189,6 +232,13 @@ def queue_editorial_if_due(
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
+
+    stale_cancelled = _cancel_stale_unapproved_editorials(state, bank, now=current)
+    if stale_cancelled:
+        print(
+            "EDITORIAL_STALE_QUEUE_CANCELLED "
+            f"count={stale_cancelled} reason=not_in_reviewed_local_source_bank"
+        )
 
     active = _active_editorial_entries(state)
     product_queue = state.get("content_delivery_queue")
@@ -1041,16 +1091,22 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
     state = radar.load_state(apply_integrity_ledger=False)
     bank = _load_bank()
     valid_items = []
+    local_market_items = []
     invalid_items = []
-    from editorial_content import validate_editorial_item
     for item in bank:
         valid, reason = validate_editorial_item(item, now=current)
         if valid:
             valid_items.append(item)
+            if has_local_market_source(item):
+                local_market_items.append(item)
         else:
             invalid_items.append({"editorial_id": str(item.get("editorial_id") or ""), "reason": reason})
 
-    active = _active_editorial_entries(state)
+    shadow_queue_state = json.loads(json.dumps(state, ensure_ascii=False, default=str))
+    stale_queue_would_cancel = _cancel_stale_unapproved_editorials(
+        shadow_queue_state, bank, now=current
+    )
+    active = _active_editorial_entries(shadow_queue_state)
     product_queue = state.get("content_delivery_queue")
     active_products = [
         row for row in (product_queue.values() if isinstance(product_queue, dict) else [])
@@ -1136,8 +1192,10 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         "requires_selected_product_slot": True,
         "editorial_bank_total": len(bank),
         "editorial_bank_valid": len(valid_items),
+        "editorial_bank_local_market_eligible": len(local_market_items),
         "editorial_bank_invalid": invalid_items,
         "active_editorial_queue_items": len(active),
+        "stale_editorial_queue_items_would_cancel": stale_queue_would_cancel,
         "active_product_photo_queue_items": len(active_products),
         "older_product_video_pending": bool(pending_videos),
         "destination_credentials_present": destination_config,
