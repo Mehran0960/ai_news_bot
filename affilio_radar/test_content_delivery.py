@@ -180,6 +180,25 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             latest_channel_send + timedelta(minutes=57),
         )
 
+    def test_product_clock_recovers_active_partial_receipt_even_with_editorial_history(self):
+        sent_at = self.now - timedelta(minutes=10)
+        state = {
+            "editorial_delivery_history": [
+                {"content_id": "editorial:latest", "published_at": self.now.isoformat()}
+            ],
+            "content_delivery_queue": {
+                "dkp-partial-receipt": {
+                    "content_id": "dkp-partial-receipt",
+                    "status": "partial",
+                    "platforms": {
+                        "telegram": {"status": "sent", "updated_at": sent_at.isoformat()},
+                        "bale": {"status": "failed"},
+                    },
+                }
+            },
+        }
+        self.assertEqual(get_last_product_channel_published_at(state), sent_at)
+
     def test_partial_media_retry_does_not_advance_channel_publication_clock(self):
         from unittest.mock import patch
         import publisher
