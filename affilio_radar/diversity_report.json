@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-16T20:27:44.380599+00:00",
+  "generated_at": "2026-11-16T20:38:10.661706+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
@@ -129,7 +129,6 @@
       "شورت پسرانه": 1,
       "عایق صندوق ، کاپوت و درب خودرو": 1,
       "عطر و ادکلن زنانه": 1,
-      "غذای مادر و کودک": 1,
       "فیگور": 1,
       "قطعات جانبی موبایل و تبلت و هدفون": 1,
       "قطعات دوچرخه": 1,
@@ -176,7 +175,7 @@
       "grocery_food": 10,
       "home": 5,
       "home_cleaning": 1,
-      "kids_sports": 3,
+      "kids_sports": 2,
       "mobile_devices": 2,
       "other": 14,
       "personal_care": 7,
@@ -184,30 +183,30 @@
       "sports_outdoor": 7
     },
     "category_share_percent": {
-      "automotive": 1.4,
-      "beauty_fragrance": 1.4,
-      "books_stationery": 5.8,
-      "computer_network": 4.3,
-      "digital_accessories": 1.4,
-      "fashion": 10.1,
+      "automotive": 1.5,
+      "beauty_fragrance": 1.5,
+      "books_stationery": 5.9,
+      "computer_network": 4.4,
+      "digital_accessories": 1.5,
+      "fashion": 10.3,
       "gaming": 2.9,
-      "grocery_food": 14.5,
-      "home": 7.2,
-      "home_cleaning": 1.4,
-      "kids_sports": 4.3,
+      "grocery_food": 14.7,
+      "home": 7.4,
+      "home_cleaning": 1.5,
+      "kids_sports": 2.9,
       "mobile_devices": 2.9,
-      "other": 20.3,
-      "personal_care": 10.1,
-      "power_backup": 1.4,
-      "sports_outdoor": 10.1
+      "other": 20.6,
+      "personal_care": 10.3,
+      "power_backup": 1.5,
+      "sports_outdoor": 10.3
     },
-    "distinct_catalog_categories": 64,
+    "distinct_catalog_categories": 63,
     "distinct_categories": 16,
-    "distinct_families": 69,
+    "distinct_families": 68,
     "distinct_retailers": 1,
-    "distinct_use_cases": 17,
+    "distinct_use_cases": 16,
     "known_brand_posts": 27,
-    "posts": 69,
+    "posts": 68,
     "repeated_brand_count": 3,
     "repeated_brands": {
       "brand:تکسان": 2,
@@ -215,14 +214,13 @@
       "brand:مری_کینگ": 2
     },
     "retailer_post_counts": {
-      "digikala": 69
+      "digikala": 68
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
       "automotive": 2,
-      "baby_care": 1,
       "books_learning": 4,
       "catalog_taxonomy_other": 10,
       "fashion_lifestyle": 7,
@@ -515,47 +513,13 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1551,
+    "all_time_count": 1553,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 397,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T09:46:48.735445+00:00",
-        "brand": "",
-        "catalog_category_id": "9906",
-        "catalog_category_name": "کفش روزمره مردانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-15500250",
-        "family": "digikala_category:9906",
-        "product_id": "dkp-16770957",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش روزمره مردانه مدل 1111 سبک با رویه پارچه‌ای، زیره پلی اورتان مقاوم و ضد لغزش، انعطاف‌پذیر و نرم، بند کشی و مناسب پیاده‌روی طولانی و استفاده روزانه، ساخت ایران",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-16T09:46:48.735445+00:00",
-        "brand": "cinere",
-        "catalog_category_id": "10932",
-        "catalog_category_name": "دئودورانت",
-        "category": "other",
-        "compared_to_product_id": "dkp-19399111",
-        "family": "digikala_category:10932",
-        "product_id": "dkp-21526168",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "رول دئودورانت مردانه سینره مدل FROST PEAK حجم 50 میلی‌لیتر",
-        "use_case": "catalog_taxonomy_other"
-      },
       {
         "at": "2026-11-16T11:34:07.809306+00:00",
         "brand": "",
@@ -857,6 +821,40 @@
           "similarity_repeat"
         ],
         "title": "پودر سیر شاهسوند - 120 گرم",
+        "use_case": "catalog_taxonomy_other"
+      },
+      {
+        "at": "2026-11-16T20:38:10.661706+00:00",
+        "brand": "",
+        "catalog_category_id": "9083",
+        "catalog_category_name": "لوازم ماهیگیری",
+        "category": "other",
+        "compared_to_product_id": "dkp-13338289",
+        "family": "digikala_category:9083",
+        "product_id": "dkp-4080071",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "چوب ماهیگیری ساپا مدل VALERIE-210",
+        "use_case": "outdoor_travel"
+      },
+      {
+        "at": "2026-11-16T20:38:10.661706+00:00",
+        "brand": "",
+        "catalog_category_id": "11544",
+        "catalog_category_name": "لپه محلی و ارگانیک",
+        "category": "other",
+        "compared_to_product_id": "dkp-22182003",
+        "family": "digikala_category:11544",
+        "product_id": "dkp-9806206",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "لپه درجه 1 - 1000 گرم",
         "use_case": "catalog_taxonomy_other"
       }
     ]
