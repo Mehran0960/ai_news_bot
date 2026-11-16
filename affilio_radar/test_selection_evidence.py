@@ -425,10 +425,9 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
         def score(rows, now=None):
             for row in rows:
                 row["offerchin_four_factor"] = {
-                    "affordability": 75,
                     "generality": 80,
                     "discount_attractiveness": 54,
-                    "balanced_score": 67,
+                    "balanced_score": 64.62,
                 }
 
         with (
