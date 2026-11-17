@@ -58,6 +58,9 @@ jobs:
             affilio_radar/offerchin_visuals.py \
             affilio_radar/aparat_uploader.py \
             affilio_radar/filo_uploader.py \
+            affilio_radar/editorial_content.py \
+            affilio_radar/editorial_publisher.py \
+            affilio_radar/merge_video_destination_state.py \
             affilio_radar/offerchin_four_factor.py
 
       - name: Run unified FIFO, retry, platform and four-factor regressions
@@ -69,6 +72,9 @@ jobs:
             test_filo_upload_schedule.py \
             test_filo_uploader.py \
             test_short_video.py \
+            test_editorial_content.py \
+            test_editorial_publisher.py \
+            test_merge_video_destination_state.py \
             test_offerchin_four_factor.py
 
       - name: Validate workflow wiring and absence of legacy video pacing
