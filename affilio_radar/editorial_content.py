@@ -287,6 +287,27 @@ def select_editorial_fallback(
             candidate for candidate in valid_items
             if not any(_is_near_duplicate_editorial(candidate, previous) for previous in recent_deliveries)
         ]
+
+    # A different article on the same topic is still repetitive when sent too
+    # frequently. Enforce the configured topic cooldown, not just an adjacent
+    # topic preference, while allowing product publishing to continue normally.
+    topic_cooldown = timedelta(hours=max(0, int(topic_cooldown_hours)))
+    if topic_cooldown.total_seconds() > 0:
+        recent_topic_times: dict[str, datetime] = {}
+        for row in history:
+            published_at = _utc(row.get("published_at"))
+            topic = str(row.get("topic") or "").strip().lower()
+            if topic and published_at is not None and published_at <= current:
+                previous = recent_topic_times.get(topic)
+                if previous is None or published_at > previous:
+                    recent_topic_times[topic] = published_at
+        valid_items = [
+            candidate for candidate in valid_items
+            if (
+                str(candidate.get("topic") or "").strip().lower() not in recent_topic_times
+                or current - recent_topic_times[str(candidate.get("topic") or "").strip().lower()] >= topic_cooldown
+            )
+        ]
     if not valid_items:
         return None
 
@@ -381,7 +402,13 @@ def select_editorial_fallback(
 
 
 def record_editorial_delivery(state: dict, item: dict, *, published_at: datetime, destinations: dict) -> None:
-    """Record an editorial publication only after one destination confirms delivery."""
+    """Record each confirmed publication occurrence while merging receipts per destination.
+
+    content_id identifies the reviewed article, not an individual publication.
+    sequence_number identifies one occurrence in the publication stream. This
+    distinction prevents a later, permitted reuse from disappearing behind the
+    idempotency guard for the article's first send.
+    """
     if not isinstance(state, dict) or not isinstance(item, dict):
         raise ValueError("state_and_item_must_be_objects")
     if not isinstance(destinations, dict) or not any(
@@ -392,12 +419,29 @@ def record_editorial_delivery(state: dict, item: dict, *, published_at: datetime
     timestamp = published_at
     if timestamp.tzinfo is None:
         timestamp = timestamp.replace(tzinfo=timezone.utc)
+    timestamp = timestamp.astimezone(timezone.utc)
+
     history = state.setdefault("editorial_delivery_history", [])
     if not isinstance(history, list):
         history = []
         state["editorial_delivery_history"] = history
-    if any(str(row.get("content_id") or "") == str(item.get("content_id") or "") for row in history if isinstance(row, dict)):
-        return
+
+    content_id = str(item.get("content_id") or "")
+    sequence_number = item.get("sequence_number")
+    occurrence = next(
+        (
+            row for row in reversed(history)
+            if isinstance(row, dict)
+            and str(row.get("content_id") or "") == content_id
+            and (
+                str(row.get("sequence_number") or "") == str(sequence_number)
+                if sequence_number is not None
+                else row.get("sequence_number") is None
+            )
+        ),
+        None,
+    )
+
     cycle = state.setdefault("editorial_cycle", {})
     if not isinstance(cycle, dict):
         cycle = {}
@@ -413,16 +457,46 @@ def record_editorial_delivery(state: dict, item: dict, *, published_at: datetime
     cycle["last_editorial_id"] = editorial_id
     cycle["last_topic"] = str(item["topic"]).lower()
 
-    history.append({
-        "editorial_id": str(item["editorial_id"]),
-        "content_id": str(item["content_id"]),
-        "sequence_number": item.get("sequence_number"),
-        "topic": str(item["topic"]),
-        "related_product_id": str(item.get("related_product_id") or ""),
-        "title": str(item.get("title") or "").strip(),
-        "body": str(item.get("body") or "").strip(),
-        "content_fingerprint": editorial_content_fingerprint(item),
-        "published_at": timestamp.astimezone(timezone.utc).isoformat(),
-        "destinations": destinations,
-    })
+    if occurrence is None:
+        occurrence = {
+            "editorial_id": editorial_id,
+            "content_id": content_id,
+            "sequence_number": sequence_number,
+            "topic": str(item["topic"]),
+            "related_product_id": str(item.get("related_product_id") or ""),
+            "title": str(item.get("title") or "").strip(),
+            "body": str(item.get("body") or "").strip(),
+            "content_fingerprint": editorial_content_fingerprint(item),
+            "published_at": timestamp.isoformat(),
+            "destinations": {},
+        }
+        history.append(occurrence)
+    else:
+        previous_at = _utc(occurrence.get("published_at"))
+        if previous_at is None or timestamp > previous_at:
+            occurrence["published_at"] = timestamp.isoformat()
+        for key in ("editorial_id", "topic", "title", "body", "content_fingerprint", "related_product_id"):
+            incoming = (
+                editorial_content_fingerprint(item)
+                if key == "content_fingerprint"
+                else str(item.get(key) or "").strip()
+            )
+            if incoming:
+                occurrence[key] = incoming
+
+    # Merge only the destination receipts that are known. Never let a stale
+    # worker's pending snapshot overwrite a confirmed send from another worker.
+    saved_destinations = occurrence.setdefault("destinations", {})
+    if not isinstance(saved_destinations, dict):
+        saved_destinations = {}
+        occurrence["destinations"] = saved_destinations
+    for name, incoming in destinations.items():
+        if not isinstance(incoming, dict):
+            continue
+        previous = saved_destinations.get(name)
+        previous_status = str(previous.get("status") or "") if isinstance(previous, dict) else ""
+        incoming_status = str(incoming.get("status") or "")
+        if previous is None or incoming_status == "sent" or previous_status not in {"sent", "manual_review"}:
+            saved_destinations[name] = dict(incoming)
+
     state["editorial_delivery_history"] = history[-200:]
