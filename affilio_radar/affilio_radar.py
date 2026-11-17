@@ -28,6 +28,7 @@ from publication_policy import (
     MIN_CHANNEL_POST_INTERVAL_SECONDS,
     editorial_frequency_allowed,
 )
+from content_delivery import editorial_dispatch_runway_seconds
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from product_quality import (
     is_prohibited_product_title,
@@ -5358,16 +5359,31 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
             already_checked_after_product = bool(
                 last_empty_check and last_empty_check > anchor_at
             )
+            dispatch_runway_seconds = editorial_dispatch_runway_seconds(state)
+            required_window_seconds = (
+                2 * MIN_CHANNEL_POST_INTERVAL_SECONDS + dispatch_runway_seconds
+            )
+            earliest_editorial_at = anchor_at + timedelta(
+                seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS
+            )
+            latest_editorial_at = product_at - timedelta(
+                seconds=max(MIN_CHANNEL_POST_INTERVAL_SECONDS, dispatch_runway_seconds)
+            )
             midpoint_at = anchor_at + timedelta(seconds=max(0, gap_seconds) / 2)
+            scheduled_editorial_at = max(
+                earliest_editorial_at,
+                min(midpoint_at, latest_editorial_at),
+            )
             if (
                 editorial_frequency_allowed(state)
                 and not already_linked
                 and not already_checked_after_product
-                and gap_seconds >= 2 * MIN_CHANNEL_POST_INTERVAL_SECONDS
-                and midpoint_at > current
+                and gap_seconds >= required_window_seconds
+                and latest_editorial_at >= earliest_editorial_at
+                and scheduled_editorial_at > current
                 and product_at > current
             ):
-                next_editorial_planning_at = midpoint_at.isoformat()
+                next_editorial_planning_at = scheduled_editorial_at.isoformat()
     # No product slot means no editorial wake-up. Editorial is not a standalone post.
 
     emergency_record = state.get("emergency_continuity") if isinstance(state, dict) else None
