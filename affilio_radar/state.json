@@ -169388,8 +169388,8 @@
     "unchanged": 9,
     "updated": 0
   },
-  "filo_last_upload_attempt_at": "2026-11-17T21:47:09.756054+00:00",
-  "filo_last_upload_success_at": "2026-11-17T21:47:43.337219+00:00",
+  "filo_last_upload_attempt_at": "2026-11-17T21:51:18.121975+00:00",
+  "filo_last_upload_success_at": "2026-11-17T21:51:54.577591+00:00",
   "filo_login_verification_attempted_at": "2026-11-17T18:14:11.649894+00:00",
   "filo_login_verification_status": "verified",
   "filo_login_verified_at": "2026-11-17T18:14:11.649894+00:00",
@@ -287718,7 +287718,14 @@
       "expiry_estimated": false,
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
-      "filo_upload_status": "pending",
+      "filo_last_error": "",
+      "filo_review_required": false,
+      "filo_submitted_at": "2026-11-17T21:51:54.577591+00:00",
+      "filo_upload_started_at": "2026-11-17T21:51:18.121975+00:00",
+      "filo_upload_status": "submitted_pending_approval",
+      "filo_video_code": "4Q50W2U",
+      "filo_video_url": "https://ifilo.net/v/4Q50W2U",
+      "filo_visibility": "pending_review",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-16T12:08:09.043145+00:00",
       "history_days": 6,
@@ -287777,10 +287784,17 @@
       "telegram_posted_at": "2026-11-16T13:20:43.765334+00:00",
       "title": "شلوارک ورزشی مردانه نوزده نودیک مدل SH1960 Re",
       "ts": 1794835236.696046,
-      "video_generation_status": "pending",
+      "video_file_name": "offerchin-dkp-17740901.mp4",
+      "video_file_names": {
+        "filo": "offerchin-dkp-17740901.mp4"
+      },
+      "video_generated_at": "2026-11-17T21:51:11.025697+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
       "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
-      "youtube_skip_reason": "youtube_daily_quota_pause",
-      "youtube_upload_status": "retry"
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-17765289": {
       "aparat_upload_status": "skipped_expiring_soon",
