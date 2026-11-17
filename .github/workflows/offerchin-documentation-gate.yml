@@ -39,9 +39,15 @@ jobs:
       - name: Check out both sides of the change
         uses: actions/checkout@v4
         with:
-          # The validator compares the exact PR base/head commit SHAs; retain
-          # the full graph so both refs are guaranteed to be available.
-          fetch-depth: 0
+          # The PR base and head are within the latest 50 commits. Fetch Git
+          # metadata lazily and check out only the validator + governed docs; full
+          # catalog/state blobs are irrelevant to a handbook diff.
+          fetch-depth: 50
+          filter: blob:none
+          sparse-checkout: |
+            scripts
+            docs
+          sparse-checkout-cone-mode: true
 
       - name: Set up Python
         uses: actions/setup-python@v5

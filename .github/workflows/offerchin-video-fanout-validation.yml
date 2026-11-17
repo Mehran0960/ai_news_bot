@@ -91,7 +91,15 @@ jobs:
           assert "VIDEO_PUBLISHER_API" in worker
           assert "videoQueueDispatchDeferReason" in worker
           assert "findActiveWorkflow(PUBLISHER_API" in worker
-          assert "findActiveWorkflow(CATALOG_API" in worker
+          # Video dispatch shares the selected-publisher lock and respects planned
+          # channel slots, but it must not wait for the independent catalog scanner.
+          start = worker.index("async function dispatchVideoUploadsWhenDue")
+          end = worker.index("async function runScheduledCheck", start)
+          video_dispatch = worker[start:end]
+          assert "findActiveWorkflow(PUBLISHER_API" in video_dispatch
+          assert "findActiveWorkflow(CATALOG_API" not in video_dispatch
+          assert "pending_page_count" not in video_dispatch
+          assert "last_cycle_status" not in video_dispatch
           assert "pending_page_count" in worker
           print("UNIFIED_VIDEO_FANOUT_IDLE_WINDOW_WIRING_OK")
           PY
