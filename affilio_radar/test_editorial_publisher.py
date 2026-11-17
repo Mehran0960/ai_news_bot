@@ -12,12 +12,14 @@ from editorial_publisher import (
     _handle_channel_destination,
     _record_failure,
     _format_message,
+    _video_description,
     queue_editorial_if_due,
 )
 from editorial_video import render_editorial_poster, render_editorial_video
 import affilio_radar as radar
 from publisher import editorial_fifo_lock_entry
 from platform_registry import PLATFORM_NAMES
+from publication_policy import editorial_frequency_allowed, products_published_since_last_editorial, PRODUCTS_PER_EDITORIAL_POST
 
 NOW = datetime(2026, 11, 12, 18, 0, tzinfo=timezone.utc)
 
@@ -33,6 +35,21 @@ def editorial_item(editorial_id="test-guide", topic="test-topic"):
         "reviewed_at": (NOW - timedelta(days=1)).isoformat(),
         "review_due_at": (NOW + timedelta(days=30)).isoformat(),
     }
+
+
+
+def add_confirmed_product_posts(state, count=6, *, published_at=None):
+    published = state.setdefault("published", {})
+    stamp = (published_at or (NOW - timedelta(hours=1))).timestamp()
+    existing = sum(1 for key in published if str(key).startswith("dkp-prior-"))
+    for index in range(count):
+        product_id = f"dkp-prior-{existing + index + 1}"
+        published[product_id] = {
+            "content_type": "product",
+            "ts": stamp + index,
+            "delivery_status": {"telegram": "sent", "bale": "sent"},
+        }
+    return state
 
 
 class EditorialPublisherTests(unittest.TestCase):
@@ -147,6 +164,7 @@ class EditorialPublisherTests(unittest.TestCase):
                 }
             },
         }
+        add_confirmed_product_posts(state)
         entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
         self.assertIsNotNone(entry)
         self.assertEqual(
@@ -154,7 +172,7 @@ class EditorialPublisherTests(unittest.TestCase):
             NOW + timedelta(minutes=50),
         )
 
-    def test_short_but_feasible_gap_moves_editorial_to_latest_safe_dispatch_start(self):
+    def test_gap_shorter_than_two_31_minute_channel_spacing_windows_skips_editorial(self):
         product_at = NOW + timedelta(minutes=2)
         state = {
             "last_channel_published_at": NOW.isoformat(),
@@ -174,18 +192,10 @@ class EditorialPublisherTests(unittest.TestCase):
         }, clear=True):
             entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
 
-        self.assertIsNotNone(entry)
-        self.assertEqual(
-            datetime.fromisoformat(entry["scheduled_at"]),
-            NOW + timedelta(seconds=30),
-        )
-        self.assertEqual(
-            datetime.fromisoformat(entry["window_closes_at"]),
-            NOW + timedelta(seconds=90),
-        )
-        self.assertEqual(entry["dispatch_runway_seconds"], 90)
+        self.assertIsNone(entry)
+        self.assertFalse(state.get("editorial_delivery_queue"))
 
-    def test_missed_midpoint_starts_now_when_the_remaining_delivery_runway_fits(self):
+    def test_missed_midpoint_does_not_override_minimum_spacing(self):
         product_at = NOW + timedelta(minutes=2)
         state = {
             "last_channel_published_at": (NOW - timedelta(minutes=2)).isoformat(),
@@ -205,13 +215,8 @@ class EditorialPublisherTests(unittest.TestCase):
         }, clear=True):
             entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
 
-        self.assertIsNotNone(entry)
-        self.assertEqual(datetime.fromisoformat(entry["scheduled_at"]), NOW)
-        self.assertEqual(
-            datetime.fromisoformat(entry["window_closes_at"]),
-            NOW + timedelta(seconds=90),
-        )
-        self.assertEqual(entry["delivery_runway_seconds"], 30)
+        self.assertIsNone(entry)
+        self.assertFalse(state.get("editorial_delivery_queue"))
 
     def test_editorial_is_skipped_when_real_send_runway_does_not_fit(self):
         product_at = NOW + timedelta(seconds=75)
@@ -362,6 +367,7 @@ class EditorialPublisherTests(unittest.TestCase):
                 }
             },
         }
+        add_confirmed_product_posts(state)
         entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
         self.assertIsNotNone(entry)
         self.assertEqual(entry["status"], "queued")
@@ -387,6 +393,7 @@ class EditorialPublisherTests(unittest.TestCase):
                 }
             },
         }
+        add_confirmed_product_posts(state)
         bank = [
             editorial_item("fashion-fit", "fit-and-size"),
             editorial_item("device-fit", "device-compatibility"),
@@ -395,38 +402,32 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertIsNotNone(entry)
         self.assertEqual(entry["related_product_id"], "dkp-related")
         self.assertEqual(entry["payload"]["editorial_id"], "device-fit")
-        self.assertEqual(
-            entry["payload"]["related_product_image_url"],
-            "https://dkstatics-public.digikala.com/digikala-products/test.jpg",
-        )
+        self.assertNotIn("related_product_image_url", entry["payload"])
+        self.assertNotIn("related_product_title", entry["payload"])
         self.assertEqual(
             datetime.fromisoformat(entry["scheduled_at"]),
             NOW + timedelta(hours=1),
         )
 
-    def test_editorial_message_has_separated_attributed_clickable_sources_and_cta(self):
-        message = _format_message(editorial_item(), html_mode=True, platform="telegram")
-        self.assertIn("<b>منابع:</b>", message)
-        self.assertIn("کمیسیون تجارت فدرال آمریکا (FTC)", message)
-        self.assertIn("«منبع رسمی راهنمای خرید»:", message)
-        self.assertIn('<a href="https://consumer.ftc.gov/articles/online-shopping">مشاهدهٔ منبع</a>', message)
-        self.assertIn('href="https://t.me/OfferChin">عضویت در کانال آفِرچین</a>', message)
-        plain = _format_message(editorial_item(), html_mode=False, platform="bale")
-        self.assertIn("منابع:\n• کمیسیون تجارت فدرال آمریکا (FTC)", plain)
-        self.assertIn("\nhttps://consumer.ftc.gov/articles/online-shopping", plain)
-        self.assertIn("https://ble.ir/OfferChin", plain)
-
-    def test_known_ftc_sources_are_labeled_in_persian_with_clear_organization(self):
+    def test_editorial_public_message_never_shows_sources_or_commerce(self):
         item = editorial_item()
-        item["sources"] = [{
-            "source_id": "ftc-online-shopping",
-            "title": "Online Shopping – Consumer Advice",
-            "url": "https://consumer.ftc.gov/articles/online-shopping",
-        }]
+        item["related_product_affiliate_url"] = "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-123%2F"
         message = _format_message(item, html_mode=True, platform="telegram")
-        self.assertIn("کمیسیون تجارت فدرال آمریکا (FTC) — «راهنمای خرید اینترنتی»:", message)
-        self.assertIn('<a href="https://consumer.ftc.gov/articles/online-shopping">مشاهدهٔ منبع</a>', message)
-        self.assertIn('href="https://t.me/OfferChin">عضویت در کانال آفِرچین</a>', message)
+        self.assertIn("راهنمای کوتاه خرید آگاهانه", message)
+        self.assertIn("💡", message)
+        plain = _format_message(item, html_mode=False, platform="bale")
+        video = _video_description(item)
+        for output in (message, plain, video):
+            for forbidden in (
+                "منبع:", "منابع:", "consumer.ftc.gov", "digikala.com/mag/",
+                "aflo.ir", "پیوند همکاری در فروش", "مشاهدهٔ پیشنهاد مرتبط", "مشاهدهٔ منبع",
+            ):
+                self.assertNotIn(forbidden, output)
+
+    def test_editorial_sources_and_claims_remain_available_internally(self):
+        item = editorial_item()
+        self.assertEqual(len(item["sources"]), 1)
+        self.assertEqual(item["claims"][0]["source_ids"], ["s1"])
 
     def test_editorial_body_sentences_and_list_items_render_as_separate_paragraphs(self):
         item = editorial_item()
@@ -436,7 +437,9 @@ class EditorialPublisherTests(unittest.TestCase):
             "جملهٔ اول کامل است.\n\nجملهٔ دوم پرسشی است؟\n\nنکتهٔ سوم هم جداست.",
             html_message,
         )
-        self.assertIn('href="https://t.me/OfferChin">عضویت در کانال آفِرچین</a>', html_message)
+        self.assertNotIn("منابع:", html_message)
+        self.assertNotIn("consumer.ftc.gov", html_message)
+        self.assertNotIn("aflo.ir", html_message)
 
     def test_video_fifo_uses_canonical_sequence_for_timestamp_ties(self):
         same_timestamp = NOW.timestamp()
