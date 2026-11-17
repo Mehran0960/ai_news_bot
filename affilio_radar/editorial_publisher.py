@@ -30,6 +30,7 @@ from publication_policy import (
     MIN_CHANNEL_POST_INTERVAL_SECONDS,
     PRODUCTS_PER_EDITORIAL_POST,
     editorial_frequency_allowed,
+    products_published_since_last_editorial,
 )
 from editorial_content import (
     editorial_topics_for_product,
@@ -294,7 +295,7 @@ def queue_editorial_if_due(
             return valid_active[0]
 
     if not editorial_frequency_allowed(state):
-        products_since = __import__("publication_policy").products_published_since_last_editorial(state)
+        products_since = products_published_since_last_editorial(state)
         print(
             "EDITORIAL_FREQUENCY_GUARD "
             f"products_since_last_editorial={products_since} "
