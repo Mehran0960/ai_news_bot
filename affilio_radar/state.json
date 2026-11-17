@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-14T17:19:55.882293+00:00",
-  "aparat_last_upload_success_at": "2026-11-15T04:11:03.124848+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-17T16:52:07.806918+00:00",
+  "aparat_last_upload_success_at": "2026-11-17T16:52:18.594255+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-17T16:45:51.439337+00:00",
@@ -167318,11 +167318,11 @@
     "unchanged": 9,
     "updated": 0
   },
-  "filo_last_upload_attempt_at": "2026-11-15T19:51:21.483240+00:00",
-  "filo_last_upload_success_at": "2026-11-15T19:51:51.374556+00:00",
-  "filo_login_verification_attempted_at": "2026-11-15T19:51:13.967745+00:00",
+  "filo_last_upload_attempt_at": "2026-11-17T16:55:12.009897+00:00",
+  "filo_last_upload_success_at": "2026-11-17T16:55:54.737310+00:00",
+  "filo_login_verification_attempted_at": "2026-11-17T16:51:37.830626+00:00",
   "filo_login_verification_status": "verified",
-  "filo_login_verified_at": "2026-11-15T19:51:13.967745+00:00",
+  "filo_login_verified_at": "2026-11-17T16:51:37.830626+00:00",
   "filo_upload_interval_policy_version": 3,
   "growth_tracking": {
     "daily_member_counts": {
@@ -261611,7 +261611,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-1036750": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2185,
       "bale_posted_at": "2026-11-16T22:44:53.128361+00:00",
@@ -261741,7 +261742,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-10393510": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2097,
       "bale_posted_at": "2026-11-16T13:27:52.024282+00:00",
@@ -261941,7 +261943,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-10594368": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2084,
       "bale_posted_at": "2026-11-16T13:16:49.399112+00:00",
@@ -262649,7 +262652,8 @@
       "youtube_video_url": "https://www.youtube.com/shorts/6Zjzu6b8FDU"
     },
     "dkp-10708866": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2111,
       "bale_posted_at": "2026-11-16T16:48:36.306625+00:00",
@@ -262777,7 +262781,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-10825536": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2057,
       "bale_posted_at": "2026-11-16T11:54:56.265969+00:00",
@@ -263660,7 +263665,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-11161996": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2129,
       "bale_posted_at": "2026-11-16T18:30:53.678192+00:00",
@@ -264434,7 +264440,8 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-11512957": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2163,
       "bale_posted_at": "2026-11-16T21:44:50.748374+00:00",
@@ -264564,7 +264571,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-11517794": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2095,
       "bale_posted_at": "2026-11-16T13:26:53.894069+00:00",
@@ -265263,7 +265271,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-117895": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2147,
       "bale_posted_at": "2026-11-16T20:50:48.262945+00:00",
@@ -265565,7 +265574,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-11815945": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2132,
       "bale_posted_at": "2026-11-16T19:59:40.766908+00:00",
@@ -266240,7 +266250,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-12047413": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2207,
       "bale_posted_at": "2026-11-17T00:00:43.832162+00:00",
@@ -266370,7 +266381,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-12063778": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2098,
       "bale_posted_at": "2026-11-16T13:39:06.046227+00:00",
@@ -266701,7 +266713,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-12195127": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2141,
       "bale_posted_at": "2026-11-16T20:43:00.737540+00:00",
@@ -268890,7 +268903,8 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-12791586": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2168,
       "bale_posted_at": "2026-11-16T21:50:50.238835+00:00",
@@ -269347,7 +269361,8 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-13146788": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2091,
       "bale_posted_at": "2026-11-16T13:22:43.048039+00:00",
@@ -269736,7 +269751,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-13338289": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2073,
       "bale_posted_at": "2026-11-16T13:05:26.004786+00:00",
@@ -273794,7 +273810,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-14629911": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2199,
       "bale_posted_at": "2026-11-16T23:51:54.300600+00:00",
@@ -274143,7 +274160,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-1487307": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2032,
       "bale_posted_at": "2026-11-15T20:35:04.809886+00:00",
@@ -274210,7 +274228,14 @@
       "expiry_estimated": false,
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
-      "filo_upload_status": "pending",
+      "filo_last_error": "",
+      "filo_review_required": false,
+      "filo_submitted_at": "2026-11-17T16:55:54.737310+00:00",
+      "filo_upload_started_at": "2026-11-17T16:55:12.009897+00:00",
+      "filo_upload_status": "submitted_pending_approval",
+      "filo_video_code": "b2tMksn",
+      "filo_video_url": "https://ifilo.net/v/b2tMksn",
+      "filo_visibility": "pending_review",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-15T20:28:17.921575+00:00",
       "history_days": 1,
@@ -274270,8 +274295,23 @@
       "telegram_posted_at": "2026-11-15T20:35:02.140467+00:00",
       "title": "غذای کودک گندم و تکه های خرما سرلاک - 400 گرم",
       "ts": 1794774897.605869,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-1487307-filo.mp4",
+      "video_file_names": {
+        "filo": "offerchin-dkp-1487307-filo.mp4",
+        "youtube": "offerchin-dkp-1487307.mp4"
+      },
+      "video_generated_at": "2026-11-17T16:55:04.508070+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-17T16:55:55.052021+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-17T16:55:57.096719+00:00",
+      "youtube_video_id": "7a-MR1wvhiM",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/7a-MR1wvhiM",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-14876965": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -274414,7 +274454,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-14915569": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2080,
       "bale_posted_at": "2026-11-16T13:11:51.604027+00:00",
@@ -274825,7 +274866,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-1511622": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2213,
       "bale_posted_at": "2026-11-17T00:55:50.874169+00:00",
@@ -275337,7 +275379,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-15279655": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2056,
       "bale_posted_at": "2026-11-16T11:53:02.453117+00:00",
@@ -275614,7 +275657,8 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-15294553": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2070,
       "bale_posted_at": "2026-11-16T12:28:46.637951+00:00",
@@ -276138,7 +276182,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-15394629": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2142,
       "bale_posted_at": "2026-11-16T20:45:10.153988+00:00",
@@ -276587,7 +276632,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-15439836": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2060,
       "bale_posted_at": "2026-11-16T12:13:23.039364+00:00",
@@ -277822,7 +277868,13 @@
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
       "aparat_shorts_queued_at": "2026-10-23T18:04:53.838586+00:00",
       "aparat_shorts_upload_status": "superseded_by_regular_video_upload",
-      "aparat_upload_status": "skipped_expiring_soon",
+      "aparat_upload_started_at": "2026-11-17T16:52:07.806918+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-17T16:52:18.594255+00:00",
+      "aparat_video_hash": "mlx2qj0",
+      "aparat_video_record_id": "74268651",
+      "aparat_video_url": "https://www.aparat.com/v/mlx2qj0",
+      "aparat_visibility": "public",
       "bale_expired_deleted_at": "2026-10-27T09:37:31.294290+00:00",
       "bale_expiry_status": "already_absent",
       "bale_message_id": 635,
@@ -277851,6 +277903,14 @@
       "expiry_last_site_card_sync_at": "2026-10-24T19:15:31.607601+00:00",
       "expiry_source": "digikala_mcp_offer_card",
       "expiry_status": "tracked",
+      "filo_last_error": "",
+      "filo_review_required": false,
+      "filo_submitted_at": "2026-11-17T16:53:04.417039+00:00",
+      "filo_upload_started_at": "2026-11-17T16:52:18.950553+00:00",
+      "filo_upload_status": "submitted_pending_approval",
+      "filo_video_code": "IWZ9FIQ",
+      "filo_video_url": "https://ifilo.net/v/IWZ9FIQ",
+      "filo_visibility": "pending_review",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/e0d164c58d14d7a3056330b5a2bf04332f8218b6_1788945384.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
       "last_seen_current_price": 2339630,
       "posted_current_price": 1800000,
@@ -277876,17 +277936,27 @@
       "telegram_retention_status": "blocked_missing_mtproto_credentials",
       "title": "ادوپرفیوم زنانه بوگتا مدل Dream حجم 80 میلی‌لیتر",
       "ts": 1792757052.3459156,
-      "video_file_name": "offerchin-dkp-15645390.mp4",
-      "video_generated_at": "2026-10-23T18:10:05.078087+00:00",
+      "video_file_name": "offerchin-dkp-15645390-filo.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-15645390-aparat.mp4",
+        "filo": "offerchin-dkp-15645390-filo.mp4",
+        "youtube": "offerchin-dkp-15645390.mp4"
+      },
+      "video_generated_at": "2026-11-17T16:51:39.888075+00:00",
       "video_generation_attempts": 0,
       "video_generation_retry_reset_reason": "ffmpeg_bundle_installed_2026-10-23",
-      "video_generation_status": "skipped_expiring_soon",
-      "video_style_version": 4,
-      "youtube_last_error": "HTTPError",
-      "youtube_next_attempt_at": "2026-10-23T18:20:08.175878+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
       "youtube_upload_attempts": 2,
-      "youtube_upload_started_at": "2026-10-23T18:10:07.877703+00:00",
-      "youtube_upload_status": "skipped_expiring_soon"
+      "youtube_upload_started_at": "2026-11-17T16:53:04.772379+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-17T16:53:06.893885+00:00",
+      "youtube_video_id": "vdcleU0-ZOY",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/vdcleU0-ZOY",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-15649116": {
       "aparat_expiry_attempts": 447,
@@ -278839,7 +278909,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-15986208": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2240,
       "bale_posted_at": "2026-11-17T12:16:25.521500+00:00",
@@ -279308,7 +279379,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-16040745": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2196,
       "bale_posted_at": "2026-11-16T23:41:49.127090+00:00",
@@ -282278,7 +282350,8 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-16913586": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2075,
       "bale_posted_at": "2026-11-16T13:06:52.367765+00:00",
@@ -283308,7 +283381,8 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-17281919": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2234,
       "bale_posted_at": "2026-11-17T08:48:01.075523+00:00",
@@ -283782,7 +283856,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-17437219": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2031,
       "bale_posted_at": "2026-11-15T20:06:41.678550+00:00",
@@ -283861,7 +283936,14 @@
       "expiry_estimated": false,
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
-      "filo_upload_status": "pending",
+      "filo_last_error": "",
+      "filo_review_required": false,
+      "filo_submitted_at": "2026-11-17T16:55:01.612914+00:00",
+      "filo_upload_started_at": "2026-11-17T16:54:22.596073+00:00",
+      "filo_upload_status": "submitted_pending_approval",
+      "filo_video_code": "PZ76avX",
+      "filo_video_url": "https://ifilo.net/v/PZ76avX",
+      "filo_visibility": "pending_review",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-15T19:49:15.868370+00:00",
       "history_days": 1,
@@ -283921,8 +284003,23 @@
       "telegram_posted_at": "2026-11-15T20:06:39.072062+00:00",
       "title": "خلال بادام زمینی ممتاز سرمد - 250 گرم",
       "ts": 1794773194.668203,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-17437219-filo.mp4",
+      "video_file_names": {
+        "filo": "offerchin-dkp-17437219-filo.mp4",
+        "youtube": "offerchin-dkp-17437219.mp4"
+      },
+      "video_generated_at": "2026-11-17T16:54:06.785842+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-17T16:55:01.962889+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-17T16:55:04.054993+00:00",
+      "youtube_video_id": "NJg91T2e_Ts",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/NJg91T2e_Ts",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-17486986": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -284260,7 +284357,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-17571326": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2102,
       "bale_posted_at": "2026-11-16T14:45:21.582639+00:00",
@@ -284760,7 +284858,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-17721420": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2065,
       "bale_posted_at": "2026-11-16T12:20:49.137654+00:00",
@@ -284960,7 +285059,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-17740901": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2088,
       "bale_posted_at": "2026-11-16T13:20:51.820696+00:00",
@@ -286488,7 +286588,8 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-18199634": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2241,
       "bale_posted_at": "2026-11-17T12:57:00.402930+00:00",
@@ -286704,7 +286805,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-18213502": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2041,
       "bale_posted_at": "2026-11-16T10:40:48.121245+00:00",
@@ -287180,7 +287282,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-18379273": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2036,
       "bale_posted_at": "2026-11-15T21:20:18.776869+00:00",
@@ -287311,7 +287414,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-18388167": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2035,
       "bale_posted_at": "2026-11-15T21:12:09.208407+00:00",
@@ -287522,7 +287626,8 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-18455242": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2194,
       "bale_posted_at": "2026-11-16T23:39:01.863063+00:00",
@@ -288507,7 +288612,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-18583794": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2083,
       "bale_posted_at": "2026-11-16T13:14:57.217443+00:00",
@@ -288637,7 +288743,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-18595649": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2067,
       "bale_posted_at": "2026-11-16T12:24:00.358681+00:00",
@@ -288833,7 +288940,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-18604812": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2188,
       "bale_posted_at": "2026-11-16T22:48:08.648255+00:00",
@@ -289696,7 +289804,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-18860445": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2110,
       "bale_posted_at": "2026-11-16T15:33:43.463304+00:00",
@@ -290259,7 +290368,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-19005437": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2130,
       "bale_posted_at": "2026-11-16T19:44:42.127428+00:00",
@@ -290849,7 +290959,8 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-19192461": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2177,
       "bale_posted_at": "2026-11-16T22:31:15.144180+00:00",
@@ -292217,7 +292328,8 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-19825845": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2089,
       "bale_posted_at": "2026-11-16T13:21:49.163685+00:00",
@@ -292347,7 +292459,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-19873348": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2145,
       "bale_posted_at": "2026-11-16T20:48:51.099397+00:00",
@@ -294430,7 +294543,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-20317737": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2135,
       "bale_posted_at": "2026-11-16T20:09:15.591688+00:00",
@@ -295107,7 +295221,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-20428381": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2108,
       "bale_posted_at": "2026-11-16T15:12:04.520370+00:00",
@@ -299427,7 +299542,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-20865598": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2085,
       "bale_posted_at": "2026-11-16T13:17:49.074071+00:00",
@@ -301534,7 +301650,8 @@
       "youtube_video_url": "https://www.youtube.com/shorts/SApTJhkSGcE"
     },
     "dkp-21054478": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2235,
       "bale_posted_at": "2026-11-17T09:34:09.566944+00:00",
@@ -301919,7 +302036,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-21111292": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2043,
       "bale_posted_at": "2026-11-16T10:45:51.695808+00:00",
@@ -302053,7 +302171,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-21126959": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2122,
       "bale_posted_at": "2026-11-16T18:04:32.629182+00:00",
@@ -303323,7 +303442,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-21172326": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2162,
       "bale_posted_at": "2026-11-16T21:40:42.326542+00:00",
@@ -305856,7 +305976,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-21458835": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2193,
       "bale_posted_at": "2026-11-16T23:35:43.660119+00:00",
@@ -307290,7 +307411,8 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21586430": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2039,
       "brand": "بهین",
@@ -307623,7 +307745,8 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21605332": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2052,
       "bale_posted_at": "2026-11-16T11:43:53.951537+00:00",
@@ -308272,7 +308395,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-21654608": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2072,
       "bale_posted_at": "2026-11-16T12:31:02.688769+00:00",
@@ -308825,7 +308949,8 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-21706371": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2192,
       "bale_posted_at": "2026-11-16T23:32:29.023405+00:00",
@@ -310708,7 +310833,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-21873148": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2076,
       "bale_posted_at": "2026-11-16T13:08:24.582458+00:00",
@@ -311218,7 +311344,8 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-21919310": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2170,
       "bale_posted_at": "2026-11-16T21:53:55.400670+00:00",
@@ -312113,7 +312240,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-21978137": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2087,
       "bale_posted_at": "2026-11-16T13:19:02.631544+00:00",
@@ -312598,7 +312726,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22043100": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2172,
       "bale_posted_at": "2026-11-16T21:56:32.731862+00:00",
@@ -312945,7 +313074,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22044970": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2221,
       "bale_posted_at": "2026-11-17T01:34:29.079599+00:00",
@@ -313154,7 +313284,8 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-22065511": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2071,
       "bale_posted_at": "2026-11-16T12:29:45.070891+00:00",
@@ -313537,7 +313668,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22097631": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2230,
       "bale_posted_at": "2026-11-17T06:41:13.393010+00:00",
@@ -313808,7 +313940,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22112327": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2131,
       "bale_posted_at": "2026-11-16T19:51:57.028741+00:00",
@@ -315443,7 +315576,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22153796": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2105,
       "bale_posted_at": "2026-11-16T14:59:01.644416+00:00",
@@ -316157,7 +316291,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22182003": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2157,
       "bale_posted_at": "2026-11-16T21:21:55.639793+00:00",
@@ -316640,7 +316775,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22231712": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2217,
       "bale_posted_at": "2026-11-17T01:05:10.682453+00:00",
@@ -317288,7 +317424,8 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-22239871": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2126,
       "bale_posted_at": "2026-11-16T18:21:56.346684+00:00",
@@ -317541,7 +317678,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22257893": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2159,
       "bale_posted_at": "2026-11-16T21:36:36.115474+00:00",
@@ -319591,7 +319729,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22382004": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2137,
       "bale_posted_at": "2026-11-16T20:38:27.873847+00:00",
@@ -320720,7 +320859,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22413523": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2226,
       "bale_posted_at": "2026-11-17T05:15:20.323367+00:00",
@@ -320850,7 +320990,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-22414604": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2082,
       "bale_posted_at": "2026-11-16T13:12:54.407807+00:00",
@@ -322641,7 +322782,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22501912": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2114,
       "bale_posted_at": "2026-11-16T17:33:45.321870+00:00",
@@ -325242,7 +325384,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22592705": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2134,
       "bale_posted_at": "2026-11-16T20:06:25.906027+00:00",
@@ -325553,7 +325696,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22614682": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2062,
       "bale_posted_at": "2026-11-16T12:17:42.738062+00:00",
@@ -325684,7 +325828,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-22620589": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2063,
       "bale_posted_at": "2026-11-16T12:18:58.292634+00:00",
@@ -325815,7 +325960,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-22631118": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2236,
       "bale_posted_at": "2026-11-17T10:53:07.665972+00:00",
@@ -326118,7 +326264,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22653253": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2068,
       "bale_posted_at": "2026-11-16T12:25:53.264021+00:00",
@@ -326617,7 +326764,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22681028": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2030,
       "bale_posted_at": "2026-11-15T19:58:18.722493+00:00",
@@ -326684,7 +326832,14 @@
       "expiry_estimated": false,
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
-      "filo_upload_status": "pending",
+      "filo_last_error": "",
+      "filo_review_required": false,
+      "filo_submitted_at": "2026-11-17T16:54:03.607397+00:00",
+      "filo_upload_started_at": "2026-11-17T16:53:22.350131+00:00",
+      "filo_upload_status": "submitted_pending_approval",
+      "filo_video_code": "7mC0Mgj",
+      "filo_video_url": "https://ifilo.net/v/7mC0Mgj",
+      "filo_visibility": "pending_review",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-15T19:40:41.308459+00:00",
       "history_days": 1,
@@ -326744,8 +326899,23 @@
       "telegram_posted_at": "2026-11-15T19:58:16.198010+00:00",
       "title": "جو پوست‌کنده غذامذا - 700 گرم",
       "ts": 1794772691.36728,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22681028-filo.mp4",
+      "video_file_names": {
+        "filo": "offerchin-dkp-22681028-filo.mp4",
+        "youtube": "offerchin-dkp-22681028.mp4"
+      },
+      "video_generated_at": "2026-11-17T16:53:07.377958+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-17T16:54:03.955252+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-17T16:54:06.209815+00:00",
+      "youtube_video_id": "eRtkIsD86QI",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/eRtkIsD86QI",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-22682676": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -326813,7 +326983,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22683249": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2205,
       "bale_posted_at": "2026-11-16T23:59:49.878787+00:00",
@@ -326943,7 +327114,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-22689922": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2166,
       "bale_posted_at": "2026-11-16T21:48:10.589550+00:00",
@@ -327073,7 +327245,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-22690552": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2203,
       "bale_posted_at": "2026-11-16T23:56:18.158804+00:00",
@@ -327321,7 +327494,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22707565": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2123,
       "bale_posted_at": "2026-11-16T18:06:53.951909+00:00",
@@ -327717,7 +327891,8 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22739477": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2201,
       "bale_posted_at": "2026-11-16T23:53:55.130902+00:00",
@@ -328408,7 +328583,8 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-22750115": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2222,
       "bale_posted_at": "2026-11-17T04:04:22.366405+00:00",
@@ -329181,7 +329357,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22790947": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2224,
       "bale_posted_at": "2026-11-17T04:42:06.715046+00:00",
@@ -329442,7 +329619,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22794990": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2078,
       "bale_posted_at": "2026-11-16T13:10:45.463458+00:00",
@@ -330231,7 +330409,8 @@
       "youtube_video_url": "https://www.youtube.com/shorts/YJjk-bAiZ68"
     },
     "dkp-22837377": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2208,
       "bale_posted_at": "2026-11-17T00:19:57.703022+00:00",
@@ -330901,7 +331080,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22850165": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2238,
       "bale_posted_at": "2026-11-17T11:36:17.143331+00:00",
@@ -331975,7 +332155,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22892572": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2048,
       "bale_posted_at": "2026-11-16T11:37:52.241255+00:00",
@@ -335247,7 +335428,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22962257": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2215,
       "bale_posted_at": "2026-11-17T01:00:54.312156+00:00",
@@ -335377,7 +335559,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-22962866": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2155,
       "bale_posted_at": "2026-11-16T21:16:11.709115+00:00",
@@ -340541,7 +340724,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-2822004": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2144,
       "bale_posted_at": "2026-11-16T20:46:46.216234+00:00",
@@ -342054,7 +342238,8 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-3319356": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2038,
       "bale_posted_at": "2026-11-16T10:36:47.287106+00:00",
@@ -343612,7 +343797,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-3677732": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2191,
       "bale_posted_at": "2026-11-16T23:24:47.961638+00:00",
@@ -345113,7 +345299,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-4151631": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2061,
       "bale_posted_at": "2026-11-16T12:14:58.030880+00:00",
@@ -346605,7 +346792,8 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-4622784": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2152,
       "bale_posted_at": "2026-11-16T21:08:50.226930+00:00",
@@ -347488,7 +347676,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-4998206": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2211,
       "bale_posted_at": "2026-11-17T00:36:13.470761+00:00",
@@ -348341,7 +348530,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-532451": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2042,
       "bale_posted_at": "2026-11-16T10:41:45.386331+00:00",
@@ -348841,7 +349031,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-5627000": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2197,
       "bale_posted_at": "2026-11-16T23:45:10.550036+00:00",
@@ -349586,7 +349777,8 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-580801": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2149,
       "bale_posted_at": "2026-11-16T21:00:08.511186+00:00",
@@ -351186,7 +351378,8 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-6500928": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2181,
       "bale_posted_at": "2026-11-16T22:40:06.100389+00:00",
@@ -351316,7 +351509,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-6531428": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2176,
       "bale_posted_at": "2026-11-16T22:25:14.515713+00:00",
@@ -351653,7 +351847,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-6705171": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2232,
       "bale_posted_at": "2026-11-17T08:09:51.328429+00:00",
@@ -352167,7 +352362,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-6812939": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2092,
       "bale_posted_at": "2026-11-16T13:23:58.712076+00:00",
@@ -352549,7 +352745,8 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-6960252": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2099,
       "bale_posted_at": "2026-11-16T13:42:53.274384+00:00",
@@ -352679,7 +352876,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-6991988": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2117,
       "bale_posted_at": "2026-11-16T17:44:40.314398+00:00",
@@ -354478,7 +354676,8 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-7461447": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2204,
       "bale_posted_at": "2026-11-16T23:58:15.598903+00:00",
@@ -354943,7 +355142,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-753092": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2034,
       "bale_posted_at": "2026-11-15T21:04:26.793741+00:00",
@@ -355444,7 +355644,8 @@
       "youtube_upload_status": "skipped_platform_limit"
     },
     "dkp-7665408": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2046,
       "bale_posted_at": "2026-11-16T11:34:56.456500+00:00",
@@ -355575,7 +355776,8 @@
       "youtube_upload_status": "pending"
     },
     "dkp-7696150": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2139,
       "bale_posted_at": "2026-11-16T20:41:02.238894+00:00",
@@ -356047,7 +356249,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-8078561": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2101,
       "bale_posted_at": "2026-11-16T14:31:39.021252+00:00",
@@ -358375,7 +358578,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-8716351": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2050,
       "bale_posted_at": "2026-11-16T11:40:42.617351+00:00",
@@ -358625,7 +358829,8 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-882785": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2218,
       "bale_posted_at": "2026-11-17T01:07:03.370162+00:00",
@@ -359205,7 +359410,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-8994322": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2148,
       "bale_posted_at": "2026-11-16T20:52:53.668684+00:00",
@@ -359436,7 +359642,8 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-9018429": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2054,
       "bale_posted_at": "2026-11-16T11:47:07.004060+00:00",
@@ -359727,7 +359934,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-9388176": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2093,
       "bale_posted_at": "2026-11-16T13:25:47.244845+00:00",
@@ -360480,7 +360688,8 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-9673230": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2059,
       "bale_posted_at": "2026-11-16T12:09:05.702470+00:00",
@@ -361063,7 +361272,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-9732134": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2198,
       "bale_posted_at": "2026-11-16T23:49:11.444105+00:00",
@@ -361785,7 +361995,8 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-9986231": {
-      "aparat_upload_status": "pending",
+      "aparat_skip_reason": "verified_expiry_required",
+      "aparat_upload_status": "skipped_unverified_deadline",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2209,
       "bale_posted_at": "2026-11-17T00:32:26.417315+00:00",
@@ -374727,8 +374938,6 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 20,
   "snappshop_retry_after": "2026-11-18T11:43:55.459357+00:00",
-  "youtube_last_upload_success_at": "2026-11-15T02:56:40.861027+00:00",
-  "youtube_upload_pause_diagnostic_migrated": true,
-  "youtube_upload_pause_reason": "daily_upload_limit",
-  "youtube_uploads_paused_until": "2026-11-16T04:25:59.640555+00:00"
+  "youtube_last_upload_success_at": "2026-11-17T16:55:57.096719+00:00",
+  "youtube_upload_pause_diagnostic_migrated": true
 }
