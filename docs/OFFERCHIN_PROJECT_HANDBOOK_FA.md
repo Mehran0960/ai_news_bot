@@ -2910,3 +2910,19 @@ Workflow آپلود فیلو دیگر روی هر push به‌صورت login-onl
 ### بازگشت خودکار صف یوتیوب پس از سقف واقعی API — ۱۷ نوامبر ۲۰۲۶
 
 سقف روزانهٔ YouTube API یک محدودیت واقعی مقصد است و نباید با دورزدن API حل شود؛ اما دیگر نباید آیتم‌های صف را به‌صورت terminal `skipped_platform_limit` حذف کند. آیتم‌های منتظر با `retry` و `youtube_next_attempt_at` تا زمان اعلام‌شده نگه داشته می‌شوند. Worker فقط YouTube را تا `youtube_uploads_paused_until` defer می‌کند؛ Aparat، Filo و کانال‌های عکس مستقل ادامه می‌دهند. پس از پایان cooldown، آیتم‌های قدیمی نیز خودکار به صف upload برمی‌گردند. خطای HTTP 429 غیرروزانه backoff محلی ۱۵دقیقه‌ای دارد.
+
+## ۲۰۲۶-۱۱-۱۷ — اصلاح تکرار تحریریه و استقلال ارسال مقصدهای تصویری
+
+**هدف:** جلوگیری از انتشار دوبارهٔ یک مطلب تحریریه به‌علت ثبت‌نشدن occurrenceهای بعدی، حذف رقابت ناشر اضطراری و عادی روی یک صف، و جلوگیری از تأخیر میان مقصدهای تصویری.
+
+**تغییر/اقدام:** تاریخچهٔ تحریریه با کلید content_id + sequence_number ثبت می‌شود؛ رسید چند مقصد برای یک نوبت ادغام و ارسال مجدد همان مطلب در نوبت جدید به‌عنوان occurrence جدید ذخیره می‌شود. cooldown موضوع چهار ساعت اعمال شد. Telegram/Bale/Rubika/Eitaa برای تحریریه در workerهای موازی با ادغام رسید مقصدی ارسال می‌شوند. concurrency ناشر اضطراری با ناشر عادی یکسان شد.
+
+**فایل‌ها/سامانه‌ها:** affilio_radar/editorial_content.py، test_editorial_content.py، editorial_publisher.py، test_editorial_publisher.py، .github/workflows/affilio-publisher.yml؛ گزارش: docs/OFFERCHIN_EDITORIAL_REPUBLISH_FIX_2026-11-17_FA.md.
+
+**آزمون و نتیجه:** اجرای PR #237: تست‌های قرارداد تحریریه، اعتبارسنجی مسیرهای ویدئو و گیت مستندات موفق؛ شاخه نیازمند بازپایه‌گذاری روی main قبل از merge.
+
+**شواهد/شناسه:** PR #237؛ شاخهٔ موقت بازپایه‌گذاری: fix/offerchin-editorial-republish-rebase-20261117.
+
+**ریسک/بازگشت:** تغییر در منطق ثبت سابقه و ارسال موازی است؛ rollback فقط کد را revert می‌کند و state/history/receiptها نباید reset شوند.
+
+**وضعیت:** تست‌شده؛ در انتظار بازپایه‌گذاری نهایی و ادغام.
