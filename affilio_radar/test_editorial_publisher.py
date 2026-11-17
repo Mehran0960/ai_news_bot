@@ -627,13 +627,13 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertEqual(public_asset_payload["sources"], item["sources"])
 
         bale = _format_message(item, html_mode=True, platform="bale")
-        self.assertIn("راهنمای کوتاه خرید آگاهانه", bale)
+        self.assertIn("زمان تحویل سفارش", bale)
         self.assertNotIn("دکمهٔ خرید", bale)
         self.assertNotIn("reply_markup", bale)
         self.assertNotIn("aflo.ir", bale)
 
         plain = _format_message(item, html_mode=False, platform="rubika")
-        self.assertIn("راهنمای کوتاه خرید آگاهانه", plain)
+        self.assertIn("زمان تحویل سفارش", plain)
         self.assertNotIn("consumer.ftc.gov", plain)
         self.assertNotIn("aflo.ir", plain)
         self.assertNotIn("منبع:", plain)
