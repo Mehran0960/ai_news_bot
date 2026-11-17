@@ -26,6 +26,7 @@ import requests
 from publication_policy import (
     DEFAULT_DAILY_CHANNEL_POST_LIMIT,
     MIN_CHANNEL_POST_INTERVAL_SECONDS,
+    channel_post_interval_seconds,
     editorial_frequency_allowed,
 )
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
@@ -5300,14 +5301,29 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         min(next_channel_due).isoformat() if next_channel_due else None
     )
 
-    # Wake the publisher early enough to place one related editorial in the safe
-    # midpoint gap before the next product. This is a planning wake-up, not a post.
+    # The next wake-up follows the actual reserved editorial slot. An active
+    # reservation wins over recalculating a midpoint; this projection never publishes.
     next_editorial_planning_at = None
-    next_product = None
     if isinstance(state, dict):
+        editorial_queue = state.get("editorial_delivery_queue")
+        if isinstance(editorial_queue, dict):
+            active_editorial_slots = [
+                slot
+                for row in editorial_queue.values()
+                if isinstance(row, dict)
+                and str(row.get("status") or "").lower() not in terminal_queue_statuses
+                for slot in [_parse_utc_datetime(
+                    row.get("next_attempt_at") or row.get("scheduled_at")
+                )]
+                if slot is not None
+            ]
+            if active_editorial_slots:
+                next_editorial_planning_at = min(active_editorial_slots).isoformat()
+
+    next_product = None
+    if isinstance(state, dict) and next_editorial_planning_at is None:
         product_queue = state.get("content_delivery_queue")
         product_queue = product_queue if isinstance(product_queue, dict) else {}
-        due_products = []
         future_products = []
         for queued_id, entry in product_queue.items():
             if not isinstance(entry, dict):
@@ -5324,20 +5340,16 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
             ):
                 continue
             product_at = _parse_utc_datetime(entry.get("scheduled_at"))
-            if product_at is None:
+            if product_at is None or product_at <= current:
                 continue
-            row = (str(queued_id), entry, product_at.astimezone(timezone.utc))
-            (due_products if row[2] <= current else future_products).append(row)
+            future_products.append(
+                (str(queued_id), entry, product_at.astimezone(timezone.utc))
+            )
 
-        next_product = (
-            min(due_products, key=lambda row: row[2])
-            if due_products else
-            min(future_products, key=lambda row: row[2]) if future_products else None
-        )
+        next_product = min(future_products, key=lambda row: row[2]) if future_products else None
         if next_product is not None:
             related_product_id, _product_entry, product_at = next_product
             anchor_at = _parse_utc_datetime(state.get("last_channel_published_at")) or current
-            gap_seconds = int((product_at - anchor_at).total_seconds())
             already_linked = any(
                 isinstance(row, dict)
                 and str(row.get("related_product_id") or "") == related_product_id
@@ -5346,28 +5358,23 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                     if isinstance(state.get("editorial_delivery_history"), list) else []
                 )
             )
-            editorial_queue = state.get("editorial_delivery_queue")
-            if isinstance(editorial_queue, dict):
-                already_linked = already_linked or any(
-                    isinstance(row, dict)
-                    and str(row.get("related_product_id") or "") == related_product_id
-                    and str(row.get("status") or "").lower() not in terminal_queue_statuses
-                    for row in editorial_queue.values()
-                )
             last_empty_check = _parse_utc_datetime(state.get("last_editorial_empty_bank_check_at"))
             already_checked_after_product = bool(
                 last_empty_check and last_empty_check > anchor_at
             )
-            midpoint_at = anchor_at + timedelta(seconds=max(0, gap_seconds) / 2)
             if (
                 editorial_frequency_allowed(state)
                 and not already_linked
                 and not already_checked_after_product
-                and gap_seconds >= 2 * MIN_CHANNEL_POST_INTERVAL_SECONDS
-                and midpoint_at > current
-                and product_at > current
             ):
-                next_editorial_planning_at = midpoint_at.isoformat()
+                editorial_gap = channel_post_interval_seconds(
+                    f"editorial-planning:{related_product_id}"
+                )
+                planning_at = max(
+                    current,
+                    anchor_at + timedelta(seconds=editorial_gap),
+                )
+                next_editorial_planning_at = planning_at.isoformat()
     # No product slot means no editorial wake-up. Editorial is not a standalone post.
 
     emergency_record = state.get("emergency_continuity") if isinstance(state, dict) else None
