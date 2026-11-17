@@ -65,12 +65,19 @@ jobs:
         run: |
           cd affilio_radar
           python -m unittest -v test_content_delivery.py
-      - name: Deliver due selected content to Telegram and Bale
+      - name: Deliver due selected content to all photo channels
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          RUBIKA_BOT_TOKEN: ${{ secrets.RUBIKA_BOT_TOKEN }}
+          RUBIKA_CHANNEL_ID: ${{ secrets.RUBIKA_CHAT_ID || vars.RUBIKA_CHAT_ID || secrets.RUBIKA_CHANNEL_ID || vars.RUBIKA_CHANNEL_ID || 'c0EH9WW0c7fa831d965d050233b7ab35' }}
+          RUBIKA_ENABLE_PUBLISHING: ${{ vars.RUBIKA_ENABLE_PUBLISHING || 'true' }}
+          EITAA_BOT_TOKEN: ${{ secrets.EITAA_BOT_TOKEN }}
+          EITAA_CHANNEL_ID: ${{ secrets.EITAA_CHANNEL_ID }}
+          EITAA_CHANNEL_URL: ${{ vars.EITAA_CHANNEL_URL || '' }}
+          EITAA_ENABLE_PUBLISHING: ${{ vars.EITAA_ENABLE_PUBLISHING || 'true' }}
           # Video uploads are handled by destination-specific workers.
           AFFILIO_APARAT_UPLOAD_ENABLED: "false"
           APARAT_SHORTS_ONLY: "false"
