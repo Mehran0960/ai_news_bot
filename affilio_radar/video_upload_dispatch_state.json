@@ -1,22 +1,16 @@
 {
-  "aparat_next_upload_at": null,
-  "emergency_continuity_active": false,
-  "emergency_continuity_baseline_completed_at": null,
-  "emergency_continuity_expires_at": null,
-  "emergency_continuity_snapshot_sha256": null,
   "filo_login_verification_status": "verified",
-  "filo_login_verified_at": "2026-11-17T18:10:57.595584+00:00",
-  "filo_next_upload_at": null,
-  "filo_upload_interval_policy_version": 3,
-  "generated_at": "2026-11-17T18:12:40.707247+00:00",
-  "last_channel_published_at": "2026-11-17T17:52:52.636274+00:00",
-  "last_product_channel_published_at": "2026-11-17T17:01:53.163752+00:00",
-  "next_channel_content_due_at": "2026-11-17T18:29:52.636274+00:00",
-  "next_editorial_planning_at": "2026-11-17T17:52:42.577063+00:00",
   "pending_product_queue_count": 27,
-  "product_publication_cadence_cycle_id": "2026-11-17T17:12:52.509844+00:00",
+  "filo_login_verified_at": "2026-11-17T18:10:57.595584+00:00",
   "product_publication_interval_seconds": 3420.0,
-  "product_publication_plan_cycle_id": "2026-11-17T17:12:52.509844+00:00",
+  "filo_next_upload_at": null,
+  "schema_version": 2,
+  "emergency_continuity_expires_at": null,
+  "emergency_continuity_active": false,
+  "emergency_continuity_snapshot_sha256": null,
+  "last_channel_published_at": "2026-11-17T17:52:52.636274+00:00",
+  "emergency_continuity_baseline_completed_at": null,
+  "youtube_upload_pause_reason": null,
   "published": {
     "dkp-1036750": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -159,8 +153,8 @@
       "telegram_message_id": 1597,
       "ts": 1794853778.156547,
       "video_dispatch_eligible": true,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "generated",
+      "youtube_upload_status": "uploaded"
     },
     "dkp-11512957": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -1647,8 +1641,8 @@
       "telegram_message_id": 1595,
       "ts": 1794853306.505833,
       "video_dispatch_eligible": true,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "generated",
+      "youtube_upload_status": "uploaded"
     },
     "dkp-22257893": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -2875,8 +2869,14 @@
       "youtube_upload_status": "pending"
     }
   },
-  "schema_version": 2,
+  "filo_upload_interval_policy_version": 3,
+  "next_editorial_planning_at": "2026-11-17T17:52:42.577063+00:00",
+  "last_product_channel_published_at": "2026-11-17T17:01:53.163752+00:00",
+  "youtube_uploads_paused_until": null,
+  "generated_at": "2026-11-17T18:12:57.634340+00:00",
+  "product_publication_cadence_cycle_id": "2026-11-17T17:12:52.509844+00:00",
+  "aparat_next_upload_at": null,
   "youtube_next_upload_at": null,
-  "youtube_upload_pause_reason": null,
-  "youtube_uploads_paused_until": null
+  "next_channel_content_due_at": "2026-11-17T18:29:52.636274+00:00",
+  "product_publication_plan_cycle_id": "2026-11-17T17:12:52.509844+00:00"
 }
