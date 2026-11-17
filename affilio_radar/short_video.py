@@ -3,7 +3,7 @@
 """Generate short vertical OfferChin product videos for configured video destinations.
 
 The overlay contains retailer and DigiPay brand tiles, current price, discount, and top-safe-area channel links.
-A verified deadline is required; expired platform videos are permanently deleted, with privacy as a failure fallback.
+Known near-expiry offers are blocked; open-ended offers rely on last-mile price/stock checks, 24-hour freshness, and the integrity audit. Expired platform videos are deleted, with privacy as a failure fallback.
 """
 from __future__ import annotations
 
