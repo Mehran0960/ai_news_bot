@@ -235,33 +235,27 @@ def calculate_product_publication_cadence(
         clean_started.isoformat() if clean_started else "initial-warmup"
     )
     previous_cycle_id = str(state.get("product_publication_plan_cycle_id") or "")
-    last_channel = get_last_channel_published_at(state)
-
-    if previous_cycle_id != cycle_id:
-        last_product_in_cycle = bool(last_channel and scan_anchor and last_channel >= scan_anchor)
-    else:
-        last_product_in_cycle = bool(last_channel and scan_anchor and last_channel >= scan_anchor)
-
-    last_channel_age_seconds = (
-        max(0.0, (current - last_channel).total_seconds())
-        if last_channel is not None else None
+    last_product = get_last_product_channel_published_at(state)
+    last_product_age_seconds = (
+        max(0.0, (current - last_product).total_seconds())
+        if last_product is not None else None
     )
+    # The scan plan is product-oriented. Editorial still advances the shared
+    # channel clock, which is enforced later by the enqueue/reflow delivery gate.
     first_slot_due_now = bool(
         candidates > 0
-        and (last_channel_age_seconds is None
-             or last_channel_age_seconds >= MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS)
+        and (last_product_age_seconds is None
+             or last_product_age_seconds >= MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS)
     )
     if first_slot_due_now:
-        # Initial publication starts at the cycle anchor; overdue recovery follows a real product receipt.
         anchor = current
         anchor_kind = (
-            "cycle_start" if last_channel is None
+            "cycle_start" if last_product is None
             else "cycle_start_after_max_gap"
         )
-    elif last_channel is not None:
-        # The maximum interval is global across catalog scan-cycle boundaries.
-        anchor = last_channel
-        anchor_kind = "last_channel_provisional" if provisional_window else "last_channel"
+    elif last_product is not None:
+        anchor = last_product
+        anchor_kind = "last_product_provisional" if provisional_window else "last_product"
     else:
         anchor = current
         anchor_kind = "cycle_start"
@@ -641,7 +635,13 @@ def get_last_channel_published_at(state: dict) -> datetime | None:
 
     observed_latest = max(observed) if observed else None
     legacy = _utc(state.get("last_published_at"))
-    candidates = [value for value in (stored, observed_latest) if value is not None]
+    # Older state may have the product-only channel clock but no shared clock yet.
+    # A confirmed product is still a public channel post and is safe as the fallback.
+    legacy_product = get_last_product_channel_published_at(state)
+    candidates = [
+        value for value in (stored, observed_latest, legacy_product)
+        if value is not None
+    ]
     anchor = max(candidates) if candidates else legacy
     if anchor is None:
         return None
