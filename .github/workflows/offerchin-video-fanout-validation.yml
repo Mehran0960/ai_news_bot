@@ -23,6 +23,7 @@ on:
       - "cloudflare/affilio-minute-dispatcher.test.mjs"
       - ".github/workflows/offerchin-video-publisher.yml"
       - ".github/workflows/filo-video-upload.yml"
+      - ".github/workflows/filo-login-verification.yml"
       - ".github/workflows/youtube-video-upload.yml"
       - ".github/workflows/aparat-video-upload.yml"
       - ".github/workflows/offerchin-publisher.yml"
@@ -121,6 +122,8 @@ jobs:
           filo = Path(".github/workflows/filo-video-upload.yml").read_text(encoding="utf-8")
           youtube = Path(".github/workflows/youtube-video-upload.yml").read_text(encoding="utf-8")
           aparat = Path(".github/workflows/aparat-video-upload.yml").read_text(encoding="utf-8")
+          filo_login = Path(".github/workflows/filo-login-verification.yml").read_text(encoding="utf-8")
+          filo_upload = Path(".github/workflows/filo-video-upload.yml").read_text(encoding="utf-8")
           channel_groups = {
               "channel": publisher.split("group: ", 1)[1].splitlines()[0],
               "filo": filo.split("group: ", 1)[1].splitlines()[0],
@@ -128,5 +131,8 @@ jobs:
               "aparat": aparat.split("group: ", 1)[1].splitlines()[0],
           }
           assert len(set(channel_groups.values())) == 4, channel_groups
+          assert "offerchin-content-publisher" not in filo_login
+          assert "offerchin-filo-login-state" in filo_login
+          assert "\n  push:" not in filo_upload
           print("INDEPENDENT_MEDIA_DISPATCH_WIRING_OK")
           PY
