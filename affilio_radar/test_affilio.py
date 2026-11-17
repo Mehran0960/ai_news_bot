@@ -7234,5 +7234,29 @@ class AffilioRadarTests(unittest.TestCase):
         )
 
 
+    def test_default_daily_channel_limit_matches_publisher_workflow(self):
+        import re
+        from publication_policy import DEFAULT_DAILY_CHANNEL_POST_LIMIT
+
+        workflow = (
+            Path(__file__).resolve().parents[1]
+            / ".github" / "workflows" / "offerchin-publisher.yml"
+        ).read_text(encoding="utf-8")
+        configured_limits = re.findall(
+            r'^\\s*AFFILIO_MAX_DAILY_CHANNEL_POSTS:\\s*"([0-9]+)"\\s*
+    unittest.main()
+,
+            workflow,
+            re.MULTILINE,
+        )
+        self.assertEqual(DEFAULT_DAILY_CHANNEL_POST_LIMIT, 72)
+        self.assertEqual(radar_module.MAX_DAILY_CHANNEL_POSTS, DEFAULT_DAILY_CHANNEL_POST_LIMIT)
+        self.assertEqual(
+            configured_limits,
+            [str(DEFAULT_DAILY_CHANNEL_POST_LIMIT)] * 2,
+            "selection and delivery must use the same shared daily cap",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
