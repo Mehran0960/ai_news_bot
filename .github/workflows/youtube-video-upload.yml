@@ -10,7 +10,7 @@ permissions:
 
 concurrency:
   # YouTube and Aparat have separate schedules but share one state.json writer lock.
-  group: offerchin-content-publisher
+  group: offerchin-youtube-video-upload
   cancel-in-progress: false
 
 jobs:
