@@ -1656,7 +1656,13 @@ class AffilioRadarTests(unittest.TestCase):
                     },
                 },
             },
-            "published": {},
+            "published": {
+                f"dkp-987500000{index:03d}": {
+                    "ts": (now - timedelta(hours=1)).timestamp() + index,
+                    "delivery_status": {"telegram": "sent", "bale": "sent"},
+                }
+                for index in range(6)
+            },
         }
         compact = radar_module.build_video_upload_dispatch_state(state, now=now)
         self.assertEqual(
@@ -1664,7 +1670,7 @@ class AffilioRadarTests(unittest.TestCase):
             (now + timedelta(hours=1)).isoformat(),
         )
 
-    def test_video_dispatch_state_uses_midpoint_without_a_minimum_gap(self):
+    def test_video_dispatch_state_skips_midpoint_when_two_31_minute_gaps_do_not_fit(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
         product_at = now + timedelta(minutes=50)
         state = {
@@ -1682,11 +1688,15 @@ class AffilioRadarTests(unittest.TestCase):
             },
             "published": {},
         }
+        state["published"] = {
+            f"dkp-987500000{index:03d}": {
+                "ts": (now - timedelta(hours=1)).timestamp() + index,
+                "delivery_status": {"telegram": "sent", "bale": "sent"},
+            }
+            for index in range(6)
+        }
         compact = radar_module.build_video_upload_dispatch_state(state, now=now)
-        self.assertEqual(
-            compact["next_editorial_planning_at"],
-            (now + timedelta(minutes=25)).isoformat(),
-        )
+        self.assertIsNone(compact["next_editorial_planning_at"])
 
     def test_video_dispatch_state_exposes_only_active_hash_pinned_emergency_continuity(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
