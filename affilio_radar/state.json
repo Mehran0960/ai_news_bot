@@ -43852,7 +43852,7 @@
       },
       "product_id": "dkp-17281919",
       "product_plan_cycle_id": "2026-11-17T05:29:58.138630+00:00",
-      "scheduled_at": "2026-11-17T09:48:54.977813+00:00",
+      "scheduled_at": "2026-11-17T09:33:38.754645+00:00",
       "selected_at": "2026-11-17T05:05:33.886476+00:00",
       "sequence_number": 1491,
       "status": "queued"
@@ -44024,7 +44024,7 @@
       },
       "product_id": "dkp-18294816",
       "product_plan_cycle_id": "2026-11-17T05:29:58.138630+00:00",
-      "scheduled_at": "2026-11-17T08:38:54.977813+00:00",
+      "scheduled_at": "2026-11-17T08:23:38.754645+00:00",
       "selected_at": "2026-11-17T04:26:05.693869+00:00",
       "sequence_number": 1489,
       "status": "queued"
@@ -44195,7 +44195,7 @@
       },
       "product_id": "dkp-22097631",
       "product_plan_cycle_id": "2026-11-17T05:29:58.138630+00:00",
-      "scheduled_at": "2026-11-17T07:20:54.977813+00:00",
+      "scheduled_at": "2026-11-17T07:05:38.754645+00:00",
       "selected_at": "2026-11-17T04:26:05.693869+00:00",
       "sequence_number": 1487,
       "status": "queued"
@@ -44366,7 +44366,7 @@
       },
       "product_id": "dkp-22404391",
       "product_plan_cycle_id": "2026-11-17T05:29:58.138630+00:00",
-      "scheduled_at": "2026-11-17T08:02:54.977813+00:00",
+      "scheduled_at": "2026-11-17T07:47:38.754645+00:00",
       "selected_at": "2026-11-17T04:26:05.693869+00:00",
       "sequence_number": 1488,
       "status": "queued"
@@ -44537,7 +44537,7 @@
       },
       "product_id": "dkp-4825904",
       "product_plan_cycle_id": "2026-11-17T05:29:58.138630+00:00",
-      "scheduled_at": "2026-11-17T06:33:54.977813+00:00",
+      "scheduled_at": "2026-11-17T06:25:28.399208+00:00",
       "selected_at": "2026-11-17T04:26:05.693869+00:00",
       "sequence_number": 1486,
       "status": "queued"
@@ -44715,7 +44715,7 @@
       },
       "product_id": "dkp-6705171",
       "product_plan_cycle_id": "2026-11-17T05:29:58.138630+00:00",
-      "scheduled_at": "2026-11-17T09:11:54.977813+00:00",
+      "scheduled_at": "2026-11-17T08:56:38.754645+00:00",
       "selected_at": "2026-11-17T04:26:05.693869+00:00",
       "sequence_number": 1490,
       "status": "queued"
@@ -198057,90 +198057,7 @@
       "topic": "review-literacy"
     }
   ],
-  "editorial_delivery_queue": {
-    "editorial:check-delivery-window": {
-      "attempt_count": 0,
-      "content_id": "editorial:check-delivery-window",
-      "content_type": "editorial",
-      "delivery_duration_seconds": 10.5,
-      "delivery_runway_seconds": 33,
-      "delivery_started_at": "2026-11-17T06:00:45.147833+00:00",
-      "dispatch_runway_seconds": 93,
-      "next_attempt_at": "2026-11-17T06:00:44.622376+00:00",
-      "payload": {
-        "body": "⏱️ زمان رسیدن سفارش برای همه کالاها یکسان نیست؛ نوع کالا، شهر مقصد، موجودی فروشنده و روش ارسال می‌توانند آن را تغییر دهند. پیش از پرداخت، بازه تحویل و روش‌های فعال برای همان کالا و نشانی را در صفحه سفارش بررسی کن؛ به یک زمان عمومی تکیه نکن.",
-        "content_id": "editorial:check-delivery-window",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 2,
-        "editorial_id": "check-delivery-window",
-        "idempotency_key": "fcdd7e8bd5a229df",
-        "related_product_id": "dkp-4825904",
-        "review_due_at": "2027-02-13T04:30:00Z",
-        "reviewed_at": "2026-11-15T04:30:00Z",
-        "sequence_number": 1493,
-        "sources": [
-          {
-            "publisher": "دیجی‌کالا مگ",
-            "source_id": "digikala-mag-delivery-time",
-            "title": "سفارش دیجی‌کالا چند روزه می‌رسد؟ مقایسه‌ روش‌های ارسال از نظر سرعت",
-            "url": "https://www.digikala.com/mag/digikala-delivery-time/"
-          }
-        ],
-        "title": "زمان تحویل را برای همان سفارش بررسی کن",
-        "topic": "delivery"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-17T06:00:47.372340+00:00",
-          "attempts": 1,
-          "message_id": "2228",
-          "status": "sent",
-          "updated_at": "2026-11-17T06:00:49.265930+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "eitaa_not_enabled_or_credentials_missing",
-          "status": "not_connected",
-          "updated_at": "2026-11-17T06:00:55.322785+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-17T06:00:49.660416+00:00",
-          "attempts": 1,
-          "message_id": "1974380780431588651",
-          "status": "sent",
-          "updated_at": "2026-11-17T06:00:54.977813+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-17T06:00:45.652717+00:00",
-          "attempts": 1,
-          "message_id": "1667",
-          "status": "sent",
-          "updated_at": "2026-11-17T06:00:46.983530+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "related_product_id": "dkp-4825904",
-      "related_product_original_scheduled_at": "2026-11-17T06:25:28.399208+00:00",
-      "related_product_reserved_scheduled_at": "2026-11-17T06:40:44.622376+00:00",
-      "scheduled_at": "2026-11-17T06:00:44.622376+00:00",
-      "selected_at": "2026-11-17T06:00:44.622376+00:00",
-      "sequence_number": 1493,
-      "status": "partial",
-      "window_closes_at": "2026-11-17T06:09:44.622376+00:00"
-    }
-  },
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
