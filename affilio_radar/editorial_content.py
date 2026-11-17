@@ -122,6 +122,10 @@ def _history_rows(state: dict) -> list[dict]:
     rows = state.get("editorial_delivery_history")
     return [row for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
 
+def _content_ledger_rows(state: dict) -> list[dict]:
+    rows = state.get("editorial_content_ledger")
+    return [row for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
+
 
 _EDITORIAL_STOPWORDS = frozenset({
     "از", "به", "در", "و", "را", "برای", "که", "اگر", "با", "هم", "این", "آن",
@@ -256,23 +260,36 @@ def select_editorial_fallback(
     if not valid_items:
         return None
 
-    # Compare candidates with recently delivered copy, including legacy history rows
-    # whose title/body are recovered from the current reviewed bank. This blocks
-    # semantic repeats under a newly assigned editorial_id without suppressing
-    # distinct advice that merely shares a broad topic.
+    # A confirmed editorial is a one-time publication, not a reusable rotation slot.
+    # The old 24-hour filter let a bank item re-enter after one day; because delivery
+    # history was keyed only by content_id, later sends overwrote earlier receipts.
     bank_by_id = {
         str(row.get("editorial_id") or "").strip(): row
         for row in bank if isinstance(row, dict) and str(row.get("editorial_id") or "").strip()
     }
-    recent_deliveries: list[dict] = []
-    cooldown = timedelta(hours=max(0, int(cooldown_hours)))
-    for row in history[-50:]:
-        published_at = _utc(row.get("published_at"))
-        if published_at is not None:
-            age = current - published_at
-            if age < timedelta(0) or age > cooldown:
-                continue
+    ledger_rows = _content_ledger_rows(state if isinstance(state, dict) else {})
+    previous_rows = history + ledger_rows
+    delivered_ids = {
+        str(value).strip()
+        for value in (state.get("editorial_delivered_ids") or [])
+        if str(value).strip()
+    }
+    delivered_fingerprints = {
+        str(value).strip()
+        for value in (state.get("editorial_delivered_fingerprints") or [])
+        if str(value).strip()
+    }
+    previous_deliveries: list[dict] = []
+    for row in previous_rows:
         previous_id = str(row.get("editorial_id") or "").strip()
+        if previous_id:
+            delivered_ids.add(previous_id)
+        for value in row.get("editorial_ids", []) if isinstance(row.get("editorial_ids"), list) else []:
+            if str(value).strip():
+                delivered_ids.add(str(value).strip())
+        fingerprint = str(row.get("content_fingerprint") or "").strip()
+        if fingerprint:
+            delivered_fingerprints.add(fingerprint)
         previous = bank_by_id.get(previous_id, {})
         previous_payload = {
             "editorial_id": previous_id,
@@ -280,13 +297,18 @@ def select_editorial_fallback(
             "body": row.get("body") or previous.get("body", ""),
         }
         if previous_payload["title"] or previous_payload["body"]:
-            recent_deliveries.append(previous_payload)
+            previous_deliveries.append(previous_payload)
 
-    if recent_deliveries:
-        valid_items = [
-            candidate for candidate in valid_items
-            if not any(_is_near_duplicate_editorial(candidate, previous) for previous in recent_deliveries)
-        ]
+    cycle_state = state.get("editorial_cycle") if isinstance(state, dict) else {}
+    cycle_used_ids = cycle_state.get("used_ids") if isinstance(cycle_state, dict) else []
+    delivered_ids.update(str(value).strip() for value in cycle_used_ids if str(value).strip())
+
+    valid_items = [
+        candidate for candidate in valid_items
+        if str(candidate.get("editorial_id") or "").strip() not in delivered_ids
+        and editorial_content_fingerprint(candidate) not in delivered_fingerprints
+        and not any(_is_near_duplicate_editorial(candidate, previous) for previous in previous_deliveries)
+    ]
     if not valid_items:
         return None
 
@@ -304,13 +326,9 @@ def select_editorial_fallback(
 
     eligible = [item for item in valid_items if str(item["editorial_id"]) not in used_ids]
     if not eligible:
-        try:
-            cycle["cycle_number"] = max(1, int(cycle.get("cycle_number") or 1)) + 1
-        except (TypeError, ValueError, OverflowError):
-            cycle["cycle_number"] = 2
-        cycle["used_ids"] = []
-        cycle["cycle_started_at"] = current.isoformat()
-        eligible = list(valid_items)
+        # Do not reset a completed cycle and repost its content. Newly approved IDs
+        # can still join the rotation; otherwise this editorial slot stays empty.
+        return None
 
     recent_topics = {
         str(row.get("topic") or "").lower()
@@ -381,7 +399,7 @@ def select_editorial_fallback(
 
 
 def record_editorial_delivery(state: dict, item: dict, *, published_at: datetime, destinations: dict) -> None:
-    """Record an editorial publication only after one destination confirms delivery."""
+    """Record each editorial event and preserve receipts for every destination."""
     if not isinstance(state, dict) or not isinstance(item, dict):
         raise ValueError("state_and_item_must_be_objects")
     if not isinstance(destinations, dict) or not any(
@@ -392,12 +410,130 @@ def record_editorial_delivery(state: dict, item: dict, *, published_at: datetime
     timestamp = published_at
     if timestamp.tzinfo is None:
         timestamp = timestamp.replace(tzinfo=timezone.utc)
+    timestamp = timestamp.astimezone(timezone.utc)
+
+    editorial_id = str(item.get("editorial_id") or "").strip()
+    content_id = str(item.get("content_id") or "").strip()
+    if not editorial_id or not content_id:
+        raise ValueError("editorial_identity_missing")
+    fingerprint = editorial_content_fingerprint(item)
+    sequence_number = item.get("sequence_number")
+    event_id = (
+        f"{content_id}:sequence:{sequence_number}"
+        if sequence_number not in (None, "")
+        else f"{content_id}:published:{timestamp.isoformat()}"
+    )
+
     history = state.setdefault("editorial_delivery_history", [])
     if not isinstance(history, list):
         history = []
         state["editorial_delivery_history"] = history
-    if any(str(row.get("content_id") or "") == str(item.get("content_id") or "") for row in history if isinstance(row, dict)):
-        return
+    event = next(
+        (
+            row for row in history
+            if isinstance(row, dict)
+            and (
+                str(row.get("delivery_event_id") or "") == event_id
+                or (
+                    str(row.get("content_id") or "") == content_id
+                    and row.get("sequence_number") not in (None, "")
+                    and sequence_number not in (None, "")
+                    and str(row.get("sequence_number")) == str(sequence_number)
+                )
+            )
+        ),
+        None,
+    )
+    if event is None:
+        event = {
+            "delivery_event_id": event_id,
+            "editorial_id": editorial_id,
+            "content_id": content_id,
+            "sequence_number": sequence_number,
+            "topic": str(item.get("topic") or "").lower(),
+            "related_product_id": str(item.get("related_product_id") or ""),
+            "title": str(item.get("title") or "").strip(),
+            "body": str(item.get("body") or "").strip(),
+            "content_fingerprint": fingerprint,
+            "published_at": timestamp.isoformat(),
+            "destinations": {},
+        }
+        history.append(event)
+    else:
+        event.setdefault("delivery_event_id", event_id)
+        event.setdefault("published_at", timestamp.isoformat())
+        event["last_delivery_update_at"] = timestamp.isoformat()
+
+    # Merge destination receipts: one channel update must not erase another's ID.
+    merged_destinations = event.get("destinations")
+    if not isinstance(merged_destinations, dict):
+        merged_destinations = {}
+    for destination, receipt in destinations.items():
+        if not isinstance(receipt, dict):
+            continue
+        previous = merged_destinations.get(destination)
+        previous = previous if isinstance(previous, dict) else {}
+        if previous.get("status") == "sent" and receipt.get("status") != "sent":
+            continue
+        merged_destinations[destination] = dict(receipt)
+    event["destinations"] = merged_destinations
+    state["editorial_delivery_history"] = history[-200:]
+
+    # These compact identity sets remain after the detailed event log is pruned.
+    delivered_ids = {
+        str(value).strip()
+        for value in (state.get("editorial_delivered_ids") or [])
+        if str(value).strip()
+    }
+    delivered_ids.add(editorial_id)
+    state["editorial_delivered_ids"] = sorted(delivered_ids)
+    delivered_fingerprints = {
+        str(value).strip()
+        for value in (state.get("editorial_delivered_fingerprints") or [])
+        if str(value).strip()
+    }
+    if fingerprint:
+        delivered_fingerprints.add(fingerprint)
+    state["editorial_delivered_fingerprints"] = sorted(delivered_fingerprints)
+
+    ledger = state.setdefault("editorial_content_ledger", [])
+    if not isinstance(ledger, list):
+        ledger = []
+        state["editorial_content_ledger"] = ledger
+    ledger_row = next(
+        (row for row in ledger if isinstance(row, dict) and row.get("content_fingerprint") == fingerprint),
+        None,
+    )
+    if ledger_row is None:
+        ledger_row = {
+            "editorial_ids": [editorial_id],
+            "content_fingerprint": fingerprint,
+            "title": str(item.get("title") or "").strip(),
+            "body": str(item.get("body") or "").strip(),
+            "first_published_at": timestamp.isoformat(),
+            "last_published_at": timestamp.isoformat(),
+            "delivery_count": 0,
+            "delivery_event_ids": [],
+        }
+        ledger.append(ledger_row)
+    editorial_ids = set(
+        str(value) for value in ledger_row.get("editorial_ids", []) if str(value).strip()
+    )
+    editorial_ids.add(editorial_id)
+    ledger_row["editorial_ids"] = sorted(editorial_ids)
+    event_ids = set(
+        str(value) for value in ledger_row.get("delivery_event_ids", []) if str(value).strip()
+    )
+    if event_id not in event_ids:
+        event_ids.add(event_id)
+        ledger_row["delivery_count"] = int(ledger_row.get("delivery_count") or 0) + 1
+    ledger_row["delivery_event_ids"] = sorted(event_ids)
+    ledger_row["last_published_at"] = max(
+        str(ledger_row.get("last_published_at") or ""),
+        timestamp.isoformat(),
+    )
+    state["editorial_content_ledger"] = ledger[-500:]
+
     cycle = state.setdefault("editorial_cycle", {})
     if not isinstance(cycle, dict):
         cycle = {}
@@ -406,23 +542,8 @@ def record_editorial_delivery(state: dict, item: dict, *, published_at: datetime
     if not isinstance(used, list):
         used = []
         cycle["used_ids"] = used
-    editorial_id = str(item["editorial_id"])
     if editorial_id not in used:
         used.append(editorial_id)
     cycle["used_ids"] = sorted(set(str(value) for value in used))
     cycle["last_editorial_id"] = editorial_id
-    cycle["last_topic"] = str(item["topic"]).lower()
-
-    history.append({
-        "editorial_id": str(item["editorial_id"]),
-        "content_id": str(item["content_id"]),
-        "sequence_number": item.get("sequence_number"),
-        "topic": str(item["topic"]),
-        "related_product_id": str(item.get("related_product_id") or ""),
-        "title": str(item.get("title") or "").strip(),
-        "body": str(item.get("body") or "").strip(),
-        "content_fingerprint": editorial_content_fingerprint(item),
-        "published_at": timestamp.astimezone(timezone.utc).isoformat(),
-        "destinations": destinations,
-    })
-    state["editorial_delivery_history"] = history[-200:]
+    cycle["last_topic"] = str(item.get("topic") or "").lower()

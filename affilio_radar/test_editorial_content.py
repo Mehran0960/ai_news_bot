@@ -46,7 +46,7 @@ class EditorialContentTests(unittest.TestCase):
         value["review_due_at"] = (NOW - timedelta(seconds=1)).isoformat()
         self.assertEqual(validate_editorial_item(value, now=NOW)[1], "editorial_review_expired")
 
-    def test_bank_exhaustion_starts_a_new_cycle_instead_of_stopping(self):
+    def test_bank_exhaustion_does_not_republish_used_content(self):
         state = {
             "editorial_cycle": {
                 "bank_ids": ["buying-checklist"],
@@ -55,19 +55,37 @@ class EditorialContentTests(unittest.TestCase):
                 "last_editorial_id": "buying-checklist",
             }
         }
-        chosen = select_editorial_fallback([item()], state, now=NOW)
-        self.assertEqual(chosen["editorial_id"], "buying-checklist")
-        self.assertEqual(state["editorial_cycle"]["cycle_number"], 2)
-        self.assertEqual(state["editorial_cycle"]["used_ids"], [])
+        self.assertIsNone(select_editorial_fallback([item()], state, now=NOW))
+        self.assertEqual(state["editorial_cycle"]["cycle_number"], 1)
+        self.assertEqual(state["editorial_cycle"]["used_ids"], ["buying-checklist"])
 
-    def test_item_can_be_reused_after_24_hour_cooldown(self):
+    def test_delivered_item_is_not_reused_after_24_hour_cooldown(self):
         state = {"editorial_delivery_history": [{
             "editorial_id": "buying-checklist",
-            "topic": "buying-guide",
+            "topic": "purchase-planning",
+            "title": item()["title"],
+            "body": item()["body"],
             "published_at": (NOW - timedelta(hours=25)).isoformat(),
         }]}
-        chosen = select_editorial_fallback([item()], state, now=NOW)
-        self.assertEqual(chosen["editorial_id"], "buying-checklist")
+        self.assertIsNone(select_editorial_fallback([item()], state, now=NOW))
+
+    def test_semantic_duplicate_is_blocked_even_after_24_hours(self):
+        original = item("original-buying-guide", "purchase-planning")
+        rewritten = item("rewritten-buying-guide", "purchase-planning")
+        rewritten["title"] = "پیش از خرید، فهرست نیازها و هزینه‌ها را بررسی کن"
+        rewritten["body"] = "قبل از خرید، نیاز واقعی، هزینه نگهداری، ضمانت و امکان تعمیر محصول را بررسی کنید."
+        distinct = item("return-policy-guide", "purchase-planning")
+        distinct["title"] = "قواعد مرجوعی کالا را پیش از سفارش بخوان"
+        distinct["body"] = "مهلت مرجوعی، بازپرداخت وجه و هزینه ارسال برگشتی را پیش از ثبت سفارش بررسی کن."
+        state = {"editorial_delivery_history": [{
+            "editorial_id": original["editorial_id"],
+            "topic": original["topic"],
+            "title": original["title"],
+            "body": original["body"],
+            "published_at": (NOW - timedelta(days=30)).isoformat(),
+        }]}
+        chosen = select_editorial_fallback([rewritten, distinct], state, now=NOW)
+        self.assertEqual(chosen["editorial_id"], "return-policy-guide")
 
     def test_recent_semantic_duplicate_is_skipped_even_with_a_new_id(self):
         original = item("original-buying-guide", "purchase-planning")
@@ -230,6 +248,54 @@ class EditorialContentTests(unittest.TestCase):
             destinations={"telegram": {"status": "sent"}, "youtube": {"status": "failed"}},
         )
         self.assertEqual(len(state["editorial_delivery_history"]), 1)
+
+    def test_delivery_history_merges_receipts_by_sequence_but_keeps_new_events(self):
+        state = {}
+        chosen = select_editorial_fallback([item()], state, now=NOW)
+        chosen["sequence_number"] = 10
+        record_editorial_delivery(
+            state, chosen, published_at=NOW,
+            destinations={"telegram": {"status": "sent", "message_id": "t-1"}},
+        )
+        record_editorial_delivery(
+            state, chosen, published_at=NOW + timedelta(seconds=4),
+            destinations={
+                "telegram": {"status": "sent", "message_id": "t-1"},
+                "bale": {"status": "sent", "message_id": "b-1"},
+            },
+        )
+        self.assertEqual(len(state["editorial_delivery_history"]), 1)
+        self.assertEqual(
+            state["editorial_delivery_history"][0]["destinations"]["bale"]["message_id"],
+            "b-1",
+        )
+
+        second_event = dict(chosen)
+        second_event["sequence_number"] = 11
+        record_editorial_delivery(
+            state, second_event, published_at=NOW + timedelta(days=2),
+            destinations={"telegram": {"status": "sent", "message_id": "t-2"}},
+        )
+        self.assertEqual(len(state["editorial_delivery_history"]), 2)
+        self.assertEqual(state["editorial_content_ledger"][0]["delivery_count"], 2)
+        self.assertEqual(
+            state["editorial_delivery_history"][0]["destinations"]["telegram"]["message_id"],
+            "t-1",
+        )
+        self.assertEqual(
+            state["editorial_delivery_history"][1]["destinations"]["telegram"]["message_id"],
+            "t-2",
+        )
+
+    def test_permanent_delivery_ledger_blocks_evicted_ids_and_fingerprints(self):
+        value = item("old-content")
+        state = {
+            "editorial_delivered_ids": ["old-content"],
+            "editorial_delivered_fingerprints": [editorial_content_fingerprint(value)],
+            "editorial_delivery_history": [],
+            "editorial_content_ledger": [],
+        }
+        self.assertIsNone(select_editorial_fallback([value], state, now=NOW))
 
 
 if __name__ == "__main__":
