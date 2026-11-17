@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-17T00:43:31.878686+00:00",
+  "generated_at": "2026-11-17T00:54:45.826169+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
@@ -581,30 +581,13 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1570,
+    "all_time_count": 1571,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 397,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T20:27:44.380599+00:00",
-        "brand": "shahsavand",
-        "catalog_category_id": "10750",
-        "catalog_category_name": "پودر سیر، موسیر و پیاز",
-        "category": "other",
-        "compared_to_product_id": "dkp-21919310",
-        "family": "digikala_category:10750",
-        "product_id": "dkp-3745772",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "پودر سیر شاهسوند - 120 گرم",
-        "use_case": "catalog_taxonomy_other"
-      },
       {
         "at": "2026-11-16T20:38:10.661706+00:00",
         "brand": "",
@@ -927,6 +910,23 @@
         ],
         "title": "چوب ماهیگیری ساپا مدل VALERIE-210",
         "use_case": "outdoor_travel"
+      },
+      {
+        "at": "2026-11-17T00:54:45.826169+00:00",
+        "brand": "brand:هایک_سمی",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "home",
+        "compared_to_product_id": "dkp-532451",
+        "family": "home:kitchen",
+        "product_id": "dkp-17125980",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "اس اس دی اینترنال SATA III هایک سمی مدل WAVE S ظرفیت 256 گیگابایت",
+        "use_case": "home_living"
       }
     ]
   }
