@@ -13,6 +13,7 @@ from urllib.parse import parse_qs, urlsplit
 import affilio_radar as radar_module
 from PIL import Image, ImageDraw
 from offerchin_copy import MEMBERSHIP_BUTTON_TEXT, purchase_action_label
+from publication_policy import MIN_CHANNEL_POST_INTERVAL_SECONDS, channel_post_interval_seconds
 
 from affilio_radar import (
     safe_product_url,
@@ -1640,7 +1641,7 @@ class AffilioRadarTests(unittest.TestCase):
         compact = radar_module.build_video_upload_dispatch_state(state, now=now)
         self.assertIsNone(compact["next_editorial_planning_at"])
 
-    def test_video_dispatch_state_wakes_at_related_editorial_midpoint(self):
+    def test_video_dispatch_state_wakes_at_related_editorial_shared_slot(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
         product_at = now + timedelta(hours=2)
         state = {
@@ -1661,10 +1662,10 @@ class AffilioRadarTests(unittest.TestCase):
         compact = radar_module.build_video_upload_dispatch_state(state, now=now)
         self.assertEqual(
             compact["next_editorial_planning_at"],
-            (now + timedelta(hours=1)).isoformat(),
+            (now + timedelta(seconds=channel_post_interval_seconds("editorial-planning:dkp-midpoint"))).isoformat(),
         )
 
-    def test_video_dispatch_state_uses_midpoint_without_a_minimum_gap(self):
+    def test_video_dispatch_state_uses_shared_minimum_for_short_product_gap(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
         product_at = now + timedelta(minutes=50)
         state = {
@@ -1685,7 +1686,7 @@ class AffilioRadarTests(unittest.TestCase):
         compact = radar_module.build_video_upload_dispatch_state(state, now=now)
         self.assertEqual(
             compact["next_editorial_planning_at"],
-            (now + timedelta(minutes=25)).isoformat(),
+            (now + timedelta(seconds=channel_post_interval_seconds("editorial-planning:dkp-tight-gap"))).isoformat(),
         )
 
     def test_video_dispatch_state_exposes_only_active_hash_pinned_emergency_continuity(self):
@@ -1736,6 +1737,7 @@ class AffilioRadarTests(unittest.TestCase):
                 "editorial:scheduled": {
                     "status": "queued",
                     "scheduled_at": "2026-11-05T13:30:00+00:00",
+                    "related_product_id": "dkp-scheduled",
                 },
             },
             "published": {
@@ -1766,7 +1768,7 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(
             compact["next_editorial_planning_at"],
-            "2026-11-05T13:00:00+00:00",
+            "2026-11-05T13:30:00+00:00",
         )
         self.assertEqual(compact["youtube_next_upload_at"], state["youtube_next_upload_at"])
         self.assertEqual(compact["aparat_next_upload_at"], state["aparat_next_upload_at"])
@@ -1856,7 +1858,10 @@ class AffilioRadarTests(unittest.TestCase):
 
         self.assertEqual(
             compact["next_channel_content_due_at"],
-            bale_retry_at.isoformat(),
+            max(
+                bale_retry_at,
+                now + timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS),
+            ).isoformat(),
         )
 
     def test_regular_and_sport_eyewear_share_one_global_family(self):
