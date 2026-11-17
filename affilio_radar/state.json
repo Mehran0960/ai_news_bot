@@ -8756,180 +8756,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-14915569",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "next_attempt_at": "2026-11-16T08:52:56.078740+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-14915569%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "10932",
-        "catalog_best_selling_category_name": "دئودورانت",
-        "catalog_best_selling_rank": 7,
-        "catalog_best_selling_ranks_by_category": {
-          "10932": {
-            "category_name": "دئودورانت",
-            "observed_at": "2026-11-16T07:39:56.099435+00:00",
-            "rank": 7,
-            "rank_history": [
-              {
-                "category_name": "دئودورانت",
-                "observed_at": "2026-11-16T07:39:56.099435+00:00",
-                "rank": 7
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T08:20:35.205024+00:00",
-        "catalog_cycle_snapshot_rank": 26,
-        "catalog_rank_observed_at": "2026-11-16T07:39:56.099435+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-16T08:30:58.412568+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-14915569",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 212000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 14.9,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 57.0,
-        "discount_percent": 43,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T08:31:23.097810+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 212000,
-        "history_low_toman": 212000,
-        "history_median_toman": 212000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 212000,
-        "history_start_day": "2026-11-15",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/788c85110a3c70f4586458f9cfb6f6254b26a88d_1733829126.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "affordability": 97.36,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 42.8,
-          "discount_attractiveness": 57.0,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 99.21,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "10932",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T08:31:23.100241+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "original_price": 373000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-14915569",
-        "product_url": "https://www.digikala.com/product/dkp-14915569/",
-        "promo_score": 30,
-        "publication_policy": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-        "qualifies_as_deal": true,
-        "rating": 4.19,
-        "recent_review_growth_7d": 1,
-        "recent_review_growth_window": 1,
-        "review_count": 156,
-        "savings_toman": 161000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 7,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "affordability": 97.36,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 42.8,
-          "discount_attractiveness": 57.0,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 99.21,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "10932",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T08:31:23.100241+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1227,
-        "title": "رول دئودورانت زنانه بیول مدل FRESH TOUCH حجم 75 میلی لیتر"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-14915569",
-      "product_plan_cycle_id": "2026-11-16T08:20:35.205024+00:00",
-      "scheduled_at": "2026-11-16T08:52:56.078740+00:00",
-      "selected_at": "2026-11-16T08:31:27.591570+00:00",
-      "sequence_number": 1227,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T09:04:53.181255+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-20774991",
       "content_type": "product",
       "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
@@ -44861,6 +44687,177 @@
       "sequence_number": 1506,
       "status": "stale_selection",
       "updated_at": "2026-11-17T19:14:34.854947+00:00"
+    },
+    {
+      "attempt_count": 0,
+      "content_id": "dkp-22367542",
+      "content_type": "product",
+      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
+      "next_attempt_at": "2026-11-17T20:27:50.833296+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22367542%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "فیزیکی",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "150",
+        "catalog_best_selling_category_name": "فیلم سینمایی",
+        "catalog_best_selling_rank": 12,
+        "catalog_best_selling_ranks_by_category": {
+          "150": {
+            "category_name": "فیلم سینمایی",
+            "observed_at": "2026-11-17T16:08:47.630720+00:00",
+            "rank": 12,
+            "rank_history": [
+              {
+                "category_name": "فیلم سینمایی",
+                "observed_at": "2026-11-17T16:08:47.630720+00:00",
+                "rank": 12
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-17T16:40:27.192558+00:00",
+        "catalog_cycle_snapshot_rank": 69,
+        "catalog_rank_observed_at": "2026-11-17T16:08:47.630720+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "tv_audio_video",
+        "checked_at": "2026-11-17T17:00:30.079119+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-22367542",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 175000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 68.21,
+        "discount_percent": 78,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-17T17:01:02.031541+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-17",
+        "history_high_toman": 175000,
+        "history_low_toman": 175000,
+        "history_median_toman": 175000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-17",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/20117dd578edc7cd4e65425a00a5ed708e01a22c_1785178315.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 76.26,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 68.21,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 78.0,
+          "generality_group": "audio_visual",
+          "live_demand": 84.32,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-17T17:01:02.033619+00:00",
+          "weakest_factor_score": 68.21
+        },
+        "original_price": 795000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-22367542",
+        "product_url": "https://www.digikala.com/product/dkp-22367542/",
+        "promo_score": 56,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "savings_toman": 620000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 12,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 76.26,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 68.21,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 78.0,
+          "generality_group": "audio_visual",
+          "live_demand": 84.32,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-17T17:01:02.033619+00:00",
+          "weakest_factor_score": 68.21
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1507,
+        "title": "مجموعه فیلم سینمایی ارباب حلقه ها و هابیت اثر پیتر جکسون نشر فیزیکی"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-22367542",
+      "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
+      "scheduled_at": "2026-11-17T19:47:34.234226+00:00",
+      "selected_at": "2026-11-17T17:01:09.347424+00:00",
+      "sequence_number": 1507,
+      "status": "stale_selection",
+      "updated_at": "2026-11-17T20:18:38.831230+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -45038,7 +45035,7 @@
       },
       "product_id": "dkp-13276009",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T01:12:50.833296+00:00",
+      "scheduled_at": "2026-11-18T00:53:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1514,
       "status": "queued"
@@ -45209,7 +45206,7 @@
       },
       "product_id": "dkp-13346026",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T06:27:50.833296+00:00",
+      "scheduled_at": "2026-11-18T06:08:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1522,
       "status": "queued"
@@ -45390,7 +45387,7 @@
       },
       "product_id": "dkp-1558255",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T00:07:50.833296+00:00",
+      "scheduled_at": "2026-11-17T23:48:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1512,
       "status": "queued"
@@ -45561,7 +45558,7 @@
       },
       "product_id": "dkp-16045969",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-17T21:58:50.833296+00:00",
+      "scheduled_at": "2026-11-17T21:39:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1509,
       "status": "queued"
@@ -45733,7 +45730,7 @@
       },
       "product_id": "dkp-17612057",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T08:51:50.833296+00:00",
+      "scheduled_at": "2026-11-18T08:32:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1526,
       "status": "queued"
@@ -45905,7 +45902,7 @@
       },
       "product_id": "dkp-18294816",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T07:38:50.833296+00:00",
+      "scheduled_at": "2026-11-18T07:19:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1524,
       "status": "queued"
@@ -46079,7 +46076,7 @@
       },
       "product_id": "dkp-19855707",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T12:25:50.833296+00:00",
+      "scheduled_at": "2026-11-18T12:06:50.833296+00:00",
       "selected_at": "2026-11-17T19:09:34.297606+00:00",
       "sequence_number": 1535,
       "status": "queued"
@@ -46257,7 +46254,7 @@
       },
       "product_id": "dkp-19993793",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-17T22:43:50.833296+00:00",
+      "scheduled_at": "2026-11-17T22:24:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1510,
       "status": "queued"
@@ -46429,7 +46426,7 @@
       },
       "product_id": "dkp-20750127",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T08:13:50.833296+00:00",
+      "scheduled_at": "2026-11-18T07:54:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1525,
       "status": "queued"
@@ -46605,7 +46602,7 @@
       },
       "product_id": "dkp-21031486",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T11:53:50.833296+00:00",
+      "scheduled_at": "2026-11-18T11:34:50.833296+00:00",
       "selected_at": "2026-11-17T18:30:21.502652+00:00",
       "sequence_number": 1533,
       "status": "queued"
@@ -46787,7 +46784,7 @@
       },
       "product_id": "dkp-21103222",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T11:17:50.833296+00:00",
+      "scheduled_at": "2026-11-18T10:58:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1530,
       "status": "queued"
@@ -46969,7 +46966,7 @@
       },
       "product_id": "dkp-21131845",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T10:43:50.833296+00:00",
+      "scheduled_at": "2026-11-18T10:24:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1529,
       "status": "queued"
@@ -47140,7 +47137,7 @@
       },
       "product_id": "dkp-21326014",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-17T21:12:50.833296+00:00",
+      "scheduled_at": "2026-11-17T20:53:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1508,
       "status": "queued"
@@ -47316,7 +47313,7 @@
       },
       "product_id": "dkp-21576074",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-17T23:22:50.833296+00:00",
+      "scheduled_at": "2026-11-17T23:03:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1511,
       "status": "queued"
@@ -47499,7 +47496,7 @@
       },
       "product_id": "dkp-21895534",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T05:12:50.833296+00:00",
+      "scheduled_at": "2026-11-18T04:53:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1520,
       "status": "queued"
@@ -47670,7 +47667,7 @@
       },
       "product_id": "dkp-22004922",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T07:07:50.833296+00:00",
+      "scheduled_at": "2026-11-18T06:48:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1523,
       "status": "queued"
@@ -47841,178 +47838,9 @@
       },
       "product_id": "dkp-22126022",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T04:28:50.833296+00:00",
+      "scheduled_at": "2026-11-18T04:09:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1519,
-      "status": "queued"
-    },
-    "dkp-22367542": {
-      "attempt_count": 0,
-      "content_id": "dkp-22367542",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-17T20:27:50.833296+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22367542%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "فیزیکی",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "150",
-        "catalog_best_selling_category_name": "فیلم سینمایی",
-        "catalog_best_selling_rank": 12,
-        "catalog_best_selling_ranks_by_category": {
-          "150": {
-            "category_name": "فیلم سینمایی",
-            "observed_at": "2026-11-17T16:08:47.630720+00:00",
-            "rank": 12,
-            "rank_history": [
-              {
-                "category_name": "فیلم سینمایی",
-                "observed_at": "2026-11-17T16:08:47.630720+00:00",
-                "rank": 12
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-17T16:40:27.192558+00:00",
-        "catalog_cycle_snapshot_rank": 69,
-        "catalog_rank_observed_at": "2026-11-17T16:08:47.630720+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "tv_audio_video",
-        "checked_at": "2026-11-17T17:00:30.079119+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22367542",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 175000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 68.21,
-        "discount_percent": 78,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-17T17:01:02.031541+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-17",
-        "history_high_toman": 175000,
-        "history_low_toman": 175000,
-        "history_median_toman": 175000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-17",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/20117dd578edc7cd4e65425a00a5ed708e01a22c_1785178315.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 76.26,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 68.21,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 78.0,
-          "generality_group": "audio_visual",
-          "live_demand": 84.32,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T17:01:02.033619+00:00",
-          "weakest_factor_score": 68.21
-        },
-        "original_price": 795000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-22367542",
-        "product_url": "https://www.digikala.com/product/dkp-22367542/",
-        "promo_score": 56,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "savings_toman": 620000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 12,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 76.26,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 68.21,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 78.0,
-          "generality_group": "audio_visual",
-          "live_demand": 84.32,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T17:01:02.033619+00:00",
-          "weakest_factor_score": 68.21
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1507,
-        "title": "مجموعه فیلم سینمایی ارباب حلقه ها و هابیت اثر پیتر جکسون نشر فیزیکی"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22367542",
-      "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-17T20:27:50.833296+00:00",
-      "selected_at": "2026-11-17T17:01:09.347424+00:00",
-      "sequence_number": 1507,
       "status": "queued"
     },
     "dkp-22404391": {
@@ -48181,7 +48009,7 @@
       },
       "product_id": "dkp-22404391",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T00:38:50.833296+00:00",
+      "scheduled_at": "2026-11-18T00:19:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1513,
       "status": "queued"
@@ -48351,7 +48179,7 @@
       },
       "product_id": "dkp-22431305",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T10:11:50.833296+00:00",
+      "scheduled_at": "2026-11-18T09:52:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1528,
       "status": "queued"
@@ -48522,7 +48350,7 @@
       },
       "product_id": "dkp-22732251",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T03:57:50.833296+00:00",
+      "scheduled_at": "2026-11-18T03:38:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1518,
       "status": "queued"
@@ -48693,7 +48521,7 @@
       },
       "product_id": "dkp-22750608",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T05:53:50.833296+00:00",
+      "scheduled_at": "2026-11-18T05:34:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1521,
       "status": "queued"
@@ -48865,7 +48693,7 @@
       },
       "product_id": "dkp-3279500",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T01:54:50.833296+00:00",
+      "scheduled_at": "2026-11-18T01:35:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1515,
       "status": "queued"
@@ -49036,7 +48864,7 @@
       },
       "product_id": "dkp-5741395",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T02:39:50.833296+00:00",
+      "scheduled_at": "2026-11-18T02:20:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1516,
       "status": "queued"
@@ -49206,7 +49034,7 @@
       },
       "product_id": "dkp-6901981",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T09:36:50.833296+00:00",
+      "scheduled_at": "2026-11-18T09:17:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1527,
       "status": "queued"
@@ -49377,7 +49205,7 @@
       },
       "product_id": "dkp-9102447",
       "product_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-      "scheduled_at": "2026-11-18T03:13:50.833296+00:00",
+      "scheduled_at": "2026-11-18T02:54:50.833296+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1517,
       "status": "queued"
@@ -172370,11 +172198,9 @@
       "attempt_count": 0,
       "content_id": "editorial:check-delivery-window",
       "content_type": "editorial",
-      "delivery_duration_seconds": 19.2,
-      "delivery_runway_seconds": 42,
-      "delivery_started_at": "2026-11-17T19:46:32.319592+00:00",
-      "dispatch_runway_seconds": 102,
-      "next_attempt_at": "2026-11-17T19:46:31.778463+00:00",
+      "delivery_runway_seconds": 33,
+      "dispatch_runway_seconds": 93,
+      "next_attempt_at": "2026-11-17T20:18:50.833296+00:00",
       "payload": {
         "body": "⏱️ زمان رسیدن سفارش برای همه کالاها یکسان نیست؛ نوع کالا، شهر مقصد، موجودی فروشنده و روش ارسال می‌توانند آن را تغییر دهند. پیش از پرداخت، بازه تحویل و روش‌های فعال برای همان کالا و نشانی را در صفحه سفارش بررسی کن؛ به یک زمان عمومی تکیه نکن.",
         "content_id": "editorial:check-delivery-window",
@@ -172383,10 +172209,10 @@
         "editorial_cycle_number": 2,
         "editorial_id": "check-delivery-window",
         "idempotency_key": "fcdd7e8bd5a229df",
-        "related_product_id": "dkp-22367542",
+        "related_product_id": "dkp-21326014",
         "review_due_at": "2027-02-13T04:30:00Z",
         "reviewed_at": "2026-11-15T04:30:00Z",
-        "sequence_number": 1537,
+        "sequence_number": 1538,
         "sources": [
           {
             "publisher": "دیجی‌کالا مگ",
@@ -172404,49 +172230,38 @@
           "status": "pending"
         },
         "bale": {
-          "attempt_started_at": "2026-11-17T19:46:34.349350+00:00",
-          "attempts": 1,
-          "message_id": "2249",
-          "status": "sent",
-          "updated_at": "2026-11-17T19:46:43.895173+00:00"
+          "attempts": 0,
+          "status": "pending"
         },
         "eitaa": {
           "attempts": 0,
-          "last_error": "eitaa_not_enabled_or_credentials_missing",
-          "status": "not_connected",
-          "updated_at": "2026-11-17T19:46:51.179458+00:00"
+          "status": "pending"
         },
         "filo": {
           "attempts": 0,
           "status": "pending"
         },
         "rubika": {
-          "attempt_started_at": "2026-11-17T19:46:44.232315+00:00",
-          "attempts": 1,
-          "message_id": "1975099138567588651",
-          "status": "sent",
-          "updated_at": "2026-11-17T19:46:50.833296+00:00"
+          "attempts": 0,
+          "status": "pending"
         },
         "telegram": {
-          "attempt_started_at": "2026-11-17T19:46:32.836371+00:00",
-          "attempts": 1,
-          "message_id": "1681",
-          "status": "sent",
-          "updated_at": "2026-11-17T19:46:33.934144+00:00"
+          "attempts": 0,
+          "status": "pending"
         },
         "youtube": {
           "attempts": 0,
           "status": "pending"
         }
       },
-      "related_product_id": "dkp-22367542",
-      "related_product_original_scheduled_at": "2026-11-17T19:47:34.234226+00:00",
-      "related_product_reserved_scheduled_at": "2026-11-17T20:24:31.778463+00:00",
-      "scheduled_at": "2026-11-17T19:46:31.778463+00:00",
-      "selected_at": "2026-11-17T19:46:31.778463+00:00",
-      "sequence_number": 1537,
-      "status": "partial",
-      "window_closes_at": "2026-11-17T19:53:31.778463+00:00"
+      "related_product_id": "dkp-21326014",
+      "related_product_original_scheduled_at": "2026-11-17T20:35:53.289059+00:00",
+      "related_product_reserved_scheduled_at": "2026-11-17T20:53:50.833296+00:00",
+      "scheduled_at": "2026-11-17T20:18:50.833296+00:00",
+      "selected_at": "2026-11-17T20:18:38.831230+00:00",
+      "sequence_number": 1538,
+      "status": "queued",
+      "window_closes_at": "2026-11-17T20:22:50.833296+00:00"
     }
   },
   "emergency_continuity": {
@@ -172766,7 +172581,7 @@
   },
   "last_channel_published_at": "2026-11-17T19:46:50.833296+00:00",
   "last_content_selection_at": "2026-11-17T19:09:34.297606+00:00",
-  "last_editorial_attempt_at": "2026-11-17T19:46:31.778463+00:00",
+  "last_editorial_attempt_at": "2026-11-17T20:18:38.831230+00:00",
   "last_editorial_confirmed_at": "2026-11-17T19:46:50.833296+00:00",
   "last_product_channel_published_at": "2026-11-17T18:30:34.234226+00:00",
   "last_published_at": "2026-11-17T19:46:50.833296+00:00",
@@ -265579,7 +265394,7 @@
       "ts": 1794875519.055357
     }
   },
-  "publication_sequence_counter": 1537,
+  "publication_sequence_counter": 1538,
   "published": {
     "dkp-10002173": {
       "aparat_skip_reason": "verified_expiry_required",
