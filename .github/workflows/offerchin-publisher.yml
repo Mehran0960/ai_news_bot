@@ -21,7 +21,7 @@ on:
       - main
     paths:
       - ".github/workflows/offerchin-publisher.yml"
-  # Cloudflare checks every minute and dispatches only when the next product or midpoint-editorial slot is due.
+  # Cloudflare checks every minute and dispatches only when the next product or reserved-editorial slot is due.
   # [publisher-run-now] One-time resume after channel-publication clock repair.
   # [publisher-run-now] One-time retry after transient image-fetch and stale-selection fixes.
   # [publisher-run-now] One-time verify active-queue cadence repair.
@@ -129,7 +129,7 @@ jobs:
             test_affilio.AffilioRadarTests.test_last_mile_photo_sender_accepts_a_49_percent_offer_with_real_markdown \
             test_affilio.AffilioRadarTests.test_preferred_posting_windows_use_iran_local_time \
             test_affilio.AffilioRadarTests.test_video_dispatch_state_never_schedules_standalone_editorial_without_product_slot \
-            test_affilio.AffilioRadarTests.test_video_dispatch_state_uses_midpoint_without_a_minimum_gap \
+            test_affilio.AffilioRadarTests.test_video_dispatch_state_uses_shared_minimum_for_short_product_gap \
             test_affilio.AffilioRadarTests.test_video_dispatch_state_does_not_keep_channel_slot_due_for_video_backlog \
             test_affilio.AffilioRadarTests.test_video_dispatch_state_tracks_unsent_core_channel_retry_not_optional_backlog \
             test_affilio.AffilioRadarTests.test_video_upload_candidate_limit_covers_dispatch_sidecar \
