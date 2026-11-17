@@ -86,7 +86,7 @@ jobs:
             affilio_radar/filo_uploader.py \
             affilio_radar/short_video.py
           cd affilio_radar
-          python -m unittest -v test_filo_uploader.py test_filo_upload_schedule.py test_shared_selection_media_routing.py
+          python -m unittest -v test_filo_uploader.py test_filo_upload_schedule.py test_shared_selection_media_routing.py test_merge_state_conflicts.py
 
       - name: Verify Filo login without publishing
         if: ${{ github.event_name == 'push' || inputs.mode == 'verify-login' }}
@@ -135,8 +135,17 @@ jobs:
               git add affilio_radar/video_upload_dispatch_state.json
             fi
             git commit -m "chore: persist Filo video upload state [skip ci]"
-            git pull --rebase origin main
-            git push
+            for attempt in 1 2 3; do
+              if (git pull --rebase origin main || python affilio_radar/merge_state_conflicts.py --paths affilio_radar/state.json affilio_radar/video_upload_dispatch_state.json) && git push; then
+                echo "FILO_STATE_PERSISTED attempt=$attempt"
+                exit 0
+              fi
+              git rebase --abort 2>/dev/null || true
+              echo "Filo state persistence attempt $attempt failed; retrying."
+              sleep $((attempt * 2))
+            done
+            echo "FILO_STATE_PERSIST_FAILED; next dispatcher run will reconcile the saved upload slot."
+            exit 1
           else
             echo "No Filo state changes to persist."
           fi
