@@ -537,7 +537,7 @@ def reflow_product_queue_after_delivery(
         "interval_seconds": interval_seconds,
         "interval_minutes": round(interval_seconds / 60, 3),
         "maximum_product_interval_seconds": MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS,
-        "policy": "shared_21_minimum_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
+        "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
     })
     state["product_publication_cadence"] = updated_cadence
     state["product_publication_interval_seconds"] = interval_seconds
