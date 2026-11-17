@@ -1318,7 +1318,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(result["planned_product_slots"], 2)
         self.assertTrue(result["first_slot_due_now"])
 
-    def test_product_plan_anchor_ignores_editorial_publication_clock(self):
+    def test_product_plan_anchor_respects_editorial_publication_clock(self):
         editorial_at = self.now - timedelta(minutes=2)
         state = {
             "last_channel_published_at": editorial_at.isoformat(),
@@ -1391,7 +1391,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
         self.assertEqual(result["interval_seconds"], 47 * 60)
         self.assertEqual(first, self.now)
-        self.assertEqual(second, self.now + timedelta(minutes=57))
+        self.assertEqual(second, self.now + timedelta(minutes=47))
         self.assertTrue(state["product_publication_cadence"]["scan_eta_is_provisional"])
 
     def test_product_queue_slots_are_evenly_rescheduled(self):
