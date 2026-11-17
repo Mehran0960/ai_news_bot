@@ -3023,3 +3023,20 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** انتشار بیشتر در cooldown واقعی YouTube ممکن نیست؛ دورزدن سهمیه مجاز/قابل اتکا نیست. اصلاح فقط صف را حفظ می‌کند تا در اولین زمان مجاز ادامه یابد. rollback با revert PR و بازگرداندن رفتار قدیمی انجام می‌شود.
 
 **وضعیت:** تغییر در PR #236 منتظر CI است؛ انتشار YouTube تا reset سهمیهٔ API متوقف می‌ماند، ولی سایر رسانه‌ها مستقل‌اند.
+
+
+## ۲۰۲۶-۱۱-۱۷ — حفظ صف یوتیوب و retry پس از cooldown سهمیه
+
+**هدف:** پاسخ واقعی daily quota یوتیوب فقط همان مقصد را موقتاً متوقف کند؛ آیتم‌ها حذف یا terminal نشوند و پس از reset خودکار برگردند.
+
+**تغییر/اقدام:** وضعیت `skipped_platform_limit` برای daily quota به `retry` با `youtube_next_attempt_at` تبدیل شد. Worker pause سراسری یوتیوب را فقط برای YouTube اعمال می‌کند و retry timestamp هر مقصد را رعایت می‌کند. پس از cooldown، legacy skipها نیز به‌صورت خودکار requeue می‌شوند. HTTP 429 غیرروزانه backoff ۱۵ دقیقه‌ای دارد. Aparat/Filo/کانال‌ها در زمان pause یوتیوب ادامه می‌دهند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `affilio_radar/test_affilio.py`، `affilio_radar/test_shared_selection_media_routing.py`، `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، Handbook و سیاست استقلال رسانه‌ها.
+
+**آزمون و نتیجه:** تست‌های daily quota، حفظ صف چندمحصولی، resume پس از cooldown و عدم اثر pause یوتیوب بر Aparat افزوده شدند. نتیجهٔ CI در PR #236 ثبت می‌شود.
+
+**شواهد/شناسه:** اجرای زندهٔ ۱۷ نوامبر پس از ۶ آپلود موفق YouTube، پاسخ `rateLimitExceeded / Video Uploads per day` و cooldown تا `2026-11-18T18:39:32Z` ثبت کرد. این محدودیت از API مقصد بود، نه قفل مشترک رسانه‌ها. PR #236.
+
+**ریسک/بازگشت:** انتشار بیشتر در cooldown واقعی YouTube ممکن نیست؛ دورزدن سهمیه قابل اتکا نیست. اصلاح فقط صف را حفظ می‌کند تا در اولین زمان مجاز ادامه یابد. rollback با revert PR و بازگرداندن رفتار قدیمی انجام می‌شود.
+
+**وضعیت:** تغییر در PR #236 منتظر CI است؛ انتشار YouTube تا reset سهمیهٔ API متوقف می‌ماند، ولی سایر رسانه‌ها مستقل‌اند.
