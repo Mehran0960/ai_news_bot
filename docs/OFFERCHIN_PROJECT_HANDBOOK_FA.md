@@ -2905,3 +2905,8 @@ Workflow آپلود فیلو دیگر روی هر push به‌صورت login-onl
 ### بازگشت خودکار صف یوتیوب پس از سقف واقعی API — ۱۷ نوامبر ۲۰۲۶
 
 سقف روزانهٔ YouTube API یک محدودیت واقعی مقصد است و نباید با دورزدن API حل شود؛ اما دیگر نباید آیتم‌های صف را به‌صورت terminal `skipped_platform_limit` حذف کند. آیتم‌های منتظر با `retry` و `youtube_next_attempt_at` تا زمان اعلام‌شده نگه داشته می‌شوند. Worker فقط YouTube را تا `youtube_uploads_paused_until` defer می‌کند؛ Aparat، Filo و کانال‌های عکس مستقل ادامه می‌دهند. پس از پایان cooldown، آیتم‌های قدیمی نیز خودکار به صف upload برمی‌گردند. خطای HTTP 429 غیرروزانه backoff محلی ۱۵دقیقه‌ای دارد.
+
+
+### بازگشت خودکار صف یوتیوب پس از سقف واقعی API — ۱۷ نوامبر ۲۰۲۶
+
+سقف روزانهٔ YouTube API یک محدودیت واقعی مقصد است و نباید با دورزدن API حل شود؛ اما دیگر نباید آیتم‌های صف را به‌صورت terminal `skipped_platform_limit` حذف کند. آیتم‌های منتظر با `retry` و `youtube_next_attempt_at` تا زمان اعلام‌شده نگه داشته می‌شوند. Worker فقط YouTube را تا `youtube_uploads_paused_until` defer می‌کند؛ Aparat، Filo و کانال‌های عکس مستقل ادامه می‌دهند. پس از پایان cooldown، آیتم‌های قدیمی نیز خودکار به صف upload برمی‌گردند. خطای HTTP 429 غیرروزانه backoff محلی ۱۵دقیقه‌ای دارد.
