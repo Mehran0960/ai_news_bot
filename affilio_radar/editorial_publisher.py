@@ -474,12 +474,32 @@ def _topic_emoji(item: dict) -> str:
 
 
 def _readable_editorial_body(value: Any) -> str:
-    """Separate authored lines and complete sentences into readable paragraphs."""
+    """Render original editorial prose while stripping public source/affiliate material.
+
+    Provenance remains in the reviewed bank and internal delivery ledger. It is never
+    appended to a public caption or video description. A whole line containing a link
+    or source/commerce footer is discarded to avoid leaving a broken markdown CTA.
+    """
     normalized = str(value or "").replace("\r\n", "\n").replace("\r", "\n")
     paragraphs: list[str] = []
+    forbidden_markers = (
+        "📚 منبع:",
+        "منبع:",
+        "منابع:",
+        "پیوند همکاری در فروش",
+        "مشاهدهٔ پیشنهاد مرتبط",
+        "مشاهده پیشنهاد مرتبط",
+        "aflo.ir",
+        "digikala.com/mag/",
+    )
     for raw_line in normalized.split("\n"):
         line = raw_line.strip()
         if not line:
+            continue
+        folded = line.casefold()
+        if any(marker.casefold() in folded for marker in forbidden_markers):
+            continue
+        if re.search(r"https?://|www\.", line, flags=re.IGNORECASE) or "](" in line:
             continue
         sentences = re.split(r"(?<=[.!?؟])\s+", line)
         paragraphs.extend(part.strip() for part in sentences if part.strip())
@@ -985,6 +1005,42 @@ def _refresh_delivery_history(state: dict, entry: dict, now: datetime) -> None:
                 row["delivery_duration_seconds"] = entry.get("delivery_duration_seconds")
 
 
+def _release_failed_editorial_product_reservation(state: dict, entry: dict) -> None:
+    """Undo a planned product delay when no public channel actually received editorial."""
+    related_id = str(entry.get("related_product_id") or "").strip()
+    original_at = _utc(entry.get("related_product_original_scheduled_at"))
+    reserved_at = _utc(entry.get("related_product_reserved_scheduled_at"))
+    if not related_id or original_at is None or reserved_at is None:
+        return
+    shift = reserved_at - original_at
+    if shift.total_seconds() <= 0:
+        return
+    queue = state.get("content_delivery_queue")
+    if not isinstance(queue, dict):
+        return
+    for product_id, product_entry in queue.items():
+        if not isinstance(product_entry, dict):
+            continue
+        if str(product_id) != related_id:
+            product_at = _utc(product_entry.get("scheduled_at"))
+            if product_at is None or product_at < reserved_at:
+                continue
+            new_at = product_at - shift
+        else:
+            new_at = original_at
+        product_entry["scheduled_at"] = new_at.isoformat()
+        retry_at = _utc(product_entry.get("next_attempt_at"))
+        product_entry["next_attempt_at"] = (
+            max(new_at, retry_at).isoformat()
+            if retry_at is not None and retry_at > _now()
+            else new_at.isoformat()
+        )
+    print(
+        "EDITORIAL_PRODUCT_SLOT_RESERVATION_RELEASED "
+        f"related_product_id={related_id} restored_seconds={int(shift.total_seconds())}"
+    )
+
+
 def _finalize_if_terminal(state: dict, entry: dict, now: datetime) -> bool:
     targets = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
     if not all(
@@ -994,6 +1050,12 @@ def _finalize_if_terminal(state: dict, entry: dict, now: datetime) -> bool:
         entry["status"] = "partial"
         return False
     success = any(targets[name].get("status") == "sent" for name in PLATFORM_NAMES)
+    channel_success = any(
+        isinstance(targets.get(name), dict) and targets[name].get("status") == "sent"
+        for name in CHANNEL_DESTINATIONS
+    )
+    if not channel_success:
+        _release_failed_editorial_product_reservation(state, entry)
     entry["status"] = "completed" if success else "failed"
     entry["updated_at"] = now.isoformat()
     entry["terminal_summary"] = {name: targets[name].get("status") for name in PLATFORM_NAMES}
