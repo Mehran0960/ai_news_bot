@@ -17,6 +17,13 @@ class ThreeWayMergeTests(unittest.TestCase):
         self.assertEqual(three_way_merge(base,ours,theirs)["published"]["p1"]["delivery_status"],
                          {"telegram":"sent","bale":"sent"})
 
+    def test_new_nested_destination_maps_merge_without_losing_siblings(self):
+        base={"published":{"p1":{}}}
+        ours={"published":{"p1":{"platform_message_ids":{"rubika":11}}}}
+        theirs={"published":{"p1":{"platform_message_ids":{"eitaa":22}}}}
+        merged=three_way_merge(base,ours,theirs)
+        self.assertEqual(merged["published"]["p1"]["platform_message_ids"], {"rubika":11,"eitaa":22})
+
     def test_latest_channel_timestamp_wins(self):
         base={"last_channel_published_at":"2026-11-17T10:00:00+00:00"}
         ours={"last_channel_published_at":"2026-11-17T10:05:00+00:00"}
