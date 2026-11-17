@@ -23,6 +23,11 @@ from pathlib import Path
 from urllib.parse import parse_qs, quote, urlencode, urljoin, urlsplit, urlunsplit
 
 import requests
+from publication_policy import (
+    DEFAULT_DAILY_CHANNEL_POST_LIMIT,
+    MIN_CHANNEL_POST_INTERVAL_SECONDS,
+    editorial_frequency_allowed,
+)
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from product_quality import (
     is_prohibited_product_title,
@@ -141,7 +146,7 @@ SNAPPSHOP_RESERVED_CANDIDATES = max(4, min(12, MAX_PRODUCT_CHECKS // 7))
 SNAPPSHOP_QUERIES_PER_SCAN = max(1, min(8, int(os.getenv("AFFILIO_SNAPPSHOP_QUERIES_PER_SCAN", "4"))))
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2"))))
 # Independent Telegram/Bale volume guard, counted by Iran's calendar day; never reserve or gate channel posts on YouTube API quota.
-MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", "72"))))
+MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", str(DEFAULT_DAILY_CHANNEL_POST_LIMIT)))))
 # All video destinations are event-driven; platform quotas and eligibility checks still apply.
 # Zero is retained for legacy imports and workflow environment compatibility.
 YOUTUBE_UPLOAD_INTERVAL_HOURS = 0
@@ -5174,6 +5179,14 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
     if isinstance(state, dict):
         # Delete legacy interval state before projecting the age-free FIFO to Cloudflare.
         _initialize_filo_upload_slot(state)
+    last_channel_at = (
+        _parse_utc_datetime(state.get("last_channel_published_at"))
+        if isinstance(state, dict) else None
+    )
+    earliest_next_channel_at = (
+        last_channel_at + timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS)
+        if last_channel_at is not None else None
+    )
     published = state.get("published") if isinstance(state, dict) else {}
     candidates = []
     if isinstance(published, dict):
@@ -5279,7 +5292,10 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                             entry.get("next_attempt_at") or entry.get("scheduled_at")
                         )
                     if target is not None:
-                        next_channel_due.append(target.astimezone(timezone.utc))
+                        target = target.astimezone(timezone.utc)
+                        if earliest_next_channel_at is not None:
+                            target = max(target, earliest_next_channel_at)
+                        next_channel_due.append(target)
     next_channel_due_at = (
         min(next_channel_due).isoformat() if next_channel_due else None
     )
@@ -5344,9 +5360,10 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
             )
             midpoint_at = anchor_at + timedelta(seconds=max(0, gap_seconds) / 2)
             if (
-                not already_linked
+                editorial_frequency_allowed(state)
+                and not already_linked
                 and not already_checked_after_product
-                and gap_seconds > 0
+                and gap_seconds >= 2 * MIN_CHANNEL_POST_INTERVAL_SECONDS
                 and midpoint_at > current
                 and product_at > current
             ):
@@ -12361,6 +12378,20 @@ def run(publish=False, selection_only=False):
         for item in eligible:
             if sent >= run_post_limit:
                 break
+            if publish and not selection_only:
+                # Legacy direct-publish recovery uses the same shared channel clock
+                # as the queue publisher; never burst a second item in one run.
+                from content_delivery import channel_publication_wait_seconds
+                spacing_wait = channel_publication_wait_seconds(
+                    state, now=datetime.now(timezone.utc)
+                )
+                if spacing_wait > 0:
+                    print(
+                        "PUBLISH_BLOCKED: shared channel spacing guard "
+                        f"remaining_seconds={spacing_wait} "
+                        f"minimum_gap_seconds={MIN_CHANNEL_POST_INTERVAL_SECONDS}"
+                    )
+                    break
             if attempted_candidates >= MAX_PUBLISH_CANDIDATE_ATTEMPTS:
                 print(
                     f"PUBLISH_FALLBACK_LIMIT attempts={attempted_candidates} "
