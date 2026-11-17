@@ -5,13 +5,14 @@ import math
 from datetime import datetime, timedelta, timezone
 
 from content_delivery import (
-    calculate_product_publication_cadence,
+    calculate_product_publication_cadence, channel_publication_wait_seconds,
     due_content, due_unpublished_selection, enqueue_selected_content,
     finish_queue_item, get_last_channel_published_at, get_last_product_channel_published_at,
     has_fresh_unpublished_selection, allocate_publication_sequence, promote_fallback_selection,
     refresh_unpublished_selections, selection_cadence_anchor, reschedule_product_queue_evenly,
     reflow_product_queue_after_delivery,
 )
+from publication_policy import MIN_CHANNEL_POST_INTERVAL_SECONDS
 from platform_registry import CORE_PHOTO_PLATFORMS, PHOTO_PLATFORMS, PLATFORM_NAMES
 from publisher import (
     publish_due_queue, _fresh_selected_item, _eligible_fallback_candidates,
@@ -105,7 +106,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         state = {}
         enqueue_selected_content(
             state, [self.item("dkp-first")], now=self.now,
-            interval_seconds=1200, minimum_runway_minutes=0,
+            interval_seconds=1860, minimum_runway_minutes=0,
         )
         first = datetime.fromisoformat(
             state["content_delivery_queue"]["dkp-first"]["scheduled_at"]
@@ -117,18 +118,18 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         enqueue_selected_content(
             state, [self.item("dkp-second")],
             now=self.now + timedelta(minutes=1),
-            interval_seconds=1200, minimum_runway_minutes=0,
+            interval_seconds=1860, minimum_runway_minutes=0,
         )
         second = datetime.fromisoformat(
             state["content_delivery_queue"]["dkp-second"]["scheduled_at"]
         )
-        self.assertEqual(second, self.now + timedelta(minutes=20))
+        self.assertEqual(second, self.now + timedelta(minutes=31))
 
 
     def test_enqueue_persists_platform_neutral_payload_without_delivery(self):
         state = {}
         summary = enqueue_selected_content(
-            state, [self.item()], now=self.now, interval_seconds=1200, max_items=1
+            state, [self.item()], now=self.now, interval_seconds=1860, max_items=1
         )
         self.assertEqual(summary["added"], 1)
         entry = state["content_delivery_queue"]["dkp-123"]
@@ -165,14 +166,15 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(state["last_published_at"], latest_channel_send.isoformat())
 
         # The stale future retry time must not delay a fresh queue hand-off.
+        # The shared channel clock must still enforce 31 minutes from the last real send.
         summary = enqueue_selected_content(
             state, [self.item("dkp-fresh")], now=self.now,
-            interval_seconds=1200, max_items=1, minimum_runway_minutes=0,
+            interval_seconds=1860, max_items=1, minimum_runway_minutes=0,
         )
         self.assertEqual(summary["added"], 1)
         self.assertEqual(
             datetime.fromisoformat(state["content_delivery_queue"]["dkp-fresh"]["scheduled_at"]),
-            self.now,
+            latest_channel_send + timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS),
         )
 
     def test_partial_media_retry_does_not_advance_channel_publication_clock(self):
@@ -184,7 +186,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         state = {}
         enqueue_selected_content(
             state, [self.item("dkp-video-pending")], now=actual_channel_send,
-            interval_seconds=1200, max_items=1, minimum_runway_minutes=0,
+            interval_seconds=1860, max_items=1, minimum_runway_minutes=0,
         )
         entry = state["content_delivery_queue"]["dkp-video-pending"]
         entry["status"] = "partial"
@@ -573,14 +575,14 @@ class ContentDeliveryQueueTests(unittest.TestCase):
     def test_queue_enforces_spacing_and_dedupes_active_content(self):
         state = {}
         items = [self.item("dkp-1"), self.item("dkp-2")]
-        enqueue_selected_content(state, items, now=self.now, interval_seconds=1200, max_items=2)
+        enqueue_selected_content(state, items, now=self.now, interval_seconds=1860, max_items=2)
         queue = state["content_delivery_queue"]
         self.assertEqual(
             datetime.fromisoformat(queue["dkp-2"]["scheduled_at"])
             - datetime.fromisoformat(queue["dkp-1"]["scheduled_at"]),
-            timedelta(seconds=1200),
+            timedelta(seconds=1860),
         )
-        again = enqueue_selected_content(state, items, now=self.now, interval_seconds=1200, max_items=2)
+        again = enqueue_selected_content(state, items, now=self.now, interval_seconds=1860, max_items=2)
         self.assertEqual(again["added"], 0)
         self.assertEqual(again["queue_size"], 2)
 
@@ -597,20 +599,20 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         state = {}
         enqueue_selected_content(
             state, [self.item("dkp-old-partial")], now=self.now,
-            interval_seconds=1200, max_items=1,
+            interval_seconds=1860, max_items=1,
         )
         old = state["content_delivery_queue"]["dkp-old-partial"]
         old["status"] = "partial"
         old["platforms"]["telegram"]["status"] = "sent"
         old["platforms"]["bale"]["status"] = "failed"
-        next_slot = self.now + timedelta(minutes=20)
+        next_slot = self.now + timedelta(minutes=31)
         old["scheduled_at"] = next_slot.isoformat()
         old["next_attempt_at"] = next_slot.isoformat()
         state["last_published_at"] = self.now.isoformat()
 
         summary = enqueue_selected_content(
             state, [self.item("dkp-fresh")], now=self.now + timedelta(minutes=5),
-            interval_seconds=1200, max_items=1,
+            interval_seconds=1860, max_items=1,
         )
         self.assertEqual(summary["added"], 1)
         self.assertEqual(
@@ -622,15 +624,15 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         state = {}
         enqueue_selected_content(
             state, [self.item("dkp-1")], now=self.now,
-            interval_seconds=1200, max_items=1, max_active_items=2,
+            interval_seconds=1860, max_items=1, max_active_items=2,
         )
         enqueue_selected_content(
             state, [self.item("dkp-2")], now=self.now + timedelta(minutes=1),
-            interval_seconds=1200, max_items=1, max_active_items=2,
+            interval_seconds=1860, max_items=1, max_active_items=2,
         )
         result = enqueue_selected_content(
             state, [self.item("dkp-3")], now=self.now + timedelta(minutes=2),
-            interval_seconds=1200, max_items=1, max_active_items=2,
+            interval_seconds=1860, max_items=1, max_active_items=2,
         )
         self.assertEqual(result["queue_size"], 2)
         self.assertEqual(set(state["content_delivery_queue"]), {"dkp-2", "dkp-3"})
@@ -643,7 +645,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         deadline = self.now + timedelta(minutes=45)
         result = enqueue_selected_content(
             state, [self.item(deadline=deadline)], now=self.now,
-            interval_seconds=1200, max_items=1, minimum_runway_minutes=60,
+            interval_seconds=1860, max_items=1, minimum_runway_minutes=60,
         )
         self.assertEqual(result["added"], 0)
         self.assertNotIn("dkp-123", state["content_delivery_queue"])
@@ -663,10 +665,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
     def test_due_items_obey_schedule_and_retry_time(self):
         state = {}
         enqueue_selected_content(state, [self.item("dkp-1"), self.item("dkp-2")],
-                                 now=self.now, interval_seconds=1200, max_items=2)
+                                 now=self.now, interval_seconds=1860, max_items=2)
         due_now = due_content(state, now=self.now, limit=5)
         self.assertEqual([pid for pid, _entry in due_now], ["dkp-1"])
-        later = due_content(state, now=self.now + timedelta(minutes=21), limit=5)
+        later = due_content(state, now=self.now + timedelta(minutes=31), limit=5)
         self.assertEqual({pid for pid, _entry in later}, {"dkp-1", "dkp-2"})
 
 
@@ -676,7 +678,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             state,
             [self.item("dkp-100", demand=0), self.item("dkp-200", demand=999)],
             now=self.now,
-            interval_seconds=1200,
+            interval_seconds=1860,
             max_items=2,
         )
         # Force an exact schedule tie; stable insertion order is the original
@@ -693,7 +695,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         state = {"last_product_channel_published_at": (self.now - timedelta(minutes=5)).isoformat()}
         enqueue_selected_content(
             state, [self.item("dkp-future")], now=self.now,
-            interval_seconds=1200, max_items=1,
+            interval_seconds=1860, max_items=1,
         )
         future = state["content_delivery_queue"]["dkp-future"]
         self.assertGreater(datetime.fromisoformat(future["scheduled_at"]), self.now)
@@ -707,7 +709,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         state = {}
         enqueue_selected_content(
             state, [self.item("dkp-video-pending")], now=self.now,
-            interval_seconds=1200, max_items=1,
+            interval_seconds=1860, max_items=1,
         )
         old = state["content_delivery_queue"]["dkp-video-pending"]
         old["status"] = "partial"
@@ -715,10 +717,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         old["platforms"]["youtube"]["status"] = "pending"
         state["last_published_at"] = self.now.isoformat()
 
-        next_time = self.now + timedelta(minutes=20)
+        next_time = self.now + timedelta(minutes=31)
         summary = enqueue_selected_content(
             state, [self.item("dkp-new")], now=next_time,
-            interval_seconds=1200, max_items=1,
+            interval_seconds=1860, max_items=1,
         )
         self.assertEqual(summary["added"], 1)
         self.assertEqual(
@@ -733,7 +735,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         state = {}
         enqueue_selected_content(
             state, [self.item("dkp-pending")], now=self.now,
-            interval_seconds=1200, max_items=1,
+            interval_seconds=1860, max_items=1,
         )
         self.assertEqual(
             due_unpublished_selection(state, now=self.now), "dkp-pending"
@@ -746,7 +748,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         state = {}
         enqueue_selected_content(
             state, [self.item("dkp-old-partial", demand=90)],
-            now=self.now - timedelta(minutes=30), interval_seconds=1200,
+            now=self.now - timedelta(minutes=30), interval_seconds=1860,
         )
         old = state["content_delivery_queue"]["dkp-old-partial"]
         old["status"] = "partial"
@@ -754,7 +756,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         old["platforms"]["youtube"]["status"] = "pending"
         enqueue_selected_content(
             state, [self.item("dkp-fresh", demand=45)],
-            now=self.now, interval_seconds=1200,
+            now=self.now, interval_seconds=1860,
         )
 
         due = due_content(state, now=self.now, limit=1)
@@ -765,7 +767,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         state = {}
         enqueue_selected_content(
             state, [self.item("dkp-123")],
-            now=self.now - timedelta(minutes=10), interval_seconds=1200, max_items=1,
+            now=self.now - timedelta(minutes=10), interval_seconds=1860, max_items=1,
         )
         state["published"] = {
             "dkp-123": {
@@ -823,7 +825,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
     def test_stale_primary_promotes_next_backup_as_immediately_due(self):
         state = {}
         enqueue_selected_content(
-            state, [self.item("dkp-99001")], now=self.now, interval_seconds=1200,
+            state, [self.item("dkp-99001")], now=self.now, interval_seconds=1860,
         )
         primary = state["content_delivery_queue"]["dkp-99001"]
         primary["fallback_candidates"] = [
@@ -867,7 +869,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
     def test_publisher_uses_backup_in_same_run_after_primary_fails_live_check(self):
         state = {}
         enqueue_selected_content(
-            state, [self.item("dkp-99001")], now=self.now, interval_seconds=1200,
+            state, [self.item("dkp-99001")], now=self.now, interval_seconds=1860,
         )
         fallback_candidate = {
             **self.item("dkp-99002", demand=45),
@@ -932,7 +934,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
     def test_already_selected_product_revalidates_live_when_catalog_snapshot_is_unavailable(self):
         state = {}
         enqueue_selected_content(
-            state, [self.item("dkp-99004")], now=self.now, interval_seconds=1200,
+            state, [self.item("dkp-99004")], now=self.now, interval_seconds=1860,
         )
         with (
             patch("publisher._now", return_value=self.now),
@@ -958,7 +960,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         state = {}
         enqueue_selected_content(
             state, [self.item("dkp-rubika-retry")], now=self.now,
-            interval_seconds=1200, max_items=1,
+            interval_seconds=1860, max_items=1,
         )
 
         def fake_photo(state_arg, entry, record, item, image_bytes, destination, now):
@@ -1001,11 +1003,11 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         # The partial optional retry remains bounded but does not stop a new selection.
         fresh = enqueue_selected_content(
             state, [self.item("dkp-after-rubika")],
-            now=self.now + timedelta(minutes=1), interval_seconds=1200,
+            now=self.now + timedelta(minutes=1), interval_seconds=1860,
             max_items=1,
         )
         self.assertEqual(fresh["added"], 1)
-        due = due_content(state, now=self.now + timedelta(minutes=21), limit=1)
+        due = due_content(state, now=self.now + timedelta(minutes=31), limit=1)
         self.assertEqual([product_id for product_id, _entry in due], ["dkp-after-rubika"])
 
     def test_terminal_queue_item_moves_to_bounded_history(self):
@@ -1015,6 +1017,18 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertNotIn("dkp-123", state["content_delivery_queue"])
         self.assertEqual(state["content_delivery_history"][0]["status"], "published")
 
+
+
+    def test_shared_channel_clock_enforces_31_minute_gap_for_every_content_type(self):
+        last_post = self.now - timedelta(minutes=12)
+        state = {"last_channel_published_at": last_post.isoformat()}
+        self.assertEqual(channel_publication_wait_seconds(state, now=self.now), 19 * 60)
+        self.assertEqual(
+            get_last_channel_published_at(state) + timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS),
+            last_post + timedelta(minutes=31),
+        )
+        state["last_channel_published_at"] = (self.now - timedelta(minutes=31)).isoformat()
+        self.assertEqual(channel_publication_wait_seconds(state, now=self.now), 0)
 
     def test_product_publication_clock_is_independent_from_editorial_posts(self):
         product_at = self.now - timedelta(hours=3)
@@ -1029,6 +1043,11 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             }],
         }
         self.assertEqual(get_last_product_channel_published_at(state), product_at)
+        self.assertEqual(get_last_channel_published_at(state), editorial_at)
+        self.assertEqual(
+            channel_publication_wait_seconds(state, now=self.now),
+            19 * 60,
+        )
 
     def test_legacy_product_clock_migrates_from_product_receipt_not_editorial_clock(self):
         product_at = self.now - timedelta(hours=4)
@@ -1240,8 +1259,9 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertLess(dense["interval_seconds"], sparse["interval_seconds"])
         self.assertGreater(dense["interval_seconds"], 0)
         self.assertGreater(sparse["interval_seconds"], 0)
-        self.assertEqual(sparse["interval_seconds"], 57 * 60)
-        self.assertEqual(sparse["maximum_product_interval_seconds"], 57 * 60)
+        self.assertEqual(sparse["interval_seconds"], 47 * 60)
+        self.assertEqual(sparse["maximum_product_interval_seconds"], 47 * 60)
+        self.assertGreaterEqual(dense["interval_seconds"], 31 * 60)
         self.assertTrue(sparse["first_slot_due_now"])
         expected_scan = current_scan_started + timedelta(seconds=cycle_seconds)
         self.assertEqual(
@@ -1273,7 +1293,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(result["planned_product_slots"], 3)
         self.assertTrue(result["scan_eta_is_provisional"])
         self.assertEqual(result["estimated_next_clean_scan_at"], "")
-        self.assertEqual(result["interval_seconds"], 57 * 60)
+        self.assertEqual(result["interval_seconds"], 47 * 60)
         self.assertTrue(result["first_slot_due_now"])
 
     def test_missing_scan_eta_uses_provisional_57_minute_product_window(self):
@@ -1282,7 +1302,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
         self.assertTrue(result["scan_eta_is_provisional"])
         self.assertEqual(result["estimated_next_clean_scan_at"], "")
-        self.assertEqual(result["interval_seconds"], 57 * 60)
+        self.assertEqual(result["interval_seconds"], 47 * 60)
         self.assertTrue(result["first_slot_due_now"])
 
     def test_product_cadence_is_not_capped_at_six_hours_for_sparse_cycles(self):
@@ -1298,12 +1318,12 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         result = calculate_product_publication_cadence(
             {}, status, 2, now=self.now, max_daily_posts=72
         )
-        self.assertEqual(result["interval_seconds"], 57 * 60)
-        self.assertEqual(result["maximum_product_interval_seconds"], 57 * 60)
+        self.assertEqual(result["interval_seconds"], 47 * 60)
+        self.assertEqual(result["maximum_product_interval_seconds"], 47 * 60)
         self.assertEqual(result["planned_product_slots"], 2)
         self.assertTrue(result["first_slot_due_now"])
 
-    def test_product_plan_anchor_ignores_editorial_publication_clock(self):
+    def test_product_plan_anchor_respects_global_editorial_publication_clock(self):
         editorial_at = self.now - timedelta(minutes=2)
         state = {
             "last_channel_published_at": editorial_at.isoformat(),
@@ -1316,10 +1336,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         result = calculate_product_publication_cadence(
             state, {}, 3, now=self.now, max_daily_posts=72
         )
-        self.assertEqual(result["plan_anchor_kind"], "cycle_start")
-        self.assertEqual(result["plan_anchor_at"], self.now.isoformat())
+        self.assertEqual(result["plan_anchor_kind"], "last_channel_provisional")
+        self.assertEqual(result["plan_anchor_at"], editorial_at.isoformat())
 
-    def test_new_cycle_with_product_older_than_57_minutes_makes_next_slot_due_now(self):
+    def test_new_cycle_with_product_older_than_31_minutes_makes_next_slot_due_now(self):
         clean_started = self.now - timedelta(hours=42)
         clean_completed = self.now - timedelta(hours=8)
         current_scan_started = self.now - timedelta(hours=6)
@@ -1341,11 +1361,11 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
 
         expected_next_scan = current_scan_started + timedelta(seconds=cycle_seconds)
-        self.assertEqual(result["plan_anchor_kind"], "cycle_start_after_max_gap")
+        self.assertEqual(result["plan_anchor_kind"], "cycle_start_after_minimum_spacing")
         self.assertEqual(result["plan_anchor_at"], self.now.isoformat())
         self.assertEqual(result["estimated_next_clean_scan_at"], expected_next_scan.isoformat())
         self.assertEqual(result["planned_product_slots"], 4)
-        self.assertEqual(result["interval_seconds"], 57 * 60)
+        self.assertEqual(result["interval_seconds"], 47 * 60)
         self.assertTrue(result["first_slot_due_now"])
 
     def test_reflow_after_expired_scan_eta_keeps_products_moving_at_57_minutes(self):
@@ -1374,7 +1394,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         second = datetime.fromisoformat(
             state["content_delivery_queue"]["dkp-reflow-later"]["scheduled_at"]
         )
-        self.assertEqual(result["interval_seconds"], 57 * 60)
+        self.assertEqual(result["interval_seconds"], 47 * 60)
         self.assertEqual(first, self.now)
         self.assertEqual(second, self.now + timedelta(minutes=57))
         self.assertTrue(state["product_publication_cadence"]["scan_eta_is_provisional"])
@@ -1407,11 +1427,11 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         ]
         self.assertEqual(
             [(ordered[i + 1] - ordered[i]).total_seconds() for i in range(2)],
-            [57 * 60, 57 * 60],
+            [47 * 60, 47 * 60],
         )
         self.assertEqual(
             (ordered[-1] - last_product).total_seconds(),
-            3 * 57 * 60,
+            3 * 47 * 60,
         )
 
 if __name__ == "__main__":
