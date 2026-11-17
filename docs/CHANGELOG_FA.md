@@ -2817,16 +2817,16 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **هدف:** تبدیل خروجی تحریریه به محتوای مستقل و غیرتجاری، کاهش تراکم پست‌های کانال و حفظ غلبهٔ پیشنهادهای محصول بدون دورزدن فاصلهٔ انتشار.
 
 **تغییر/اقدام:**
-- رندر عمومی تحریریه و توضیحات ویدئو خطوط منبع، لینک مقاله، CTA «مشاهدهٔ پیشنهاد مرتبط»، لینک همکاری در فروش و خطوط دارای URL را حذف می‌کند؛ metadata منبع و ادعاها در بانک/ledger داخلی حفظ می‌شوند.
+- رندر عمومی تحریریه، پوستر/کاور و متن داخل تصویر/ویدئو و توضیحات ویدئویی، خطوط منبع، لینک مقاله، CTA «مشاهدهٔ پیشنهاد مرتبط»، لینک همکاری در فروش و خطوط دارای URL را حذف می‌کند؛ metadata منبع و ادعاها در بانک/ledger داخلی حفظ می‌شوند.
 - گارد مشترک محصول/تحریریه از حداقل ۲۱ دقیقه به حداقل سخت ۳۱ دقیقه تغییر کرد؛ تابع deterministic و مبتنی بر sequence/شناسه، فاصلهٔ هر slot را بین ۳۱ تا ۴۷ دقیقه انتخاب می‌کند تا بازاجرای planner زمان همان slot را بی‌دلیل تغییر ندهد.
 - زمان‌بندی مجدد صف محصول از فاصله‌های متغیر استفاده می‌کند و وجود تحریریهٔ رزروشده را در reflow حفظ می‌کند. ازدست‌رفتن slot با burst جبران نمی‌شود.
 - سقف تحریریه همان یک مطلب پس از شش پست محصولِ تأییدشده باقی ماند؛ در مصرف کامل آن، ترکیب خروجی حدود ۸۵٫۷٪ محصول و ۱۴٫۳٪ تحریریه است.
 - برای درج یک تحریریه، یک فاصلهٔ ۳۱–۴۷ دقیقه‌ای قبل و یک فاصلهٔ ۳۱–۴۷ دقیقه‌ای بعد رزرو می‌شود. بنابراین فاصلهٔ محصول‌به‌محصول در همان نوبت می‌تواند ۶۲–۹۴ دقیقه باشد. رزرو در صورت تهدید deadline محصول انجام نمی‌شود؛ اگر تحریریه بدون رسید کانالی نهایی شود، رزرو آزاد و زمان محصولات بعدی بازگردانی می‌شود.
 - اسناد سیاست تحریریه و handbook با این رفتار همسو شدند. ارزیابی اثر سیاست برای ۱۴ روز پس از rollout تعریف شد؛ quiet-hours ثابت به‌علت نبود دادهٔ معتبر ساعت‌به‌ساعت هنوز فعال نشده است.
 
-**فایل‌ها/سامانه‌ها:** `affilio_radar/publication_policy.py`، `affilio_radar/content_delivery.py`، `affilio_radar/editorial_publisher.py`، `affilio_radar/test_content_delivery.py`، `affilio_radar/test_editorial_publisher.py`، `.github/workflows/offerchin-editorial-contract.yml`، `docs/OFFERCHIN_DIGIKALA_MAG_SOURCE_POLICY_FA.md`، handbook و changelog.
+**فایل‌ها/سامانه‌ها:** `affilio_radar/publication_policy.py`، `affilio_radar/content_delivery.py`، `affilio_radar/editorial_publisher.py`، `affilio_radar/test_content_delivery.py`، `affilio_radar/test_editorial_publisher.py`، `affilio_radar/test_affilio.py`، `.github/workflows/offerchin-editorial-contract.yml`، `docs/OFFERCHIN_DIGIKALA_MAG_SOURCE_POLICY_FA.md`، handbook و changelog.
 
-**آزمون و نتیجه:** regression برای فاصلهٔ متغیر، حفظ slot تحریریه در reflow، پاک‌سازی نمونهٔ واقعی منبع/افیلیت از کپشن و توضیح ویدئو و آزادسازی رزرو در شکست تحریریه اضافه/به‌روزرسانی شد. اجرای GitHub Actions و Documentation Gate پس از بازشدن PR باید نتیجهٔ واقعی را تعیین کند؛ در زمان ثبت این ورودی، CI هنوز ادعا نشده است. هیچ پست عمومی در این تغییر ارسال یا حذف نشده است.
+**آزمون و نتیجه:** regression برای فاصلهٔ متغیر، حفظ slot تحریریه در reflow، پاک‌سازی نمونهٔ واقعی منبع/افیلیت از کپشن، پوستر/کاور، متن داخل ویدئو و توضیحات ویدئو و آزادسازی رزرو در شکست تحریریه اضافه/به‌روزرسانی شد. اجرای GitHub Actions و Documentation Gate پس از بازشدن PR باید نتیجهٔ واقعی را تعیین کند؛ در زمان ثبت این ورودی، CI هنوز ادعا نشده است. هیچ پست عمومی در این تغییر ارسال یا حذف نشده است.
 
 **شواهد/شناسه:** شاخهٔ `fix/offerchin-31-47m-editorial-cleanup-20261117`؛ commitهای این شاخه در PR مستقل ثبت خواهند شد.
 
