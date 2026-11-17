@@ -1049,7 +1049,7 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         unresolved = [name for name, status in photo_platforms.items() if status not in TERMINAL_PLATFORM]
         new_public_delivery = any(
             prior_public_status.get(name) != "sent" and platforms.get(name) == "sent"
-            for name in CORE_PHOTO_PLATFORMS
+            for name in PHOTO_PLATFORMS
         )
         if new_public_delivery:
             public_posted_at = _now().isoformat()
