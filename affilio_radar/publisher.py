@@ -15,9 +15,11 @@ from typing import Any
 
 import affilio_radar as radar
 from content_delivery import (
-    _active_publication, due_content, enforce_queue_limit, finish_queue_item,
+    _active_publication, channel_publication_wait_seconds, due_content,
+    enforce_queue_limit, finish_queue_item, next_channel_publication_at,
     promote_fallback_selection, reflow_product_queue_after_delivery,
 )
+from publication_policy import MIN_CHANNEL_POST_INTERVAL_SECONDS
 from platform_registry import (
     CORE_PHOTO_PLATFORMS, PLATFORM_NAMES, PHOTO_PLATFORMS,
     VIDEO_PLATFORMS, validate_registry,
@@ -828,6 +830,17 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         _save(state)
         print("PUBLISHER_INTEGRITY_LEDGER_APPLIED")
     now = _now()
+    spacing_wait = channel_publication_wait_seconds(state, now=now)
+    if spacing_wait > 0:
+        next_slot = next_channel_publication_at(state)
+        print(
+            "PUBLISHER_SHARED_CHANNEL_SPACING_GUARD "
+            f"remaining_seconds={spacing_wait} "
+            f"next_slot={next_slot.isoformat() if next_slot else 'unknown'} "
+            f"minimum_gap_seconds={MIN_CHANNEL_POST_INTERVAL_SECONDS}"
+        )
+        _refresh_dispatch_projection(state)
+        return 0
     oldest_editorial = editorial_fifo_lock_entry(state)
     if oldest_editorial:
         print(
