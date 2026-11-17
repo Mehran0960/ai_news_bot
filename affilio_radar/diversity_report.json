@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-17T14:37:17.792701+00:00",
+  "generated_at": "2026-11-17T14:45:21.759602+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
@@ -115,7 +115,6 @@
       "تجهیزات تعمیرگاهی": 1,
       "تراش آرایشی": 1,
       "تی شرت و پولوشرت بارداری": 1,
-      "حلوا شکری، ارده و کنجد سنتی": 1,
       "دستگاه پخش خودرو": 1,
       "دمنوش": 1,
       "روکش توالت فرنگی": 1,
@@ -180,7 +179,7 @@
       "computer_network": 3,
       "digital_accessories": 3,
       "fashion": 11,
-      "grocery_food": 11,
+      "grocery_food": 10,
       "home": 6,
       "home_cleaning": 2,
       "kids_sports": 4,
@@ -191,35 +190,35 @@
       "power_backup": 1
     },
     "category_share_percent": {
-      "automotive": 2.7,
+      "automotive": 2.8,
       "beauty_fragrance": 1.4,
       "books_stationery": 1.4,
-      "computer_network": 4.1,
-      "digital_accessories": 4.1,
-      "fashion": 15.1,
-      "grocery_food": 15.1,
-      "home": 8.2,
-      "home_cleaning": 2.7,
-      "kids_sports": 5.5,
+      "computer_network": 4.2,
+      "digital_accessories": 4.2,
+      "fashion": 15.3,
+      "grocery_food": 13.9,
+      "home": 8.3,
+      "home_cleaning": 2.8,
+      "kids_sports": 5.6,
       "large_appliances": 1.4,
-      "mobile_devices": 2.7,
-      "other": 23.3,
-      "personal_care": 11.0,
+      "mobile_devices": 2.8,
+      "other": 23.6,
+      "personal_care": 11.1,
       "power_backup": 1.4
     },
-    "distinct_catalog_categories": 72,
+    "distinct_catalog_categories": 71,
     "distinct_categories": 15,
-    "distinct_families": 73,
+    "distinct_families": 72,
     "distinct_retailers": 1,
     "distinct_use_cases": 14,
     "known_brand_posts": 34,
-    "posts": 73,
+    "posts": 72,
     "repeated_brand_count": 1,
     "repeated_brands": {
       "brand:مری_کینگ": 2
     },
     "retailer_post_counts": {
-      "digikala": 73
+      "digikala": 72
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -230,7 +229,7 @@
       "books_learning": 2,
       "catalog_taxonomy_other": 11,
       "fashion_lifestyle": 10,
-      "grocery_food": 13,
+      "grocery_food": 12,
       "home_cleaning": 2,
       "home_living": 3,
       "kitchen_food": 6,
@@ -558,7 +557,7 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1597,
+    "all_time_count": 1598,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "brand_repeat": 4,
@@ -566,23 +565,6 @@
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-17T03:55:46.907401+00:00",
-        "brand": "brand:هایک_سمی",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "home",
-        "compared_to_product_id": "dkp-532451",
-        "family": "home:kitchen",
-        "product_id": "dkp-17125980",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "اس اس دی اینترنال SATA III هایک سمی مدل WAVE S ظرفیت 256 گیگابایت",
-        "use_case": "home_living"
-      },
       {
         "at": "2026-11-17T04:03:54.926315+00:00",
         "brand": "",
@@ -909,6 +891,23 @@
         ],
         "title": "شورت آموزشی کودک وی کر مدل دکمه دار طرح Bear Girl کد U808",
         "use_case": "books_learning"
+      },
+      {
+        "at": "2026-11-17T14:45:21.759602+00:00",
+        "brand": "",
+        "catalog_category_id": "11020",
+        "catalog_category_name": "استابیلایزر و گیمبال",
+        "category": "gaming",
+        "compared_to_product_id": "dkp-16045969",
+        "family": "digikala_category:11020",
+        "product_id": "dkp-10962945",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "گیمبال و لرزشگیر دوربین مدل Video Making AY-49U",
+        "use_case": "gaming"
       }
     ]
   }
