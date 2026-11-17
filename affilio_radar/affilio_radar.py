@@ -10386,9 +10386,9 @@ def process_pending_short_video(
     Video destinations consume their own FIFO without artificial spacing or queue-age
     limits. force_due remains a compatibility argument; it does not bypass real quotas,
     credentials, destination isolation, uncertain-outcome protection or offer expiry.
-    YouTube uses last-mile price/stock validation plus the independent integrity audit
-    when no retailer expiry timer exists. Public Aparat uploads still require a verified
-    expiry deadline.
+    YouTube and public Aparat use last-mile price/stock validation plus the independent
+    integrity audit when no retailer expiry timer exists. Known near-expiry offers remain
+    blocked, and both public destinations use a 24-hour freshness window.
     """
     selected_destinations = (
         {"youtube", "aparat"} if destinations is None
@@ -10903,8 +10903,8 @@ def process_pending_short_video(
         )
         manual_artifact_need = (
             # A manual MP4 artifact is a YouTube fallback, not an Aparat destination.
-            # In an Aparat-only run, treating it as work would let unverified-expiry
-            # YouTube items consume the batch before eligible public Aparat candidates.
+            # In an Aparat-only run, treating it as work would let unrelated YouTube
+            # items consume the batch before eligible public Aparat candidates.
             "youtube" in selected_destinations
             and not youtube_ready
             and upload_status in pending_youtube
