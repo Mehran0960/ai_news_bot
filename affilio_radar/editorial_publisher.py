@@ -194,10 +194,11 @@ def queue_editorial_if_due(
     *,
     now: datetime | None = None,
 ) -> dict | None:
-    """Place one reviewed editorial at the true midpoint before an already queued product.
+    """Reserve one reviewed editorial inside the shared channel sequence after six products.
 
-    Editorial never publishes on its own and never creates a product slot. If there is no
-    future product in the queue, or its midpoint has already passed, it waits.
+    Editorial never publishes on its own or creates a standalone product slot. It is
+    scheduled only against a selected next product, and a reserved product bridge is
+    released when the editorial is cancelled or receives no public channel receipt.
     """
     current = now or _now()
     if current.tzinfo is None:
@@ -277,8 +278,8 @@ def queue_editorial_if_due(
                 and not product_slot_is_due
                 and not dispatch_window_closed
             ):
-                # Once awake, the publisher may send any time until the empirically
-                # measured delivery window closes; it must never delay the product.
+                # Once awake, the publisher may send until the safe bridge window closes;
+                # its reserved next-product slot is part of the shared 31–47 minute cadence.
                 queued_editorial["window_closes_at"] = (
                     product_slot_at
                     - timedelta(seconds=max(MIN_CHANNEL_POST_INTERVAL_SECONDS, delivery_runway))
@@ -1160,7 +1161,7 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         item_id = None
         sequence = None
     else:
-        # Editorial may only occupy a midpoint before a product already selected.
+        # Editorial may only occupy a reserved shared-channel slot before a selected product.
         # The shadow report must never predict a standalone editorial post.
         candidate_product = _next_product_slot(state, current)
         if candidate_product is None:
