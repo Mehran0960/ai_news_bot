@@ -10,7 +10,7 @@ import re
 from datetime import datetime, timezone
 from typing import Any
 
-MIN_CHANNEL_POST_INTERVAL_SECONDS = 21 * 60
+MIN_CHANNEL_POST_INTERVAL_SECONDS = 31 * 60
 PRODUCTS_PER_EDITORIAL_POST = 6
 DEFAULT_DAILY_CHANNEL_POST_LIMIT = 55
 
