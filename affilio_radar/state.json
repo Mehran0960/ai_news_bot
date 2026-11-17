@@ -43859,7 +43859,7 @@
       },
       "product_id": "dkp-17281919",
       "product_plan_cycle_id": "2026-11-17T07:09:41.079440+00:00",
-      "scheduled_at": "2026-11-17T09:53:20.848193+00:00",
+      "scheduled_at": "2026-11-17T09:09:20.848193+00:00",
       "selected_at": "2026-11-17T05:05:33.886476+00:00",
       "sequence_number": 1491,
       "status": "queued"
@@ -44031,7 +44031,7 @@
       },
       "product_id": "dkp-18294816",
       "product_plan_cycle_id": "2026-11-17T07:09:41.079440+00:00",
-      "scheduled_at": "2026-11-17T08:43:20.848193+00:00",
+      "scheduled_at": "2026-11-17T07:59:20.848193+00:00",
       "selected_at": "2026-11-17T04:26:05.693869+00:00",
       "sequence_number": 1489,
       "status": "queued"
@@ -44202,7 +44202,7 @@
       },
       "product_id": "dkp-22404391",
       "product_plan_cycle_id": "2026-11-17T07:09:41.079440+00:00",
-      "scheduled_at": "2026-11-17T08:07:20.848193+00:00",
+      "scheduled_at": "2026-11-17T07:23:20.848193+00:00",
       "selected_at": "2026-11-17T04:26:05.693869+00:00",
       "sequence_number": 1488,
       "status": "queued"
@@ -44380,7 +44380,7 @@
       },
       "product_id": "dkp-6705171",
       "product_plan_cycle_id": "2026-11-17T07:09:41.079440+00:00",
-      "scheduled_at": "2026-11-17T09:16:20.848193+00:00",
+      "scheduled_at": "2026-11-17T08:32:20.848193+00:00",
       "selected_at": "2026-11-17T04:26:05.693869+00:00",
       "sequence_number": 1490,
       "status": "queued"
@@ -197178,77 +197178,7 @@
       "topic": "review-literacy"
     }
   ],
-  "editorial_delivery_queue": {
-    "editorial:check-delivery-window": {
-      "attempt_count": 0,
-      "content_id": "editorial:check-delivery-window",
-      "content_type": "editorial",
-      "delivery_runway_seconds": 33,
-      "dispatch_runway_seconds": 93,
-      "next_attempt_at": "2026-11-17T07:27:20.848193+00:00",
-      "payload": {
-        "body": "⏱️ زمان رسیدن سفارش برای همه کالاها یکسان نیست؛ نوع کالا، شهر مقصد، موجودی فروشنده و روش ارسال می‌توانند آن را تغییر دهند. پیش از پرداخت، بازه تحویل و روش‌های فعال برای همان کالا و نشانی را در صفحه سفارش بررسی کن؛ به یک زمان عمومی تکیه نکن.",
-        "content_id": "editorial:check-delivery-window",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 2,
-        "editorial_id": "check-delivery-window",
-        "idempotency_key": "fcdd7e8bd5a229df",
-        "related_product_id": "dkp-22404391",
-        "review_due_at": "2027-02-13T04:30:00Z",
-        "reviewed_at": "2026-11-15T04:30:00Z",
-        "sequence_number": 1494,
-        "sources": [
-          {
-            "publisher": "دیجی‌کالا مگ",
-            "source_id": "digikala-mag-delivery-time",
-            "title": "سفارش دیجی‌کالا چند روزه می‌رسد؟ مقایسه‌ روش‌های ارسال از نظر سرعت",
-            "url": "https://www.digikala.com/mag/digikala-delivery-time/"
-          }
-        ],
-        "title": "زمان تحویل را برای همان سفارش بررسی کن",
-        "topic": "delivery"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "related_product_id": "dkp-22404391",
-      "related_product_original_scheduled_at": "2026-11-17T07:23:20.848193+00:00",
-      "related_product_reserved_scheduled_at": "2026-11-17T08:07:20.848193+00:00",
-      "scheduled_at": "2026-11-17T07:27:20.848193+00:00",
-      "selected_at": "2026-11-17T07:20:25.411198+00:00",
-      "sequence_number": 1494,
-      "status": "queued",
-      "window_closes_at": "2026-11-17T07:36:20.848193+00:00"
-    }
-  },
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
