@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-17T15:04:58.896549+00:00",
+  "generated_at": "2026-11-17T15:11:15.855592+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
@@ -556,31 +556,14 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1600,
+    "all_time_count": 1601,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "brand_repeat": 5,
+      "brand_repeat": 6,
       "family_repeat": 396,
       "similarity_repeat": 499
     },
     "recent_events": [
-      {
-        "at": "2026-11-17T04:16:27.733372+00:00",
-        "brand": "brand:هایک_سمی",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "home",
-        "compared_to_product_id": "dkp-532451",
-        "family": "home:kitchen",
-        "product_id": "dkp-17125980",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "اس اس دی اینترنال SATA III هایک سمی مدل WAVE S ظرفیت 256 گیگابایت",
-        "use_case": "home_living"
-      },
       {
         "at": "2026-11-17T04:25:57.901036+00:00",
         "brand": "",
@@ -906,6 +889,24 @@
         ],
         "title": "ریمل رنگی کالیستا مدل Pastella رنگ قهوه ای",
         "use_case": "grocery_food"
+      },
+      {
+        "at": "2026-11-17T15:11:15.855592+00:00",
+        "brand": "brand:ناب_تن",
+        "catalog_category_id": "11044",
+        "catalog_category_name": "البسه طبی و پزشکی",
+        "category": "other",
+        "compared_to_product_id": "dkp-14396631",
+        "family": "digikala_category:11044",
+        "product_id": "dkp-14395622",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "روپوش پزشکی مردانه ناب تن مدل T101",
+        "use_case": "health_wellness"
       }
     ]
   }
