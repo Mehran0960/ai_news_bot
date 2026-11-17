@@ -10916,7 +10916,7 @@ def process_pending_short_video(
         youtube_retry_at = _parse_utc_datetime(record.get("youtube_next_attempt_at"))
         youtube_retry_wait = bool(youtube_retry_at and current < youtube_retry_at)
         if (
-            upload_status == "skipped_platform_limit"
+            upload_status in {"retry", "skipped_platform_limit"}
             and str(record.get("youtube_skip_reason") or "") in {
                 "youtube_daily_quota_pause", "youtube_http_429_rate_limited"
             }
