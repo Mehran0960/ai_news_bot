@@ -20,10 +20,18 @@ import requests
 import affilio_radar as radar
 from content_delivery import (
     allocate_publication_sequence,
+    channel_publication_wait_seconds,
     editorial_delivery_p90_seconds,
     editorial_dispatch_runway_seconds,
     get_last_channel_published_at,
+    next_channel_publication_at,
     refresh_unpublished_selections,
+)
+from publication_policy import (
+    MIN_CHANNEL_POST_INTERVAL_SECONDS,
+    PRODUCTS_PER_EDITORIAL_POST,
+    editorial_frequency_allowed,
+    products_published_since_last_editorial,
 )
 from editorial_content import record_editorial_delivery, select_editorial_fallback
 from platform_registry import PLATFORM_NAMES
@@ -235,6 +243,15 @@ def queue_editorial_if_due(
         if valid_active:
             return valid_active[0]
 
+    if not editorial_frequency_allowed(state):
+        products_since = products_published_since_last_editorial(state)
+        print(
+            "EDITORIAL_FREQUENCY_GUARD "
+            f"products_since_last_editorial={products_since} "
+            f"required_products={PRODUCTS_PER_EDITORIAL_POST}"
+        )
+        return None
+
     refresh_unpublished_selections(state, now=current, stale_after_minutes=8)
     next_product = _next_product_slot(state, current)
     if not next_product:
@@ -269,32 +286,45 @@ def queue_editorial_if_due(
 
     anchor = get_last_channel_published_at(state) or current
     gap_seconds = max(0.0, (product_at - anchor).total_seconds())
-    if gap_seconds <= 0:
-        return None
     dispatch_runway_seconds = editorial_dispatch_runway_seconds(state)
     delivery_runway_seconds = editorial_delivery_p90_seconds(state)
-    # Aim for the midpoint, but when a short real gap makes that too late for the
-    # minute dispatcher, move the target earlier to the latest safe dispatch start.
-    # No fixed interval is introduced between product posts.
-    if gap_seconds <= dispatch_runway_seconds:
+    minimum_gap = timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS)
+    required_window_seconds = (
+        2 * MIN_CHANNEL_POST_INTERVAL_SECONDS + dispatch_runway_seconds
+    )
+    if gap_seconds < required_window_seconds:
         print(
-            "EDITORIAL_WAIT_INSUFFICIENT_DISPATCH_WINDOW "
+            "EDITORIAL_WAIT_SHARED_SPACING_WINDOW "
             f"product_id={related_product_id} gap_seconds={int(gap_seconds)} "
-            f"required_gap_seconds={dispatch_runway_seconds} "
-            f"dispatch_runway_seconds={dispatch_runway_seconds}"
+            f"required_gap_seconds={required_window_seconds} "
+            f"minimum_channel_gap_seconds={MIN_CHANNEL_POST_INTERVAL_SECONDS}"
         )
         return None
+
+    earliest_editorial_at = anchor + minimum_gap
+    latest_safe_dispatch_at = product_at - timedelta(
+        seconds=max(MIN_CHANNEL_POST_INTERVAL_SECONDS, dispatch_runway_seconds)
+    )
+    if latest_safe_dispatch_at < earliest_editorial_at:
+        print(
+            "EDITORIAL_WAIT_NO_SAFE_MIDPOINT "
+            f"product_id={related_product_id} "
+            f"earliest={earliest_editorial_at.isoformat()} "
+            f"latest={latest_safe_dispatch_at.isoformat()}"
+        )
+        return None
+
     midpoint_at = anchor + timedelta(seconds=gap_seconds / 2)
-    latest_safe_dispatch_at = product_at - timedelta(seconds=dispatch_runway_seconds)
-    scheduled_at = min(midpoint_at, latest_safe_dispatch_at)
+    scheduled_at = max(earliest_editorial_at, min(midpoint_at, latest_safe_dispatch_at))
     if scheduled_at <= current:
-        # The minute Worker can wake after the planned start. Keep the opportunity
-        # alive when the remaining real delivery runway still fits; start now.
-        if current + timedelta(seconds=delivery_runway_seconds) >= product_at:
+        if current < earliest_editorial_at or current + timedelta(
+            seconds=max(MIN_CHANNEL_POST_INTERVAL_SECONDS, delivery_runway_seconds)
+        ) >= product_at:
             print(
                 "EDITORIAL_DISPATCH_WINDOW_PASSED "
                 f"product_id={related_product_id} product_slot={product_at.isoformat()} "
-                f"delivery_runway_seconds={delivery_runway_seconds}"
+                f"delivery_runway_seconds={delivery_runway_seconds} "
+                f"minimum_channel_gap_seconds={MIN_CHANNEL_POST_INTERVAL_SECONDS}"
             )
             return None
         print(
@@ -319,8 +349,6 @@ def queue_editorial_if_due(
         print("EDITORIAL_FALLBACK_EMPTY reason=no_valid_reviewed_item_or_bank_cycle")
         return None
 
-    item["related_product_image_url"] = str(related_product.get("image_url") or "")
-    item["related_product_title"] = str(related_product.get("title") or "")[:180]
     sequence_number = allocate_publication_sequence(state)
     item["sequence_number"] = sequence_number
     item["related_product_id"] = related_product_id
@@ -359,137 +387,29 @@ def queue_editorial_if_due(
     return entry
 
 
-def _source_organization(source: dict) -> str:
-    url = str(source.get("url") or "").strip().lower()
-    title = str(source.get("title") or "").strip()
-    if "consumer.ftc.gov" in url or "ftc.gov" in url:
-        return "کمیسیون تجارت فدرال آمریکا (FTC)"
-    if "digikala.com/mag" in url:
-        return "دیجی‌کالا مگ"
-    if "digikala.com" in url:
-        return "دیجی‌کالا"
-    return str(source.get("publisher") or source.get("organization") or title or "منبع معتبر").strip()
-
-
-def _source_display_title(source: dict) -> str:
-    """Prefer a concise Persian label while retaining the exact source URL."""
-    source_id = str(source.get("source_id") or "").strip().lower()
-    localized = {
-        "ftc-infographic": "اینفوگرافیک خرید اینترنتی",
-        "ftc-online-shopping": "راهنمای خرید اینترنتی",
-        "ftc-marketplace": "راهنمای خرید از بازارگاه آنلاین",
-    }
-    return str(
-        source.get("title_fa")
-        or localized.get(source_id)
-        or source.get("title")
-        or "راهنمای رسمی"
-    ).strip()
-
-
-def _topic_emoji(item: dict) -> str:
-    topic = str(item.get("topic") or "").strip().lower()
-    mapping = {
-        "purchase-planning": "🛒",
-        "review-literacy": "⭐",
-        "seller-check": "🛍️",
-        "purchase-records": "🧾",
-        "product-inspection": "🔎",
-        "total-cost": "💰",
-        "fit-and-size": "📏",
-        "device-compatibility": "🔌",
-        "security": "🔐",
-        "account-security": "🔐",
-        "privacy": "🛡️",
-        "parcel-check": "📦",
-        "delivery": "🚚",
-        "home-care": "🏠",
-        "mobile": "📱",
-    }
-    return mapping.get(topic, "💡")
-
-
-def _readable_editorial_body(value: Any) -> str:
-    """Separate authored lines and complete sentences into readable paragraphs."""
-    normalized = str(value or "").replace("\r\n", "\n").replace("\r", "\n")
-    paragraphs: list[str] = []
-    for raw_line in normalized.split("\n"):
-        line = raw_line.strip()
-        if not line:
-            continue
-        sentences = re.split(r"(?<=[.!?؟])\s+", line)
-        paragraphs.extend(part.strip() for part in sentences if part.strip())
-    return "\n\n".join(paragraphs)
-
-
 def _format_message(item: dict, *, html_mode: bool = True, platform: str = "telegram") -> str:
-    """Build a readable Persian post with attributed source lines and a clickable CTA."""
-    title = str(item.get("title") or "").strip()
+    """Render a self-contained editorial post with no public sources or commercial links."""
+    title = str(item.get("title") or "").strip()[:110]
     body = _readable_editorial_body(item.get("body"))
+    if len(body) > 430:
+        shortened = body[:427].rsplit(" ", 1)[0].rstrip()
+        body = shortened + "…"
+    paragraphs = [part.strip() for part in body.split("\n\n") if part.strip()]
     emoji = _topic_emoji(item)
-    source_rows = [
-        source for source in (item.get("sources") or [])
-        if isinstance(source, dict) and str(source.get("url") or "").startswith("https://")
-    ][:2]
-    channel_urls = {
-        "telegram": "https://t.me/OfferChin",
-        "bale": "https://ble.ir/OfferChin",
-        "rubika": "https://rubika.ir/offerchin",
-        "eitaa": str(os.getenv("EITAA_CHANNEL_URL") or "").strip(),
-    }
-    channel_url = channel_urls.get(platform) or channel_urls["telegram"]
+    rendered = [f"{emoji} {html.escape(title) if html_mode else title}", ""]
+    for index, value in enumerate(paragraphs):
+        marker = "💡" if index == 0 else (
+            "✅" if index == len(paragraphs) - 1 and len(paragraphs) > 1 else "📌"
+        )
+        rendered.append(f"{marker} {html.escape(value) if html_mode else value}")
+    message = "\n".join(rendered).rstrip()
+    # Defensive output contract: approved source metadata and affiliate URLs are
+    # internal-only and must never leak from a future bank/template change.
+    forbidden = ("📚 منبع:", "پیوند همکاری در فروش", "aflo.ir", "digikala.com/mag/")
+    if any(token.casefold() in message.casefold() for token in forbidden):
+        raise ValueError("editorial_public_provenance_or_commerce_leak")
+    return message[:1000 if html_mode else 3400]
 
-    lines = [
-        "🧭 راهنمای کاربردی آفِرچین",
-        "",
-        f"{emoji} {title}",
-        "",
-        body,
-        "",
-        "منابع:",
-    ]
-    for source in source_rows:
-        organization = _source_organization(source)
-        source_title = _source_display_title(source)
-        url = str(source.get("url") or "").strip()
-        lines.extend([
-            f"• {organization} — «{source_title}»:",
-            url,
-            "",
-        ])
-    lines.extend([
-        "آفِرچین",
-        "t.me/OfferChin" if platform == "telegram" else channel_url,
-    ])
-
-    if not html_mode:
-        return "\n".join(lines).rstrip()[:3400]
-
-    rendered = [
-        "🧭 <b>راهنمای کاربردی آفِرچین</b>",
-        "",
-        f"{emoji} <b>{html.escape(title)}</b>",
-        "",
-        html.escape(body),
-        "",
-        "<b>منابع:</b>",
-    ]
-    for source in source_rows:
-        organization = _source_organization(source)
-        source_title = _source_display_title(source)
-        url = str(source.get("url") or "").strip()
-        escaped_url = html.escape(url, quote=True)
-        rendered.extend([
-            f"• {html.escape(organization)} — «{html.escape(source_title)}»:",
-            f'<a href="{escaped_url}">مشاهدهٔ منبع</a>',
-            "",
-        ])
-    escaped_channel = html.escape(channel_url, quote=True)
-    rendered.extend([
-        "<b>آفِرچین</b>",
-        f'<a href="{escaped_channel}">عضویت در کانال آفِرچین</a>',
-    ])
-    return "\n".join(rendered).rstrip()[:1000]
 
 
 def _send_bot_message(platform: str, message: str) -> dict:
@@ -694,7 +614,7 @@ def _record_success(state: dict, entry: dict, destination: str, receipt: dict, n
         target["message_id"] = str(receipt["message_id"])
     if receipt.get("url"):
         target["url"] = str(receipt["url"])
-    if destination in {"telegram", "bale"}:
+    if destination in {"telegram", "bale", "rubika", "eitaa"}:
         state["last_channel_published_at"] = now.isoformat()
         state["last_published_at"] = now.isoformat()
     state["last_editorial_confirmed_at"] = now.isoformat()
@@ -822,12 +742,12 @@ def _handle_channel_destination(
 
 
 def _video_description(item: dict) -> str:
-    parts = [str(item.get("body") or "").strip(), "", "منابع:"]
-    for source in item.get("sources") or []:
-        if isinstance(source, dict) and str(source.get("url") or "").startswith("https://"):
-            parts.append(f"{source.get('title')}: {source.get('url')}")
-    parts.extend(["", "t.me/OfferChin", "ble.ir/OfferChin"])
-    return "\n".join(parts)[:2900]
+    """Keep editorial video descriptions utility-only and free of sources or affiliate links."""
+    description = _readable_editorial_body(item.get("body"))
+    forbidden = ("📚 منبع:", "پیوند همکاری در فروش", "aflo.ir", "digikala.com/mag/")
+    if any(token.casefold() in description.casefold() for token in forbidden):
+        raise ValueError("editorial_video_public_provenance_or_commerce_leak")
+    return description[:2900]
 
 
 def _handle_video_destination(
@@ -1113,6 +1033,18 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         raise ValueError("mode_must_be_channels_or_videos")
     current = now or _now()
     state = radar.load_state(apply_integrity_ledger=False)
+    if publish and mode == "channels":
+        spacing_wait = channel_publication_wait_seconds(state, now=current)
+        if spacing_wait > 0:
+            next_slot = next_channel_publication_at(state)
+            print(
+                "EDITORIAL_SHARED_CHANNEL_SPACING_GUARD "
+                f"remaining_seconds={spacing_wait} "
+                f"next_slot={next_slot.isoformat() if next_slot else 'unknown'} "
+                f"minimum_gap_seconds={MIN_CHANNEL_POST_INTERVAL_SECONDS}"
+            )
+            _refresh_dispatch_projection(state)
+            return 0
     bank = _load_bank()
     entry = queue_editorial_if_due(state, bank, now=current)
     if publish:
