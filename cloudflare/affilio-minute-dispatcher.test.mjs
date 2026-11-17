@@ -453,6 +453,7 @@ test("Filo accepts every confirmed channel delivery without requiring a retailer
   const base = {
     ts: (now - 5 * 60_000) / 1000,
     filo_upload_status: "pending",
+    aparat_upload_status: "pending",
     video_generation_status: "generated",
   };
   for (const channel of ["telegram", "bale", "rubika", "eitaa"]) {
