@@ -172,6 +172,11 @@ jobs:
     name: Merge independent destination receipts
     if: always()
     needs: upload
+    concurrency:
+      # Only state-merge/push is serialized with the existing photo publisher.
+      # Video uploads above remain fully concurrent and do not wait for this lock.
+      group: offerchin-content-publisher
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
