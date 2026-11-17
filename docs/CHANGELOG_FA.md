@@ -2882,16 +2882,20 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 
 ## ۲۰۲۶-۱۱-۱۷ — رفع گرسنگی دائمی fan-out ویدئوی OfferChin، به‌ویژه فیلو
 
-**مشاهده:** Worker زندهٔ `affilio-minute-dispatcher` هر صف ویدئویی را در صورت وجود هر نوبت کانال/تحریریه در آینده متوقف می‌کرد؛ حتی وقتی نوبت ده‌ها دقیقه بعد بود. از آنجا که ناشر نوبت آینده را دائماً در sidecar درج می‌کند، پنجرهٔ خالی عملاً ایجاد نمی‌شد. snapshot عملیاتی ۱۱۹ رکورد `pending` برای تولید ویدئو، YouTube و Filo نشان داد؛ در همان snapshot ورود Filo `verified` بود. بنابراین خطای احراز هویت فیلو علت اصلی این توقف نبود.
+**هدف:** رفع توقف دائمی صف ویدئو در زمان‌بند دقیقه‌ای، بدون کاهش اولویت انتشار کانال و بدون موازی‌کردن نویسندگان state مشترک.
 
-**اقدام:**
-- شرط زمان‌بند از «نبودن هر slot آینده» به «نبودن slot کانال/تحریریه در ۳۰ دقیقهٔ آینده» تغییر کرد؛ ناشر فعال همچنان اولویت مطلق دارد.
-- سقف اجرای Workflow ویدئو به ۲۰ دقیقه و حداکثر یک محصول در هر گرفتن قفل کاهش یافت تا نوبت کانال از ویدئو اولویت بگیرد. اجرای بعدی FIFO را زمان‌بند هر یک دقیقه از سر می‌گیرد.
-- تست رگرسیون برای slotهای ۰، ۱۰، ۲۹، ۳۰ و ۳۱ دقیقه و slot تحریریه افزوده شد.
-- گزارش فارسی رخداد ایجاد و به README و Handbook پیوند داده شد.
+**تغییر/اقدام:**
+- Worker فقط زمانی fan-out ویدئو را defer می‌کند که نوبت کانال/تحریریه در ۳۰ دقیقهٔ آینده باشد یا ناشر کانال فعال باشد؛ slot دورتر به‌تنهایی مانع dispatch نیست.
+- سقف Workflow ویدئو ۲۰ دقیقه و تعداد محصول هر اجرا یک مورد شد؛ زمان‌بند دقیقه‌ای FIFO را در پنجره‌های امن بعدی ادامه می‌دهد.
+- تست رگرسیون برای slotهای ۰، ۱۰، ۲۹، ۳۰ و ۳۱ دقیقه و نوبت تحریریه اضافه شد.
+- شواهد، محدودیت رسانه‌ها و معیار تأیید انتشار در Handbook و گزارش رخداد ثبت شدند.
 
-**فایل‌ها:** `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، `.github/workflows/offerchin-video-publisher.yml`، `docs/OFFERCHIN_PUBLICATION_STARVATION_FIX_2026-11-17_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `README.md`.
+**فایل‌ها/سامانه‌ها:** `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، `.github/workflows/offerchin-video-publisher.yml`، `docs/OFFERCHIN_PUBLICATION_STARVATION_FIX_2026-11-17_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `README.md` و همین changelog.
 
-**مرزهای سیاست:** Aparat بدون deadline معتبر همچنان fail-closed می‌ماند؛ Eitaa تا اتصال واقعی `not_connected` است؛ وضعیت ارسال‌شده به صف تأیید Filo با انتشار عمومی یکی نیست. هیچ secret خوانده یا افشا نشده است.
+**آزمون و نتیجه:** Node syntax، تست‌های Cloudflare Worker و Wrangler dry-run در PR #230 موفق شدند. گیت مستندات در اجرای نخست به‌علت قالب‌بندی ناقص changelog رد شد؛ قالب این مدخل مطابق قرارداد validator اصلاح شد و باید نتیجهٔ اجرای جدید گیت بررسی شود. انتشار عمومی تازه هنوز ادعا نمی‌شود.
 
-**آزمون و استقرار:** PR #230 روی شاخهٔ `fix/offerchin-video-queue-starvation-20261117` ایجاد شد. Worker syntax، تست‌های Node و Wrangler dry-run موفق شدند؛ Documentation Gate در اجرای اول به دلیل به‌روزرسانی‌نشدن handbook/changelog شکست خورد و با همین ورودی مستندات اصلاح شد. ادغام و Deploy نهایی تا مشاهدهٔ نتیجهٔ مجدد گیت‌ها ادعا نمی‌شود.
+**شواهد/شناسه:** snapshot با زمان `2026-11-17T17:19:45Z`: ۱۱۹ رکورد؛ Telegram/Bale/Rubika هرکدام ۱۱۹ `sent`؛ Filo/YouTube/video generation هرکدام ۱۱۹ `pending`؛ Eitaa تعداد ۱۱۹ `not_connected`؛ Aparat تعداد ۱۱۸ `skipped_unverified_deadline` و یک `pending`. ورود Filo در `2026-11-17T16:51:37Z` تأییدشده بود. PR: #230، شاخهٔ `fix/offerchin-video-queue-starvation-20261117`.
+
+**ریسک/بازگشت:** یک محصول در هر اجرای حداکثر ۲۰ دقیقه‌ای پردازش می‌شود؛ در نتیجه تخلیهٔ backlog نسبت به batch چهارمحصولی کندتر است، اما زمان کانال رزروشده را اشغال نمی‌کند. Aparat بدون deadline تأییدشده مسدود می‌ماند و Eitaa بدون اعتبارنامه متصل نمی‌شود. rollback با revert کد/Workflow همین PR انجام می‌شود؛ state، صف، ledger و رسیدهای انتشار نباید reset یا دستکاری شوند.
+
+**وضعیت:** اصلاح کد، تست و مستندات در PR #230 ثبت شده‌اند. ادغام در main و Deploy Worker تا موفقیت همهٔ گیت‌ها و مشاهدهٔ استقرار انجام‌شده تلقی نمی‌شود؛ انتشار عمومی ویدئو پس از استقرار باید از روی رسید و شناسه/URL هر مقصد تأیید شود.
