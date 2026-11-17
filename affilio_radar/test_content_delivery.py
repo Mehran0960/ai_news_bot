@@ -1282,7 +1282,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(result["interval_seconds"], 0)
 
 
-    def test_expired_scan_eta_uses_provisional_57_minute_product_window(self):
+    def test_expired_scan_eta_uses_provisional_47_minute_product_window(self):
         status = {
             "estimated_next_clean_scan_at": (self.now - timedelta(minutes=1)).isoformat(),
         }
@@ -1296,7 +1296,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(result["interval_seconds"], 47 * 60)
         self.assertTrue(result["first_slot_due_now"])
 
-    def test_missing_scan_eta_uses_provisional_57_minute_product_window(self):
+    def test_missing_scan_eta_uses_provisional_47_minute_product_window(self):
         result = calculate_product_publication_cadence(
             {}, {}, 2, now=self.now, max_daily_posts=72
         )
@@ -1368,7 +1368,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(result["interval_seconds"], 47 * 60)
         self.assertTrue(result["first_slot_due_now"])
 
-    def test_reflow_after_expired_scan_eta_keeps_products_moving_at_57_minutes(self):
+    def test_reflow_after_expired_scan_eta_keeps_products_moving_at_47_minutes(self):
         last_product = self.now - timedelta(hours=2)
         state = {
             "last_product_channel_published_at": last_product.isoformat(),
