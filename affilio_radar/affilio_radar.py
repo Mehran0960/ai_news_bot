@@ -85,6 +85,8 @@ from offerchin_copy import (
     MEMBERSHIP_BUTTON_TEXT, PRODUCT_TITLE_PREFIX, SALE_TITLE_PREFIX, purchase_action_label,
     normalize_brand_display_name,
 )
+from publication_policy import MIN_CHANNEL_POST_INTERVAL_SECONDS, editorial_frequency_allowed
+from content_delivery import editorial_dispatch_runway_seconds
 from integrity_audit_state import apply_integrity_audit_ledger
 import arabic_reshaper
 from bidi.algorithm import get_display
@@ -5326,15 +5328,28 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
             already_checked_after_product = bool(
                 last_empty_check and last_empty_check > anchor_at
             )
+            dispatch_runway_seconds = editorial_dispatch_runway_seconds(state)
+            minimum_gap_seconds = MIN_CHANNEL_POST_INTERVAL_SECONDS
+            required_window_seconds = 2 * minimum_gap_seconds + dispatch_runway_seconds
+            earliest_editorial_at = anchor_at + timedelta(seconds=minimum_gap_seconds)
+            latest_safe_editorial_at = product_at - timedelta(
+                seconds=max(minimum_gap_seconds, dispatch_runway_seconds)
+            )
             midpoint_at = anchor_at + timedelta(seconds=max(0, gap_seconds) / 2)
+            scheduled_editorial_at = max(
+                earliest_editorial_at,
+                min(midpoint_at, latest_safe_editorial_at),
+            )
             if (
-                not already_linked
+                editorial_frequency_allowed(state)
+                and not already_linked
                 and not already_checked_after_product
-                and gap_seconds > 0
-                and midpoint_at > current
+                and gap_seconds >= required_window_seconds
+                and scheduled_editorial_at > current
                 and product_at > current
+                and latest_safe_editorial_at >= earliest_editorial_at
             ):
-                next_editorial_planning_at = midpoint_at.isoformat()
+                next_editorial_planning_at = scheduled_editorial_at.isoformat()
     # No product slot means no editorial wake-up. Editorial is not a standalone post.
 
     emergency_record = state.get("emergency_continuity") if isinstance(state, dict) else None
