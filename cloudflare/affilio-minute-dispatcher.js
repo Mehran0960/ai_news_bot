@@ -18,8 +18,6 @@ const RUNS_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/runs`;
 const FILO_REPO = "Goushibaaz";
 const FILO_WORKFLOW = "filo-native-republish.yml";
 const FILO_API = `https://api.github.com/repos/${OWNER}/${FILO_REPO}/actions/workflows/${FILO_WORKFLOW}`;
-const VIDEO_PUBLISHER_WORKFLOW = "offerchin-video-publisher.yml";
-const VIDEO_PUBLISHER_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${VIDEO_PUBLISHER_WORKFLOW}`;
 
 function response(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
@@ -619,64 +617,38 @@ export function hasPendingVideoQueue(state, now = Date.now()) {
   });
 }
 
-// Video uploads share the canonical state file and Actions concurrency group with
-// the photo-channel publisher. They may run only in a genuine idle window: no
-// product/editorial slot is planned, no publisher or catalog workflow is active,
-// and the catalog scanner has no pending pages. This keeps video retries from
-// reserving the state lock ahead of selected channel posts.
-// Video uploads share the publication-state lock with channel publishing.
-// Keep a full bounded video-run window plus a safety margin before the next
-// reserved channel/editorial slot, but do not wait for every future slot to vanish.
-export const VIDEO_CHANNEL_PRIORITY_WINDOW_MS = 30 * 60 * 1000;
-
-export function videoQueueDispatchDeferReason(
-  state,
-  publisherActive = false,
-  now = Date.now()
-) {
-  if (!hasPendingVideoQueue(state, now)) return "video_queue_empty";
-  const nextDueAt = nextPublisherDueAt(state);
-  const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
-  if (nextDueAt !== null && nextDueAt <= timestamp + VIDEO_CHANNEL_PRIORITY_WINDOW_MS) {
-    return "channel_content_slot_imminent";
-  }
-  if (publisherActive) return "publisher_workflow_active";
-  return null;
+// Destination dispatch is independent: no channel slot, editorial slot,
+// catalog scan, or sibling media workflow may defer a healthy destination.
+export function videoQueueDispatchDeferReason(state) {
+  return hasPendingVideoQueue(state) ? null : "video_queue_empty";
 }
-
 
 async function dispatchVideoUploadsWhenDue(env, tick, state) {
   if (!state || !env.GITHUB_TOKEN) return;
 
-  const preliminaryReason = videoQueueDispatchDeferReason(
-    state, false, tick.getTime()
-  );
-  if (preliminaryReason) {
-    if (preliminaryReason !== "video_queue_empty") {
-      console.log("OFFERCHIN_VIDEO_DISPATCH_DEFERRED reason=" + preliminaryReason);
+  const destinations = [
+    { name: "youtube", api: YOUTUBE_VIDEO_API, due: hasDueVideoRecord(state, "youtube", tick.getTime()), running: 24, queued: 8 },
+    { name: "aparat", api: APARAT_VIDEO_API, due: hasDueVideoRecord(state, "aparat", tick.getTime()), running: 18, queued: 8 },
+    { name: "filo", api: OFFERCHIN_FILO_VIDEO_API, due: hasDueVideoRecord(state, "filo", tick.getTime()), running: 24, queued: 8 },
+  ];
+
+  for (const destination of destinations) {
+    if (!destination.due) continue;
+    try {
+      await dispatchWorkflowIfIdle(
+        destination.api,
+        env.GITHUB_TOKEN,
+        "offerchin-" + destination.name,
+        destination.running,
+        destination.queued
+      );
+    } catch (error) {
+      console.error(
+        "OFFERCHIN_DESTINATION_DISPATCH_FAILED platform=" + destination.name +
+        " error=" + String(error).slice(0, 700)
+      );
     }
-    return;
   }
-
-  // Catalog sweep uses its own concurrency group and checkpoints only catalog
-  // ledgers. It must not starve the video queue while no channel slot is planned.
-  // The main product publisher still owns the shared publication-state lock.
-  const activePublisher = await findActiveWorkflow(PUBLISHER_API, env.GITHUB_TOKEN);
-  const deferReason = videoQueueDispatchDeferReason(
-    state, Boolean(activePublisher), tick.getTime()
-  );
-  if (deferReason) {
-    console.log("OFFERCHIN_VIDEO_DISPATCH_DEFERRED reason=" + deferReason);
-    return;
-  }
-
-  await dispatchWorkflowIfIdle(
-    VIDEO_PUBLISHER_API,
-    env.GITHUB_TOKEN,
-    VIDEO_PUBLISHER_WORKFLOW,
-    45,
-    30
-  );
 }
 async function runScheduledCheck(env, scheduledTime) {
   const hasOfferChinToken = Boolean(env.GITHUB_TOKEN);
@@ -747,9 +719,8 @@ async function runScheduledCheck(env, scheduledTime) {
     console.error("OFFERCHIN_PUBLISHER_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 
-  // Video fan-out remains lower priority than products and reserved editorial
-  // slots, but is independent from catalog scanning. Its queue remains persisted
-  // and is retried when no channel slot is planned and the publisher lock is idle.
+  // Every video destination has its own due check, workflow and failure boundary.
+  // No channel/editorial schedule or sibling media workflow can block it.
   try {
     await dispatchVideoUploadsWhenDue(env, tick, state);
   } catch (error) {

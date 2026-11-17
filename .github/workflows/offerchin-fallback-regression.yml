@@ -8,6 +8,9 @@ on:
       - "affilio_radar/publisher.py"
       - "affilio_radar/platform_registry.py"
       - "affilio_radar/test_content_delivery.py"
+      - "affilio_radar/test_independent_media_dispatch.py"
+      - "affilio_radar/merge_state_conflicts.py"
+      - "affilio_radar/test_merge_state_conflicts.py"
       - "affilio_radar/digikala_mag_discovery.py"
       - "affilio_radar/test_digikala_mag_discovery.py"
       - ".github/workflows/offerchin-mag-source-discovery.yml"
@@ -42,7 +45,7 @@ jobs:
 
       - name: Test delivery queue and same-run fallback
         working-directory: affilio_radar
-        run: python -m unittest -v test_content_delivery
+        run: python -m unittest -v test_content_delivery test_independent_media_dispatch test_merge_state_conflicts
 
       - name: Test cross-band selection and rejected-offer cooldown
         working-directory: affilio_radar

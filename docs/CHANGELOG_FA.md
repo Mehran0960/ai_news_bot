@@ -2899,3 +2899,42 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** یک محصول در هر اجرای حداکثر ۲۰ دقیقه‌ای پردازش می‌شود؛ در نتیجه تخلیهٔ backlog نسبت به batch چهارمحصولی کندتر است، اما زمان کانال رزروشده را اشغال نمی‌کند. Aparat بدون deadline تأییدشده مسدود می‌ماند و Eitaa بدون اعتبارنامه متصل نمی‌شود. rollback با revert کد/Workflow همین PR انجام می‌شود؛ state، صف، ledger و رسیدهای انتشار نباید reset یا دستکاری شوند.
 
 **وضعیت:** اصلاح کد، تست و مستندات در PR #230 ثبت شده‌اند. ادغام در main و Deploy Worker تا موفقیت همهٔ گیت‌ها و مشاهدهٔ استقرار انجام‌شده تلقی نمی‌شود؛ انتشار عمومی ویدئو پس از استقرار باید از روی رسید و شناسه/URL هر مقصد تأیید شود.
+
+
+## ۲۰۲۶-۱۱-۱۷ — استقلال زمان‌بندی و اجرای مقصدهای رسانه‌ای OfferChin
+
+**هدف:** هیچ رسانه‌ای به زمان‌بندی، موفقیت یا failure رسانهٔ دیگر وابسته نباشد.
+
+**تغییر/اقدام:**
+- Worker دیگر وجود نوبت کانال/تحریریه یا فعال‌بودن ناشر کانال را برای Dispatch ویدئو بررسی نمی‌کند؛ YouTube، Aparat و Filo با due check مستقل به workflowهای جداگانه فرستاده می‌شوند.
+- Workflowهای کانال، Filo، YouTube و Aparat concurrency group مستقل دارند؛ workflow یکپارچهٔ ویدئو از مسیر خودکار کنار گذاشته شد.
+- ارسال عکس در Telegram، Bale، Rubika و Eitaa هم‌زمان آغاز می‌شود. هر adapter روی نسخهٔ خصوصی entry/record خود کار می‌کند و فقط receipt/status خودش را merge می‌کند؛ state مشترک هنگام ارسال شبکه‌ای نوشته نمی‌شود.
+- ابزار سه‌طرفهٔ ادغام JSON و تست‌های آن افزوده شد تا commitهای هم‌زمان مقصدهای مستقل، receipt یا status یکدیگر را حذف نکنند.
+- تست‌های مستقل‌سازی photo delivery و تست‌های regression زمان‌بند به CI اضافه شدند.
+
+**فایل‌ها/سامانه‌ها:** `cloudflare/affilio-minute-dispatcher.js`, `cloudflare/affilio-minute-dispatcher.test.mjs`, `affilio_radar/publisher.py`, `affilio_radar/merge_state_conflicts.py`, `affilio_radar/test_merge_state_conflicts.py`, `affilio_radar/test_independent_media_dispatch.py`, `affilio_radar/test_content_delivery.py` و چهار Workflow مستقل رسانه.
+
+**آزمون و نتیجه:** اجرای نخست CI دو مشکل را آشکار کرد: mockهای قدیمی آرگومان جدید `persist` را نمی‌پذیرفتند و changelog برچسب‌های الزامی validator را نداشت. mockها و قالب changelog اصلاح شدند. اجرای بعدی باید موفقیت این اصلاحات را ثابت کند؛ تا آن زمان نتیجهٔ تست نهایی تأییدشده نیست.
+
+**شواهد/شناسه:** PR #231، شاخهٔ `fix/offerchin-independent-media-dispatch-20261117`. Worker سه workflow ویدئویی مجزا را بررسی می‌کند و ارسال چهار مقصد عکس در threadهای مستقل آغاز می‌شود. snapshot قبلی ۱۱۹ رکورد pending برای Filo/YouTube/تولید ویدئو و ارسال موفق ۱۱۹ مورد در Telegram/Bale/Rubika را نشان می‌داد.
+
+**ریسک/بازگشت:** ارسال هم‌زمان ممکن است زمان تکمیل کل run را به کندترین مقصد وابسته کند، اما شروع و ارسال مقصدهای دیگر را معطل نمی‌کند. برای stateهای هم‌زمان از merge سه‌طرفه استفاده می‌شود. Aparat بدون deadline معتبر فقط برای خود Aparat skip می‌شود؛ نبود credential یا rate limit نیز فقط همان مقصد را تحت تأثیر قرار می‌دهد. rollback با revert PR #231 انجام می‌شود؛ state و رسیدهای واقعی نباید پاک شوند.
+
+**وضعیت:** تغییرات در PR #231 منتظر CI و گیت مستندات هستند. ادغام و Deploy تا سبزشدن گیت‌ها انجام‌شده تلقی نمی‌شود؛ انتشار عمومی هر مقصد فقط با شناسه یا URL قابل‌راستی‌آزمایی تأیید خواهد شد.
+
+
+## ۲۰۲۶-۱۱-۱۷ — همسان‌سازی مسیر اضطراری با استقلال مقصدها
+
+**هدف:** مسیر اضطراری انتشار نیز نباید دوباره ویدئوها را در یک workflow مشترک یا وابسته به یکدیگر اجرا کند.
+
+**تغییر/اقدام:** ناشر اضطراری سه workflow مستقل YouTube، Aparat و Filo را Dispatch می‌کند؛ ثبت state و projection ویدئو با retry و merge سه‌طرفه انجام می‌شود. ارجاع خودکار به workflow یکپارچه حذف شد.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/affilio-publisher.yml`، `.github/workflows/offerchin-video-fanout-validation.yml`، `affilio_radar/merge_state_conflicts.py`، Handbook و Changelog.
+
+**آزمون و نتیجه:** گیت CI اکنون بررسی می‌کند که مسیر اضطراری هر سه workflow مستقل را فراخوانی و workflow یکپارچه را فراخوانی نکند؛ نتیجهٔ نهایی پس از اجرای جدید CI ثبت می‌شود.
+
+**شواهد/شناسه:** PR #231، شاخهٔ `fix/offerchin-independent-media-dispatch-20261117`.
+
+**ریسک/بازگشت:** در صورت شکست یک dispatch فقط همان مقصد retry می‌شود؛ state مقصدهای دیگر نباید reset شود. rollback با revert همین تغییر انجام می‌شود.
+
+**وضعیت:** در PR #231 ثبت شد؛ ادغام/استقرار تا سبزشدن همهٔ گیت‌ها انجام‌شده تلقی نمی‌شود.

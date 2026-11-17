@@ -6,9 +6,11 @@ adapters independently. A platform failure never blocks another adapter.
 """
 from __future__ import annotations
 
+import copy
 import os
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -556,6 +558,8 @@ def _process_photo_destination(
     image_bytes: bytes,
     destination: str,
     now: datetime,
+    *,
+    persist: bool = True,
 ) -> None:
     target = _target(entry, destination)
     record_status = record.setdefault("delivery_status", {})
@@ -568,13 +572,15 @@ def _process_photo_destination(
             return
         _set_target(entry, destination, "manual_review", now, "previous_send_outcome_unknown")
         record_status[destination] = "manual_review"
-        _save(state)
+        if persist:
+            _save(state)
         print(f"PLATFORM_DELIVERY_MANUAL_REVIEW product_id={entry['product_id']} platform={destination} reason=previous_send_outcome_unknown")
         return
     if not _target_ready(destination):
         _set_target(entry, destination, "not_connected", now, "credentials_not_configured")
         record_status[destination] = "not_connected"
-        _save(state)
+        if persist:
+            _save(state)
         return
     retry_at = _utc(target.get("next_attempt_at"))
     if status in {"failed", "retry"} and retry_at and retry_at > now:
@@ -588,7 +594,8 @@ def _process_photo_destination(
         target["attempts"] = int(target.get("attempts") or 0) + 1
     except (TypeError, ValueError, OverflowError):
         target["attempts"] = 1
-    _save(state)
+    if persist:
+        _save(state)
     try:
         if destination in {"rubika", "eitaa"}:
             from messenger_adapters import send_photo
@@ -608,14 +615,13 @@ def _process_photo_destination(
         elif destination == "bale":
             record["bale_message_id"] = message_id
         elif message_id:
-            # Store only real message identifiers returned by the destination API.
             record.setdefault("platform_message_ids", {})[destination] = message_id
         elif delivery_receipt:
-            # Some APIs confirm acceptance without exposing a message ID.
             record.setdefault("platform_delivery_receipts", {})[destination] = str(delivery_receipt)
         record.setdefault("delivery_attempts", {})[destination] = target["attempts"]
         record["delivery_last_attempt_at"] = _now().isoformat()
-        _save(state)
+        if persist:
+            _save(state)
         print(
             f"PLATFORM_DELIVERY_OK product_id={entry['product_id']} platform={destination} "
             f"message_id={message_id or 'not_returned'} receipt_only={bool(delivery_receipt and not message_id)}"
@@ -626,12 +632,59 @@ def _process_photo_destination(
         record_status[destination] = "failed"
         record.setdefault("delivery_attempts", {})[destination] = target["attempts"]
         record["delivery_last_attempt_at"] = _now().isoformat()
-        _save(state)
+        if persist:
+            _save(state)
         print(
             f"PLATFORM_DELIVERY_FAILED product_id={entry['product_id']} platform={destination} "
             f"error={type(exc).__name__} detail={safe_detail}"
         )
 
+
+def _deliver_photo_destination_isolated(
+    entry: dict,
+    record: dict,
+    item: dict,
+    image_bytes: bytes,
+    destination: str,
+    now: datetime,
+) -> tuple[str, dict, dict]:
+    """Run one outbound photo destination on a private state copy."""
+    local_entry = copy.deepcopy(entry)
+    local_record = copy.deepcopy(record)
+    _process_photo_destination(
+        {}, local_entry, local_record, item, image_bytes, destination, now,
+        persist=False,
+    )
+    return destination, local_entry, local_record
+
+
+def _merge_photo_destination_result(
+    entry: dict, record: dict, destination: str,
+    local_entry: dict, local_record: dict,
+) -> None:
+    """Merge only this destination's receipt/status into the canonical in-memory state."""
+    target = _target(local_entry, destination)
+    entry.setdefault("platforms", {})[destination] = copy.deepcopy(target)
+    if destination in local_record.get("delivery_status", {}):
+        record.setdefault("delivery_status", {})[destination] = local_record["delivery_status"][destination]
+    if destination in local_record.get("delivery_attempts", {}):
+        record.setdefault("delivery_attempts", {})[destination] = local_record["delivery_attempts"][destination]
+    posted_key = f"{destination}_posted_at"
+    if posted_key in local_record:
+        record[posted_key] = local_record[posted_key]
+    if destination == "telegram" and local_record.get("telegram_message_id") is not None:
+        record["telegram_message_id"] = local_record["telegram_message_id"]
+    elif destination == "bale" and local_record.get("bale_message_id") is not None:
+        record["bale_message_id"] = local_record["bale_message_id"]
+    for map_key in ("platform_message_ids", "platform_delivery_receipts"):
+        value = local_record.get(map_key, {})
+        if isinstance(value, dict) and destination in value:
+            record.setdefault(map_key, {})[destination] = value[destination]
+    if local_record.get("delivery_last_attempt_at"):
+        current = _utc(record.get("delivery_last_attempt_at"))
+        incoming = _utc(local_record.get("delivery_last_attempt_at"))
+        if incoming and (current is None or incoming > current):
+            record["delivery_last_attempt_at"] = local_record["delivery_last_attempt_at"]
 
 def _process_video_destinations(state: dict, entry: dict, record: dict, now: datetime) -> None:
     product_id = str(entry.get("product_id") or "")
@@ -1060,8 +1113,32 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             name: str(_target(entry, name).get("status") or "pending")
             for name in PHOTO_PLATFORMS
         }
-        for destination in PHOTO_PLATFORMS:
-            _process_photo_destination(state, entry, record, fresh, image_bytes, destination, now)
+        # Start every photo destination independently. Each adapter receives a
+        # private state copy; its network delay/failure cannot serialize or mutate
+        # another destination's delivery state.
+        with ThreadPoolExecutor(max_workers=max(1, len(PHOTO_PLATFORMS))) as executor:
+            futures = {
+                executor.submit(
+                    _deliver_photo_destination_isolated,
+                    entry, record, fresh, image_bytes, destination, now,
+                ): destination
+                for destination in PHOTO_PLATFORMS
+            }
+            for future in as_completed(futures):
+                destination = futures[future]
+                try:
+                    result_destination, local_entry, local_record = future.result()
+                    _merge_photo_destination_result(
+                        entry, record, result_destination, local_entry, local_record
+                    )
+                except Exception as exc:
+                    safe_detail = _safe_delivery_error(exc)
+                    _target_retry(entry, destination, _now(), f"{type(exc).__name__}: {safe_detail}"[:180])
+                    record.setdefault("delivery_status", {})[destination] = "failed"
+                    print(
+                        f"PLATFORM_DELIVERY_FAILED product_id={product_id} platform={destination} "
+                        f"error={type(exc).__name__} detail={safe_detail}"
+                    )
         # The canonical selected-product record already exists in state.json.
         # The video dispatcher consumes that same record independently: no photo
         # destination needs to report "sent" before YouTube/Aparat/Filo can start.

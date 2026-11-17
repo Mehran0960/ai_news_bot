@@ -960,7 +960,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "merchant": "دیجی‌کالا",
         }
 
-        def fake_photo(state_arg, entry, record, item, image_bytes, destination, now):
+        def fake_photo(state_arg, entry, record, item, image_bytes, destination, now, *, persist=True):
             entry["platforms"][destination]["status"] = "sent"
             entry["platforms"][destination]["updated_at"] = now.isoformat()
             record.setdefault("delivery_status", {})[destination] = "sent"
@@ -1034,7 +1034,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             interval_seconds=1200, max_items=1,
         )
 
-        def fake_photo(state_arg, entry, record, item, image_bytes, destination, now):
+        def fake_photo(state_arg, entry, record, item, image_bytes, destination, now, *, persist=True):
             target = entry["platforms"][destination]
             if destination in CORE_PHOTO_PLATFORMS:
                 target.update(status="sent", attempts=1, updated_at=now.isoformat())
