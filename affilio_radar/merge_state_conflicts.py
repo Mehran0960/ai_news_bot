@@ -21,11 +21,12 @@ def three_way_merge(base: Any, ours: Any, theirs: Any, path: str = "") -> Any:
     if ours == theirs: return ours
     if ours == base: return theirs
     if theirs == base: return ours
-    if all(isinstance(x, dict) for x in (base, ours, theirs)):
+    if isinstance(ours, dict) and isinstance(theirs, dict):
+        base_map = base if isinstance(base, dict) else {}
         result = {}
-        for key in set(base) | set(ours) | set(theirs):
-            bp, op, tp = key in base, key in ours, key in theirs
-            b, o, t = base.get(key), ours.get(key), theirs.get(key)
+        for key in set(base_map) | set(ours) | set(theirs):
+            bp, op, tp = key in base_map, key in ours, key in theirs
+            b, o, t = base_map.get(key), ours.get(key), theirs.get(key)
             child = f"{path}.{key}" if path else key
             if not op and not tp: continue
             if not op:
