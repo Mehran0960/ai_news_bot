@@ -15,15 +15,18 @@ from typing import Any
 
 from platform_registry import PLATFORM_NAMES
 from product_quality import is_publishable_product_title
-from publication_policy import MIN_CHANNEL_POST_INTERVAL_SECONDS
+from publication_policy import (
+    MIN_CHANNEL_POST_INTERVAL_SECONDS,
+    channel_post_interval_seconds,
+)
 
 
 TERMINAL_QUEUE_STATUSES = {"published", "cancelled", "stale_selection"}
 TERMINAL_PLATFORM_STATUSES = {"sent", "not_connected", "manual_review"}
 PENDING_PLATFORM_STATUSES = {"pending", "failed", "retry"}
 
-# Product slots still use the observed scan window, but every public channel post
-# (product or editorial) must respect the shared 21-minute minimum spacing.
+# Product slots are distributed over the observed scan window, while each confirmed
+# public channel post (product or editorial) uses a stable, non-round 31–47 minute gap.
 MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS = 57 * 60
 PRODUCT_ID_PATTERN = re.compile(r"^(?:dkp|snp)-\d{1,12}$", re.IGNORECASE)
 
@@ -232,33 +235,27 @@ def calculate_product_publication_cadence(
         clean_started.isoformat() if clean_started else "initial-warmup"
     )
     previous_cycle_id = str(state.get("product_publication_plan_cycle_id") or "")
-    last_channel = get_last_channel_published_at(state)
-
-    if previous_cycle_id != cycle_id:
-        last_product_in_cycle = bool(last_channel and scan_anchor and last_channel >= scan_anchor)
-    else:
-        last_product_in_cycle = bool(last_channel and scan_anchor and last_channel >= scan_anchor)
-
-    last_channel_age_seconds = (
-        max(0.0, (current - last_channel).total_seconds())
-        if last_channel is not None else None
+    last_product = get_last_product_channel_published_at(state)
+    last_product_age_seconds = (
+        max(0.0, (current - last_product).total_seconds())
+        if last_product is not None else None
     )
+    # The scan plan is product-oriented. Editorial still advances the shared
+    # channel clock, which is enforced later by the enqueue/reflow delivery gate.
     first_slot_due_now = bool(
         candidates > 0
-        and (last_channel_age_seconds is None
-             or last_channel_age_seconds >= MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS)
+        and (last_product_age_seconds is None
+             or last_product_age_seconds >= MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS)
     )
     if first_slot_due_now:
-        # Initial publication starts at the cycle anchor; overdue recovery follows a real product receipt.
         anchor = current
         anchor_kind = (
-            "cycle_start" if last_channel is None
+            "cycle_start" if last_product is None
             else "cycle_start_after_max_gap"
         )
-    elif last_channel is not None:
-        # The maximum interval is global across catalog scan-cycle boundaries.
-        anchor = last_channel
-        anchor_kind = "last_channel_provisional" if provisional_window else "last_channel"
+    elif last_product is not None:
+        anchor = last_product
+        anchor_kind = "last_product_provisional" if provisional_window else "last_product"
     else:
         anchor = current
         anchor_kind = "cycle_start"
@@ -305,7 +302,7 @@ def calculate_product_publication_cadence(
         "interval_minutes": round(interval_seconds / 60, 3),
         "maximum_product_interval_seconds": MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS,
         "first_slot_due_now": first_slot_due_now,
-        "policy": "shared_21_minimum_channel_spacing_with_product_max_interval_57_minutes",
+        "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes",
     }
     state["product_publication_interval_seconds"] = interval_seconds
     state["product_publication_cadence"] = result
@@ -363,14 +360,36 @@ def reschedule_product_queue_evenly(
     )
     anchor = _utc(state.get("product_publication_plan_anchor_at")) or current
     anchor_kind = str(state.get("product_publication_plan_anchor_kind") or "cycle_start")
+    first_due_now = bool((cadence or {}).get("first_slot_due_now"))
     last_channel = get_last_channel_published_at(state)
     if last_channel and last_channel > anchor:
         anchor = last_channel
         anchor_kind = "last_channel"
         state["product_publication_plan_anchor_at"] = anchor.isoformat()
         state["product_publication_plan_anchor_kind"] = anchor_kind
+        # A stale product scan clock must never authorize a product immediately
+        # after a more recent editorial/channel post. The shared minimum wins.
+        if (current - last_channel).total_seconds() < MIN_CHANNEL_POST_INTERVAL_SECONDS:
+            first_due_now = False
 
-    # The 21-minute floor and 57-minute ceiling are enforced during every queue reflow.
+    # An active editorial slot is a real public post in the same channel sequence.
+    # Preserve its position before the related next product when the catalog plan is
+    # refreshed, rather than allowing a discovery reflow to overwrite the reservation.
+    active_editorials_by_product: dict[str, datetime] = {}
+    editorial_queue = state.get("editorial_delivery_queue")
+    editorial_rows = editorial_queue.values() if isinstance(editorial_queue, dict) else []
+    for editorial in editorial_rows:
+        if not isinstance(editorial, dict) or editorial.get("status") in {
+            "completed", "cancelled", "failed", "published"
+        }:
+            continue
+        related_product_id = str(editorial.get("related_product_id") or "").strip()
+        editorial_at = _utc(editorial.get("scheduled_at"))
+        if related_product_id and editorial_at is not None:
+            active_editorials_by_product[related_product_id] = editorial_at
+
+    # The observed scan ETA remains planning telemetry. Actual content slots use
+    # deterministic per-item jitter, so each adjacent public post is 31–47 minutes apart.
     deferred = 0
     if interval <= 0:
         for _sequence, _product_id, entry in pending:
@@ -380,13 +399,20 @@ def reschedule_product_queue_evenly(
             entry.pop("next_attempt_at", None)
         deferred = len(pending)
     else:
-        first_due_now = bool((cadence or {}).get("first_slot_due_now"))
-        for index, (_sequence, _product_id, entry) in enumerate(pending):
+        # A reserved editorial before the first product must keep its bridge interval;
+        # an overdue product is not allowed to leapfrog the editorial.
+        if pending and pending[0][1] in active_editorials_by_product:
+            first_due_now = False
+        cursor = current if first_due_now else anchor
+        for index, (sequence, product_id, entry) in enumerate(pending):
+            editorial_at = active_editorials_by_product.get(product_id)
+            if editorial_at is not None and editorial_at > cursor:
+                cursor = editorial_at
             if first_due_now and index == 0:
                 scheduled = current
             else:
-                slot_index = index if first_due_now else index + 1
-                scheduled = anchor + timedelta(seconds=interval * slot_index)
+                gap = channel_post_interval_seconds(f"product:{sequence}:{product_id}")
+                scheduled = cursor + timedelta(seconds=gap)
             entry["scheduled_at"] = scheduled.isoformat()
             retry_at = _utc(entry.get("next_attempt_at"))
             if entry.get("status") in {"failed", "retry", "partial"} and retry_at and retry_at > current:
@@ -394,6 +420,7 @@ def reschedule_product_queue_evenly(
             else:
                 entry["next_attempt_at"] = scheduled.isoformat()
             entry["product_plan_cycle_id"] = str((cadence or {}).get("catalog_cycle_id") or "")
+            cursor = scheduled
 
     plan = state.setdefault("product_publication_plan", {})
     if not isinstance(plan, dict):
@@ -508,7 +535,7 @@ def reflow_product_queue_after_delivery(
         "interval_seconds": interval_seconds,
         "interval_minutes": round(interval_seconds / 60, 3),
         "maximum_product_interval_seconds": MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS,
-        "policy": "shared_21_minimum_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
+        "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
     })
     state["product_publication_cadence"] = updated_cadence
     state["product_publication_interval_seconds"] = interval_seconds
@@ -612,7 +639,14 @@ def get_last_channel_published_at(state: dict) -> datetime | None:
 
     observed_latest = max(observed) if observed else None
     legacy = _utc(state.get("last_published_at"))
-    candidates = [value for value in (stored, observed_latest) if value is not None]
+    # Older state may have an explicitly stored product-only clock but no shared
+    # clock yet. Read this field directly to avoid recursion through the legacy
+    # product-clock migration fallback below.
+    legacy_product = _utc(state.get("last_product_channel_published_at"))
+    candidates = [
+        value for value in (stored, observed_latest, legacy_product)
+        if value is not None
+    ]
     anchor = max(candidates) if candidates else legacy
     if anchor is None:
         return None
@@ -891,14 +925,7 @@ def enqueue_selected_content(
     last_channel_published = get_last_channel_published_at(state)
     # This is only an initial hand-off estimate. The catalog-aware planner
     # subsequently reflows every unsent selection across the full scan window.
-    effective_interval_seconds = max(
-        float(MIN_CHANNEL_POST_INTERVAL_SECONDS), interval_seconds
-    )
-    next_slot = max(
-        now,
-        last_channel_published + timedelta(seconds=effective_interval_seconds)
-        if last_channel_published else now,
-    )
+    next_slot = now
 
     added = skipped = 0
     for item in items:
@@ -931,7 +958,16 @@ def enqueue_selected_content(
             continue
 
         deadline = _utc(item.get("deal_expires_at"))
-        scheduled = max(now, next_slot)
+        sequence_number = allocate_publication_sequence(state)
+        if last_channel_published and added == 0:
+            scheduled = max(
+                now,
+                last_channel_published + timedelta(
+                    seconds=channel_post_interval_seconds(f"product:{sequence_number}:{product_id}")
+                ),
+            )
+        else:
+            scheduled = max(now, next_slot)
         if deadline and deadline <= scheduled + timedelta(minutes=minimum_runway_minutes):
             skipped += 1
             continue
@@ -948,7 +984,6 @@ def enqueue_selected_content(
         # adapters can consume this contract without importing the discovery module.
         payload = json.loads(json.dumps(item, ensure_ascii=False, default=str))
         payload["title"] = title
-        sequence_number = allocate_publication_sequence(state)
         payload["content_id"] = product_id
         payload["sequence_number"] = sequence_number
         queue[product_id] = {
@@ -968,7 +1003,9 @@ def enqueue_selected_content(
             },
         }
         added += 1
-        next_slot = scheduled + timedelta(seconds=effective_interval_seconds)
+        next_slot = scheduled + timedelta(
+            seconds=channel_post_interval_seconds(f"product:{sequence_number}:{product_id}")
+        )
 
     summary = {
         "added": added,

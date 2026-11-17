@@ -6,15 +6,30 @@ channel posts. These rules are intentionally independent of video-platform quota
 """
 from __future__ import annotations
 
+import hashlib
 import re
 from datetime import datetime, timezone
 from typing import Any
 
-MIN_CHANNEL_POST_INTERVAL_SECONDS = 21 * 60
+MIN_CHANNEL_POST_INTERVAL_SECONDS = 31 * 60
+MAX_CHANNEL_POST_INTERVAL_SECONDS = 47 * 60
 PRODUCTS_PER_EDITORIAL_POST = 6
 DEFAULT_DAILY_CHANNEL_POST_LIMIT = 55
 
 CHANNEL_DESTINATIONS = ("telegram", "bale", "rubika", "eitaa")
+
+
+def channel_post_interval_seconds(seed: Any) -> int:
+    """Return a stable, non-round shared channel gap between 31 and 47 minutes.
+
+    A deterministic hash keeps every workflow in sync when the same slot is
+    recalculated, while distinct content IDs/sequences produce a varied cadence.
+    This is scheduling jitter, not a rate-limit bypass: 31 minutes remains a hard floor.
+    """
+    material = str(seed if seed is not None else "offerchin-shared-channel-slot").encode("utf-8")
+    digest = hashlib.blake2s(material, digest_size=4).digest()
+    minutes = 31 + (int.from_bytes(digest, "big") % 17)
+    return minutes * 60
 _PRODUCT_ID = re.compile(r"^(?:dkp|snp)-\d{1,12}$", re.IGNORECASE)
 
 

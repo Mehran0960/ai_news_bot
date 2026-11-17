@@ -830,8 +830,19 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         _save(state)
         print("PUBLISHER_INTEGRITY_LEDGER_APPLIED")
     now = _now()
+    queue = state.get("content_delivery_queue")
+    queue = queue if isinstance(queue, dict) else {}
+    due = due_content(state, now=now, limit=MAX_ITEMS_PER_RUN) if queue else []
+    # A partial delivery retry for a product that already has a confirmed core
+    # channel receipt is not a new post. Let its remaining destinations converge
+    # without resetting the shared channel clock or blocking newer content.
+    retrying_existing_channel_post = bool(
+        due
+        and isinstance(due[0][1], dict)
+        and _product_has_core_photo_success(due[0][1])
+    )
     spacing_wait = channel_publication_wait_seconds(state, now=now)
-    if spacing_wait > 0:
+    if spacing_wait > 0 and not retrying_existing_channel_post:
         next_slot = next_channel_publication_at(state)
         print(
             "PUBLISHER_SHARED_CHANNEL_SPACING_GUARD "
@@ -858,14 +869,29 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
     queue = state.get("content_delivery_queue")
     queue = queue if isinstance(queue, dict) else {}
     due = due_content(state, now=now, limit=MAX_ITEMS_PER_RUN) if queue else []
+    retrying_existing_channel_post = bool(
+        due
+        and isinstance(due[0][1], dict)
+        and _product_has_core_photo_success(due[0][1])
+    )
+    if spacing_wait > 0 and not retrying_existing_channel_post:
+        next_slot = next_channel_publication_at(state)
+        print(
+            "PUBLISHER_SHARED_CHANNEL_SPACING_GUARD_AFTER_QUEUE_BOUND "
+            f"remaining_seconds={spacing_wait} "
+            f"next_slot={next_slot.isoformat() if next_slot else 'unknown'} "
+            f"minimum_gap_seconds={MIN_CHANNEL_POST_INTERVAL_SECONDS}"
+        )
+        _refresh_dispatch_projection(state)
+        return 0
     editorial_before_product = _due_editorial_precedes_product(state, now, due)
     if editorial_before_product is not None:
-        # Persist the one-time midpoint attempt before rendering or any outbound side effect.
+        # Persist the one-time reserved-slot attempt before rendering or any outbound side effect.
         # A render/API failure must not cause the same editorial to starve the product queue.
         editorial_before_product["photo_slot_attempted_at"] = now.isoformat()
         _save(state)
         print(
-            "PUBLISHER_EDITORIAL_SLOT_PRECEDES_PRODUCT "
+            "PUBLISHER_RESERVED_EDITORIAL_SLOT_PRECEDES_PRODUCT "
             f"content_id={editorial_before_product.get('content_id')} "
             f"scheduled_at={editorial_before_product.get('scheduled_at')}"
         )
@@ -882,7 +908,15 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
 
     sent_content = 0
     fallback_promoted = False
+    channel_post_sent_this_run = False
     for product_id, entry in due:
+        if channel_post_sent_this_run:
+            print(
+                "PUBLISHER_STOP_AFTER_CHANNEL_POST "
+                f"remaining_due={max(0, len(due) - sent_content)} "
+                "reason=never_burst_to_catch_up_missed_slots"
+            )
+            break
         if not isinstance(entry, dict):
             continue
         payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
@@ -1052,6 +1086,7 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             for name in PHOTO_PLATFORMS
         )
         if new_public_delivery:
+            channel_post_sent_this_run = True
             public_posted_at = _now().isoformat()
             state["last_channel_published_at"] = public_posted_at
             state["last_product_channel_published_at"] = public_posted_at

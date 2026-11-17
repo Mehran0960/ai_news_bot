@@ -1,5 +1,6 @@
 import unittest
 import json
+import re
 from unittest.mock import patch
 import os
 import tempfile
@@ -13,6 +14,7 @@ from editorial_publisher import (
     _handle_channel_destination,
     _record_failure,
     _format_message,
+    _public_editorial_payload,
     _send_bot_photo,
     _video_description,
     _load_bank,
@@ -22,6 +24,7 @@ from editorial_video import render_editorial_poster, render_editorial_video
 import affilio_radar as radar
 from publisher import editorial_fifo_lock_entry
 from platform_registry import PLATFORM_NAMES
+from publication_policy import channel_post_interval_seconds, MIN_CHANNEL_POST_INTERVAL_SECONDS
 
 NOW = datetime(2026, 11, 12, 18, 0, tzinfo=timezone.utc)
 
@@ -42,9 +45,12 @@ def editorial_item(editorial_id="test-guide", topic="purchase-planning"):
 def add_confirmed_product_posts(state, count=6, *, published_at=None):
     published = state.setdefault("published", {})
     stamp = (published_at or (NOW - timedelta(hours=1))).timestamp()
-    existing = sum(1 for key in published if str(key).startswith("dkp-prior-"))
+    existing = sum(
+        1 for key in published
+        if isinstance(key, str) and re.fullmatch(r"dkp-\d{1,12}", key)
+    )
     for index in range(count):
-        product_id = f"dkp-prior-{existing + index + 1}"
+        product_id = f"dkp-{900000 + existing + index + 1}"
         published[product_id] = {
             "content_type": "product",
             "ts": stamp + index,
@@ -251,7 +257,7 @@ class EditorialPublisherTests(unittest.TestCase):
             self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
         self.assertFalse(state.get("editorial_delivery_queue"))
 
-    def test_editorial_midpoint_is_based_on_scan_slot_not_a_minute_floor(self):
+    def test_editorial_uses_a_stable_shared_31_to_47_minute_slot(self):
         product_at = NOW + timedelta(hours=2)
         state = {
             "last_channel_published_at": (NOW - timedelta(minutes=20)).isoformat(),
@@ -268,12 +274,16 @@ class EditorialPublisherTests(unittest.TestCase):
         add_confirmed_product_posts(state)
         entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
         self.assertIsNotNone(entry)
-        self.assertEqual(
-            datetime.fromisoformat(entry["scheduled_at"]),
-            NOW + timedelta(minutes=50),
+        expected_editorial_at = NOW - timedelta(minutes=20) + timedelta(
+            seconds=channel_post_interval_seconds("editorial:test-guide:dkp-next")
+        )
+        self.assertEqual(datetime.fromisoformat(entry["scheduled_at"]), expected_editorial_at)
+        self.assertGreaterEqual(
+            (product_at - expected_editorial_at).total_seconds(),
+            MIN_CHANNEL_POST_INTERVAL_SECONDS,
         )
 
-    def test_editorial_is_skipped_when_product_gap_cannot_preserve_shared_minimum_spacing(self):
+    def test_short_product_gap_is_reserved_for_an_editorial_without_bursting(self):
         product_at = NOW + timedelta(minutes=2)
         state = {
             "last_channel_published_at": NOW.isoformat(),
@@ -289,10 +299,21 @@ class EditorialPublisherTests(unittest.TestCase):
         }
         add_confirmed_product_posts(state)
         entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
-        self.assertIsNone(entry)
-        self.assertFalse(state.get("editorial_delivery_queue"))
+        self.assertIsNotNone(entry)
+        editorial_at = datetime.fromisoformat(entry["scheduled_at"])
+        reserved_product_at = datetime.fromisoformat(
+            state["content_delivery_queue"]["dkp-short-gap"]["scheduled_at"]
+        )
+        self.assertGreaterEqual(
+            (editorial_at - NOW).total_seconds(),
+            MIN_CHANNEL_POST_INTERVAL_SECONDS,
+        )
+        self.assertGreaterEqual(
+            (reserved_product_at - editorial_at).total_seconds(),
+            MIN_CHANNEL_POST_INTERVAL_SECONDS,
+        )
 
-    def test_missed_editorial_midpoint_is_skipped_when_minimum_gap_no_longer_fits(self):
+    def test_late_wakeup_reserves_a_future_editorial_and_next_product_gap(self):
         product_at = NOW + timedelta(minutes=2)
         state = {
             "last_channel_published_at": (NOW - timedelta(minutes=2)).isoformat(),
@@ -308,10 +329,21 @@ class EditorialPublisherTests(unittest.TestCase):
         }
         add_confirmed_product_posts(state)
         entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
-        self.assertIsNone(entry)
-        self.assertFalse(state.get("editorial_delivery_queue"))
+        self.assertIsNotNone(entry)
+        editorial_at = datetime.fromisoformat(entry["scheduled_at"])
+        last_channel_at = datetime.fromisoformat(state["last_channel_published_at"])
+        self.assertGreaterEqual(
+            editorial_at - last_channel_at,
+            timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS),
+        )
+        self.assertGreaterEqual(
+            datetime.fromisoformat(state["content_delivery_queue"]["dkp-late-wakeup"]["scheduled_at"]),
+            datetime.fromisoformat(entry["scheduled_at"]) + timedelta(
+                seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS
+            ),
+        )
 
-    def test_editorial_is_skipped_when_real_send_runway_does_not_fit(self):
+    def test_editorial_slot_reserves_scheduler_and_delivery_runway(self):
         product_at = NOW + timedelta(seconds=75)
         state = {
             "last_channel_published_at": NOW.isoformat(),
@@ -325,14 +357,20 @@ class EditorialPublisherTests(unittest.TestCase):
                 }
             },
         }
+        add_confirmed_product_posts(state)
         with patch.dict(os.environ, {
             "OFFERCHIN_EDITORIAL_DISPATCH_POLL_SECONDS": "60",
             "OFFERCHIN_EDITORIAL_DEFAULT_DELIVERY_SECONDS": "30",
         }, clear=True):
             entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
 
-        self.assertIsNone(entry)
-        self.assertFalse(state.get("editorial_delivery_queue"))
+        self.assertIsNotNone(entry)
+        self.assertGreaterEqual(
+            datetime.fromisoformat(state["content_delivery_queue"]["dkp-no-runway"]["scheduled_at"]),
+            datetime.fromisoformat(entry["scheduled_at"]) + timedelta(
+                seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS
+            ),
+        )
 
     def test_active_editorial_is_cancelled_when_only_delivery_time_remains(self):
         editorial = {
@@ -465,7 +503,7 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertIsNotNone(entry)
         self.assertEqual(entry["status"], "queued")
 
-    def test_related_editorial_is_scheduled_midway_before_its_product(self):
+    def test_related_editorial_uses_shared_slot_before_its_product(self):
         product_at = NOW + timedelta(hours=2)
         product = {
             "product_id": "dkp-related",
@@ -499,8 +537,56 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertNotIn("related_product_title", entry["payload"])
         self.assertEqual(
             datetime.fromisoformat(entry["scheduled_at"]),
-            NOW + timedelta(hours=1),
+            NOW + timedelta(
+                seconds=channel_post_interval_seconds("editorial:device-fit:dkp-related")
+            ),
         )
+        reserved = datetime.fromisoformat(state["content_delivery_queue"]["dkp-related"]["scheduled_at"])
+        self.assertGreaterEqual(
+            (reserved - datetime.fromisoformat(entry["scheduled_at"])).total_seconds(),
+            MIN_CHANNEL_POST_INTERVAL_SECONDS,
+        )
+
+    def test_failed_editorial_releases_reserved_product_and_downstream_slots(self):
+        original = NOW + timedelta(minutes=4)
+        reserved = NOW + timedelta(minutes=70)
+        shift = reserved - original
+        entry = {
+            "content_id": "editorial:failed-reservation",
+            "content_type": "editorial",
+            "status": "partial",
+            "related_product_id": "dkp-reserved",
+            "related_product_original_scheduled_at": original.isoformat(),
+            "related_product_reserved_scheduled_at": reserved.isoformat(),
+            "platforms": {name: {"status": "not_connected"} for name in PLATFORM_NAMES},
+        }
+        state = {
+            "editorial_delivery_queue": {entry["content_id"]: entry},
+            "content_delivery_queue": {
+                "dkp-reserved": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": reserved.isoformat(),
+                    "next_attempt_at": reserved.isoformat(),
+                },
+                "dkp-later": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": (reserved + timedelta(minutes=40)).isoformat(),
+                    "next_attempt_at": (reserved + timedelta(minutes=40)).isoformat(),
+                },
+            },
+        }
+        self.assertTrue(_finalize_if_terminal(state, entry, NOW))
+        self.assertEqual(
+            datetime.fromisoformat(state["content_delivery_queue"]["dkp-reserved"]["scheduled_at"]),
+            original,
+        )
+        self.assertEqual(
+            datetime.fromisoformat(state["content_delivery_queue"]["dkp-later"]["scheduled_at"]),
+            reserved + timedelta(minutes=40) - shift,
+        )
+        self.assertEqual(entry["status"], "failed")
 
     def test_editorial_public_message_never_shows_sources_or_commerce(self):
         item = editorial_item()
@@ -508,20 +594,46 @@ class EditorialPublisherTests(unittest.TestCase):
         item["related_product_affiliate_url"] = radar.build_affilio_tracking_link(
             "https://www.digikala.com/product/dkp-123/"
         )
+        item["title"] = (
+            "زمان تحویل سفارش\n"
+            "📚 منبع: [دیجی‌کالا مگ](https://www.digikala.com/mag/digikala-delivery-time/)\n"
+            "🛒 [مشاهدهٔ پیشنهاد مرتبط (پیوند همکاری در فروش)](https://aflo.ir/QekEYTRg)"
+        )
+        item["body"] = (
+            "⏱️ زمان رسیدن سفارش برای همه کالاها یکسان نیست؛ نوع کالا، شهر مقصد، "
+            "موجودی فروشنده و روش ارسال می‌توانند آن را تغییر دهند.\n"
+            "✅ پیش از پرداخت، بازه تحویل و روش‌های فعال برای همان کالا و نشانی را "
+            "در صفحه سفارش بررسی کن؛ به یک زمان عمومی تکیه نکن.\n\n"
+            "📚 منبع: [دیجی‌کالا مگ](https://www.digikala.com/mag/digikala-delivery-time/)\n\n"
+            "🛒 [مشاهدهٔ پیشنهاد مرتبط (پیوند همکاری در فروش)]"
+            "(https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22231712%2F)"
+        )
         message = _format_message(item, html_mode=True, platform="telegram")
         self.assertIn("🔌", message)
         self.assertIn("💡", message)
+        self.assertIn("به یک زمان عمومی تکیه نکن", message)
         for forbidden in ("منبع:", "consumer.ftc.gov", "digikala.com/mag/", "aflo.ir", "پیوند همکاری در فروش", "مشاهدهٔ پیشنهاد مرتبط"):
             self.assertNotIn(forbidden, message)
+        video_description = _video_description(item)
+        self.assertIn("به یک زمان عمومی تکیه نکن", video_description)
+        for forbidden in ("منبع:", "digikala.com/mag/", "aflo.ir", "پیوند همکاری در فروش", "مشاهدهٔ پیشنهاد مرتبط"):
+            self.assertNotIn(forbidden, video_description)
+        public_asset_payload = _public_editorial_payload(item)
+        self.assertIn("به یک زمان عمومی تکیه نکن", public_asset_payload["body"])
+        self.assertIn("زمان تحویل", public_asset_payload["title"])
+        for public_text in (public_asset_payload["title"], public_asset_payload["body"]):
+            for forbidden in ("منبع:", "digikala.com/mag/", "aflo.ir", "پیوند همکاری در فروش", "مشاهدهٔ پیشنهاد مرتبط"):
+                self.assertNotIn(forbidden, public_text)
+        self.assertEqual(public_asset_payload["sources"], item["sources"])
 
         bale = _format_message(item, html_mode=True, platform="bale")
-        self.assertIn("راهنمای کوتاه خرید آگاهانه", bale)
+        self.assertIn("زمان تحویل سفارش", bale)
         self.assertNotIn("دکمهٔ خرید", bale)
         self.assertNotIn("reply_markup", bale)
         self.assertNotIn("aflo.ir", bale)
 
         plain = _format_message(item, html_mode=False, platform="rubika")
-        self.assertIn("راهنمای کوتاه خرید آگاهانه", plain)
+        self.assertIn("زمان تحویل سفارش", plain)
         self.assertNotIn("consumer.ftc.gov", plain)
         self.assertNotIn("aflo.ir", plain)
         self.assertNotIn("منبع:", plain)
