@@ -17,7 +17,6 @@ from platform_registry import PLATFORM_NAMES
 from product_quality import is_publishable_product_title
 from publication_policy import (
     MIN_CHANNEL_POST_INTERVAL_SECONDS,
-    MAX_CHANNEL_POST_INTERVAL_SECONDS,
     channel_post_interval_seconds,
 )
 
