@@ -2905,15 +2905,19 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 
 **هدف:** هیچ رسانه‌ای به زمان‌بندی، موفقیت یا failure رسانهٔ دیگر وابسته نباشد.
 
-**تغییرات:**
+**تغییر/اقدام:**
 - Worker دیگر وجود نوبت کانال/تحریریه یا فعال‌بودن ناشر کانال را برای Dispatch ویدئو بررسی نمی‌کند؛ YouTube، Aparat و Filo با due check مستقل به workflowهای جداگانه فرستاده می‌شوند.
 - Workflowهای کانال، Filo، YouTube و Aparat concurrency group مستقل دارند؛ workflow یکپارچهٔ ویدئو از مسیر خودکار کنار گذاشته شد.
 - ارسال عکس در Telegram، Bale، Rubika و Eitaa هم‌زمان آغاز می‌شود. هر adapter روی نسخهٔ خصوصی entry/record خود کار می‌کند و فقط receipt/status خودش را merge می‌کند؛ state مشترک هنگام ارسال شبکه‌ای نوشته نمی‌شود.
 - ابزار سه‌طرفهٔ ادغام JSON و تست‌های آن افزوده شد تا commitهای هم‌زمان مقصدهای مستقل، receipt یا status یکدیگر را حذف نکنند.
 - تست‌های مستقل‌سازی photo delivery و تست‌های regression زمان‌بند به CI اضافه شدند.
 
-**فایل‌ها:** `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، `affilio_radar/publisher.py`، `affilio_radar/merge_state_conflicts.py`، `affilio_radar/test_merge_state_conflicts.py`، `affilio_radar/test_independent_media_dispatch.py` و چهار Workflow مستقل رسانه.
+**فایل‌ها/سامانه‌ها:** `cloudflare/affilio-minute-dispatcher.js`, `cloudflare/affilio-minute-dispatcher.test.mjs`, `affilio_radar/publisher.py`, `affilio_radar/merge_state_conflicts.py`, `affilio_radar/test_merge_state_conflicts.py`, `affilio_radar/test_independent_media_dispatch.py`, `affilio_radar/test_content_delivery.py` و چهار Workflow مستقل رسانه.
 
-**مرزهای سیاست:** گیت‌های ایمنی/اعتبار مقصد حفظ شده‌اند. Aparat بدون deadline تأییدشده همچنان فقط برای Aparat skip می‌شود؛ نبود credential نیز فقط همان مقصد را متوقف می‌کند. ادغام state جایگزین رسید انتشار نیست.
+**آزمون و نتیجه:** تست‌های جدید برای ادغام هم‌زمان status/receipt و اجرای ایزولهٔ photo adapter افزوده شدند. در اجرای اول CI دو ناسازگاری تستی آشکار شد: mockهای قدیمی آرگومان جدید `persist` را نمی‌پذیرفتند و قالب changelog با validator سازگار نبود. mockها و ساختار changelog اصلاح شدند؛ اجرای مجدد CI باید این اصلاح را تأیید کند. هیچ انتشار عمومی تازه‌ای بدون receipt ادعا نمی‌شود.
 
-**وضعیت:** تغییرات در شاخهٔ `fix/offerchin-independent-media-dispatch-20261117` آمادهٔ CI هستند. ادغام/استقرار فقط پس از سبزشدن تست‌ها و گیت مستندات انجام می‌شود. موفقیت انتشار عمومی هیچ مقصدی بدون شناسه یا URL قابل‌راستی‌آزمایی گزارش نمی‌شود.
+**شواهد/شناسه:** PR #231، شاخهٔ `fix/offerchin-independent-media-dispatch-20261117`. Worker از این پس سه workflow ویدئویی مجزا را بررسی می‌کند و ارسال چهار مقصد عکس در threadهای مستقل آغاز می‌شود. بررسی وضعیت قبلی نشان داده بود ۱۱۹ رکورد برای Filo/YouTube و تولید ویدئو pending بوده‌اند، در حالی که Telegram/Bale/Rubika ارسال شده بودند.
+
+**ریسک/بازگشت:** ارسال هم‌زمان ممکن است زمان تکمیل کل run را به کندترین مقصد وابسته کند، اما شروع و ارسال مقصدهای دیگر را معطل نمی‌کند. برای stateهای هم‌زمان از merge سه‌طرفه استفاده می‌شود. Aparat بدون deadline معتبر فقط برای خود Aparat skip می‌شود؛ نبود credential یا rate limit نیز فقط همان مقصد را تحت تأثیر قرار می‌دهد. rollback با revert PR #231 انجام می‌شود؛ state و رسیدهای واقعی نباید پاک شوند.
+
+**وضعیت:** تغییرات در PR #231 منتظر CI و گیت مستندات هستند. ادغام و Deploy تا سبزشدن گیت‌ها انجام‌شده تلقی نمی‌شود؛ انتشار عمومی هر مقصد فقط با شناسه یا URL قابل‌راستی‌آزمایی تأیید خواهد شد.
