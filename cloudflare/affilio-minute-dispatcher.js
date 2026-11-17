@@ -529,9 +529,8 @@ export function videoRecordDue(record, platform, now) {
   }
 
   if (generation === "skipped_unverified_deadline") {
-    // YouTube's policy changed: its already-published channel item can be uploaded
-    // without a retailer timer. Aparat remains deadline-gated; Filo is not awakened
-    // from this terminal generation state by the minute dispatcher.
+    // YouTube and Aparat can use last-mile price/stock validation without a retailer
+    // timer. Filo is not awakened from this terminal generation state by the dispatcher.
     if (platform === "youtube") {
       return VIDEO_PENDING_STATUSES.has(status) || status === "skipped_unverified_deadline";
     }
