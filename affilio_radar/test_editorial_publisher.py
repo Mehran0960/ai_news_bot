@@ -252,7 +252,7 @@ class EditorialPublisherTests(unittest.TestCase):
             self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
         self.assertFalse(state.get("editorial_delivery_queue"))
 
-    def test_editorial_midpoint_is_based_on_scan_slot_not_a_minute_floor(self):
+    def test_editorial_uses_a_stable_shared_31_to_47_minute_slot(self):
         product_at = NOW + timedelta(hours=2)
         state = {
             "last_channel_published_at": (NOW - timedelta(minutes=20)).isoformat(),
@@ -336,7 +336,7 @@ class EditorialPublisherTests(unittest.TestCase):
             ),
         )
 
-    def test_editorial_slot_preserves_the_shared_gap_even_when_the_next_product_was_imminent(self):
+    def test_editorial_slot_reserves_scheduler_and_delivery_runway(self):
         product_at = NOW + timedelta(seconds=75)
         state = {
             "last_channel_published_at": NOW.isoformat(),
@@ -495,7 +495,7 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertIsNotNone(entry)
         self.assertEqual(entry["status"], "queued")
 
-    def test_related_editorial_is_scheduled_midway_before_its_product(self):
+    def test_related_editorial_uses_shared_slot_before_its_product(self):
         product_at = NOW + timedelta(hours=2)
         product = {
             "product_id": "dkp-related",
@@ -538,6 +538,47 @@ class EditorialPublisherTests(unittest.TestCase):
             (reserved - datetime.fromisoformat(entry["scheduled_at"])).total_seconds(),
             MIN_CHANNEL_POST_INTERVAL_SECONDS,
         )
+
+    def test_failed_editorial_releases_reserved_product_and_downstream_slots(self):
+        original = NOW + timedelta(minutes=4)
+        reserved = NOW + timedelta(minutes=70)
+        shift = reserved - original
+        entry = {
+            "content_id": "editorial:failed-reservation",
+            "content_type": "editorial",
+            "status": "partial",
+            "related_product_id": "dkp-reserved",
+            "related_product_original_scheduled_at": original.isoformat(),
+            "related_product_reserved_scheduled_at": reserved.isoformat(),
+            "platforms": {name: {"status": "not_connected"} for name in PLATFORM_NAMES},
+        }
+        state = {
+            "editorial_delivery_queue": {entry["content_id"]: entry},
+            "content_delivery_queue": {
+                "dkp-reserved": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": reserved.isoformat(),
+                    "next_attempt_at": reserved.isoformat(),
+                },
+                "dkp-later": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": (reserved + timedelta(minutes=40)).isoformat(),
+                    "next_attempt_at": (reserved + timedelta(minutes=40)).isoformat(),
+                },
+            },
+        }
+        self.assertTrue(_finalize_if_terminal(state, entry, NOW))
+        self.assertEqual(
+            datetime.fromisoformat(state["content_delivery_queue"]["dkp-reserved"]["scheduled_at"]),
+            original,
+        )
+        self.assertEqual(
+            datetime.fromisoformat(state["content_delivery_queue"]["dkp-later"]["scheduled_at"]),
+            reserved + timedelta(minutes=40) - shift,
+        )
+        self.assertEqual(entry["status"], "failed")
 
     def test_editorial_public_message_never_shows_sources_or_commerce(self):
         item = editorial_item()
