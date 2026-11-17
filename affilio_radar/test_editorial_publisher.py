@@ -555,6 +555,14 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertNotIn("منبع:", payload["caption"])
         self.assertNotIn("پیوند همکاری در فروش", payload["caption"])
 
+    def test_editorial_text_and_video_reject_any_public_url(self):
+        item = editorial_item()
+        item["body"] = "این متن مستقل است؛ برای جزئیات به https://example.com مراجعه کن."
+        with self.assertRaisesRegex(ValueError, "editorial_public_provenance_or_commerce_leak"):
+            _format_message(item, html_mode=True, platform="telegram")
+        with self.assertRaisesRegex(ValueError, "editorial_video_public_provenance_or_commerce_leak"):
+            _video_description(item)
+
     def test_video_description_never_includes_sources_or_affiliate_links(self):
         item = editorial_item()
         item["related_product_affiliate_url"] = radar.build_affilio_tracking_link(
