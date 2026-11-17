@@ -1,5 +1,14 @@
 {
-  "emergency_continuity_expires_at": null,
+  "filo_login_verification_status": "verified",
+  "filo_upload_interval_policy_version": 3,
+  "youtube_uploads_paused_until": "2026-11-18T18:39:32.096553+00:00",
+  "next_channel_content_due_at": "2026-11-17T20:27:50.833296+00:00",
+  "filo_next_upload_at": null,
+  "aparat_next_upload_at": null,
+  "last_channel_published_at": "2026-11-17T19:46:50.833296+00:00",
+  "product_publication_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
+  "schema_version": 2,
+  "generated_at": "2026-11-17T20:00:06.243059+00:00",
   "published": {
     "dkp-10002173": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -1119,14 +1128,15 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
-      "filo_upload_status": "pending",
+      "filo_next_attempt_at": "2026-11-17T20:00:05.503348+00:00",
+      "filo_upload_status": "retry",
       "sequence_number": 1303,
       "telegram_message_id": 1548,
       "ts": 1794831167.86027,
       "video_dispatch_eligible": true,
-      "video_generation_status": "pending",
+      "video_generation_status": "generated",
       "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
-      "youtube_upload_status": "retry"
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-15455326": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -5731,25 +5741,16 @@
       "youtube_upload_status": "uploaded"
     }
   },
-  "youtube_next_upload_at": null,
-  "filo_login_verification_status": "verified",
-  "aparat_next_upload_at": null,
-  "product_publication_plan_cycle_id": "2026-11-17T18:52:29.345845+00:00",
-  "emergency_continuity_snapshot_sha256": null,
-  "youtube_upload_pause_reason": "daily_upload_limit",
-  "pending_product_queue_count": 26,
   "emergency_continuity_baseline_completed_at": null,
-  "next_channel_content_due_at": "2026-11-17T20:27:50.833296+00:00",
-  "filo_upload_interval_policy_version": 3,
-  "product_publication_interval_seconds": 3420.0,
-  "last_product_channel_published_at": "2026-11-17T18:30:34.234226+00:00",
-  "generated_at": "2026-11-17T19:59:56.498832+00:00",
-  "youtube_uploads_paused_until": "2026-11-18T18:39:32.096553+00:00",
-  "last_channel_published_at": "2026-11-17T19:46:50.833296+00:00",
-  "product_publication_cadence_cycle_id": "2026-11-17T18:52:29.345845+00:00",
+  "youtube_upload_pause_reason": "daily_upload_limit",
+  "emergency_continuity_expires_at": null,
+  "pending_product_queue_count": 26,
   "next_editorial_planning_at": "2026-11-17T19:46:31.778463+00:00",
-  "filo_next_upload_at": null,
+  "emergency_continuity_active": false,
+  "youtube_next_upload_at": null,
+  "last_product_channel_published_at": "2026-11-17T18:30:34.234226+00:00",
   "filo_login_verified_at": "2026-11-17T18:14:11.649894+00:00",
-  "schema_version": 2,
-  "emergency_continuity_active": false
+  "product_publication_cadence_cycle_id": "2026-11-17T18:52:29.345845+00:00",
+  "emergency_continuity_snapshot_sha256": null,
+  "product_publication_interval_seconds": 3420.0
 }
