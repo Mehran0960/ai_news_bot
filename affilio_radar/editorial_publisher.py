@@ -507,7 +507,7 @@ def _format_message(item: dict, *, html_mode: bool = True, platform: str = "tele
     # internal-only and must never leak from a future bank/template change.
     forbidden = ("📚 منبع:", "پیوند همکاری در فروش", "aflo.ir", "digikala.com/mag/")
     if any(token.casefold() in message.casefold() for token in forbidden) or re.search(
-        r"(?:https?://|www\\.)", message, re.IGNORECASE
+        r"(?:https?://|www\.)", message, re.IGNORECASE
     ):
         raise ValueError("editorial_public_provenance_or_commerce_leak")
     return message[:1000 if html_mode else 3400]
@@ -851,7 +851,7 @@ def _video_description(item: dict) -> str:
     description = _readable_editorial_body(item.get("body"))
     forbidden = ("📚 منبع:", "پیوند همکاری در فروش", "aflo.ir", "digikala.com/mag/")
     if any(token.casefold() in description.casefold() for token in forbidden) or re.search(
-        r"(?:https?://|www\\.)", description, re.IGNORECASE
+        r"(?:https?://|www\.)", description, re.IGNORECASE
     ):
         raise ValueError("editorial_video_public_provenance_or_commerce_leak")
     return description[:2900]
