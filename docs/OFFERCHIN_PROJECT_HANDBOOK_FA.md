@@ -2835,3 +2835,6 @@ OfferChin باید یک رسانهٔ تصمیم‌یار خرید باشد: آف
 - ایتا تا زمان ثبت token و channel ID واقعی و فعال‌کردن صریح \`EITAA_ENABLE_PUBLISHING\` متصل محسوب نمی‌شود. مقدار ساختگی یا فعال‌سازی بدون اعتبارنامه مجاز نیست.
 
 تغییر کد این سیاست در شاخهٔ \`fix/offerchin-publication-cap-video-dispatch-20261117\` و PR مستقل اعتبارسنجی می‌شود. ادغام و Deploy Worker فقط پس از موفقیت کنترل‌های PR انجام‌شده تلقی می‌شود.
+
+
+**تکمیل قراردادهای CI — ۱۷ نوامبر ۲۰۲۶:** گیت Editorial Contract اکنون سقف ۷۲ را به‌جای مقدار تاریخی ۵۵ بررسی می‌کند. گیت Unified Video Fan-out نیز بررسی می‌کند که dispatcher قفل ناشر اصلی و تقدم نوبت کانالی را حفظ کند، اما به قفل اسکن کاتالوگ یا تعداد صفحات معوق وابسته نباشد. فایل‌های آزمون: `.github/workflows/offerchin-editorial-contract.yml` و `.github/workflows/offerchin-video-fanout-validation.yml`.
