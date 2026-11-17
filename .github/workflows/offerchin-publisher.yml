@@ -115,6 +115,7 @@ jobs:
         run: |
           cd affilio_radar
           python -m unittest \
+            test_affilio.AffilioRadarTests.test_default_daily_channel_limit_matches_publisher_workflow \
             test_affilio.AffilioRadarTests.test_emergency_continuity_snapshot_loader_is_available_for_direct_script_import \
             test_affilio.AffilioRadarTests.test_three_recent_reviews_in_active_window_qualify_current_demand \
             test_affilio.AffilioRadarTests.test_digikala_caption_mentions_conditional_digipay_credit \
@@ -203,7 +204,7 @@ jobs:
           # Only a small rolling set of publication hand-offs/retries may be retained.
           AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "250"
           AFFILIO_CATALOG_SWEEP_HANDOFF_PER_RUN: "250"
-          AFFILIO_MAX_DAILY_CHANNEL_POSTS: "55"
+          AFFILIO_MAX_DAILY_CHANNEL_POSTS: "72"
           OFFERCHIN_EMERGENCY_CONTINUITY_ENABLED: "true"
           AFFILIO_DISCOVERY_QUEUE_TTL_HOURS: "24"
           AFFILIO_MAX_DISCOVERY_QUEUE_CHECKS: "100"
@@ -235,7 +236,7 @@ jobs:
           # The publisher consumes one due content slot per dispatch; editorial photo retries never preempt product slots.
           AFFILIO_CONTENT_DELIVERY_QUEUE_LIMIT: "250"
           AFFILIO_MIN_PUBLICATION_RUNWAY_MINUTES: "0"
-          AFFILIO_MAX_DAILY_CHANNEL_POSTS: "55"
+          AFFILIO_MAX_DAILY_CHANNEL_POSTS: "72"
           OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: "true"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/publisher.py
