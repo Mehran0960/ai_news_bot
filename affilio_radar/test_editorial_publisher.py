@@ -14,6 +14,7 @@ from editorial_publisher import (
     _handle_channel_destination,
     _record_failure,
     _format_message,
+    _public_editorial_payload,
     _send_bot_photo,
     _video_description,
     _load_bank,
@@ -612,6 +613,13 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertIn("به یک زمان عمومی تکیه نکن", video_description)
         for forbidden in ("منبع:", "digikala.com/mag/", "aflo.ir", "پیوند همکاری در فروش", "مشاهدهٔ پیشنهاد مرتبط"):
             self.assertNotIn(forbidden, video_description)
+        public_asset_payload = _public_editorial_payload(item)
+        self.assertIn("به یک زمان عمومی تکیه نکن", public_asset_payload["body"])
+        self.assertIn("زمان تحویل", public_asset_payload["title"])
+        for public_text in (public_asset_payload["title"], public_asset_payload["body"]):
+            for forbidden in ("منبع:", "digikala.com/mag/", "aflo.ir", "پیوند همکاری در فروش", "مشاهدهٔ پیشنهاد مرتبط"):
+                self.assertNotIn(forbidden, public_text)
+        self.assertEqual(public_asset_payload["sources"], item["sources"])
 
         bale = _format_message(item, html_mode=True, platform="bale")
         self.assertIn("راهنمای کوتاه خرید آگاهانه", bale)
