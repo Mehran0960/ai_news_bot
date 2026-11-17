@@ -123,6 +123,67 @@ def _history_rows(state: dict) -> list[dict]:
     return [row for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
 
 
+_EDITORIAL_STOPWORDS = frozenset({
+    "از", "به", "در", "و", "را", "برای", "که", "اگر", "با", "هم", "این", "آن",
+    "تا", "پیش", "روی", "یک", "شود", "کن", "کنند", "کرد", "است", "هست", "باشد",
+    "های", "ها", "هر", "همه", "خود", "فقط", "قبل", "بعد", "اما", "یا", "نیز",
+    "چه", "شما", "تو", "می", "می‌شود", "می‌کنند", "می‌تواند", "می‌توانند",
+})
+
+
+def _editorial_tokens(value: Any) -> set[str]:
+    text = str(value or "").strip().lower()
+    text = text.translate(str.maketrans({"ي": "ی", "ى": "ی", "ك": "ک", "ۀ": "ه", "ة": "ه"}))
+    text = re.sub(r"[\u064b-\u065f\u0670]", "", text).replace("\u200c", " ")
+    tokens = re.findall(r"[a-z0-9\u0600-\u06ff]+", text, flags=re.IGNORECASE)
+    return {
+        token for token in tokens
+        if len(token) > 1 and token not in _EDITORIAL_STOPWORDS
+    }
+
+
+def editorial_content_fingerprint(item: Any) -> str:
+    """Stable fingerprint used to audit and compare delivered editorial copy."""
+    if not isinstance(item, dict):
+        return ""
+    title = re.sub(r"\s+", " ", str(item.get("title") or "").strip())
+    body = re.sub(r"\s+", " ", str(item.get("body") or "").strip())
+    canonical = f"{title}\n{body}".translate(
+        str.maketrans({"ي": "ی", "ى": "ی", "ك": "ک", "ۀ": "ه", "ة": "ه"})
+    )
+    canonical = re.sub(r"[\u064b-\u065f\u0670]", "", canonical).replace("\u200c", " ")
+    canonical = re.sub(r"\s+", " ", canonical).strip().lower()
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _is_near_duplicate_editorial(left: Any, right: Any) -> bool:
+    """Catch copied or lightly paraphrased copy without blocking shared broad topics."""
+    if not isinstance(left, dict) or not isinstance(right, dict):
+        return False
+    left_fingerprint = editorial_content_fingerprint(left)
+    right_fingerprint = editorial_content_fingerprint(right)
+    if left_fingerprint and left_fingerprint == right_fingerprint:
+        return True
+
+    left_title = _editorial_tokens(left.get("title"))
+    right_title = _editorial_tokens(right.get("title"))
+    title_shared = len(left_title & right_title)
+    title_union = len(left_title | right_title)
+    if title_shared >= 4 and title_union and title_shared / title_union >= 0.82:
+        return True
+
+    left_body = _editorial_tokens(left.get("body"))
+    right_body = _editorial_tokens(right.get("body"))
+    shared = len(left_body & right_body)
+    shorter = min(len(left_body), len(right_body))
+    union = len(left_body | right_body)
+    if shared < 7 or shorter < 8 or not union:
+        return False
+    jaccard = shared / union
+    containment = shared / shorter
+    return jaccard >= 0.78 or containment >= 0.92
+
+
 def editorial_topics_for_product(product: Any) -> set[str]:
     """Return topics that genuinely help with this product's purchase or ownership."""
     factors = product.get("offerchin_four_factor") if isinstance(product, dict) else None
@@ -192,6 +253,40 @@ def select_editorial_fallback(
             valid_items.append(raw)
     # Editorial is a quality gate, not filler. If no reviewed item fits the
     # selected product, skip this editorial slot instead of publishing noise.
+    if not valid_items:
+        return None
+
+    # Compare candidates with recently delivered copy, including legacy history rows
+    # whose title/body are recovered from the current reviewed bank. This blocks
+    # semantic repeats under a newly assigned editorial_id without suppressing
+    # distinct advice that merely shares a broad topic.
+    bank_by_id = {
+        str(row.get("editorial_id") or "").strip(): row
+        for row in bank if isinstance(row, dict) and str(row.get("editorial_id") or "").strip()
+    }
+    recent_deliveries: list[dict] = []
+    cooldown = timedelta(hours=max(0, int(cooldown_hours)))
+    for row in history[-50:]:
+        published_at = _utc(row.get("published_at"))
+        if published_at is not None:
+            age = current - published_at
+            if age < timedelta(0) or age > cooldown:
+                continue
+        previous_id = str(row.get("editorial_id") or "").strip()
+        previous = bank_by_id.get(previous_id, {})
+        previous_payload = {
+            "editorial_id": previous_id,
+            "title": row.get("title") or previous.get("title", ""),
+            "body": row.get("body") or previous.get("body", ""),
+        }
+        if previous_payload["title"] or previous_payload["body"]:
+            recent_deliveries.append(previous_payload)
+
+    if recent_deliveries:
+        valid_items = [
+            candidate for candidate in valid_items
+            if not any(_is_near_duplicate_editorial(candidate, previous) for previous in recent_deliveries)
+        ]
     if not valid_items:
         return None
 
@@ -324,6 +419,9 @@ def record_editorial_delivery(state: dict, item: dict, *, published_at: datetime
         "sequence_number": item.get("sequence_number"),
         "topic": str(item["topic"]),
         "related_product_id": str(item.get("related_product_id") or ""),
+        "title": str(item.get("title") or "").strip(),
+        "body": str(item.get("body") or "").strip(),
+        "content_fingerprint": editorial_content_fingerprint(item),
         "published_at": timestamp.astimezone(timezone.utc).isoformat(),
         "destinations": destinations,
     })
