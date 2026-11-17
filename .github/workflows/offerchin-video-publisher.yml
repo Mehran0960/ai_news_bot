@@ -175,7 +175,7 @@ jobs:
     concurrency:
       # Only state-merge/push is serialized with the existing photo publisher.
       # Video uploads above remain fully concurrent and do not wait for this lock.
-      group: offerchin-content-publisher
+      group: offerchin-channel-publisher
       cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
