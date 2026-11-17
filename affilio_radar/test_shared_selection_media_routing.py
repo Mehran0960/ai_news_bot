@@ -168,6 +168,19 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
         }
         self.assertTrue(radar._has_pending_video_destination(record, {"youtube"}, now=now))
 
+    def test_aparat_unverified_deadline_skip_is_requeued_independently(self):
+        now = datetime(2026, 11, 14, 14, 30, tzinfo=timezone.utc)
+        record = {
+            "video_generation_status": "pending",
+            "distribution_queue_id": "aparat-no-deadline",
+            "aparat_upload_status": "skipped_unverified_deadline",
+        }
+        self.assertTrue(radar._has_pending_video_destination(record, {"aparat"}, now=now))
+        sidecar = radar.build_video_upload_dispatch_state({"published": {"item": {
+            **record, "ts": now.timestamp(),
+        }}})
+        self.assertIn("item", sidecar["published"])
+
     def test_dispatch_sidecar_keeps_oldest_pending_canonical_products_and_drops_terminal_ones(self):
         state = {
             "published": {
