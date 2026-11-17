@@ -329,9 +329,11 @@ class EditorialPublisherTests(unittest.TestCase):
         add_confirmed_product_posts(state)
         entry = queue_editorial_if_due(state, [editorial_item()], now=NOW)
         self.assertIsNotNone(entry)
+        editorial_at = datetime.fromisoformat(entry["scheduled_at"])
+        last_channel_at = datetime.fromisoformat(state["last_channel_published_at"])
         self.assertGreaterEqual(
-            datetime.fromisoformat(entry["scheduled_at"]),
-            NOW + timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS),
+            editorial_at - last_channel_at,
+            timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS),
         )
         self.assertGreaterEqual(
             datetime.fromisoformat(state["content_delivery_queue"]["dkp-late-wakeup"]["scheduled_at"]),
