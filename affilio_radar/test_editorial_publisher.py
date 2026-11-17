@@ -356,6 +356,7 @@ class EditorialPublisherTests(unittest.TestCase):
                 }
             },
         }
+        add_confirmed_product_posts(state)
         with patch.dict(os.environ, {
             "OFFERCHIN_EDITORIAL_DISPATCH_POLL_SECONDS": "60",
             "OFFERCHIN_EDITORIAL_DEFAULT_DELIVERY_SECONDS": "30",
