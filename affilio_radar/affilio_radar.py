@@ -10241,8 +10241,8 @@ def _filo_upload_slot_due(
 
 
 def video_deadline_allows_upload(platform: str, verified_expiry: bool) -> bool:
-    """Aparat's generic public feed needs a verified timer; Filo can use a fresh channel offer."""
-    return bool(verified_expiry) if str(platform or "").strip().lower() == "aparat" else True
+    """No destination requires an unprovided timer; known near-expiry offers are blocked separately."""
+    return True
 
 
 def _has_video_dispatch_eligibility(record: dict) -> bool:
@@ -10273,10 +10273,10 @@ def _has_pending_video_destination(
 ) -> bool:
     """Return whether a canonical product still has video work the uploader can resume.
 
-    Explicitly pending work is actionable. Old skip states are actionable only when
-    the current uploader has a documented requeue path: verified future expiry for
-    skipped-expiring records, and YouTube's no-expiry-timer correction for
-    skipped-unverified-deadline records. Unknown legacy records never default to pending.
+    Explicitly pending work is actionable. Old expiry skips are requeued when a known
+    verified expiry is still safely in the future; unknown-deadline skips can be requeued
+    for YouTube and Aparat because both now rely on the publisher's last-mile price/stock
+    validation, 24-hour freshness, and the independent integrity audit.
     """
     if not isinstance(record, dict):
         return False
@@ -10330,6 +10330,12 @@ def _has_pending_video_destination(
             status = "pending"
         if generation in {"pending", "generated"} and status in VIDEO_DESTINATION_PENDING_STATUSES:
             return True
+        if (
+            platform == "aparat"
+            and generation in {"pending", "generated"}
+            and status == "skipped_unverified_deadline"
+        ):
+            return True
         if generation == "skipped_expiring_soon" and verified_expiry:
             if status in VIDEO_DESTINATION_PENDING_STATUSES or status == "skipped_expiring_soon":
                 return True
@@ -10338,7 +10344,7 @@ def _has_pending_video_destination(
                 "pending", "pending_credentials", "retry", "skipped_unverified_deadline"
             }:
                 return True
-            if platform == "aparat" and verified_expiry and status in {
+            if platform == "aparat" and status in {
                 "pending", "pending_credentials", "retry", "skipped_unverified_deadline"
             }:
                 return True
@@ -10380,9 +10386,9 @@ def process_pending_short_video(
     Video destinations consume their own FIFO without artificial spacing or queue-age
     limits. force_due remains a compatibility argument; it does not bypass real quotas,
     credentials, destination isolation, uncertain-outcome protection or offer expiry.
-    YouTube uses last-mile price/stock validation plus the independent integrity audit
-    when no retailer expiry timer exists. Public Aparat uploads still require a verified
-    expiry deadline.
+    YouTube and public Aparat use last-mile price/stock validation plus the independent
+    integrity audit when no retailer expiry timer exists. Known near-expiry offers remain
+    blocked, and both public destinations use a 24-hour freshness window.
     """
     selected_destinations = (
         {"youtube", "aparat"} if destinations is None
@@ -10820,16 +10826,6 @@ def process_pending_short_video(
             expiry is not None
             and expiry <= current + timedelta(minutes=COUNTDOWN_SAFETY_BUFFER_MINUTES)
         )
-        if (
-            "aparat" in selected_destinations
-            and not APARAT_SHORTS_ONLY
-            and not verified_expiry
-            and aparat_status in PENDING_APARAT_STATUSES
-        ):
-            record["aparat_upload_status"] = "skipped_unverified_deadline"
-            record["aparat_skip_reason"] = "verified_expiry_required"
-            aparat_status = "skipped_unverified_deadline"
-            state_changed = True
         # A known near-expiry item remains blocked on every public destination.
         if expiry_blocked:
             record["video_generation_status"] = "skipped_expiring_soon"
@@ -10843,8 +10839,12 @@ def process_pending_short_video(
             print(f"SHORT_VIDEO_SKIP id={pid} reason=inside_expiry_removal_buffer")
             continue
 
-        # Re-enable Youtube items that were previously held only for lacking an expiry
-        # timer. Aparat remains stricter: public Aparat uploads require a verified timer.
+        # Re-enable destinations previously held only for lacking an expiry timer.
+        # A known near-expiry item is still blocked by expiry_blocked above.
+        if generation_status == "skipped_unverified_deadline":
+            generation_status = "pending"
+            record["video_generation_status"] = "pending"
+            state_changed = True
         if generation_status == "skipped_expiring_soon":
             generation_status = "pending"
             record["video_generation_status"] = "pending"
@@ -10853,9 +10853,12 @@ def process_pending_short_video(
             upload_status = "pending"
             record["youtube_upload_status"] = "pending"
             state_changed = True
-        if verified_expiry and aparat_status in {"skipped_unverified_deadline", "skipped_expiring_soon"}:
+        if aparat_status == "skipped_unverified_deadline" or (
+            verified_expiry and aparat_status == "skipped_expiring_soon"
+        ):
             aparat_status = "pending"
             record["aparat_upload_status"] = "pending"
+            record.pop("aparat_skip_reason", None)
             state_changed = True
         if filo_status == "skipped_unverified_deadline":
             # A channel-published offer may have no retailer timer; Filo still gets
@@ -10868,8 +10871,8 @@ def process_pending_short_video(
         # validation before creating this canonical record. YouTube does not wait for
         # Telegram/Bale success; the independent integrity audit continues to invalidate
         # videos when the live offer changes.
-        # Public Aparat still requires a directly verified expiry because its current
-        # cleanup path has weaker recovery guarantees.
+        # Aparat uses the same last-mile price/stock gate and 24-hour freshness
+        # window as YouTube; a known near-expiry offer remains blocked above.
         if expiry is None:
             # For ordering only: an open-ended offer is lower urgency than a known expiry.
             # This synthetic value is never saved as a retailer deadline or shown publicly.
@@ -10891,9 +10894,7 @@ def process_pending_short_video(
             and not youtube_in_flight
         )
         aparat_pending = aparat_ready and aparat_status in PENDING_APARAT_STATUSES and not aparat_in_flight
-        aparat_need = aparat_pending and (
-            APARAT_SHORTS_ONLY or (aparat_upload_due and video_deadline_allows_upload("aparat", verified_expiry))
-        )
+        aparat_need = aparat_pending and (APARAT_SHORTS_ONLY or aparat_upload_due)
         public_aparat_need = aparat_need and not APARAT_SHORTS_ONLY
         shorts_queue_need = aparat_pending and APARAT_SHORTS_ONLY
         filo_need = (
@@ -10902,8 +10903,8 @@ def process_pending_short_video(
         )
         manual_artifact_need = (
             # A manual MP4 artifact is a YouTube fallback, not an Aparat destination.
-            # In an Aparat-only run, treating it as work would let unverified-expiry
-            # YouTube items consume the batch before eligible public Aparat candidates.
+            # In an Aparat-only run, treating it as work would let unrelated YouTube
+            # items consume the batch before eligible public Aparat candidates.
             "youtube" in selected_destinations
             and not youtube_ready
             and upload_status in pending_youtube
@@ -11084,14 +11085,13 @@ def process_pending_short_video(
             print(f"TELEGRAM_VIDEO_REVIEW_FAILED id={pid} error={type(exc).__name__}")
         save_json(STATE, state)
 
-    # Aparat public uploads use their own status and verified-expiry gate; errors are
-    # isolated locally so they cannot interrupt Filo or YouTube for this same product.
+    # Aparat public uploads use their own status and credentials. A missing retailer
+    # deadline is not a platform gate; known near-expiry offers are blocked above.
     aparat_status = str(record.get("aparat_upload_status") or "pending_credentials")
     if (
         aparat_ready and aparat_upload_due
         and aparat_status in PENDING_APARAT_STATUSES
         and not APARAT_SHORTS_ONLY
-        and verified_expiry
     ):
         aparat_started_at = datetime.now(timezone.utc)
         record["aparat_upload_status"] = "uploading"

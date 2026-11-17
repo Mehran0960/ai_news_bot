@@ -431,7 +431,7 @@ test("previously skipped expiry records are redispatched only while the verified
   assert.equal(videoRecordDue(unverified, "youtube", now), false);
 });
 
-test("the no-expiry correction requeues YouTube only, not Filo", () => {
+test("the no-expiry correction requeues YouTube and Aparat independently, not Filo", () => {
   const now = Date.now();
   const record = {
     ts: (now - 60_000) / 1000,
@@ -439,9 +439,11 @@ test("the no-expiry correction requeues YouTube only, not Filo", () => {
     delivery_status: { telegram: "sent" },
     video_generation_status: "skipped_unverified_deadline",
     youtube_upload_status: "skipped_unverified_deadline",
+    aparat_upload_status: "skipped_unverified_deadline",
     filo_upload_status: "pending",
   };
   assert.equal(videoRecordDue(record, "youtube", now), true);
+  assert.equal(videoRecordDue(record, "aparat", now), true);
   assert.equal(videoRecordDue(record, "filo", now), false);
   assert.equal(hasPendingVideoQueue({ published: { record } }, now), true);
 });
@@ -451,6 +453,7 @@ test("Filo accepts every confirmed channel delivery without requiring a retailer
   const base = {
     ts: (now - 5 * 60_000) / 1000,
     filo_upload_status: "pending",
+    aparat_upload_status: "pending",
     video_generation_status: "generated",
   };
   for (const channel of ["telegram", "bale", "rubika", "eitaa"]) {
@@ -477,8 +480,28 @@ test("Filo accepts every confirmed channel delivery without requiring a retailer
   );
   assert.equal(
     hasDueVideoRecord({ published: { item: { ...base, delivery_status: { telegram: "sent" } } } }, "aparat", now),
-    false,
-    "Aparat's stricter verified-expiry rule must remain in place"
+    true,
+    "Aparat must not wait for a retailer deadline when the selected product passed last-mile checks"
+  );
+  assert.equal(
+    hasDueVideoRecord({ published: { item: {
+      ...base,
+      delivery_status: { telegram: "sent" },
+      video_generation_status: "pending",
+      aparat_upload_status: "skipped_unverified_deadline",
+    } } }, "aparat", now),
+    true,
+    "legacy Aparat deadline skips must be requeued"
+  );
+  assert.equal(
+    hasDueVideoRecord({ published: { item: {
+      ...base,
+      delivery_status: { telegram: "sent" },
+      video_generation_status: "pending",
+      aparat_upload_status: "skipped_unverified_deadline",
+    } } }, "aparat", now),
+    true,
+    "legacy unverified-deadline skips are requeued for Aparat"
   );
   assert.equal(
     hasDueVideoRecord({ published: { item: {
