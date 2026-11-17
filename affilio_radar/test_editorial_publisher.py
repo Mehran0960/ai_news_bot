@@ -594,6 +594,11 @@ class EditorialPublisherTests(unittest.TestCase):
         item["related_product_affiliate_url"] = radar.build_affilio_tracking_link(
             "https://www.digikala.com/product/dkp-123/"
         )
+        item["title"] = (
+            "زمان تحویل سفارش\n"
+            "📚 منبع: [دیجی‌کالا مگ](https://www.digikala.com/mag/digikala-delivery-time/)\n"
+            "🛒 [مشاهدهٔ پیشنهاد مرتبط (پیوند همکاری در فروش)](https://aflo.ir/QekEYTRg)"
+        )
         item["body"] = (
             "⏱️ زمان رسیدن سفارش برای همه کالاها یکسان نیست؛ نوع کالا، شهر مقصد، "
             "موجودی فروشنده و روش ارسال می‌توانند آن را تغییر دهند.\n"
