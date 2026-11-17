@@ -25,10 +25,12 @@ from content_delivery import (
     get_last_channel_published_at,
     next_channel_publication_at,
     refresh_unpublished_selections,
+    reflow_product_queue_after_delivery,
 )
 from publication_policy import (
     MIN_CHANNEL_POST_INTERVAL_SECONDS,
     PRODUCTS_PER_EDITORIAL_POST,
+    channel_post_interval_seconds,
     editorial_frequency_allowed,
     products_published_since_last_editorial,
 )
@@ -263,7 +265,7 @@ def queue_editorial_if_due(
             dispatch_window_closed = (
                 product_slot_at is not None
                 and product_slot_at - current
-                <= max(MIN_CHANNEL_POST_INTERVAL_SECONDS, delivery_runway)
+                < max(MIN_CHANNEL_POST_INTERVAL_SECONDS, delivery_runway)
             )
             if (
                 isinstance(product_entry, dict)
@@ -335,58 +337,6 @@ def queue_editorial_if_due(
     if already_linked:
         return None
 
-    anchor = get_last_channel_published_at(state) or current
-    gap_seconds = max(0.0, (product_at - anchor).total_seconds())
-    dispatch_runway_seconds = editorial_dispatch_runway_seconds(state)
-    delivery_runway_seconds = editorial_delivery_p90_seconds(state)
-    minimum_gap = timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS)
-    required_window_seconds = (
-        2 * MIN_CHANNEL_POST_INTERVAL_SECONDS + dispatch_runway_seconds
-    )
-    if gap_seconds < required_window_seconds:
-        print(
-            "EDITORIAL_WAIT_SHARED_SPACING_WINDOW "
-            f"product_id={related_product_id} gap_seconds={int(gap_seconds)} "
-            f"required_gap_seconds={required_window_seconds} "
-            f"minimum_channel_gap_seconds={MIN_CHANNEL_POST_INTERVAL_SECONDS}"
-        )
-        return None
-
-    earliest_editorial_at = anchor + minimum_gap
-    latest_safe_dispatch_at = product_at - timedelta(
-        seconds=max(MIN_CHANNEL_POST_INTERVAL_SECONDS, dispatch_runway_seconds)
-    )
-    if latest_safe_dispatch_at < earliest_editorial_at:
-        print(
-            "EDITORIAL_WAIT_NO_SAFE_MIDPOINT "
-            f"product_id={related_product_id} "
-            f"earliest={earliest_editorial_at.isoformat()} "
-            f"latest={latest_safe_dispatch_at.isoformat()}"
-        )
-        return None
-
-    midpoint_at = anchor + timedelta(seconds=gap_seconds / 2)
-    scheduled_at = max(earliest_editorial_at, min(midpoint_at, latest_safe_dispatch_at))
-    if scheduled_at <= current:
-        # A late dispatcher wake-up may start now only when the full 21-minute
-        # post-to-post spacing and the measured delivery runway still fit.
-        if current < earliest_editorial_at or current + timedelta(
-            seconds=max(MIN_CHANNEL_POST_INTERVAL_SECONDS, delivery_runway_seconds)
-        ) >= product_at:
-            print(
-                "EDITORIAL_DISPATCH_WINDOW_PASSED "
-                f"product_id={related_product_id} product_slot={product_at.isoformat()} "
-                f"delivery_runway_seconds={delivery_runway_seconds} "
-                f"minimum_channel_gap_seconds={MIN_CHANNEL_POST_INTERVAL_SECONDS}"
-            )
-            return None
-        print(
-            "EDITORIAL_LATE_WAKEUP_START_NOW "
-            f"product_id={related_product_id} product_slot={product_at.isoformat()} "
-            f"scheduled_target={scheduled_at.isoformat()}"
-        )
-        scheduled_at = current
-
     if radar.daily_channel_posts_count(state, current) >= radar.MAX_DAILY_CHANNEL_POSTS:
         print(
             "EDITORIAL_FALLBACK_DAILY_CAP_REACHED "
@@ -401,6 +351,53 @@ def queue_editorial_if_due(
         state["last_editorial_empty_bank_check_at"] = current.isoformat()
         print("EDITORIAL_FALLBACK_EMPTY reason=no_valid_reviewed_item_or_bank_cycle")
         return None
+
+    anchor = get_last_channel_published_at(state) or current
+    dispatch_runway_seconds = editorial_dispatch_runway_seconds(state)
+    delivery_runway_seconds = editorial_delivery_p90_seconds(state)
+    # Editorial is an explicit slot in the one shared channel sequence. Reserve
+    # one 31–47 minute interval after the last confirmed post, then preserve a
+    # second 31–47 minute interval before the next product. This makes the 6:1
+    # product/editorial mix real without allowing a burst to catch up missed slots.
+    editorial_gap_seconds = channel_post_interval_seconds(
+        f"editorial:{item.get('editorial_id')}:{related_product_id}"
+    )
+    scheduled_at = max(
+        current,
+        anchor + timedelta(seconds=editorial_gap_seconds),
+    )
+    product_gap_seconds = channel_post_interval_seconds(
+        f"product-after-editorial:{related_product_id}:{product_entry.get('sequence_number', '')}"
+    )
+    original_product_at = product_at
+    reserved_product_at = max(
+        product_at,
+        scheduled_at + timedelta(seconds=product_gap_seconds),
+    )
+    reservation_seconds = max(0.0, (reserved_product_at - original_product_at).total_seconds())
+    if reservation_seconds > 0:
+        # Shift the related next product and later product slots by the same amount;
+        # published records and already confirmed sends are never rewritten.
+        for queued_product_id, queued_product in active_products.items():
+            if not isinstance(queued_product, dict):
+                continue
+            queued_at = _utc(queued_product.get("scheduled_at"))
+            if queued_at is None or queued_at < original_product_at:
+                continue
+            queued_product_at = queued_at + timedelta(seconds=reservation_seconds)
+            queued_product["scheduled_at"] = queued_product_at.isoformat()
+            retry_at = _utc(queued_product.get("next_attempt_at"))
+            queued_product["next_attempt_at"] = (
+                max(queued_product_at, retry_at).isoformat()
+                if retry_at is not None and retry_at > current
+                else queued_product_at.isoformat()
+            )
+        product_at = reserved_product_at
+        print(
+            "EDITORIAL_PRODUCT_SLOT_RESERVED "
+            f"product_id={related_product_id} added_seconds={int(reservation_seconds)} "
+            f"editorial_slot={scheduled_at.isoformat()} next_product_slot={product_at.isoformat()}"
+        )
 
     sequence_number = allocate_publication_sequence(state)
     item["sequence_number"] = sequence_number
@@ -426,6 +423,8 @@ def queue_editorial_if_due(
         "attempt_count": 0,
         "payload": item,
         "related_product_id": related_product_id,
+        "related_product_original_scheduled_at": original_product_at.isoformat(),
+        "related_product_reserved_scheduled_at": product_at.isoformat(),
         "platforms": {
             name: {"status": "pending", "attempts": 0}
             for name in PLATFORM_NAMES
@@ -735,6 +734,8 @@ def _record_success(state: dict, entry: dict, destination: str, receipt: dict, n
                 row["destinations"] = entry.get("platforms", {})
                 row["sequence_number"] = entry.get("sequence_number")
                 break
+    if destination in CHANNEL_DESTINATIONS:
+        reflow_product_queue_after_delivery(state, now=now)
 
 
 def _record_failure(entry: dict, destination: str, exc: Exception, now: datetime) -> None:
