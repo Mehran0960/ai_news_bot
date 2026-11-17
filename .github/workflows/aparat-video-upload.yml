@@ -10,7 +10,7 @@ permissions:
 
 concurrency:
   # YouTube, Aparat and channel jobs all update state.json; serialize only these writers.
-  group: offerchin-content-publisher
+  group: offerchin-aparat-video-upload
   cancel-in-progress: false
 
 jobs:
