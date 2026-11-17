@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-17T19:59:51.802045+00:00",
-  "aparat_last_upload_success_at": "2026-11-17T19:59:55.909421+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-17T20:04:00.763976+00:00",
+  "aparat_last_upload_success_at": "2026-11-17T20:04:04.465395+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-17T19:03:33.281277+00:00",
@@ -322909,7 +322909,13 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22231712": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-17T20:04:00.763976+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-17T20:04:04.465395+00:00",
+      "aparat_video_hash": "twj19g6",
+      "aparat_video_record_id": "74271148",
+      "aparat_video_url": "https://www.aparat.com/v/twj19g6",
+      "aparat_visibility": "public",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2217,
       "bale_posted_at": "2026-11-17T01:05:10.682453+00:00",
@@ -323035,10 +323041,17 @@
       "telegram_posted_at": "2026-11-17T01:05:07.201948+00:00",
       "title": "عدس درشت ممتاز بینگوکالا - ۴۵۰ گرم",
       "ts": 1794877473.601598,
-      "video_generation_status": "pending",
+      "video_file_name": "offerchin-dkp-22231712.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22231712.mp4"
+      },
+      "video_generated_at": "2026-11-17T20:03:53.691236+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
       "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
-      "youtube_skip_reason": "youtube_daily_quota_pause",
-      "youtube_upload_status": "retry"
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22232286": {
       "aparat_upload_started_at": "2026-10-29T17:12:21.666613+00:00",
@@ -341745,7 +341758,13 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22962257": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-17T20:03:49.568579+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-17T20:03:52.682797+00:00",
+      "aparat_video_hash": "cbn222l",
+      "aparat_video_record_id": "74271146",
+      "aparat_video_url": "https://www.aparat.com/v/cbn222l",
+      "aparat_visibility": "public",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2215,
       "bale_posted_at": "2026-11-17T01:00:54.312156+00:00",
@@ -341871,10 +341890,17 @@
       "telegram_posted_at": "2026-11-17T01:00:51.951456+00:00",
       "title": "پخش‌کننده صوتی خودرو دینکس مدل DX-129، دارای 3 پورت USB، ورودی کارت حافظه microSD، امکان مکالمه و خروجی صدای 4 کاناله",
       "ts": 1794877246.093068,
-      "video_generation_status": "pending",
+      "video_file_name": "offerchin-dkp-22962257.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22962257.mp4"
+      },
+      "video_generated_at": "2026-11-17T20:03:24.801659+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
       "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
-      "youtube_skip_reason": "youtube_daily_quota_pause",
-      "youtube_upload_status": "retry"
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22962866": {
       "aparat_upload_started_at": "2026-11-17T18:59:55.223935+00:00",
