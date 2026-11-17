@@ -15,6 +15,7 @@ from typing import Any
 
 from platform_registry import PLATFORM_NAMES
 from product_quality import is_publishable_product_title
+from publication_policy import MIN_CHANNEL_POST_INTERVAL_SECONDS
 
 
 TERMINAL_QUEUE_STATUSES = {"published", "cancelled", "stale_selection"}
@@ -22,8 +23,8 @@ TERMINAL_PLATFORM_STATUSES = {"sent", "not_connected", "manual_review"}
 PENDING_PLATFORM_STATUSES = {"pending", "failed", "retry"}
 
 # Distribute products within the live scan window when it is shorter. For sparse
-# or long windows, 57 minutes is a maximum wait, never a mandatory posting gap.
-MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS = 57 * 60
+# or long windows, 47 minutes is a maximum wait, never a mandatory posting gap.
+MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS = 47 * 60
 PRODUCT_ID_PATTERN = re.compile(r"^(?:dkp|snp)-\d{1,12}$", re.IGNORECASE)
 
 
@@ -167,10 +168,10 @@ def calculate_product_publication_cadence(
     now: datetime | None = None,
     max_daily_posts: int = 72,
 ) -> dict:
-    """Distribute selected products across the scan window with a 57-minute ceiling.
+    """Distribute selected products across the scan window with a 47-minute ceiling.
 
     Short windows remain evenly spaced. Long or sparse windows never schedule a
-    product more than 57 minutes after the previous product when a slot is available.
+    product more than 47 minutes after the previous product when a slot is available.
     Editorial items are independent and fit into the gaps between product slots.
     """
     current = now or datetime.now(timezone.utc)
@@ -230,34 +231,25 @@ def calculate_product_publication_cadence(
     cycle_id = clean_completed.isoformat() if clean_completed else (
         clean_started.isoformat() if clean_started else "initial-warmup"
     )
-    previous_cycle_id = str(state.get("product_publication_plan_cycle_id") or "")
-    last_product = get_last_product_channel_published_at(state)
-
-    if previous_cycle_id != cycle_id:
-        last_product_in_cycle = bool(last_product and scan_anchor and last_product >= scan_anchor)
-    else:
-        last_product_in_cycle = bool(last_product and scan_anchor and last_product >= scan_anchor)
-
-    last_product_age_seconds = (
-        max(0.0, (current - last_product).total_seconds())
-        if last_product is not None else None
+    last_channel = get_last_channel_published_at(state)
+    last_channel_age_seconds = (
+        max(0.0, (current - last_channel).total_seconds())
+        if last_channel is not None else None
     )
     first_slot_due_now = bool(
         candidates > 0
-        and (last_product_age_seconds is None
-             or last_product_age_seconds >= MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS)
+        and (last_channel_age_seconds is None
+             or last_channel_age_seconds >= MIN_CHANNEL_POST_INTERVAL_SECONDS)
     )
     if first_slot_due_now:
-        # Initial publication starts at the cycle anchor; overdue recovery follows a real product receipt.
         anchor = current
         anchor_kind = (
-            "cycle_start" if last_product is None
-            else "cycle_start_after_max_gap"
+            "cycle_start" if last_channel is None
+            else "cycle_start_after_minimum_spacing"
         )
-    elif last_product is not None:
-        # The maximum interval is global across catalog scan-cycle boundaries.
-        anchor = last_product
-        anchor_kind = "last_product_provisional" if provisional_window else "last_product"
+    elif last_channel is not None:
+        anchor = last_channel
+        anchor_kind = "last_channel_provisional" if provisional_window else "last_channel"
     else:
         anchor = current
         anchor_kind = "cycle_start"
@@ -265,9 +257,12 @@ def calculate_product_publication_cadence(
     remaining_seconds = max(0.0, (expected_next - anchor).total_seconds())
     if candidates > 0 and remaining_seconds > 0:
         planned_slots = candidates
-        interval_seconds = min(
-            remaining_seconds / candidates,
-            float(MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS),
+        interval_seconds = max(
+            float(MIN_CHANNEL_POST_INTERVAL_SECONDS),
+            min(
+                remaining_seconds / candidates,
+                float(MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS),
+            ),
         )
     else:
         planned_slots = 0
@@ -301,7 +296,8 @@ def calculate_product_publication_cadence(
         "interval_minutes": round(interval_seconds / 60, 3),
         "maximum_product_interval_seconds": MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS,
         "first_slot_due_now": first_slot_due_now,
-        "policy": "even_scan_window_spacing_capped_at_57_minutes_with_immediate_first_slot_after_max_gap",
+        "minimum_channel_post_interval_seconds": MIN_CHANNEL_POST_INTERVAL_SECONDS,
+        "policy": "shared_channel_spacing_31_to_47_minutes_with_first_slot_after_minimum_gap",
     }
     state["product_publication_interval_seconds"] = interval_seconds
     state["product_publication_cadence"] = result
@@ -314,7 +310,7 @@ def reschedule_product_queue_evenly(
     *,
     now: datetime | None = None,
 ) -> dict:
-    """Reflow unsent products with an exact equal share capped at 57 minutes."""
+    """Reflow unsent products with an exact equal share capped at 47 minutes."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -352,20 +348,24 @@ def reschedule_product_queue_evenly(
             plan["updated_at"] = current.isoformat()
         return {"scheduled": 0, "deferred": 0}
 
-    interval = min(
-        max(0.0, float((cadence or {}).get("interval_seconds") or 0.0)),
-        float(MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS),
+    raw_interval = max(0.0, float((cadence or {}).get("interval_seconds") or 0.0))
+    interval = (
+        max(
+            float(MIN_CHANNEL_POST_INTERVAL_SECONDS),
+            min(raw_interval, float(MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS)),
+        )
+        if raw_interval > 0 else 0.0
     )
     anchor = _utc(state.get("product_publication_plan_anchor_at")) or current
     anchor_kind = str(state.get("product_publication_plan_anchor_kind") or "cycle_start")
-    last_product = get_last_product_channel_published_at(state)
-    if last_product and last_product > anchor:
-        anchor = last_product
-        anchor_kind = "last_product"
+    last_channel = get_last_channel_published_at(state)
+    if last_channel and last_channel > anchor:
+        anchor = last_channel
+        anchor_kind = "last_channel"
         state["product_publication_plan_anchor_at"] = anchor.isoformat()
         state["product_publication_plan_anchor_kind"] = anchor_kind
 
-    # The 57-minute ceiling is enforced here as well as in cadence calculation.
+    # The 31-minute floor and 47-minute ceiling are enforced here and in cadence calculation.
     deferred = 0
     if interval <= 0:
         for _sequence, _product_id, entry in pending:
@@ -416,7 +416,7 @@ def reflow_product_queue_after_delivery(
     *,
     now: datetime | None = None,
 ) -> dict:
-    """Recalculate remaining product slots; use a provisional 57-minute clock if scan ETA expires."""
+    """Recalculate remaining product slots; use a provisional 47-minute clock if scan ETA expires."""
     current = now or datetime.now(timezone.utc)
     if current.tzinfo is None:
         current = current.replace(tzinfo=timezone.utc)
@@ -448,19 +448,19 @@ def reflow_product_queue_after_delivery(
         return {"scheduled": 0, "deferred": 0, "pending_products": 0}
 
     scan_eta = _utc(cadence.get("estimated_next_clean_scan_at"))
-    last_product = get_last_product_channel_published_at(state)
-    if last_product is None:
+    last_channel = get_last_channel_published_at(state)
+    if last_channel is None:
         return {
             "scheduled": 0,
             "deferred": pending_count,
             "pending_products": pending_count,
-            "reason": "product_receipt_unavailable",
+            "reason": "channel_receipt_unavailable",
         }
 
-    last_product_age_seconds = max(0.0, (current - last_product).total_seconds())
-    first_slot_due_now = last_product_age_seconds >= MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS
+    last_channel_age_seconds = max(0.0, (current - last_channel).total_seconds())
+    first_slot_due_now = last_channel_age_seconds >= MIN_CHANNEL_POST_INTERVAL_SECONDS
     provisional_window = scan_eta is None or scan_eta <= current
-    anchor = current if first_slot_due_now else last_product
+    anchor = current if first_slot_due_now else last_channel
     if provisional_window:
         # Keep already selected products moving until a fresh, verified scan ETA arrives.
         # This is a provisional product window, not a fabricated scan ETA.
@@ -472,13 +472,16 @@ def reflow_product_queue_after_delivery(
         next_clean_scan_value = scan_eta.isoformat()
         eta_source = str(cadence.get("scan_eta_source") or "catalog_status_estimate")
 
-    interval_seconds = min(
-        remaining_seconds / pending_count,
-        float(MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS),
+    interval_seconds = max(
+        float(MIN_CHANNEL_POST_INTERVAL_SECONDS),
+        min(
+            remaining_seconds / pending_count,
+            float(MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS),
+        ),
     )
     anchor_kind = (
         "cycle_start_after_max_gap" if first_slot_due_now
-        else "last_product_provisional" if provisional_window
+        else "last_channel_provisional" if provisional_window
         else "last_product"
     )
     updated_cadence = dict(cadence)
@@ -500,7 +503,7 @@ def reflow_product_queue_after_delivery(
         "interval_seconds": interval_seconds,
         "interval_minutes": round(interval_seconds / 60, 3),
         "maximum_product_interval_seconds": MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS,
-        "policy": "even_scan_window_spacing_capped_at_57_minutes_with_provisional_fallback_when_eta_overdue",
+        "policy": "shared_channel_spacing_31_to_47_minutes_with_provisional_fallback_when_eta_overdue",
     })
     state["product_publication_cadence"] = updated_cadence
     state["product_publication_interval_seconds"] = interval_seconds
@@ -594,7 +597,7 @@ def get_last_channel_published_at(state: dict) -> datetime | None:
             platforms = entry.get("platforms")
             if not isinstance(platforms, dict):
                 continue
-            for destination in ("telegram", "bale"):
+            for destination in ("telegram", "bale", "rubika", "eitaa"):
                 target = platforms.get(destination)
                 if not isinstance(target, dict) or target.get("status") != "sent":
                     continue
@@ -602,9 +605,28 @@ def get_last_channel_published_at(state: dict) -> datetime | None:
                 if sent_at is not None:
                     observed.append(sent_at)
 
+    editorial_history = state.get("editorial_delivery_history")
+    if isinstance(editorial_history, list):
+        for entry in editorial_history:
+            if not isinstance(entry, dict):
+                continue
+            destinations = entry.get("destinations")
+            if not isinstance(destinations, dict):
+                continue
+            if not any(
+                isinstance(destinations.get(name), dict)
+                and destinations[name].get("status") == "sent"
+                for name in ("telegram", "bale", "rubika", "eitaa")
+            ):
+                continue
+            sent_at = _utc(entry.get("published_at"))
+            if sent_at is not None:
+                observed.append(sent_at)
+
     observed_latest = max(observed) if observed else None
     legacy = _utc(state.get("last_published_at"))
-    candidates = [value for value in (stored, observed_latest) if value is not None]
+    product_clock = _utc(state.get("last_product_channel_published_at"))
+    candidates = [value for value in (stored, observed_latest, product_clock) if value is not None]
     anchor = max(candidates) if candidates else legacy
     if anchor is None:
         return None
@@ -621,6 +643,26 @@ def get_last_channel_published_at(state: dict) -> datetime | None:
             f"previous={legacy.isoformat() if legacy else 'missing'} actual={anchor.isoformat()}"
         )
     return anchor
+
+
+def next_channel_publication_at(state: dict) -> datetime | None:
+    """Return the earliest safe slot after any confirmed public channel post."""
+    last_channel = get_last_channel_published_at(state)
+    if last_channel is None:
+        return None
+    return last_channel + timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS)
+
+
+def channel_publication_wait_seconds(state: dict, *, now: datetime | None = None) -> int:
+    """Return remaining shared post-spacing time for product and editorial posts."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    next_slot = next_channel_publication_at(state)
+    if next_slot is None:
+        return 0
+    return max(0, int(math.ceil((next_slot - current).total_seconds())))
 
 
 def _active_publication(record: Any) -> bool:
@@ -841,6 +883,11 @@ def enqueue_selected_content(
         now = now.replace(tzinfo=timezone.utc)
     now = now.astimezone(timezone.utc)
     interval_seconds = max(0.0, float(interval_seconds))
+    if interval_seconds > 0:
+        interval_seconds = max(
+            float(MIN_CHANNEL_POST_INTERVAL_SECONDS),
+            min(interval_seconds, float(MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS)),
+        )
     max_items = max(1, int(max_items))
     minimum_runway_minutes = max(0, int(minimum_runway_minutes))
     queue_limit = _configured_queue_limit(max_active_items)
@@ -858,13 +905,13 @@ def enqueue_selected_content(
     # Existing retry entries do not reserve future publication slots. A slow or
     # unavailable destination must never push fresh selections into a long queue.
     queue_evicted = enforce_queue_limit(state, now=now, max_active_items=queue_limit)
-    last_product_published = get_last_product_channel_published_at(state)
-    # This is only an initial hand-off estimate. The catalog-aware planner
-    # subsequently reflows every unsent selection across the full scan window.
+    last_channel_published = get_last_channel_published_at(state)
+    # Product and editorial posts share one public-channel clock. The catalog-aware
+    # planner reflows every unsent product inside the 31–47 minute range.
     next_slot = max(
         now,
-        last_product_published + timedelta(seconds=interval_seconds)
-        if last_product_published else now,
+        last_channel_published + timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS)
+        if last_channel_published else now,
     )
 
     added = skipped = 0
