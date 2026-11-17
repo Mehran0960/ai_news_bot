@@ -8,6 +8,11 @@ on:
       - "affilio_radar/short_video.py"
       - "affilio_radar/aparat_uploader.py"
       - "affilio_radar/filo_uploader.py"
+      - "affilio_radar/publisher.py"
+      - "affilio_radar/merge_state_conflicts.py"
+      - "affilio_radar/test_merge_state_conflicts.py"
+      - "affilio_radar/test_independent_media_dispatch.py"
+      - "affilio_radar/test_content_delivery.py"
       - "affilio_radar/test_shared_selection_media_routing.py"
       - "affilio_radar/test_aparat_upload_schedule.py"
       - "affilio_radar/test_filo_upload_schedule.py"
@@ -17,6 +22,9 @@ on:
       - "cloudflare/affilio-minute-dispatcher.js"
       - "cloudflare/affilio-minute-dispatcher.test.mjs"
       - ".github/workflows/offerchin-video-publisher.yml"
+      - ".github/workflows/filo-video-upload.yml"
+      - ".github/workflows/youtube-video-upload.yml"
+      - ".github/workflows/aparat-video-upload.yml"
       - ".github/workflows/offerchin-publisher.yml"
       - ".github/workflows/offerchin-video-fanout-validation.yml"
       - "docs/OFFERCHIN_SHARED_SELECTION_MEDIA_ROUTING_FA.md"
@@ -88,18 +96,33 @@ jobs:
           assert "VIDEO_WORKFLOW_RETRY_GAP_MS" not in worker
           assert "VIDEO_UPLOAD_MAX_AGE_MS" not in worker
           assert "dispatchVideoPlatformWhenDue" not in worker
-          assert "VIDEO_PUBLISHER_API" in worker
+          assert "VIDEO_PUBLISHER_API" not in worker
           assert "videoQueueDispatchDeferReason" in worker
-          assert "findActiveWorkflow(PUBLISHER_API" in worker
-          # Video dispatch shares the selected-publisher lock and respects planned
-          # channel slots, but it must not wait for the independent catalog scanner.
+          assert "findActiveWorkflow(PUBLISHER_API" not in worker
+          # Each video platform has its own due check; no channel/editorial slot
+          # or active publisher may defer it.
           start = worker.index("async function dispatchVideoUploadsWhenDue")
           end = worker.index("async function runScheduledCheck", start)
           video_dispatch = worker[start:end]
-          assert "findActiveWorkflow(PUBLISHER_API" in video_dispatch
+          assert 'hasDueVideoRecord(state, "youtube"' in video_dispatch
+          assert 'hasDueVideoRecord(state, "aparat"' in video_dispatch
+          assert 'hasDueVideoRecord(state, "filo"' in video_dispatch
+          assert "findActiveWorkflow(PUBLISHER_API" not in video_dispatch
+          assert "next_channel_content_due_at" not in video_dispatch
+          assert "next_editorial_planning_at" not in video_dispatch
           assert "findActiveWorkflow(CATALOG_API" not in video_dispatch
           assert "pending_page_count" not in video_dispatch
           assert "last_cycle_status" not in video_dispatch
           assert "pending_page_count" in worker
-          print("UNIFIED_VIDEO_FANOUT_IDLE_WINDOW_WIRING_OK")
+          filo = Path(".github/workflows/filo-video-upload.yml").read_text(encoding="utf-8")
+          youtube = Path(".github/workflows/youtube-video-upload.yml").read_text(encoding="utf-8")
+          aparat = Path(".github/workflows/aparat-video-upload.yml").read_text(encoding="utf-8")
+          channel_groups = {
+              "channel": publisher.split("group: ", 1)[1].splitlines()[0],
+              "filo": filo.split("group: ", 1)[1].splitlines()[0],
+              "youtube": youtube.split("group: ", 1)[1].splitlines()[0],
+              "aparat": aparat.split("group: ", 1)[1].splitlines()[0],
+          }
+          assert len(set(channel_groups.values())) == 4, channel_groups
+          print("INDEPENDENT_MEDIA_DISPATCH_WIRING_OK")
           PY
