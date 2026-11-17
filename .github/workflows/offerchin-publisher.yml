@@ -153,7 +153,7 @@ jobs:
             test_affilio.AffilioRadarTests.test_aparat_expiry_gate_uses_the_selected_video_not_the_last_scanned_record -v
           python -m unittest test_selection_evidence -v
           python -m unittest -v test_offerchin_four_factor.py test_publication_due_gate.py test_parallel_catalog_sweep.py test_catalog_sweep.py
-          python -m unittest -v test_content_delivery.py
+          python -m unittest -v test_content_delivery.py test_merge_state_conflicts.py
           python -m unittest -v test_shared_selection_media_routing.py
           node --test test_affiliate_deal_radar_worker.mjs
 
@@ -290,7 +290,7 @@ jobs:
             # The independent trust auditor commits a different sidecar file. Retry a transient
             # concurrent push/rebase so a successful public send's message IDs are not lost.
             for attempt in 1 2 3; do
-              if git pull --rebase origin main && git push; then
+              if (git pull --rebase origin main || python affilio_radar/merge_state_conflicts.py --paths affilio_radar/state.json affilio_radar/video_upload_dispatch_state.json affilio_radar/diversity_report.json affilio_radar/performance_report.json) && git push; then
                 echo "PUBLISHER_STATE_PERSISTED attempt=$attempt"
                 exit 0
               fi
