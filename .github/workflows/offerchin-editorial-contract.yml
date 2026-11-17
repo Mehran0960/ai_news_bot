@@ -103,17 +103,25 @@ jobs:
           assert "OFFERCHIN_EDITORIAL_GAP_MINUTES" not in channel + video + shadow
           delivery = Path("affilio_radar/content_delivery.py").read_text(encoding="utf-8")
           policy = Path("affilio_radar/publication_policy.py").read_text(encoding="utf-8")
-          assert "MIN_CHANNEL_POST_INTERVAL_SECONDS = 21 * 60" in policy
+          assert "MIN_CHANNEL_POST_INTERVAL_SECONDS = 31 * 60" in policy
+          assert "MAX_CHANNEL_POST_INTERVAL_SECONDS = 47 * 60" in policy
+          assert "channel_post_interval_seconds" in policy
           assert "PRODUCTS_PER_EDITORIAL_POST = 6" in policy
           assert "DEFAULT_DAILY_CHANNEL_POST_LIMIT = 55" in policy
           assert "MIN_CHANNEL_POST_INTERVAL_SECONDS" in delivery
           assert "channel_publication_wait_seconds" in delivery
           assert "remaining_seconds / candidates" in delivery
           assert "MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS" in delivery
-          assert "shared_21_minimum_channel_spacing_with_product_max_interval_57_minutes" in delivery
+          assert "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes" in delivery
+          assert "channel_post_interval_seconds" in delivery
           assert "channel_publication_wait_seconds" in publisher
-          assert "latest_safe_dispatch_at" in publisher
+          assert "EDITORIAL_PRODUCT_SLOT_RESERVED" in publisher
           assert "editorial_frequency_allowed(state)" in publisher
+          assert "_release_failed_editorial_product_reservation" in publisher
+          editorial_policy = Path("docs/OFFERCHIN_DIGIKALA_MAG_SOURCE_POLICY_FA.md").read_text(encoding="utf-8")
+          assert "لینک مقاله/ناشر" in editorial_policy
+          assert "تحریریه هیچ CTA خرید" in editorial_policy
+          assert "۳۱ تا ۴۷ دقیقه" in editorial_policy
           assert "if not next_product:" in publisher
           editorial_module = Path("affilio_radar/editorial_publisher.py").read_text(encoding="utf-8")
           for public_render in ("_editorial_source_rows", "_editorial_affiliate_url", "_editorial_reply_markup"):
@@ -123,7 +131,7 @@ jobs:
           assert "EDITORIAL_VIDEO_SHADOW_ONLY_PUBLIC_PUBLISH_DISABLED" in video
           assert "--shadow-report" in shadow
           assert "--publish" not in shadow
-          print("EDITORIAL_NONCOMMERCIAL_SHARED_21_MINUTE_SPACING_SIX_TO_ONE_MIX_AND_READ_ONLY_SHADOW")
+          print("EDITORIAL_NONCOMMERCIAL_SHARED_VARIABLE_31_TO_47_MINUTE_SPACING_SIX_TO_ONE_MIX_AND_READ_ONLY_SHADOW")
           PY
       - name: Run the read-only shadow report and prove state is untouched
         run: |
