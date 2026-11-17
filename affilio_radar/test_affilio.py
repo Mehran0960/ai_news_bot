@@ -1645,6 +1645,13 @@ class AffilioRadarTests(unittest.TestCase):
         product_at = now + timedelta(hours=2)
         state = {
             "last_channel_published_at": now.isoformat(),
+            "published": {
+                f"dkp-prior-{index}": {
+                    "ts": (now - timedelta(hours=1) + timedelta(seconds=index)).timestamp(),
+                    "delivery_status": {"telegram": "sent", "bale": "sent"},
+                }
+                for index in range(6)
+            },
             "content_delivery_queue": {
                 "dkp-midpoint": {
                     "content_type": "product",
@@ -1664,7 +1671,7 @@ class AffilioRadarTests(unittest.TestCase):
             (now + timedelta(hours=1)).isoformat(),
         )
 
-    def test_video_dispatch_state_uses_midpoint_without_a_minimum_gap(self):
+    def test_video_dispatch_state_requires_two_safe_31_minute_gaps(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
         product_at = now + timedelta(minutes=50)
         state = {
@@ -1683,10 +1690,7 @@ class AffilioRadarTests(unittest.TestCase):
             "published": {},
         }
         compact = radar_module.build_video_upload_dispatch_state(state, now=now)
-        self.assertEqual(
-            compact["next_editorial_planning_at"],
-            (now + timedelta(minutes=25)).isoformat(),
-        )
+        self.assertIsNone(compact["next_editorial_planning_at"])
 
     def test_video_dispatch_state_exposes_only_active_hash_pinned_emergency_continuity(self):
         now = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
