@@ -2868,3 +2868,8 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 ## اصلاح تکمیلی تست سقف روزانه — ۱۷ نوامبر ۲۰۲۶
 
 اجرای push/PR نشان داد متن regex چندخطیِ تست جدید سقف روزانه هنگام درج در فایل Python به خط بعد شکسته شده بود و SyntaxError می‌داد. تست به استخراج خط‌محور متغیرهای `AFFILIO_MAX_DAILY_CHANNEL_POSTS` تغییر کرد؛ حالا مقدار پیش‌فرض، مقدار runtime و هر دو override انتخاب/تحویل را بدون regex و با مقایسهٔ صریح ۷۲ می‌سنجد. این اصلاح فقط تست است؛ صف، state و منطق ارسال تغییر نمی‌کنند.
+
+
+## کاهش زمان checkout در Documentation Gate — ۱۷ نوامبر ۲۰۲۶
+
+گیت مستندات برای اعتبارسنجی SHA دقیق PR base/head دیگر کل تاریخچهٔ مخزن را دریافت نمی‌کند؛ عمق ۵۰ commit انتخاب شد، چون اختلاف مبنای PR #229 با head بسیار کمتر از این مقدار است. این کار محتوای اعتبارسنجی را تغییر نمی‌دهد و دسترسی به هر دو commit لازم را حفظ می‌کند؛ فقط دانلود تاریخچهٔ قدیمی snapshotهای حجیم را حذف می‌کند. فایل اصلاح‌شده: `.github/workflows/offerchin-documentation-gate.yml`.
