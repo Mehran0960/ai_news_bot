@@ -45,14 +45,15 @@ def _has_channel_success(row: dict) -> bool:
         delivery = row.get("destinations")
     if not isinstance(delivery, dict):
         delivery = row.get("platforms")
-    return isinstance(delivery, dict) and any(
-        isinstance(delivery.get(name), dict)
-        and str(delivery[name].get("status") or "").strip().lower() == "sent"
-        for name in CHANNEL_DESTINATIONS
-    ) or isinstance(delivery, dict) and any(
-        str(delivery.get(name) or "").strip().lower() == "sent"
-        for name in CHANNEL_DESTINATIONS
-    )
+    if not isinstance(delivery, dict):
+        return False
+
+    for name in CHANNEL_DESTINATIONS:
+        target = delivery.get(name)
+        status = target.get("status") if isinstance(target, dict) else target
+        if str(status or "").strip().lower() == "sent":
+            return True
+    return False
 
 
 def products_published_since_last_editorial(state: dict) -> int:
