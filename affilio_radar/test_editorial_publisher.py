@@ -1,4 +1,5 @@
 import unittest
+import copy
 import json
 import re
 from unittest.mock import patch
@@ -12,6 +13,7 @@ from PIL import Image
 from editorial_publisher import (
     _finalize_if_terminal,
     _handle_channel_destination,
+    _merge_editorial_channel_worker_state,
     _record_failure,
     _format_message,
     _public_editorial_payload,
@@ -180,6 +182,62 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertIsNone(entry)
         self.assertFalse(state.get("editorial_delivery_queue"))
         self.assertEqual(state["publication_sequence_counter"], 12)
+
+    def test_editorial_channel_worker_receipts_merge_without_overwriting_other_destinations(self):
+        content_id = "editorial:test-guide"
+        state = {
+            "editorial_delivery_queue": {
+                content_id: {
+                    "content_id": content_id,
+                    "platforms": {
+                        "telegram": {"status": "pending"},
+                        "bale": {"status": "pending"},
+                        "rubika": {"status": "pending"},
+                        "eitaa": {"status": "not_connected"},
+                    },
+                }
+            },
+            "editorial_delivery_history": [],
+            "editorial_cycle": {"used_ids": [], "cycle_number": 1},
+        }
+        telegram_worker = copy.deepcopy(state)
+        telegram_worker["editorial_delivery_queue"][content_id]["platforms"]["telegram"] = {
+            "status": "sent", "message_id": "tg-1"
+        }
+        telegram_worker["editorial_delivery_history"] = [{
+            "content_id": content_id,
+            "editorial_id": "test-guide",
+            "topic": "purchase-planning",
+            "content_fingerprint": "fp-1",
+            "destinations": {"telegram": {"status": "sent", "message_id": "tg-1"}},
+        }]
+        telegram_worker["editorial_cycle"] = {
+            "used_ids": ["test-guide"], "cycle_number": 1, "last_editorial_id": "test-guide"
+        }
+        self.assertTrue(_merge_editorial_channel_worker_state(
+            state, state["editorial_delivery_queue"][content_id], "telegram", telegram_worker
+        ))
+
+        bale_worker = copy.deepcopy(state)
+        bale_worker["editorial_delivery_queue"][content_id]["platforms"]["bale"] = {
+            "status": "sent", "message_id": "bale-1"
+        }
+        bale_worker["editorial_delivery_history"][0]["destinations"]["bale"] = {
+            "status": "sent", "message_id": "bale-1"
+        }
+        self.assertTrue(_merge_editorial_channel_worker_state(
+            state, state["editorial_delivery_queue"][content_id], "bale", bale_worker
+        ))
+        platforms = state["editorial_delivery_queue"][content_id]["platforms"]
+        self.assertEqual(platforms["telegram"]["message_id"], "tg-1")
+        self.assertEqual(platforms["bale"]["message_id"], "bale-1")
+        self.assertEqual(platforms["rubika"]["status"], "pending")
+        self.assertEqual(platforms["eitaa"]["status"], "not_connected")
+        self.assertEqual(
+            {row["status"] for row in state["editorial_delivery_history"][0]["destinations"].values()},
+            {"sent"},
+        )
+        self.assertEqual(state["editorial_cycle"]["used_ids"], ["test-guide"])
 
     def test_removed_or_unrelated_active_queue_item_is_cancelled_before_a_new_relevant_item_is_queued(self):
         stale = editorial_item("app-permissions", "privacy-and-security")
