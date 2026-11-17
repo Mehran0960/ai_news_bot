@@ -2838,3 +2838,5 @@ OfferChin باید یک رسانهٔ تصمیم‌یار خرید باشد: آف
 
 
 **تکمیل قراردادهای CI — ۱۷ نوامبر ۲۰۲۶:** گیت Editorial Contract اکنون سقف ۷۲ را به‌جای مقدار تاریخی ۵۵ بررسی می‌کند. گیت Unified Video Fan-out نیز بررسی می‌کند که dispatcher قفل ناشر اصلی و تقدم نوبت کانالی را حفظ کند، اما به قفل اسکن کاتالوگ یا تعداد صفحات معوق وابسته نباشد. فایل‌های آزمون: `.github/workflows/offerchin-editorial-contract.yml` و `.github/workflows/offerchin-video-fanout-validation.yml`.
+
+**اصلاح تکمیلی تست سقف روزانه:** استخراج دو مقدار تنظیم‌شدهٔ Workflow در تست به‌صورت خط‌محور انجام می‌شود تا escape چندخطی regex در Python/ YAML عامل شکست CI نشود. این صرفاً سخت‌سازی تست است و رفتار runtime را تغییر نمی‌دهد.
