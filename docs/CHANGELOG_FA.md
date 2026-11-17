@@ -2921,3 +2921,20 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** ارسال هم‌زمان ممکن است زمان تکمیل کل run را به کندترین مقصد وابسته کند، اما شروع و ارسال مقصدهای دیگر را معطل نمی‌کند. برای stateهای هم‌زمان از merge سه‌طرفه استفاده می‌شود. Aparat بدون deadline معتبر فقط برای خود Aparat skip می‌شود؛ نبود credential یا rate limit نیز فقط همان مقصد را تحت تأثیر قرار می‌دهد. rollback با revert PR #231 انجام می‌شود؛ state و رسیدهای واقعی نباید پاک شوند.
 
 **وضعیت:** تغییرات در PR #231 منتظر CI و گیت مستندات هستند. ادغام و Deploy تا سبزشدن گیت‌ها انجام‌شده تلقی نمی‌شود؛ انتشار عمومی هر مقصد فقط با شناسه یا URL قابل‌راستی‌آزمایی تأیید خواهد شد.
+
+
+## ۲۰۲۶-۱۱-۱۷ — همسان‌سازی مسیر اضطراری با استقلال مقصدها
+
+**هدف:** مسیر اضطراری انتشار نیز نباید دوباره ویدئوها را در یک workflow مشترک یا وابسته به یکدیگر اجرا کند.
+
+**تغییر/اقدام:** ناشر اضطراری سه workflow مستقل YouTube، Aparat و Filo را Dispatch می‌کند؛ ثبت state و projection ویدئو با retry و merge سه‌طرفه انجام می‌شود. ارجاع خودکار به workflow یکپارچه حذف شد.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/affilio-publisher.yml`، `.github/workflows/offerchin-video-fanout-validation.yml`، `affilio_radar/merge_state_conflicts.py`، Handbook و Changelog.
+
+**آزمون و نتیجه:** گیت CI اکنون بررسی می‌کند که مسیر اضطراری هر سه workflow مستقل را فراخوانی و workflow یکپارچه را فراخوانی نکند؛ نتیجهٔ نهایی پس از اجرای جدید CI ثبت می‌شود.
+
+**شواهد/شناسه:** PR #231، شاخهٔ `fix/offerchin-independent-media-dispatch-20261117`.
+
+**ریسک/بازگشت:** در صورت شکست یک dispatch فقط همان مقصد retry می‌شود؛ state مقصدهای دیگر نباید reset شود. rollback با revert همین تغییر انجام می‌شود.
+
+**وضعیت:** در PR #231 ثبت شد؛ ادغام/استقرار تا سبزشدن همهٔ گیت‌ها انجام‌شده تلقی نمی‌شود.
