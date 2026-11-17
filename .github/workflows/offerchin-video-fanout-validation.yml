@@ -9,6 +9,12 @@ on:
       - "affilio_radar/aparat_uploader.py"
       - "affilio_radar/filo_uploader.py"
       - "affilio_radar/test_shared_selection_media_routing.py"
+      - "affilio_radar/merge_video_destination_state.py"
+      - "affilio_radar/test_merge_video_destination_state.py"
+      - "affilio_radar/editorial_content.py"
+      - "affilio_radar/editorial_publisher.py"
+      - "affilio_radar/test_editorial_content.py"
+      - ".github/workflows/offerchin-video-publisher.yml"
       - "affilio_radar/test_aparat_upload_schedule.py"
       - "affilio_radar/test_filo_upload_schedule.py"
       - "affilio_radar/test_filo_uploader.py"
@@ -76,30 +82,35 @@ jobs:
           emergency = Path(".github/workflows/affilio-publisher.yml").read_text(encoding="utf-8")
           unified = Path(".github/workflows/offerchin-video-publisher.yml").read_text(encoding="utf-8")
 
-          assert "--all-video-upload-only" in source
+          assert "--youtube-upload-only" in source
+          assert "--aparat-upload-only" in source
+          assert "--filo-upload-only" in source
           assert "run_all_video_uploads_only" in source
-          # The standard product publisher must not start a long video job while
-          # it still owns the shared state/concurrency pipeline.
+          # Main photo publishing does not launch or own the video coordinator.
           assert "offerchin-video-publisher.yml" not in publisher
           # The legacy emergency publisher retains its separately authorized path.
           assert "offerchin-video-publisher.yml" in emergency
           assert "actions: write" in emergency
-          assert "--all-video-upload-only" in unified
+          assert "destination: [youtube, aparat, filo]" in unified
+          assert "fail-fast: false" in unified
+          assert "offerchin-video-dispatcher" in unified
+          assert "offerchin-content-publisher" not in unified
+          assert "state.base.json" in unified
+          assert "merge_video_destination_state.py" in unified
+          assert "OFFERCHIN_EDITORIAL_VIDEO_DESTINATION" in unified
           assert "VIDEO_WORKFLOW_RETRY_GAP_MS" not in worker
           assert "VIDEO_UPLOAD_MAX_AGE_MS" not in worker
           assert "dispatchVideoPlatformWhenDue" not in worker
           assert "VIDEO_PUBLISHER_API" in worker
           assert "videoQueueDispatchDeferReason" in worker
-          assert "findActiveWorkflow(PUBLISHER_API" in worker
-          # Video dispatch shares the selected-publisher lock and respects planned
-          # channel slots, but it must not wait for the independent catalog scanner.
           start = worker.index("async function dispatchVideoUploadsWhenDue")
           end = worker.index("async function runScheduledCheck", start)
           video_dispatch = worker[start:end]
-          assert "findActiveWorkflow(PUBLISHER_API" in video_dispatch
+          assert "findActiveWorkflow(PUBLISHER_API" not in video_dispatch
           assert "findActiveWorkflow(CATALOG_API" not in video_dispatch
+          assert "nextPublisherDueAt" not in video_dispatch
           assert "pending_page_count" not in video_dispatch
           assert "last_cycle_status" not in video_dispatch
           assert "pending_page_count" in worker
-          print("UNIFIED_VIDEO_FANOUT_IDLE_WINDOW_WIRING_OK")
+          print("INDEPENDENT_VIDEO_DESTINATION_MATRIX_AND_SCOPED_STATE_MERGE_OK")
           PY
