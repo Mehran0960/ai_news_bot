@@ -97,10 +97,11 @@
       }
     ]
   },
-  "generated_at": "2026-11-17T00:19:34.650599+00:00",
+  "generated_at": "2026-11-17T00:31:49.180337+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
+      "آموزش، سرگرمی و اکسسوری حیوانات": 1,
       "آینه های آرایشی": 1,
       "استابیلایزر و گیمبال": 1,
       "اصلاح موی صورت": 1,
@@ -208,7 +209,7 @@
       "grocery_food": 14,
       "home": 10,
       "home_cleaning": 2,
-      "kids_sports": 4,
+      "kids_sports": 5,
       "large_appliances": 1,
       "mobile_devices": 2,
       "other": 22,
@@ -219,29 +220,29 @@
     "category_share_percent": {
       "automotive": 1.0,
       "beauty_fragrance": 1.0,
-      "books_stationery": 3.0,
-      "computer_network": 3.0,
-      "digital_accessories": 3.0,
-      "fashion": 11.9,
+      "books_stationery": 2.9,
+      "computer_network": 2.9,
+      "digital_accessories": 2.9,
+      "fashion": 11.8,
       "gaming": 2.0,
-      "grocery_food": 13.9,
-      "home": 9.9,
+      "grocery_food": 13.7,
+      "home": 9.8,
       "home_cleaning": 2.0,
-      "kids_sports": 4.0,
+      "kids_sports": 4.9,
       "large_appliances": 1.0,
       "mobile_devices": 2.0,
-      "other": 21.8,
-      "personal_care": 11.9,
+      "other": 21.6,
+      "personal_care": 11.8,
       "power_backup": 2.0,
       "sports_outdoor": 6.9
     },
-    "distinct_catalog_categories": 96,
+    "distinct_catalog_categories": 97,
     "distinct_categories": 17,
-    "distinct_families": 101,
+    "distinct_families": 102,
     "distinct_retailers": 1,
     "distinct_use_cases": 17,
     "known_brand_posts": 44,
-    "posts": 101,
+    "posts": 102,
     "repeated_brand_count": 3,
     "repeated_brands": {
       "brand:تکسان": 2,
@@ -249,7 +250,7 @@
       "brand:مری_کینگ": 2
     },
     "retailer_post_counts": {
-      "digikala": 101
+      "digikala": 102
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -270,7 +271,7 @@
       "office_study": 1,
       "outdoor_travel": 3,
       "personal_care": 11,
-      "pet_care": 2,
+      "pet_care": 3,
       "sports_fitness": 5
     }
   },
@@ -278,6 +279,7 @@
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
       "آجیل سنتی": 1,
+      "آموزش، سرگرمی و اکسسوری حیوانات": 1,
       "آینه های آرایشی": 1,
       "ابزار آشپزی": 1,
       "ابزار حمام": 1,
@@ -473,7 +475,7 @@
       "home": 19,
       "home_cleaning": 5,
       "jewelry": 2,
-      "kids_sports": 6,
+      "kids_sports": 7,
       "large_appliances": 2,
       "lighting": 2,
       "mobile_devices": 4,
@@ -493,28 +495,28 @@
       "digital_accessories": 2.3,
       "fashion": 8.3,
       "gaming": 0.9,
-      "grocery_food": 13.0,
+      "grocery_food": 12.9,
       "home": 8.8,
       "home_cleaning": 2.3,
       "jewelry": 0.9,
-      "kids_sports": 2.8,
+      "kids_sports": 3.2,
       "large_appliances": 0.9,
       "lighting": 0.9,
-      "mobile_devices": 1.9,
+      "mobile_devices": 1.8,
       "other": 19.4,
       "personal_care": 19.4,
       "power_backup": 1.4,
-      "sports_outdoor": 5.6,
+      "sports_outdoor": 5.5,
       "tools_industrial": 1.4,
       "tv_audio_video": 0.5
     },
-    "distinct_catalog_categories": 183,
+    "distinct_catalog_categories": 184,
     "distinct_categories": 22,
-    "distinct_families": 192,
+    "distinct_families": 193,
     "distinct_retailers": 1,
     "distinct_use_cases": 20,
     "known_brand_posts": 74,
-    "posts": 216,
+    "posts": 217,
     "repeated_brand_count": 16,
     "repeated_brands": {
       "arden": 3,
@@ -532,7 +534,7 @@
       "zarin_barakat": 2
     },
     "retailer_post_counts": {
-      "digikala": 216
+      "digikala": 217
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -555,7 +557,7 @@
       "office_study": 3,
       "outdoor_travel": 5,
       "personal_care": 37,
-      "pet_care": 2,
+      "pet_care": 3,
       "sports_fitness": 8,
       "tools_industrial": 3
     }
@@ -576,30 +578,13 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1567,
+    "all_time_count": 1568,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 397,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T20:27:44.380599+00:00",
-        "brand": "brand:هایک_سمی",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "home",
-        "compared_to_product_id": "dkp-532451",
-        "family": "home:kitchen",
-        "product_id": "dkp-17125980",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "اس اس دی اینترنال SATA III هایک سمی مدل WAVE S ظرفیت 256 گیگابایت",
-        "use_case": "home_living"
-      },
       {
         "at": "2026-11-16T20:27:44.380599+00:00",
         "brand": "",
@@ -922,6 +907,23 @@
         ],
         "title": "چوب ماهیگیری ساپا مدل VALERIE-210",
         "use_case": "outdoor_travel"
+      },
+      {
+        "at": "2026-11-17T00:31:49.180337+00:00",
+        "brand": "brand:هایک_سمی",
+        "catalog_category_id": "",
+        "catalog_category_name": "",
+        "category": "home",
+        "compared_to_product_id": "dkp-532451",
+        "family": "home:kitchen",
+        "product_id": "dkp-17125980",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "اس اس دی اینترنال SATA III هایک سمی مدل WAVE S ظرفیت 256 گیگابایت",
+        "use_case": "home_living"
       }
     ]
   }
