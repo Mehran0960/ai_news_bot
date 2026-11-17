@@ -199176,77 +199176,7 @@
       "topic": "review-literacy"
     }
   ],
-  "editorial_delivery_queue": {
-    "editorial:check-delivery-window": {
-      "attempt_count": 0,
-      "content_id": "editorial:check-delivery-window",
-      "content_type": "editorial",
-      "delivery_runway_seconds": 33,
-      "dispatch_runway_seconds": 93,
-      "next_attempt_at": "2026-11-17T00:57:41.329568+00:00",
-      "payload": {
-        "body": "⏱️ زمان رسیدن سفارش برای همه کالاها یکسان نیست؛ نوع کالا، شهر مقصد، موجودی فروشنده و روش ارسال می‌توانند آن را تغییر دهند. پیش از پرداخت، بازه تحویل و روش‌های فعال برای همان کالا و نشانی را در صفحه سفارش بررسی کن؛ به یک زمان عمومی تکیه نکن.",
-        "content_id": "editorial:check-delivery-window",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 2,
-        "editorial_id": "check-delivery-window",
-        "idempotency_key": "fcdd7e8bd5a229df",
-        "related_product_affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22962257%2F",
-        "related_product_id": "dkp-22962257",
-        "related_product_title": "پخش‌کننده صوتی خودرو دینکس مدل DX-129، دارای 3 پورت USB، ورودی کارت حافظه microSD، امکان مکالمه و خروجی صدای 4 کاناله",
-        "review_due_at": "2027-02-13T04:30:00Z",
-        "reviewed_at": "2026-11-15T04:30:00Z",
-        "sequence_number": 1471,
-        "sources": [
-          {
-            "publisher": "دیجی‌کالا مگ",
-            "source_id": "digikala-mag-delivery-time",
-            "title": "سفارش دیجی‌کالا چند روزه می‌رسد؟ مقایسه‌ روش‌های ارسال از نظر سرعت",
-            "url": "https://www.digikala.com/mag/digikala-delivery-time/"
-          }
-        ],
-        "title": "زمان تحویل را برای همان سفارش بررسی کن",
-        "topic": "delivery"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "related_product_id": "dkp-22962257",
-      "scheduled_at": "2026-11-17T00:57:41.329568+00:00",
-      "selected_at": "2026-11-17T00:55:59.028540+00:00",
-      "sequence_number": 1471,
-      "status": "queued",
-      "window_closes_at": "2026-11-17T00:58:51.401150+00:00"
-    }
-  },
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
