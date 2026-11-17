@@ -211,7 +211,10 @@ def queue_editorial_if_due(
     active_products = product_queue if isinstance(product_queue, dict) else {}
     if active:
         valid_active = []
-        delivery_runway = timedelta(seconds=editorial_delivery_p90_seconds(state))
+        delivery_runway = max(
+            timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS),
+            timedelta(seconds=editorial_delivery_p90_seconds(state)),
+        )
         current_bank = {
             str(row.get("editorial_id") or "").strip(): row
             for row in bank if isinstance(row, dict) and str(row.get("editorial_id") or "").strip()
@@ -268,8 +271,7 @@ def queue_editorial_if_due(
             product_slot_is_due = product_slot_at is not None and product_slot_at <= current
             dispatch_window_closed = (
                 product_slot_at is not None
-                and (product_slot_at - current).total_seconds()
-                < max(MIN_CHANNEL_POST_INTERVAL_SECONDS, delivery_runway)
+                and product_slot_at - current < delivery_runway
             )
             if (
                 isinstance(product_entry, dict)
@@ -283,7 +285,7 @@ def queue_editorial_if_due(
                 # its reserved next-product slot is part of the shared 31–47 minute cadence.
                 queued_editorial["window_closes_at"] = (
                     product_slot_at
-                    - timedelta(seconds=max(MIN_CHANNEL_POST_INTERVAL_SECONDS, delivery_runway))
+                    - delivery_runway
                 ).isoformat()
                 valid_active.append(queued_editorial)
                 continue
