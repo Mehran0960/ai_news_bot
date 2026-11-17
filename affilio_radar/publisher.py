@@ -908,7 +908,15 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
 
     sent_content = 0
     fallback_promoted = False
+    channel_post_sent_this_run = False
     for product_id, entry in due:
+        if channel_post_sent_this_run:
+            print(
+                "PUBLISHER_STOP_AFTER_CHANNEL_POST "
+                f"remaining_due={max(0, len(due) - sent_content)} "
+                "reason=never_burst_to_catch_up_missed_slots"
+            )
+            break
         if not isinstance(entry, dict):
             continue
         payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
@@ -1078,6 +1086,7 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             for name in PHOTO_PLATFORMS
         )
         if new_public_delivery:
+            channel_post_sent_this_run = True
             public_posted_at = _now().isoformat()
             state["last_channel_published_at"] = public_posted_at
             state["last_product_channel_published_at"] = public_posted_at
