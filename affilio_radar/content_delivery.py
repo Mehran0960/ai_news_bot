@@ -360,6 +360,7 @@ def reschedule_product_queue_evenly(
     )
     anchor = _utc(state.get("product_publication_plan_anchor_at")) or current
     anchor_kind = str(state.get("product_publication_plan_anchor_kind") or "cycle_start")
+    first_due_now = bool((cadence or {}).get("first_slot_due_now"))
     last_channel = get_last_channel_published_at(state)
     if last_channel and last_channel > anchor:
         anchor = last_channel
@@ -398,7 +399,6 @@ def reschedule_product_queue_evenly(
             entry.pop("next_attempt_at", None)
         deferred = len(pending)
     else:
-        first_due_now = bool((cadence or {}).get("first_slot_due_now"))
         # A reserved editorial before the first product must keep its bridge interval;
         # an overdue product is not allowed to leapfrog the editorial.
         if pending and pending[0][1] in active_editorials_by_product:
