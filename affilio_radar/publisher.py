@@ -573,14 +573,14 @@ def _process_photo_destination(
         _set_target(entry, destination, "manual_review", now, "previous_send_outcome_unknown")
         record_status[destination] = "manual_review"
         if persist:
-            if persist:
-        _save(state)
+            _save(state)
         print(f"PLATFORM_DELIVERY_MANUAL_REVIEW product_id={entry['product_id']} platform={destination} reason=previous_send_outcome_unknown")
         return
     if not _target_ready(destination):
         _set_target(entry, destination, "not_connected", now, "credentials_not_configured")
         record_status[destination] = "not_connected"
-        _save(state)
+        if persist:
+            _save(state)
         return
     retry_at = _utc(target.get("next_attempt_at"))
     if status in {"failed", "retry"} and retry_at and retry_at > now:
@@ -594,7 +594,8 @@ def _process_photo_destination(
         target["attempts"] = int(target.get("attempts") or 0) + 1
     except (TypeError, ValueError, OverflowError):
         target["attempts"] = 1
-    _save(state)
+    if persist:
+        _save(state)
     try:
         if destination in {"rubika", "eitaa"}:
             from messenger_adapters import send_photo
@@ -614,14 +615,13 @@ def _process_photo_destination(
         elif destination == "bale":
             record["bale_message_id"] = message_id
         elif message_id:
-            # Store only real message identifiers returned by the destination API.
             record.setdefault("platform_message_ids", {})[destination] = message_id
         elif delivery_receipt:
-            # Some APIs confirm acceptance without exposing a message ID.
             record.setdefault("platform_delivery_receipts", {})[destination] = str(delivery_receipt)
         record.setdefault("delivery_attempts", {})[destination] = target["attempts"]
         record["delivery_last_attempt_at"] = _now().isoformat()
-        _save(state)
+        if persist:
+            _save(state)
         print(
             f"PLATFORM_DELIVERY_OK product_id={entry['product_id']} platform={destination} "
             f"message_id={message_id or 'not_returned'} receipt_only={bool(delivery_receipt and not message_id)}"
@@ -632,12 +632,12 @@ def _process_photo_destination(
         record_status[destination] = "failed"
         record.setdefault("delivery_attempts", {})[destination] = target["attempts"]
         record["delivery_last_attempt_at"] = _now().isoformat()
-        _save(state)
+        if persist:
+            _save(state)
         print(
             f"PLATFORM_DELIVERY_FAILED product_id={entry['product_id']} platform={destination} "
             f"error={type(exc).__name__} detail={safe_detail}"
         )
-
 
 
 def _deliver_photo_destination_isolated(
