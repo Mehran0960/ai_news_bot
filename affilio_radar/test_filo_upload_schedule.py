@@ -63,11 +63,10 @@ class FiloUploadScheduleTests(unittest.TestCase):
         self.assertTrue(_filo_upload_slot_due(state, self.now, credentials_ready=True))
         self.assertNotIn("filo_next_upload_at", state)
 
-    def test_filo_does_not_require_verified_retailer_deadline_but_aparat_does(self):
-        self.assertTrue(video_deadline_allows_upload("filo", False))
-        self.assertTrue(video_deadline_allows_upload("filo", True))
-        self.assertFalse(video_deadline_allows_upload("aparat", False))
-        self.assertTrue(video_deadline_allows_upload("aparat", True))
+    def test_no_video_destination_requires_a_retailer_deadline_when_last_mile_checks_passed(self):
+        for platform in ("youtube", "aparat", "filo"):
+            self.assertTrue(video_deadline_allows_upload(platform, False))
+            self.assertTrue(video_deadline_allows_upload(platform, True))
 
     def test_future_persisted_filo_slot_is_ignored_and_removed(self):
         next_slot = self.now + timedelta(days=3)
