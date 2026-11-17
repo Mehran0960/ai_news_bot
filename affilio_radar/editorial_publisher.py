@@ -6,11 +6,13 @@ product pipeline. Live network actions require the explicit --publish flag.
 from __future__ import annotations
 
 import argparse
+import copy
 import html
 import json
 import os
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -845,7 +847,8 @@ def _record_failure(entry: dict, destination: str, exc: Exception, now: datetime
 
 
 def _handle_channel_destination(
-    state: dict, entry: dict, destination: str, image_bytes: bytes, message: str, now: datetime
+    state: dict, entry: dict, destination: str, image_bytes: bytes, message: str, now: datetime,
+    *, persist: bool = True,
 ) -> None:
     target = _target(entry, destination)
     ready, unavailable_reason = _destination_ready(destination, state, now)
@@ -857,6 +860,8 @@ def _handle_channel_destination(
             target["status"] = _terminal_skip_reason(destination, unavailable_reason)
             target["last_error"] = unavailable_reason
             target["updated_at"] = now.isoformat()
+            if persist:
+                if persist:
             _save(state)
         return
     if target.get("status") in TERMINAL:
@@ -865,7 +870,8 @@ def _handle_channel_destination(
         target["status"] = "manual_review"
         target["last_error"] = "interrupted_during_send_outcome_unknown"
         target["updated_at"] = now.isoformat()
-        _save(state)
+        if persist:
+            _save(state)
         return
     retry_at = _utc(target.get("next_attempt_at"))
     if target.get("status") == "failed" and retry_at and retry_at > now:
@@ -892,6 +898,8 @@ def _handle_channel_destination(
             target["status"] = "manual_review"
             target["last_error"] = "api_accepted_without_public_message_id_unverified"
             target["updated_at"] = _now().isoformat()
+            if persist:
+                if persist:
             _save(state)
             print(
                 f"EDITORIAL_DESTINATION_UNVERIFIED content_id={entry['content_id']} "
@@ -901,16 +909,90 @@ def _handle_channel_destination(
         if not confirmed:
             raise RuntimeError("destination_receipt_missing")
         _record_success(state, entry, destination, receipt, _now())
-        _save(state)
+        if persist:
+            _save(state)
         print(f"EDITORIAL_DESTINATION_SENT content_id={entry['content_id']} platform={destination}")
     except Exception as exc:
         _record_failure(entry, destination, exc, _now())
-        _save(state)
+        if persist:
+            _save(state)
         print(
             f"EDITORIAL_DESTINATION_FAILED content_id={entry['content_id']} "
             f"platform={destination} error={type(exc).__name__} detail={_safe_error(exc)}"
         )
 
+
+def _merge_editorial_channel_worker_state(
+    state: dict, entry: dict, destination: str, worker_state: dict
+) -> bool:
+    """Merge one editorial channel's private worker result without overwriting peers."""
+    content_id = str(entry.get("content_id") or "")
+    worker_queue = worker_state.get("editorial_delivery_queue")
+    worker_entry = worker_queue.get(content_id) if isinstance(worker_queue, dict) else None
+    if not isinstance(worker_entry, dict):
+        return False
+    worker_platforms = worker_entry.get("platforms") if isinstance(worker_entry.get("platforms"), dict) else {}
+    worker_target = worker_platforms.get(destination)
+    if not isinstance(worker_target, dict):
+        return False
+    _target(entry, destination).clear()
+    _target(entry, destination).update(copy.deepcopy(worker_target))
+
+    changed = True
+    incoming_sent = worker_target.get("status") == "sent"
+    for key in ("last_channel_published_at", "last_published_at", "last_editorial_confirmed_at"):
+        incoming = _utc(worker_state.get(key))
+        existing = _utc(state.get(key))
+        if incoming is not None and (existing is None or incoming > existing):
+            state[key] = incoming.isoformat()
+
+    worker_history = worker_state.get("editorial_delivery_history")
+    if isinstance(worker_history, list):
+        source_row = next(
+            (row for row in reversed(worker_history)
+             if isinstance(row, dict) and row.get("content_id") == content_id),
+            None,
+        )
+        if source_row is not None:
+            history = state.setdefault("editorial_delivery_history", [])
+            if not isinstance(history, list):
+                history = []
+                state["editorial_delivery_history"] = history
+            target_row = next(
+                (row for row in reversed(history)
+                 if isinstance(row, dict) and row.get("content_id") == content_id),
+                None,
+            )
+            if target_row is None:
+                target_row = {
+                    key: copy.deepcopy(value)
+                    for key, value in source_row.items() if key != "destinations"
+                }
+                target_row["destinations"] = {}
+                history.append(target_row)
+            source_destinations = source_row.get("destinations") if isinstance(source_row.get("destinations"), dict) else {}
+            source_target = source_destinations.get(destination)
+            if source_target is not None:
+                target_row.setdefault("destinations", {})[destination] = copy.deepcopy(source_target)
+            for key in ("content_fingerprint", "title", "body", "topic", "editorial_id"):
+                if not target_row.get(key) and source_row.get(key):
+                    target_row[key] = copy.deepcopy(source_row[key])
+            state["editorial_delivery_history"] = history[-200:]
+
+    worker_cycle = worker_state.get("editorial_cycle")
+    if isinstance(worker_cycle, dict) and isinstance(state.get("editorial_cycle"), dict):
+        cycle = state["editorial_cycle"]
+        cycle["used_ids"] = sorted(
+            set(map(str, cycle.get("used_ids") or []))
+            | set(map(str, worker_cycle.get("used_ids") or []))
+        )
+        incoming_confirmed = _utc(worker_state.get("last_editorial_confirmed_at"))
+        existing_confirmed = _utc(state.get("last_editorial_confirmed_at"))
+        if incoming_confirmed and (existing_confirmed is None or incoming_confirmed >= existing_confirmed):
+            for key in ("last_editorial_id", "last_topic", "cycle_started_at"):
+                if worker_cycle.get(key) is not None:
+                    cycle[key] = copy.deepcopy(worker_cycle[key])
+    return incoming_sent
 
 def _video_description(item: dict) -> str:
     """Keep editorial video descriptions utility-only and free of sources or affiliate links."""
@@ -1315,13 +1397,41 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         except Exception as exc:
             print(f"EDITORIAL_POSTER_RENDER_FAILED error={type(exc).__name__}")
             return 1
-        for destination in CHANNEL_DESTINATIONS:
-            message = _format_message(
-                payload,
-                html_mode=destination in {"telegram", "bale"},
-                platform=destination,
-            )
-            _handle_channel_destination(state, entry, destination, image_bytes, message, _now())
+        channel_futures = {}
+        with ThreadPoolExecutor(max_workers=len(CHANNEL_DESTINATIONS)) as executor:
+            for destination in CHANNEL_DESTINATIONS:
+                message = _format_message(
+                    payload,
+                    html_mode=destination in {"telegram", "bale"},
+                    platform=destination,
+                )
+                local_state = copy.deepcopy(state)
+                local_queue = local_state.get("editorial_delivery_queue")
+                local_entry = local_queue.get(str(entry.get("content_id") or "")) if isinstance(local_queue, dict) else None
+                if not isinstance(local_entry, dict):
+                    continue
+                future = executor.submit(
+                    _handle_channel_destination,
+                    local_state, local_entry, destination, image_bytes, message, _now(),
+                    persist=False,
+                )
+                channel_futures[future] = (destination, local_state)
+            any_new_editorial_channel_send = False
+            for future in as_completed(channel_futures):
+                destination, local_state = channel_futures[future]
+                try:
+                    future.result()
+                    any_new_editorial_channel_send = (
+                        _merge_editorial_channel_worker_state(state, entry, destination, local_state)
+                        or any_new_editorial_channel_send
+                    )
+                except Exception as exc:
+                    print(
+                        f"EDITORIAL_DESTINATION_WORKER_FAILED content_id={entry['content_id']} "
+                        f"platform={destination} error={type(exc).__name__}"
+                    )
+            if any_new_editorial_channel_send:
+                reflow_product_queue_after_delivery(state, now=_now())
     else:
         # Keep all older product videos ahead of a newer editorial video.
         if any(_pending_product_video_exists(state, destination) for destination in video_destinations):
