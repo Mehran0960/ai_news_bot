@@ -7600,179 +7600,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-22920703",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22920703%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "6059",
-        "catalog_best_selling_category_name": "ایفای نقش",
-        "catalog_best_selling_rank": 42,
-        "catalog_best_selling_ranks_by_category": {
-          "6059": {
-            "category_name": "ایفای نقش",
-            "observed_at": "2026-11-16T07:08:26.568791+00:00",
-            "rank": 42,
-            "rank_history": [
-              {
-                "category_name": "ایفای نقش",
-                "observed_at": "2026-11-16T07:08:26.568791+00:00",
-                "rank": 42
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T07:39:30.980343+00:00",
-        "catalog_cycle_snapshot_rank": 465,
-        "catalog_rank_observed_at": "2026-11-16T07:08:26.568791+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-16T07:56:39.612079+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22920703",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 998000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 14.2,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 59.44,
-        "discount_percent": 40,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T07:56:53.058796+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 998000,
-        "history_low_toman": 998000,
-        "history_median_toman": 998000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 998000,
-        "history_start_day": "2026-11-15",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/d9ae6e359a9f8559943f70ddac79c934a86b09b7_1791321204.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "affordability": 80.54,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 72.38,
-          "discount_attractiveness": 59.44,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 86.0,
-          "generality_group": "mobile_productivity",
-          "live_demand": 69.48,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "6059",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T07:57:06.113338+00:00",
-          "weakest_factor_score": 59.44
-        },
-        "original_price": 1650000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-22920703",
-        "product_url": "https://www.digikala.com/product/dkp-22920703/",
-        "promo_score": 32,
-        "publication_policy": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-        "qualifies_as_deal": true,
-        "rating": 4.0,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 1,
-        "savings_toman": 652000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 42,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "affordability": 80.54,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 72.38,
-          "discount_attractiveness": 59.44,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 86.0,
-          "generality_group": "mobile_productivity",
-          "live_demand": 69.48,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "6059",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T07:57:06.113338+00:00",
-          "weakest_factor_score": 59.44
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1193,
-        "title": "ابزار ایفای نقش دنیای سرگرمیهای کمیاب مدل بال فرشته چراغ دار طرح پارچه حریر ارگانزا",
-        "variant_label": "سفید"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22920703",
-      "product_plan_cycle_id": "2026-11-16T07:39:30.980343+00:00",
-      "selected_at": "2026-11-16T07:57:09.877569+00:00",
-      "sequence_number": 1193,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T08:15:12.415463+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-22944746",
       "content_type": "product",
       "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
@@ -43579,20 +43406,13 @@
       "sequence_number": 1469,
       "status": "published",
       "updated_at": "2026-11-17T01:05:18.878876+00:00"
-    }
-  ],
-  "content_delivery_last_enqueue_summary": {
-    "added": 4,
-    "at": "2026-11-17T00:54:57.235824+00:00",
-    "queue_evicted": 0,
-    "queue_size": 4,
-    "skipped": 0
-  },
-  "content_delivery_queue": {
-    "dkp-882785": {
-      "attempt_count": 0,
+    },
+    {
+      "attempt_count": 1,
       "content_id": "dkp-882785",
       "content_type": "product",
+      "last_attempt_at": "2026-11-17T01:06:36.838259+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
       "next_attempt_at": "2026-11-17T01:06:16.687477+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-882785%2F",
@@ -43729,24 +43549,32 @@
           "status": "pending"
         },
         "bale": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-17T01:06:36.838259+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-17T01:07:03.370162+00:00"
         },
         "eitaa": {
           "attempts": 0,
-          "status": "pending"
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-17T01:06:36.838259+00:00"
         },
         "filo": {
           "attempts": 0,
           "status": "pending"
         },
         "rubika": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-17T01:06:36.838259+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-17T01:07:09.601375+00:00"
         },
         "telegram": {
-          "attempts": 0,
-          "status": "pending"
+          "attempt_started_at": "2026-11-17T01:06:36.838259+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-17T01:07:00.435203+00:00"
         },
         "youtube": {
           "attempts": 0,
@@ -43758,9 +43586,18 @@
       "scheduled_at": "2026-11-17T01:06:16.687477+00:00",
       "selected_at": "2026-11-17T00:54:57.235824+00:00",
       "sequence_number": 1470,
-      "status": "queued"
+      "status": "published",
+      "updated_at": "2026-11-17T01:07:10.792719+00:00"
     }
+  ],
+  "content_delivery_last_enqueue_summary": {
+    "added": 4,
+    "at": "2026-11-17T00:54:57.235824+00:00",
+    "queue_evicted": 0,
+    "queue_size": 4,
+    "skipped": 0
   },
+  "content_delivery_queue": {},
   "current_demand_observations": {
     "dkp-10002173": {
       "last_observed_at": "2026-11-15T19:01:08.685493+00:00",
@@ -199161,12 +198998,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-17T01:05:18.873259+00:00",
+  "last_channel_published_at": "2026-11-17T01:07:10.792664+00:00",
   "last_content_selection_at": "2026-11-17T00:54:57.235824+00:00",
   "last_editorial_attempt_at": "2026-11-17T01:02:35.635805+00:00",
   "last_editorial_confirmed_at": "2026-11-17T01:02:46.721906+00:00",
-  "last_product_channel_published_at": "2026-11-17T01:05:18.873259+00:00",
-  "last_published_at": "2026-11-17T01:05:18.873259+00:00",
+  "last_product_channel_published_at": "2026-11-17T01:07:10.792664+00:00",
+  "last_published_at": "2026-11-17T01:07:10.792664+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -207247,25 +207084,7 @@
   },
   "market_price_api_pause_until": "2026-11-17T01:14:34.560191+00:00",
   "mcp_offer_page_cursor": 5,
-  "pending_queue": {
-    "dkp-882785": {
-      "current_price": 39600,
-      "deal_expires_at": "",
-      "discount_percent": 60,
-      "first_seen_at": "2026-11-17T00:54:45.826169+00:00",
-      "last_publish_failure": "",
-      "last_publish_failure_at": "",
-      "next_publish_attempt_at": "",
-      "original_price": 99000,
-      "product_id": "dkp-882785",
-      "product_url": "https://www.digikala.com/product/dkp-882785/",
-      "promo_score": 40,
-      "publish_failure_count": 0,
-      "savings_toman": 59400,
-      "title": "بذر پیاز قرمز آذر سبزینه مدل A125",
-      "urgent": false
-    }
-  },
+  "pending_queue": {},
   "price_audit_last_summary": {
     "batch_size": 30,
     "check_interval_seconds": 300,
@@ -365049,6 +364868,7 @@
     },
     "dkp-22962257": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2215,
       "bale_posted_at": "2026-11-17T01:00:54.312156+00:00",
       "brand": "آریا آرمان دینکس",
@@ -365113,6 +364933,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_upload_status": "pending",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-17T00:54:34.559232+00:00",
@@ -388287,6 +388108,134 @@
       "youtube_video_renderer_version": 2,
       "youtube_video_url": "https://www.youtube.com/shorts/hGoM2f8jz40",
       "youtube_visual_repair_completed_at": ""
+    },
+    "dkp-882785": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2218,
+      "bale_posted_at": "2026-11-17T01:07:03.370162+00:00",
+      "brand": "آذر سبزینه",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "B",
+      "catalog_best_selling_category_id": "8170",
+      "catalog_best_selling_category_name": "بذر و تخم گیاهان",
+      "catalog_best_selling_rank": 30,
+      "catalog_best_selling_ranks_by_category": {
+        "8170": {
+          "category_name": "بذر و تخم گیاهان",
+          "observed_at": "2026-11-16T23:59:24.093051+00:00",
+          "rank": 30,
+          "rank_history": [
+            {
+              "category_name": "بذر و تخم گیاهان",
+              "observed_at": "2026-11-16T23:59:24.093051+00:00",
+              "rank": 30
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-17T00:32:27.301408+00:00",
+      "catalog_cycle_snapshot_rank": 216,
+      "catalog_rank_observed_at": "2026-11-16T23:59:24.093051+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-882785",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "A",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-17T01:07:09.601405+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 0,
+      "distribution_queue_id": "dkp-882785:2026-11-17T00:54:57.235824+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-17T00:54:34.559394+00:00",
+      "history_days": 3,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/4098450.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "not_checked",
+      "platform_message_ids": {
+        "rubika": "1974334755215588651"
+      },
+      "posted_current_price": 39600,
+      "posted_discount_percent": 60,
+      "posted_original_price": 99000,
+      "product_url": "https://www.digikala.com/product/dkp-882785/",
+      "promo_score": 40,
+      "publication_category": "other",
+      "publication_family": "digikala_category:8170",
+      "publication_use_case": "catalog_taxonomy_other",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 23.7,
+      "rubika_posted_at": "2026-11-17T01:07:09.601375+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 30,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 35.66,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 59.83,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 18.0,
+        "generality_group": "catalog_taxonomy_other",
+        "live_demand": 84.28,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-17T00:54:45.826169+00:00",
+        "weakest_factor_score": 18.0
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1470,
+      "telegram_message_id": 1661,
+      "telegram_posted_at": "2026-11-17T01:07:00.435203+00:00",
+      "title": "بذر پیاز قرمز آذر سبزینه مدل A125",
+      "ts": 1794877596.838259,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
     },
     "dkp-88478": {
       "aparat_upload_status": "skipped_unverified_deadline",
