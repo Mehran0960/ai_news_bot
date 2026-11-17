@@ -1,13 +1,6 @@
 name: OfferChin Filo Video Upload
 
 on:
-  # A controlled main-branch config update automatically checks Filo login only.
-  # This push path is verify-only and never publishes a video.
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/filo-video-upload.yml"
-      - "affilio_radar/filo_uploader.py"
   # The minute dispatcher starts Filo when its own saved upload slot is due.
   # Manual dispatch also supports a credentials-only check with no public upload.
   workflow_dispatch:
