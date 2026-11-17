@@ -1,16 +1,22 @@
 {
-  "filo_login_verification_status": "verified",
-  "pending_product_queue_count": 27,
-  "filo_login_verified_at": "2026-11-17T18:10:57.595584+00:00",
-  "product_publication_interval_seconds": 3420.0,
-  "filo_next_upload_at": null,
-  "schema_version": 2,
-  "emergency_continuity_expires_at": null,
+  "aparat_next_upload_at": null,
   "emergency_continuity_active": false,
-  "emergency_continuity_snapshot_sha256": null,
-  "last_channel_published_at": "2026-11-17T17:52:52.636274+00:00",
   "emergency_continuity_baseline_completed_at": null,
-  "youtube_upload_pause_reason": null,
+  "emergency_continuity_expires_at": null,
+  "emergency_continuity_snapshot_sha256": null,
+  "filo_login_verification_status": "verified",
+  "filo_login_verified_at": "2026-11-17T18:10:57.595584+00:00",
+  "filo_next_upload_at": null,
+  "filo_upload_interval_policy_version": 3,
+  "generated_at": "2026-11-17T18:13:40.271155+00:00",
+  "last_channel_published_at": "2026-11-17T17:52:52.636274+00:00",
+  "last_product_channel_published_at": "2026-11-17T17:01:53.163752+00:00",
+  "next_channel_content_due_at": "2026-11-17T18:29:52.636274+00:00",
+  "next_editorial_planning_at": "2026-11-17T17:52:42.577063+00:00",
+  "pending_product_queue_count": 27,
+  "product_publication_cadence_cycle_id": "2026-11-17T17:12:52.509844+00:00",
+  "product_publication_interval_seconds": 3420.0,
+  "product_publication_plan_cycle_id": "2026-11-17T17:12:52.509844+00:00",
   "published": {
     "dkp-1036750": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -2869,14 +2875,8 @@
       "youtube_upload_status": "pending"
     }
   },
-  "filo_upload_interval_policy_version": 3,
-  "next_editorial_planning_at": "2026-11-17T17:52:42.577063+00:00",
-  "last_product_channel_published_at": "2026-11-17T17:01:53.163752+00:00",
-  "youtube_uploads_paused_until": null,
-  "generated_at": "2026-11-17T18:12:57.634340+00:00",
-  "product_publication_cadence_cycle_id": "2026-11-17T17:12:52.509844+00:00",
-  "aparat_next_upload_at": null,
+  "schema_version": 2,
   "youtube_next_upload_at": null,
-  "next_channel_content_due_at": "2026-11-17T18:29:52.636274+00:00",
-  "product_publication_plan_cycle_id": "2026-11-17T17:12:52.509844+00:00"
+  "youtube_upload_pause_reason": null,
+  "youtube_uploads_paused_until": null
 }
