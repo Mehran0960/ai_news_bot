@@ -6973,7 +6973,18 @@ class AffilioRadarTests(unittest.TestCase):
             "video_generation_status": "pending",
             "youtube_upload_status": "pending",
         }
-        state = {"published": {pid: record}}
+        queued_pid = "dkp-youtube-waiting-behind-daily-quota"
+        queued_record = {
+            "ts": now.timestamp() - 1,
+            "title": "ویدئوی در صف پس از سهمیه روزانه",
+            "product_url": "https://www.digikala.com/product/dkp-youtube-waiting-behind-daily-quota/",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
+            "posted_discount_percent": 35,
+            "delivery_status": {"telegram": "sent"},
+            "video_generation_status": "generated",
+            "youtube_upload_status": "pending",
+        }
+        state = {"published": {pid: record, queued_pid: queued_record}}
 
         def fake_render(image_bytes, discount, path, **kwargs):
             output = Path(path)
