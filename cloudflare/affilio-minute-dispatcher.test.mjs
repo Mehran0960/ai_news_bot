@@ -594,7 +594,7 @@ test("terminally skipped video destinations are not redispatched", () => {
 });
 
 
-test("video dispatch waits until the shared channel-publisher state lock is idle", () => {
+test("video fan-out is not starved by catalog scans but preserves product priority", () => {
   const now = Date.now();
   const videoState = {
     published: {
@@ -608,50 +608,20 @@ test("video dispatch waits until the shared channel-publisher state lock is idle
       },
     },
   };
-  const cleanIdleCatalog = { last_cycle_status: "complete", pending_page_count: 0 };
 
+  // Catalog page backlog / active catalog runs use a separate checkpoint and lock.
+  // Only an active publisher or a planned channel slot may defer video fan-out.
+  assert.equal(videoQueueDispatchDeferReason(videoState, false, now), null);
   assert.equal(
-    videoQueueDispatchDeferReason(videoState, cleanIdleCatalog, false, false, now),
-    null
-  );
-  assert.equal(
-    videoQueueDispatchDeferReason(videoState, cleanIdleCatalog, true, false, now),
+    videoQueueDispatchDeferReason(videoState, true, now),
     "publisher_workflow_active"
   );
   assert.equal(
-    videoQueueDispatchDeferReason(videoState, cleanIdleCatalog, false, true, now),
-    "catalog_workflow_active"
-  );
-  assert.equal(
-    videoQueueDispatchDeferReason(
-      videoState, { ...cleanIdleCatalog, pending_page_count: 12 }, false, false, now
-    ),
-    "catalog_scan_pending_pages"
-  );
-  assert.equal(
-    videoQueueDispatchDeferReason(
-      videoState, { ...cleanIdleCatalog, last_cycle_status: "in_progress" }, false, false, now
-    ),
-    "catalog_scan_active"
-  );
-  assert.equal(
-    videoQueueDispatchDeferReason(videoState, null, false, false, now),
-    "catalog_status_unavailable"
-  );
-  assert.equal(
-    videoQueueDispatchDeferReason(
-      { ...videoState, next_channel_content_due_at: new Date(now + 60_000).toISOString() },
-      cleanIdleCatalog,
-      false,
-      false,
-      now
-    ),
+    videoQueueDispatchDeferReason({
+      ...videoState,
+      next_channel_content_due_at: new Date(now + 60_000).toISOString(),
+    }, false, now),
     "channel_content_slot_planned"
   );
-  assert.equal(
-    videoQueueDispatchDeferReason(
-      { published: {} }, cleanIdleCatalog, false, false, now
-    ),
-    "video_queue_empty"
-  );
+  assert.equal(videoQueueDispatchDeferReason({ published: {} }, false, now), "video_queue_empty");
 });
