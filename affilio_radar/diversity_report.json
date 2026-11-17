@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-17T00:08:00.069159+00:00",
+  "generated_at": "2026-11-17T00:19:34.650599+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
@@ -576,30 +576,13 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1566,
+    "all_time_count": 1567,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 397,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-16T20:20:11.135195+00:00",
-        "brand": "",
-        "catalog_category_id": "8938",
-        "catalog_category_name": "لواشک، برگه و آلوچه",
-        "category": "other",
-        "compared_to_product_id": "dkp-20317737",
-        "family": "digikala_category:8938",
-        "product_id": "dkp-5460119",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "قره قروت پذیرایی طب طب بسته 100 عددی",
-        "use_case": "catalog_taxonomy_other"
-      },
       {
         "at": "2026-11-16T20:27:44.380599+00:00",
         "brand": "brand:هایک_سمی",
@@ -922,6 +905,23 @@
         ],
         "title": "اس اس دی اینترنال SATA III هایک سمی مدل WAVE S ظرفیت 256 گیگابایت",
         "use_case": "home_living"
+      },
+      {
+        "at": "2026-11-17T00:19:34.650599+00:00",
+        "brand": "",
+        "catalog_category_id": "9083",
+        "catalog_category_name": "لوازم ماهیگیری",
+        "category": "other",
+        "compared_to_product_id": "dkp-13338289",
+        "family": "digikala_category:9083",
+        "product_id": "dkp-4080071",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "چوب ماهیگیری ساپا مدل VALERIE-210",
+        "use_case": "outdoor_travel"
       }
     ]
   }
