@@ -258,7 +258,7 @@ def calculate_product_publication_cadence(
     elif last_channel is not None:
         # The maximum interval is global across catalog scan-cycle boundaries.
         anchor = last_channel
-        anchor_kind = "last_product_provisional" if provisional_window else "last_channel"
+        anchor_kind = "last_channel_provisional" if provisional_window else "last_channel"
     else:
         anchor = current
         anchor_kind = "cycle_start"
@@ -463,7 +463,7 @@ def reflow_product_queue_after_delivery(
         }
 
     last_channel_age_seconds = max(0.0, (current - last_channel).total_seconds())
-    first_slot_due_now = last_product_age_seconds >= MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS
+    first_slot_due_now = last_channel_age_seconds >= MAX_PRODUCT_PUBLICATION_INTERVAL_SECONDS
     provisional_window = scan_eta is None or scan_eta <= current
     anchor = current if first_slot_due_now else last_channel
     if provisional_window:
