@@ -1457,6 +1457,43 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
         self.assertEqual(result["scheduled"], 2)
 
+    def test_recent_editorial_receipt_blocks_overdue_product_first_slot(self):
+        last_product = self.now - timedelta(hours=2)
+        last_editorial = self.now - timedelta(minutes=5)
+        product_id = "dkp-after-recent-editorial"
+        state = {
+            "last_product_channel_published_at": last_product.isoformat(),
+            "last_channel_published_at": last_editorial.isoformat(),
+            "product_publication_plan_anchor_at": last_product.isoformat(),
+            "product_publication_plan_anchor_kind": "cycle_start_after_max_gap",
+            "content_delivery_queue": {
+                product_id: {
+                    "content_type": "product",
+                    "status": "queued",
+                    "sequence_number": 9,
+                    "platforms": {},
+                }
+            },
+        }
+        cadence = {
+            "interval_seconds": 57 * 60,
+            "first_slot_due_now": True,
+            "catalog_cycle_id": "cycle",
+        }
+        result = reschedule_product_queue_evenly(state, cadence, now=self.now)
+        scheduled = datetime.fromisoformat(
+            state["content_delivery_queue"][product_id]["scheduled_at"]
+        )
+        expected = last_editorial + timedelta(
+            seconds=channel_post_interval_seconds(f"product:9:{product_id}")
+        )
+        self.assertEqual(scheduled, expected)
+        self.assertGreaterEqual(
+            scheduled - last_editorial,
+            timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS),
+        )
+        self.assertEqual(result["scheduled"], 1)
+
     def test_product_plan_anchor_ignores_editorial_publication_clock(self):
         editorial_at = self.now - timedelta(minutes=2)
         state = {
