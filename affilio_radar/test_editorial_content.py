@@ -2,8 +2,10 @@ import unittest
 from datetime import datetime, timedelta, timezone
 
 from editorial_content import (
+    editorial_content_fingerprint,
     editorial_topics_for_product,
     record_editorial_delivery,
+    _is_near_duplicate_editorial,
     select_editorial_fallback,
     validate_editorial_item,
 )
@@ -66,6 +68,53 @@ class EditorialContentTests(unittest.TestCase):
         }]}
         chosen = select_editorial_fallback([item()], state, now=NOW)
         self.assertEqual(chosen["editorial_id"], "buying-checklist")
+
+    def test_recent_semantic_duplicate_is_skipped_even_with_a_new_id(self):
+        original = item("original-buying-guide", "purchase-planning")
+        rewritten = item("rewritten-buying-guide", "purchase-planning")
+        rewritten["title"] = "پیش از خرید، فهرست نیازها و هزینه‌ها را بررسی کن"
+        rewritten["body"] = "قبل از خرید، نیاز واقعی، هزینه نگهداری، ضمانت و امکان تعمیر محصول را بررسی کنید."
+        distinct = item("return-policy-guide", "purchase-planning")
+        distinct["title"] = "قواعد مرجوعی کالا را پیش از سفارش بخوان"
+        distinct["body"] = "مهلت مرجوعی، بازپرداخت وجه و هزینه ارسال برگشتی را پیش از ثبت سفارش بررسی کن."
+        state = {"editorial_delivery_history": [{
+            "editorial_id": original["editorial_id"],
+            "topic": original["topic"],
+            "title": original["title"],
+            "body": original["body"],
+            "published_at": (NOW - timedelta(hours=4)).isoformat(),
+        }]}
+
+        self.assertTrue(_is_near_duplicate_editorial(rewritten, original))
+        chosen = select_editorial_fallback(
+            [original, rewritten, distinct], state, now=NOW
+        )
+        self.assertEqual(chosen["editorial_id"], "return-policy-guide")
+
+    def test_distinct_delivery_guidance_is_not_misclassified_as_duplicate(self):
+        delivery = {
+            "editorial_id": "check-delivery-window",
+            "title": "زمان تحویل را برای همان سفارش بررسی کن",
+            "body": "زمان رسیدن سفارش برای همه کالاها یکسان نیست؛ نوع کالا، شهر مقصد، موجودی فروشنده و روش ارسال می‌توانند آن را تغییر دهند. پیش از پرداخت، بازه تحویل و روش‌های فعال برای همان کالا و نشانی را در صفحه سفارش بررسی کن؛ به یک زمان عمومی تکیه نکن.",
+        }
+        shipping = {
+            "editorial_id": "shipping-window",
+            "title": "زمان ارسال وعده‌داده‌شده را پیش از پرداخت ثبت کن",
+            "body": "زمان پردازش، تحویل به شرکت حمل‌ونقل و بازه تقریبی دریافت را از هم تفکیک کن. اگر کالا را برای زمان مشخصی لازم داری، شرایط تأخیر و امکان پیگیری را هم بخوان و صفحه سفارش را نگه دار.",
+        }
+        self.assertFalse(_is_near_duplicate_editorial(delivery, shipping))
+
+    def test_delivery_history_stores_copy_and_fingerprint_for_future_audits(self):
+        state = {}
+        chosen = select_editorial_fallback([item()], state, now=NOW)
+        record_editorial_delivery(
+            state, chosen, published_at=NOW,
+            destinations={"telegram": {"status": "sent"}},
+        )
+        row = state["editorial_delivery_history"][0]
+        self.assertEqual(row["title"], chosen["title"])
+        self.assertEqual(row["body"], chosen["body"])
+        self.assertEqual(row["content_fingerprint"], editorial_content_fingerprint(chosen))
 
     def test_selector_returns_non_recent_reviewed_item(self):
         chosen = select_editorial_fallback(
