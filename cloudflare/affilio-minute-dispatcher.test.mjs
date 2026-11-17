@@ -598,6 +598,35 @@ test("unified video queue ignores legacy age and retry timestamps for all platfo
   }
 });
 
+test("YouTube daily quota pause defers only YouTube and automatically resumes", () => {
+  const now = Date.parse("2026-11-17T18:00:00Z");
+  const record = {
+    ts: now / 1000 - 60,
+    video_dispatch_eligible: true,
+    delivery_status: { telegram: "sent" },
+    video_generation_status: "generated",
+    youtube_upload_status: "retry",
+    youtube_next_attempt_at: new Date(now + 60 * 60_000).toISOString(),
+  };
+  const paused = {
+    published: { item: record },
+    youtube_uploads_paused_until: new Date(now + 24 * 60 * 60_000).toISOString(),
+  };
+  assert.equal(videoRecordDue(record, "youtube", now), false);
+  assert.equal(hasDueVideoRecord(paused, "youtube", now), false);
+  assert.equal(hasDueVideoRecord(paused, "aparat", now), true, "Aparat must not inherit YouTube's quota pause");
+  const resumedRecord = { ...record, youtube_next_attempt_at: new Date(now - 1).toISOString() };
+  const resumed = { published: { item: resumedRecord }, youtube_uploads_paused_until: new Date(now - 1).toISOString() };
+  assert.equal(videoRecordDue(resumedRecord, "youtube", now), true);
+  assert.equal(hasDueVideoRecord(resumed, "youtube", now), true);
+  const legacyQuotaSkip = {
+    ...resumedRecord,
+    youtube_upload_status: "skipped_platform_limit",
+    youtube_skip_reason: "youtube_daily_quota_pause",
+  };
+  assert.equal(videoRecordDue(legacyQuotaSkip, "youtube", now), true);
+});
+
 test("terminally skipped video destinations are not redispatched", () => {
   const now = Date.now();
   const base = {
