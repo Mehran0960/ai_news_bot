@@ -11388,6 +11388,7 @@ def process_pending_short_video(
                     state["youtube_upload_pause_diagnostic_migrated"] = True
                     youtube_pause_until = next_attempt
                     youtube_pause_active = True
+                    youtube_upload_due = False
                     record["youtube_upload_status"] = "retry"
                     record["youtube_skip_reason"] = "youtube_daily_quota_pause"
                     record["youtube_next_attempt_at"] = next_attempt.isoformat()
