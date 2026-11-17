@@ -391,6 +391,8 @@ def record_editorial_delivery(state: dict, item: dict, *, published_at: datetime
         "editorial_id": str(item["editorial_id"]),
         "content_id": str(item["content_id"]),
         "content_fingerprint": str(item.get("content_fingerprint") or editorial_content_fingerprint(item)),
+        "title": str(item.get("title") or ""),
+        "body": str(item.get("body") or ""),
         "sequence_number": item.get("sequence_number"),
         "topic": str(item["topic"]),
         "related_product_id": str(item.get("related_product_id") or ""),
