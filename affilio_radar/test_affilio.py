@@ -1659,6 +1659,13 @@ class AffilioRadarTests(unittest.TestCase):
             },
             "published": {},
         }
+        state["published"] = {
+            f"dkp-{index + 1}": {
+                "ts": (now - timedelta(hours=1)).timestamp(),
+                "delivery_status": {"telegram": "sent"},
+            }
+            for index in range(6)
+        }
         compact = radar_module.build_video_upload_dispatch_state(state, now=now)
         self.assertEqual(
             compact["next_editorial_planning_at"],
@@ -1682,6 +1689,13 @@ class AffilioRadarTests(unittest.TestCase):
                 },
             },
             "published": {},
+        }
+        state["published"] = {
+            f"dkp-{index + 1}": {
+                "ts": (now - timedelta(hours=1)).timestamp(),
+                "delivery_status": {"telegram": "sent"},
+            }
+            for index in range(6)
         }
         compact = radar_module.build_video_upload_dispatch_state(state, now=now)
         self.assertEqual(
