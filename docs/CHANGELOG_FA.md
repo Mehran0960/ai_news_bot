@@ -2914,9 +2914,9 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 
 **فایل‌ها/سامانه‌ها:** `cloudflare/affilio-minute-dispatcher.js`, `cloudflare/affilio-minute-dispatcher.test.mjs`, `affilio_radar/publisher.py`, `affilio_radar/merge_state_conflicts.py`, `affilio_radar/test_merge_state_conflicts.py`, `affilio_radar/test_independent_media_dispatch.py`, `affilio_radar/test_content_delivery.py` و چهار Workflow مستقل رسانه.
 
-**آزمون و نتیجه:** تست‌های جدید برای ادغام هم‌زمان status/receipt و اجرای ایزولهٔ photo adapter افزوده شدند. در اجرای اول CI دو ناسازگاری تستی آشکار شد: mockهای قدیمی آرگومان جدید `persist` را نمی‌پذیرفتند و قالب changelog با validator سازگار نبود. mockها و ساختار changelog اصلاح شدند؛ اجرای مجدد CI باید این اصلاح را تأیید کند. هیچ انتشار عمومی تازه‌ای بدون receipt ادعا نمی‌شود.
+**آزمون و نتیجه:** اجرای نخست CI دو مشکل را آشکار کرد: mockهای قدیمی آرگومان جدید `persist` را نمی‌پذیرفتند و changelog برچسب‌های الزامی validator را نداشت. mockها و قالب changelog اصلاح شدند. اجرای بعدی باید موفقیت این اصلاحات را ثابت کند؛ تا آن زمان نتیجهٔ تست نهایی تأییدشده نیست.
 
-**شواهد/شناسه:** PR #231، شاخهٔ `fix/offerchin-independent-media-dispatch-20261117`. Worker از این پس سه workflow ویدئویی مجزا را بررسی می‌کند و ارسال چهار مقصد عکس در threadهای مستقل آغاز می‌شود. بررسی وضعیت قبلی نشان داده بود ۱۱۹ رکورد برای Filo/YouTube و تولید ویدئو pending بوده‌اند، در حالی که Telegram/Bale/Rubika ارسال شده بودند.
+**شواهد/شناسه:** PR #231، شاخهٔ `fix/offerchin-independent-media-dispatch-20261117`. Worker سه workflow ویدئویی مجزا را بررسی می‌کند و ارسال چهار مقصد عکس در threadهای مستقل آغاز می‌شود. snapshot قبلی ۱۱۹ رکورد pending برای Filo/YouTube/تولید ویدئو و ارسال موفق ۱۱۹ مورد در Telegram/Bale/Rubika را نشان می‌داد.
 
 **ریسک/بازگشت:** ارسال هم‌زمان ممکن است زمان تکمیل کل run را به کندترین مقصد وابسته کند، اما شروع و ارسال مقصدهای دیگر را معطل نمی‌کند. برای stateهای هم‌زمان از merge سه‌طرفه استفاده می‌شود. Aparat بدون deadline معتبر فقط برای خود Aparat skip می‌شود؛ نبود credential یا rate limit نیز فقط همان مقصد را تحت تأثیر قرار می‌دهد. rollback با revert PR #231 انجام می‌شود؛ state و رسیدهای واقعی نباید پاک شوند.
 
