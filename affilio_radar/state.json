@@ -198708,42 +198708,42 @@
     },
     {
       "content_id": "editorial:check-delivery-window",
-      "delivery_duration_seconds": 8.9,
+      "delivery_duration_seconds": 10.8,
       "destinations": {
         "aparat": {
           "attempts": 0,
           "status": "pending"
         },
         "bale": {
-          "attempt_started_at": "2026-11-16T23:40:41.817544+00:00",
+          "attempt_started_at": "2026-11-17T01:02:38.652628+00:00",
           "attempts": 1,
-          "message_id": "2195",
+          "message_id": "2216",
           "status": "sent",
-          "updated_at": "2026-11-16T23:40:43.560008+00:00"
+          "updated_at": "2026-11-17T01:02:41.948543+00:00"
         },
         "eitaa": {
           "attempts": 0,
           "last_error": "eitaa_not_enabled_or_credentials_missing",
           "status": "not_connected",
-          "updated_at": "2026-11-16T23:40:48.282445+00:00"
+          "updated_at": "2026-11-17T01:02:47.054095+00:00"
         },
         "filo": {
           "attempts": 0,
           "status": "pending"
         },
         "rubika": {
-          "attempt_started_at": "2026-11-16T23:40:43.965274+00:00",
+          "attempt_started_at": "2026-11-17T01:02:42.288791+00:00",
           "attempts": 1,
-          "message_id": "1974326749896588651",
+          "message_id": "1974334755021588651",
           "status": "sent",
-          "updated_at": "2026-11-16T23:40:47.873727+00:00"
+          "updated_at": "2026-11-17T01:02:46.721906+00:00"
         },
         "telegram": {
-          "attempt_started_at": "2026-11-16T23:40:40.362108+00:00",
+          "attempt_started_at": "2026-11-17T01:02:37.082691+00:00",
           "attempts": 1,
-          "message_id": "1644",
+          "message_id": "1659",
           "status": "sent",
-          "updated_at": "2026-11-16T23:40:41.396450+00:00"
+          "updated_at": "2026-11-17T01:02:38.281947+00:00"
         },
         "youtube": {
           "attempts": 0,
@@ -198753,7 +198753,7 @@
       "editorial_id": "check-delivery-window",
       "published_at": "2026-11-16T18:09:46.053800+00:00",
       "related_product_id": "dkp-22239871",
-      "sequence_number": 1457,
+      "sequence_number": 1473,
       "topic": "delivery"
     },
     {
@@ -199007,77 +199007,7 @@
       "topic": "review-literacy"
     }
   ],
-  "editorial_delivery_queue": {
-    "editorial:check-delivery-window": {
-      "attempt_count": 0,
-      "content_id": "editorial:check-delivery-window",
-      "content_type": "editorial",
-      "delivery_runway_seconds": 33,
-      "dispatch_runway_seconds": 93,
-      "next_attempt_at": "2026-11-17T01:02:05.607792+00:00",
-      "payload": {
-        "body": "⏱️ زمان رسیدن سفارش برای همه کالاها یکسان نیست؛ نوع کالا، شهر مقصد، موجودی فروشنده و روش ارسال می‌توانند آن را تغییر دهند. پیش از پرداخت، بازه تحویل و روش‌های فعال برای همان کالا و نشانی را در صفحه سفارش بررسی کن؛ به یک زمان عمومی تکیه نکن.",
-        "content_id": "editorial:check-delivery-window",
-        "content_type": "editorial",
-        "delivery_status": "selected_not_published",
-        "editorial_cycle_number": 2,
-        "editorial_id": "check-delivery-window",
-        "idempotency_key": "fcdd7e8bd5a229df",
-        "related_product_affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22231712%2F",
-        "related_product_id": "dkp-22231712",
-        "related_product_title": "عدس درشت ممتاز بینگوکالا - ۴۵۰ گرم",
-        "review_due_at": "2027-02-13T04:30:00Z",
-        "reviewed_at": "2026-11-15T04:30:00Z",
-        "sequence_number": 1472,
-        "sources": [
-          {
-            "publisher": "دیجی‌کالا مگ",
-            "source_id": "digikala-mag-delivery-time",
-            "title": "سفارش دیجی‌کالا چند روزه می‌رسد؟ مقایسه‌ روش‌های ارسال از نظر سرعت",
-            "url": "https://www.digikala.com/mag/digikala-delivery-time/"
-          }
-        ],
-        "title": "زمان تحویل را برای همان سفارش بررسی کن",
-        "topic": "delivery"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "related_product_id": "dkp-22231712",
-      "scheduled_at": "2026-11-17T01:02:05.607792+00:00",
-      "selected_at": "2026-11-17T01:01:01.041611+00:00",
-      "sequence_number": 1472,
-      "status": "queued",
-      "window_closes_at": "2026-11-17T01:03:05.607792+00:00"
-    }
-  },
+  "editorial_delivery_queue": {},
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -199393,12 +199323,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-17T01:01:00.528107+00:00",
+  "last_channel_published_at": "2026-11-17T01:02:41.948543+00:00",
   "last_content_selection_at": "2026-11-17T00:54:57.235824+00:00",
-  "last_editorial_attempt_at": "2026-11-17T01:01:01.041611+00:00",
-  "last_editorial_confirmed_at": "2026-11-16T23:40:47.873727+00:00",
+  "last_editorial_attempt_at": "2026-11-17T01:02:35.635805+00:00",
+  "last_editorial_confirmed_at": "2026-11-17T01:02:46.721906+00:00",
   "last_product_channel_published_at": "2026-11-17T01:01:00.528107+00:00",
-  "last_published_at": "2026-11-17T01:01:00.528107+00:00",
+  "last_published_at": "2026-11-17T01:02:41.948543+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -291840,7 +291770,7 @@
       "ts": 1794875519.055357
     }
   },
-  "publication_sequence_counter": 1472,
+  "publication_sequence_counter": 1473,
   "published": {
     "dkp-10002173": {
       "aparat_skip_reason": "verified_expiry_required",
@@ -306309,6 +306239,7 @@
     },
     "dkp-1511622": {
       "aparat_upload_status": "pending",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2213,
       "bale_posted_at": "2026-11-17T00:55:50.874169+00:00",
       "brand": "فلوریست",
@@ -306373,6 +306304,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_upload_status": "pending",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-17T00:54:34.558916+00:00",
