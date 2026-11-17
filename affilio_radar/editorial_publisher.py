@@ -14,17 +14,22 @@ import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit
-
 import requests
 
 import affilio_radar as radar
 from content_delivery import (
     allocate_publication_sequence,
+    channel_publication_wait_seconds,
     editorial_delivery_p90_seconds,
     editorial_dispatch_runway_seconds,
     get_last_channel_published_at,
+    next_channel_publication_at,
     refresh_unpublished_selections,
+)
+from publication_policy import (
+    MIN_CHANNEL_POST_INTERVAL_SECONDS,
+    PRODUCTS_PER_EDITORIAL_POST,
+    editorial_frequency_allowed,
 )
 from editorial_content import (
     editorial_topics_for_product,
@@ -256,7 +261,8 @@ def queue_editorial_if_due(
             product_slot_is_due = product_slot_at is not None and product_slot_at <= current
             dispatch_window_closed = (
                 product_slot_at is not None
-                and product_slot_at - current <= delivery_runway
+                and product_slot_at - current
+                <= max(MIN_CHANNEL_POST_INTERVAL_SECONDS, delivery_runway)
             )
             if (
                 isinstance(product_entry, dict)
@@ -269,7 +275,8 @@ def queue_editorial_if_due(
                 # Once awake, the publisher may send any time until the empirically
                 # measured delivery window closes; it must never delay the product.
                 queued_editorial["window_closes_at"] = (
-                    product_slot_at - delivery_runway
+                    product_slot_at
+                    - timedelta(seconds=max(MIN_CHANNEL_POST_INTERVAL_SECONDS, delivery_runway))
                 ).isoformat()
                 valid_active.append(queued_editorial)
                 continue
@@ -285,6 +292,15 @@ def queue_editorial_if_due(
                 editorial_queue.pop(str(queued_editorial.get("content_id") or ""), None)
         if valid_active:
             return valid_active[0]
+
+    if not editorial_frequency_allowed(state):
+        products_since = __import__("publication_policy").products_published_since_last_editorial(state)
+        print(
+            "EDITORIAL_FREQUENCY_GUARD "
+            f"products_since_last_editorial={products_since} "
+            f"required_products={PRODUCTS_PER_EDITORIAL_POST}"
+        )
+        return None
 
     refresh_unpublished_selections(state, now=current, stale_after_minutes=8)
     next_product = _next_product_slot(state, current)
@@ -320,32 +336,47 @@ def queue_editorial_if_due(
 
     anchor = get_last_channel_published_at(state) or current
     gap_seconds = max(0.0, (product_at - anchor).total_seconds())
-    if gap_seconds <= 0:
-        return None
     dispatch_runway_seconds = editorial_dispatch_runway_seconds(state)
     delivery_runway_seconds = editorial_delivery_p90_seconds(state)
-    # Aim for the midpoint, but when a short real gap makes that too late for the
-    # minute dispatcher, move the target earlier to the latest safe dispatch start.
-    # No fixed interval is introduced between product posts.
-    if gap_seconds <= dispatch_runway_seconds:
+    minimum_gap = timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS)
+    required_window_seconds = (
+        2 * MIN_CHANNEL_POST_INTERVAL_SECONDS + dispatch_runway_seconds
+    )
+    if gap_seconds < required_window_seconds:
         print(
-            "EDITORIAL_WAIT_INSUFFICIENT_DISPATCH_WINDOW "
+            "EDITORIAL_WAIT_SHARED_SPACING_WINDOW "
             f"product_id={related_product_id} gap_seconds={int(gap_seconds)} "
-            f"required_gap_seconds={dispatch_runway_seconds} "
-            f"dispatch_runway_seconds={dispatch_runway_seconds}"
+            f"required_gap_seconds={required_window_seconds} "
+            f"minimum_channel_gap_seconds={MIN_CHANNEL_POST_INTERVAL_SECONDS}"
         )
         return None
+
+    earliest_editorial_at = anchor + minimum_gap
+    latest_safe_dispatch_at = product_at - timedelta(
+        seconds=max(MIN_CHANNEL_POST_INTERVAL_SECONDS, dispatch_runway_seconds)
+    )
+    if latest_safe_dispatch_at < earliest_editorial_at:
+        print(
+            "EDITORIAL_WAIT_NO_SAFE_MIDPOINT "
+            f"product_id={related_product_id} "
+            f"earliest={earliest_editorial_at.isoformat()} "
+            f"latest={latest_safe_dispatch_at.isoformat()}"
+        )
+        return None
+
     midpoint_at = anchor + timedelta(seconds=gap_seconds / 2)
-    latest_safe_dispatch_at = product_at - timedelta(seconds=dispatch_runway_seconds)
-    scheduled_at = min(midpoint_at, latest_safe_dispatch_at)
+    scheduled_at = max(earliest_editorial_at, min(midpoint_at, latest_safe_dispatch_at))
     if scheduled_at <= current:
-        # The minute Worker can wake after the planned start. Keep the opportunity
-        # alive when the remaining real delivery runway still fits; start now.
-        if current + timedelta(seconds=delivery_runway_seconds) >= product_at:
+        # A late dispatcher wake-up may start now only when the full 21-minute
+        # post-to-post spacing and the measured delivery runway still fit.
+        if current < earliest_editorial_at or current + timedelta(
+            seconds=max(MIN_CHANNEL_POST_INTERVAL_SECONDS, delivery_runway_seconds)
+        ) >= product_at:
             print(
                 "EDITORIAL_DISPATCH_WINDOW_PASSED "
                 f"product_id={related_product_id} product_slot={product_at.isoformat()} "
-                f"delivery_runway_seconds={delivery_runway_seconds}"
+                f"delivery_runway_seconds={delivery_runway_seconds} "
+                f"minimum_channel_gap_seconds={MIN_CHANNEL_POST_INTERVAL_SECONDS}"
             )
             return None
         print(
@@ -370,14 +401,6 @@ def queue_editorial_if_due(
         print("EDITORIAL_FALLBACK_EMPTY reason=no_valid_reviewed_item_or_bank_cycle")
         return None
 
-    # A commercial CTA is allowed only when it points to the exact related product
-    # through the account's already-verified Affilio product-link template.
-    related_product_url = str(related_product.get("product_url") or "").strip()
-    related_affiliate_url = radar.build_affilio_tracking_link(related_product_url)
-    if related_affiliate_url:
-        item["related_product_affiliate_url"] = related_affiliate_url
-        item["related_product_title"] = str(related_product.get("title") or "").strip()
-
     sequence_number = allocate_publication_sequence(state)
     item["sequence_number"] = sequence_number
     item["related_product_id"] = related_product_id
@@ -392,7 +415,10 @@ def queue_editorial_if_due(
         "selected_at": current.isoformat(),
         "scheduled_at": scheduled_at.isoformat(),
         "next_attempt_at": scheduled_at.isoformat(),
-        "window_closes_at": (product_at - timedelta(seconds=delivery_runway_seconds)).isoformat(),
+        "window_closes_at": (
+            product_at
+            - timedelta(seconds=max(MIN_CHANNEL_POST_INTERVAL_SECONDS, delivery_runway_seconds))
+        ).isoformat(),
         "dispatch_runway_seconds": dispatch_runway_seconds,
         "delivery_runway_seconds": delivery_runway_seconds,
         "status": "queued",
@@ -460,51 +486,8 @@ def _readable_editorial_body(value: Any) -> str:
     return "\n\n".join(paragraphs)
 
 
-def _editorial_source_rows(item: dict) -> list[tuple[str, str]]:
-    """Return a small, safe source attribution list for the public editorial copy."""
-    rows: list[tuple[str, str]] = []
-    sources = item.get("sources") if isinstance(item, dict) else None
-    if not isinstance(sources, list):
-        return rows
-    host_labels = {
-        "digikala.com": "دیجی‌کالا مگ",
-        "zoomit.ir": "زومیت",
-        "ftc.gov": "FTC",
-        "cpsc.gov": "CPSC",
-    }
-    for source in sources[:1]:
-        if not isinstance(source, dict):
-            continue
-        url = str(source.get("url") or "").strip()
-        try:
-            parsed = urlsplit(url)
-        except ValueError:
-            continue
-        host = (parsed.hostname or "").lower()
-        if parsed.scheme != "https" or not host or parsed.username or parsed.password:
-            continue
-        label = str(source.get("publisher") or "").strip()
-        if not label:
-            label = next(
-                (name for domain, name in host_labels.items() if host == domain or host.endswith("." + domain)),
-                host.removeprefix("www."),
-            )
-        rows.append((label[:48], url))
-    return rows
-
-
-def _editorial_affiliate_url(item: dict | None) -> str:
-    """Return only a current-contract Affilio product deep link; reject generic destinations."""
-    if not isinstance(item, dict):
-        return ""
-    return radar.tracked_affiliate_button_url(
-        str(item.get("related_product_affiliate_url") or ""),
-        source="editorial_related_product",
-    )
-
-
 def _format_message(item: dict, *, html_mode: bool = True, platform: str = "telegram") -> str:
-    """Build a topic-led editorial post with visible provenance and one relevant disclosed CTA."""
+    """Render a self-contained editorial post with no public sources or commercial links."""
     title = str(item.get("title") or "").strip()[:110]
     body = _readable_editorial_body(item.get("body"))
     if len(body) > 430:
@@ -512,62 +495,20 @@ def _format_message(item: dict, *, html_mode: bool = True, platform: str = "tele
         body = shortened + "…"
     paragraphs = [part.strip() for part in body.split("\n\n") if part.strip()]
     emoji = _topic_emoji(item)
-    source_rows = _editorial_source_rows(item)
-    affiliate_url = _editorial_affiliate_url(item)
-
     rendered = [f"{emoji} {html.escape(title) if html_mode else title}", ""]
     for index, value in enumerate(paragraphs):
         marker = "💡" if index == 0 else (
             "✅" if index == len(paragraphs) - 1 and len(paragraphs) > 1 else "📌"
         )
         rendered.append(f"{marker} {html.escape(value) if html_mode else value}")
+    message = "\n".join(rendered).rstrip()
+    # Defensive output contract: approved source metadata and affiliate URLs are
+    # internal-only and must never leak from a future bank/template change.
+    forbidden = ("📚 منبع:", "پیوند همکاری در فروش", "aflo.ir", "digikala.com/mag/")
+    if any(token.casefold() in message.casefold() for token in forbidden):
+        raise ValueError("editorial_public_provenance_or_commerce_leak")
+    return message[:1000 if html_mode else 3400]
 
-    if source_rows:
-        rendered.append("")
-        source_parts = []
-        for label, url in source_rows:
-            if html_mode:
-                source_parts.append(
-                    f'<a href="{html.escape(url, quote=True)}">{html.escape(label)}</a>'
-                )
-            else:
-                source_parts.append(f"{label}: {url}")
-        rendered.append("📚 منبع: " + "، ".join(source_parts))
-
-    if affiliate_url:
-        rendered.append("")
-        if platform == "bale":
-            rendered.append("🛒 برای دیدن پیشنهاد مرتبط، دکمهٔ خرید پایین پست را بزن.")
-        elif html_mode:
-            rendered.append(
-                f'🛒 <a href="{html.escape(affiliate_url, quote=True)}">'
-                "مشاهدهٔ پیشنهاد مرتبط (پیوند همکاری در فروش)</a>"
-            )
-        else:
-            rendered.append(
-                "🛒 مشاهدهٔ پیشنهاد مرتبط (پیوند همکاری در فروش): " + affiliate_url
-            )
-
-    return "\n".join(rendered).rstrip()[:1000 if html_mode else 3400]
-
-
-def _editorial_reply_markup(platform: str, item: dict | None = None) -> str | None:
-    """Expose a Bale shopping button only when the related product link is verified."""
-    affiliate_url = _editorial_affiliate_url(item)
-    if platform != "bale" or not affiliate_url:
-        return None
-    return json.dumps(
-        {
-            "inline_keyboard": [[
-                {
-                    "text": "🛒 مشاهدهٔ پیشنهاد مرتبط",
-                    "url": affiliate_url,
-                }
-            ]]
-        },
-        ensure_ascii=False,
-        separators=(",", ":"),
-    )
 
 
 def _send_bot_message(platform: str, message: str, item: dict | None = None) -> dict:
@@ -586,9 +527,6 @@ def _send_bot_message(platform: str, message: str, item: dict | None = None) -> 
     payload_data = {"chat_id": chat_id, "text": message, "disable_web_page_preview": "true"}
     if "<b>" in message or "<a href=" in message:
         payload_data["parse_mode"] = "HTML"
-    reply_markup = _editorial_reply_markup(platform, item)
-    if reply_markup:
-        payload_data["reply_markup"] = reply_markup
     response = requests.post(
         endpoint,
         data=payload_data,
@@ -623,10 +561,6 @@ def _send_bot_photo(
     data = {"chat_id": chat_id, "caption": caption[:1000]}
     if "<b>" in caption or "<a href=" in caption:
         data["parse_mode"] = "HTML"
-    reply_markup = _editorial_reply_markup(platform, item)
-    if reply_markup:
-        # Bale's Bot API accepts reply_markup with sendPhoto multipart requests.
-        data["reply_markup"] = reply_markup
     response = requests.post(
         endpoint,
         data=data,
@@ -781,7 +715,7 @@ def _record_success(state: dict, entry: dict, destination: str, receipt: dict, n
         target["message_id"] = str(receipt["message_id"])
     if receipt.get("url"):
         target["url"] = str(receipt["url"])
-    if destination in {"telegram", "bale"}:
+    if destination in CHANNEL_DESTINATIONS:
         state["last_channel_published_at"] = now.isoformat()
         state["last_published_at"] = now.isoformat()
     state["last_editorial_confirmed_at"] = now.isoformat()
@@ -910,17 +844,12 @@ def _handle_channel_destination(
 
 
 def _video_description(item: dict) -> str:
-    """Publish the original editorial copy with traceable source and relevant disclosed CTA."""
-    body = _readable_editorial_body(item.get("body"))
-    parts = [body]
-    for label, url in _editorial_source_rows(item):
-        parts.append(f"📚 منبع: {label} — {url}")
-    affiliate_url = _editorial_affiliate_url(item)
-    if affiliate_url:
-        parts.append(
-            "🛒 پیشنهاد مرتبط (پیوند همکاری در فروش): " + affiliate_url
-        )
-    return "\n\n".join(part for part in parts if part).strip()[:2900]
+    """Keep editorial video descriptions utility-only and free of sources or affiliate links."""
+    description = _readable_editorial_body(item.get("body"))
+    forbidden = ("📚 منبع:", "پیوند همکاری در فروش", "aflo.ir", "digikala.com/mag/")
+    if any(token.casefold() in description.casefold() for token in forbidden):
+        raise ValueError("editorial_video_public_provenance_or_commerce_leak")
+    return description[:2900]
 
 
 def _handle_video_destination(
@@ -1206,6 +1135,18 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         raise ValueError("mode_must_be_channels_or_videos")
     current = now or _now()
     state = radar.load_state(apply_integrity_ledger=False)
+    if publish and mode == "channels":
+        spacing_wait = channel_publication_wait_seconds(state, now=current)
+        if spacing_wait > 0:
+            next_slot = next_channel_publication_at(state)
+            print(
+                "EDITORIAL_SHARED_CHANNEL_SPACING_GUARD "
+                f"remaining_seconds={spacing_wait} "
+                f"next_slot={next_slot.isoformat() if next_slot else 'unknown'} "
+                f"minimum_gap_seconds={MIN_CHANNEL_POST_INTERVAL_SECONDS}"
+            )
+            _refresh_dispatch_projection(state)
+            return 0
     bank = _load_bank()
     entry = queue_editorial_if_due(state, bank, now=current)
     if publish:
