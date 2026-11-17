@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+import unicodedata
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from urllib.parse import urlparse
@@ -122,6 +123,34 @@ def _history_rows(state: dict) -> list[dict]:
     rows = state.get("editorial_delivery_history")
     return [row for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
 
+def editorial_content_fingerprint(item: Any) -> str:
+    """Fingerprint Persian editorial copy after Unicode and whitespace normalization."""
+    if not isinstance(item, dict):
+        return ""
+    title = unicodedata.normalize("NFKC", str(item.get("title") or "")).casefold()
+    body = unicodedata.normalize("NFKC", str(item.get("body") or "")).casefold()
+    normalized = re.sub(r"\s+", " ", f"{title} {body}").strip()
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest() if normalized else ""
+
+
+def _editorial_copy_is_near_duplicate(left: Any, right: Any) -> bool:
+    """Catch cosmetic rewrites of the same editorial while allowing related advice."""
+    if not isinstance(left, dict) or not isinstance(right, dict):
+        return False
+    left_topic = str(left.get("topic") or "").strip().lower()
+    right_topic = str(right.get("topic") or "").strip().lower()
+    if not left_topic or left_topic != right_topic:
+        return False
+    def normalize(value: Any) -> str:
+        value = unicodedata.normalize("NFKC", str(value or "")).casefold()
+        return re.sub(r"[^\w\u0600-\u06ff]+", " ", value).strip()
+    a = normalize(f"{left.get('title', '')} {left.get('body', '')}")
+    b = normalize(f"{right.get('title', '')} {right.get('body', '')}")
+    if not a or not b:
+        return False
+    from difflib import SequenceMatcher
+    return SequenceMatcher(None, a, b, autojunk=False).ratio() >= 0.96
+
 
 def editorial_topics_for_product(product: Any) -> set[str]:
     """Return topics that genuinely help with this product's purchase or ownership."""
@@ -216,6 +245,44 @@ def select_editorial_fallback(
         cycle["used_ids"] = []
         cycle["cycle_started_at"] = current.isoformat()
         eligible = list(valid_items)
+    # Hard duplicate protection is based on confirmed public deliveries.
+    # Reaching the end of a finite bank does not authorize an immediate replay.
+    recent_history = []
+    for row in history:
+        published_at = _utc(row.get("published_at"))
+        if published_at is not None and published_at <= current:
+            recent_history.append((row, published_at))
+    cooldown = timedelta(hours=max(0.0, float(cooldown_hours)))
+    topic_cooldown = timedelta(hours=max(0.0, float(topic_cooldown_hours)))
+    filtered = []
+    for candidate in eligible:
+        candidate_id = str(candidate.get("editorial_id") or "")
+        candidate_fingerprint = editorial_content_fingerprint(candidate)
+        blocked_by_duplicate = False
+        for old_row, old_at in recent_history:
+            within_duplicate_cooldown = current - old_at < cooldown
+            if not within_duplicate_cooldown:
+                continue
+            same_id = str(old_row.get("editorial_id") or "") == candidate_id
+            old_fingerprint = str(old_row.get("content_fingerprint") or "")
+            same_fingerprint = bool(candidate_fingerprint and old_fingerprint == candidate_fingerprint)
+            if same_id or same_fingerprint or _editorial_copy_is_near_duplicate(candidate, old_row):
+                blocked_by_duplicate = True
+                break
+        if blocked_by_duplicate:
+            continue
+        topic = str(candidate.get("topic") or "").strip().lower()
+        last_same_topic = [
+            published_at for old_row, published_at in recent_history
+            if str(old_row.get("topic") or "").strip().lower() == topic
+        ]
+        if topic_cooldown.total_seconds() > 0 and last_same_topic:
+            if current - max(last_same_topic) < topic_cooldown:
+                continue
+        filtered.append(candidate)
+    eligible = filtered
+    if not eligible:
+        return None
 
     recent_topics = {
         str(row.get("topic") or "").lower()
@@ -267,10 +334,12 @@ def select_editorial_fallback(
     chosen = eligible[0]
     canonical = "editorial:" + str(chosen["editorial_id"])
     digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
+    fingerprint = editorial_content_fingerprint(chosen)
     return {
         "content_type": "editorial",
         "content_id": canonical,
         "idempotency_key": digest,
+        "content_fingerprint": fingerprint,
         "editorial_id": str(chosen["editorial_id"]),
         "title": str(chosen["title"]).strip(),
         "body": str(chosen["body"]).strip(),
@@ -321,6 +390,7 @@ def record_editorial_delivery(state: dict, item: dict, *, published_at: datetime
     history.append({
         "editorial_id": str(item["editorial_id"]),
         "content_id": str(item["content_id"]),
+        "content_fingerprint": str(item.get("content_fingerprint") or editorial_content_fingerprint(item)),
         "sequence_number": item.get("sequence_number"),
         "topic": str(item["topic"]),
         "related_product_id": str(item.get("related_product_id") or ""),
