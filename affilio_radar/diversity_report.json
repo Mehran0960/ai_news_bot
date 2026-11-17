@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-17T15:27:24.808810+00:00",
+  "generated_at": "2026-11-17T15:34:42.723378+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
@@ -110,7 +110,6 @@
       "بذر و تخم گیاهان": 1,
       "بهداشت، مراقبت و نگهداری حیوانات": 1,
       "تابلو": 1,
-      "تبلت": 1,
       "تجهیزات آرایشگاه": 1,
       "تجهیزات تعمیرگاهی": 1,
       "تراش آرایشی": 1,
@@ -182,7 +181,7 @@
       "home_cleaning": 2,
       "kids_sports": 4,
       "large_appliances": 1,
-      "mobile_devices": 2,
+      "mobile_devices": 1,
       "other": 16,
       "personal_care": 8,
       "power_backup": 1
@@ -193,30 +192,30 @@
       "books_stationery": 1.4,
       "computer_network": 2.9,
       "digital_accessories": 4.3,
-      "fashion": 15.7,
-      "grocery_food": 14.3,
-      "home": 8.6,
+      "fashion": 15.9,
+      "grocery_food": 14.5,
+      "home": 8.7,
       "home_cleaning": 2.9,
-      "kids_sports": 5.7,
+      "kids_sports": 5.8,
       "large_appliances": 1.4,
-      "mobile_devices": 2.9,
-      "other": 22.9,
-      "personal_care": 11.4,
+      "mobile_devices": 1.4,
+      "other": 23.2,
+      "personal_care": 11.6,
       "power_backup": 1.4
     },
-    "distinct_catalog_categories": 69,
+    "distinct_catalog_categories": 68,
     "distinct_categories": 15,
-    "distinct_families": 70,
+    "distinct_families": 69,
     "distinct_retailers": 1,
     "distinct_use_cases": 14,
-    "known_brand_posts": 34,
-    "posts": 70,
+    "known_brand_posts": 33,
+    "posts": 69,
     "repeated_brand_count": 1,
     "repeated_brands": {
       "brand:مری_کینگ": 2
     },
     "retailer_post_counts": {
-      "digikala": 70
+      "digikala": 69
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -231,7 +230,7 @@
       "home_cleaning": 2,
       "home_living": 3,
       "kitchen_food": 6,
-      "mobile_productivity": 7,
+      "mobile_productivity": 6,
       "outdoor_travel": 1,
       "personal_care": 8,
       "pet_care": 2,
@@ -555,65 +554,14 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1604,
+    "all_time_count": 1607,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "brand_repeat": 6,
+      "brand_repeat": 7,
       "family_repeat": 396,
       "similarity_repeat": 499
     },
     "recent_events": [
-      {
-        "at": "2026-11-17T05:05:25.910947+00:00",
-        "brand": "brand:هایک_سمی",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "home",
-        "compared_to_product_id": "dkp-532451",
-        "family": "home:kitchen",
-        "product_id": "dkp-17125980",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "اس اس دی اینترنال SATA III هایک سمی مدل WAVE S ظرفیت 256 گیگابایت",
-        "use_case": "home_living"
-      },
-      {
-        "at": "2026-11-17T05:39:12.648347+00:00",
-        "brand": "",
-        "catalog_category_id": "9083",
-        "catalog_category_name": "لوازم ماهیگیری",
-        "category": "other",
-        "compared_to_product_id": "dkp-13338289",
-        "family": "digikala_category:9083",
-        "product_id": "dkp-4080071",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "چوب ماهیگیری ساپا مدل VALERIE-210",
-        "use_case": "outdoor_travel"
-      },
-      {
-        "at": "2026-11-17T08:09:35.298393+00:00",
-        "brand": "",
-        "catalog_category_id": "9083",
-        "catalog_category_name": "لوازم ماهیگیری",
-        "category": "other",
-        "compared_to_product_id": "dkp-13338289",
-        "family": "digikala_category:9083",
-        "product_id": "dkp-4080071",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "چوب ماهیگیری ساپا مدل VALERIE-210",
-        "use_case": "outdoor_travel"
-      },
       {
         "at": "2026-11-17T09:54:20.335040+00:00",
         "brand": "brand:دایسو",
@@ -905,6 +853,58 @@
           "similarity_repeat"
         ],
         "title": "گیمبال و لرزشگیر مدل L7BPRO",
+        "use_case": "gaming"
+      },
+      {
+        "at": "2026-11-17T15:34:42.723378+00:00",
+        "brand": "",
+        "catalog_category_id": "9297",
+        "catalog_category_name": "ست لباس راحتی زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-22750115",
+        "family": "digikala_category:9297",
+        "product_id": "dkp-21003279",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ست بلوز و شلوار راحتی زنانه مدل گل کد A1111",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-17T15:34:42.723378+00:00",
+        "brand": "shahsavand",
+        "catalog_category_id": "8914",
+        "catalog_category_name": "چای سیاه",
+        "category": "grocery_food",
+        "compared_to_product_id": "dkp-19993793",
+        "family": "digikala_category:8914",
+        "product_id": "dkp-21024283",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "چای سیاه خارجی معطر ارل گری شاهسوند - 100 گرم",
+        "use_case": "grocery_food"
+      },
+      {
+        "at": "2026-11-17T15:34:42.723378+00:00",
+        "brand": "",
+        "catalog_category_id": "11020",
+        "catalog_category_name": "استابیلایزر و گیمبال",
+        "category": "gaming",
+        "compared_to_product_id": "dkp-16045969",
+        "family": "digikala_category:11020",
+        "product_id": "dkp-10962945",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "گیمبال و لرزشگیر دوربین مدل Video Making AY-49U",
         "use_case": "gaming"
       }
     ]
