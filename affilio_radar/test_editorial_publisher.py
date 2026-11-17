@@ -1,5 +1,6 @@
 import unittest
 import json
+import re
 from unittest.mock import patch
 import os
 import tempfile
@@ -43,9 +44,12 @@ def editorial_item(editorial_id="test-guide", topic="purchase-planning"):
 def add_confirmed_product_posts(state, count=6, *, published_at=None):
     published = state.setdefault("published", {})
     stamp = (published_at or (NOW - timedelta(hours=1))).timestamp()
-    existing = sum(1 for key in published if str(key).startswith("dkp-prior-"))
+    existing = sum(
+        1 for key in published
+        if isinstance(key, str) and re.fullmatch(r"dkp-\d{1,12}", key)
+    )
     for index in range(count):
-        product_id = f"dkp-prior-{existing + index + 1}"
+        product_id = f"dkp-{900000 + existing + index + 1}"
         published[product_id] = {
             "content_type": "product",
             "ts": stamp + index,
