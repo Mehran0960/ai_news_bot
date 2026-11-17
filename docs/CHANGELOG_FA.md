@@ -13,6 +13,22 @@
 - **ریسک/بازگشت:** خطر احتمالی و روش rollback/feature flag.
 - **وضعیت:** انجام‌شده، در انتظار، مسدود یا لغوشده.
 
+## ۲۰۲۶-۱۱-۱۷ — استقلال مقصدهای رسانه‌ای و گیت سخت ضدتکرار تحریریه
+
+**هدف:** حذف وابستگی انتشار ویدئو به زمان‌بندی/قفل ناشر تصویری، جلوگیری از توقف مقصدهای ویدئویی به‌علت خطای یک رسانه، موازی‌سازی مقصدهای تحریریه و جلوگیری از انتخاب دوبارهٔ متن تحریریه.
+
+**تغییر/اقدام:** workflow ویدئو به سه job مستقل YouTube/Aparat/Filo تبدیل شد؛ هر job فقط مقصد خودش را پردازش می‌کند و تغییرهای state را به‌صورت scoped merge می‌کند. dispatch ویدئو دیگر نوبت یا workflow ناشر تصویری را گیت نمی‌کند. ارسال تحریریهٔ Telegram/Bale/Rubika/Eitaa هم به workerهای موازی با state خصوصی و ادغام رسید مقصدی تبدیل شد. انتخاب تحریریه اکنون same-ID یا متن یکسان/تقریباً یکسان را تا ۲۴ ساعت و موضوع تکراری را تا ۴ ساعت مسدود می‌کند و برای ممیزی بعدی اثرانگشت/عنوان/متن را نگه می‌دارد.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/offerchin-video-publisher.yml`، `.github/workflows/offerchin-video-fanout-validation.yml`، `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، `affilio_radar/editorial_content.py`، `affilio_radar/editorial_publisher.py`، `affilio_radar/merge_video_destination_state.py` و تست‌های مرتبط؛ گزارش ممیزی: `docs/OFFERCHIN_INDEPENDENT_MEDIA_AND_EDITORIAL_DEDUPE_2026-11-17_FA.md`.
+
+**آزمون و نتیجه:** آزمون‌های ادغام وضعیت مستقل، عدم overwrite رسید مقصد همتا، حفظ وضعیت تولید ویدئو، جلوگیری از تکرار ID/fingerprint/near-copy و cooldown موضوعی به CI اضافه شده‌اند. اجرای GitHub Actions روی PR هنوز باید نتیجه دهد؛ در زمان ثبت این ورودی نتیجهٔ نهایی CI در انتظار است.
+
+**شواهد/شناسه:** branch `fix/offerchin-isolated-media-editorial-dedupe-20261117`; آخرین commit هنگام ثبت changelog: در انتظار تکمیل تغییرها/PR.
+
+**ریسک/بازگشت:** مرحلهٔ merge فقط رسیدهای همان مقصد را وارد state می‌کند و با قفل commit ناشر تصویری serialize می‌شود؛ upload مقصدها مستقل است. برای rollback کد PR را revert کنید، اما state و receiptهای عمومی را reset نکنید. Eitaa تا افزودن credentials/Channel ID معتبر و فعال‌کردن `EITAA_ENABLE_PUBLISHING` قابل انتشار نیست؛ گیت deadline آپارات نیز عمداً حفظ می‌شود.
+
+**وضعیت:** تغییرها در شاخهٔ کاری؛ ادغام و استقرار پس از CI. ممیزی تاریخی ۲۶ شناسهٔ یکتا نشان داد؛ تاریخچهٔ قدیمی همهٔ عنوان/متن‌ها را ذخیره نکرده و ممیزی شباهت کامل گذشته محدود است.
+
 ## ۲۰۲۶-۱۱-۱۱ — یکسان‌سازی ترتیب و منبع انتخاب در انتشار چندرسانه‌ای
 
 **هدف:** تضمین اینکه ویدئوهای OfferChin دقیقاً از محصولات انتخاب‌شده و اعتبارسنجی‌شدهٔ مسیر اصلی کانال‌ها ساخته شوند؛ نه از یک مسیر کشف/رتبه‌بندی موازی.
