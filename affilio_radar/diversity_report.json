@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-17T15:11:15.855592+00:00",
+  "generated_at": "2026-11-17T15:19:37.285824+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
@@ -158,7 +158,6 @@
       "پتو": 1,
       "پد آرایشی و بیوتی بلندر": 1,
       "پرایمر": 1,
-      "پنیر محلی": 1,
       "پودر سیر، موسیر و پیاز": 1,
       "چای سیاه کیسه‌ای": 1,
       "کارت حافظه": 1,
@@ -184,40 +183,40 @@
       "kids_sports": 4,
       "large_appliances": 1,
       "mobile_devices": 2,
-      "other": 17,
+      "other": 16,
       "personal_care": 8,
       "power_backup": 1
     },
     "category_share_percent": {
-      "automotive": 2.8,
+      "automotive": 2.9,
       "beauty_fragrance": 1.4,
       "books_stationery": 1.4,
-      "computer_network": 2.8,
-      "digital_accessories": 4.2,
-      "fashion": 15.5,
-      "grocery_food": 14.1,
-      "home": 8.5,
-      "home_cleaning": 2.8,
-      "kids_sports": 5.6,
+      "computer_network": 2.9,
+      "digital_accessories": 4.3,
+      "fashion": 15.7,
+      "grocery_food": 14.3,
+      "home": 8.6,
+      "home_cleaning": 2.9,
+      "kids_sports": 5.7,
       "large_appliances": 1.4,
-      "mobile_devices": 2.8,
-      "other": 23.9,
-      "personal_care": 11.3,
+      "mobile_devices": 2.9,
+      "other": 22.9,
+      "personal_care": 11.4,
       "power_backup": 1.4
     },
-    "distinct_catalog_categories": 70,
+    "distinct_catalog_categories": 69,
     "distinct_categories": 15,
-    "distinct_families": 71,
+    "distinct_families": 70,
     "distinct_retailers": 1,
     "distinct_use_cases": 14,
     "known_brand_posts": 34,
-    "posts": 71,
+    "posts": 70,
     "repeated_brand_count": 1,
     "repeated_brands": {
       "brand:مری_کینگ": 2
     },
     "retailer_post_counts": {
-      "digikala": 71
+      "digikala": 70
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -226,7 +225,7 @@
       "automotive": 3,
       "baby_care": 3,
       "books_learning": 2,
-      "catalog_taxonomy_other": 11,
+      "catalog_taxonomy_other": 10,
       "fashion_lifestyle": 10,
       "grocery_food": 12,
       "home_cleaning": 2,
@@ -556,7 +555,7 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1601,
+    "all_time_count": 1603,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "brand_repeat": 6,
@@ -564,40 +563,6 @@
       "similarity_repeat": 499
     },
     "recent_events": [
-      {
-        "at": "2026-11-17T04:25:57.901036+00:00",
-        "brand": "",
-        "catalog_category_id": "9369",
-        "catalog_category_name": "کفش تخت زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-9673230",
-        "family": "digikala_category:9369",
-        "product_id": "dkp-13050880",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش زنانه مدل دوگره کد sh.p.p.d.g",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-17T04:25:57.901036+00:00",
-        "brand": "",
-        "catalog_category_id": "9083",
-        "catalog_category_name": "لوازم ماهیگیری",
-        "category": "other",
-        "compared_to_product_id": "dkp-13338289",
-        "family": "digikala_category:9083",
-        "product_id": "dkp-4080071",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "چوب ماهیگیری ساپا مدل VALERIE-210",
-        "use_case": "outdoor_travel"
-      },
       {
         "at": "2026-11-17T04:34:43.229883+00:00",
         "brand": "brand:هایک_سمی",
@@ -907,6 +872,40 @@
         ],
         "title": "روپوش پزشکی مردانه ناب تن مدل T101",
         "use_case": "health_wellness"
+      },
+      {
+        "at": "2026-11-17T15:19:37.285824+00:00",
+        "brand": "",
+        "catalog_category_id": "9297",
+        "catalog_category_name": "ست لباس راحتی زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-22750115",
+        "family": "digikala_category:9297",
+        "product_id": "dkp-21003279",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ست بلوز و شلوار راحتی زنانه مدل گل کد A1111",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-17T15:19:37.285824+00:00",
+        "brand": "",
+        "catalog_category_id": "11020",
+        "catalog_category_name": "استابیلایزر و گیمبال",
+        "category": "gaming",
+        "compared_to_product_id": "dkp-16045969",
+        "family": "digikala_category:11020",
+        "product_id": "dkp-10962945",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "گیمبال و لرزشگیر دوربین مدل Video Making AY-49U",
+        "use_case": "gaming"
       }
     ]
   }
