@@ -7652,178 +7652,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-9491882",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-9491882%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "6035",
-        "catalog_best_selling_category_name": "پازل",
-        "catalog_best_selling_rank": 21,
-        "catalog_best_selling_ranks_by_category": {
-          "6035": {
-            "category_name": "پازل",
-            "observed_at": "2026-11-16T07:07:55.672634+00:00",
-            "rank": 21,
-            "rank_history": [
-              {
-                "category_name": "پازل",
-                "observed_at": "2026-11-16T07:07:55.672634+00:00",
-                "rank": 21
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T07:39:30.980343+00:00",
-        "catalog_cycle_snapshot_rank": 76,
-        "catalog_rank_observed_at": "2026-11-16T07:07:55.672634+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-16T07:47:27.661636+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-9491882",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 286000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 14.2,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 60.02,
-        "discount_percent": 48,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T07:47:39.275660+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 286000,
-        "history_low_toman": 286000,
-        "history_median_toman": 286000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 286000,
-        "history_start_day": "2026-11-15",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/87ad33c07424333f084508c901b9f284cb12270f_1663999411.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "affordability": 94.11,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 42.25,
-          "discount_attractiveness": 60.02,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 84.49,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "6035",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T07:47:39.277534+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "original_price": 550000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-9491882",
-        "product_url": "https://www.digikala.com/product/dkp-9491882/",
-        "promo_score": 35,
-        "publication_policy": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-        "qualifies_as_deal": true,
-        "rating": 4.11,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 143,
-        "savings_toman": 264000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 21,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "affordability": 94.11,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 42.25,
-          "discount_attractiveness": 60.02,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 84.49,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "6035",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T07:47:39.277534+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1181,
-        "title": "پازل 36 تکه بافوم طرح حروف و اعداد فارسی کوچک مدل فومی"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-9491882",
-      "product_plan_cycle_id": "2026-11-16T07:39:30.980343+00:00",
-      "selected_at": "2026-11-16T07:47:42.622485+00:00",
-      "sequence_number": 1181,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T08:15:12.415463+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-10066489",
       "content_type": "product",
       "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
@@ -43680,366 +43508,12 @@
       "sequence_number": 1487,
       "status": "published",
       "updated_at": "2026-11-17T06:41:20.849115+00:00"
-    }
-  ],
-  "content_delivery_last_enqueue_summary": {
-    "added": 1,
-    "at": "2026-11-17T05:05:33.886476+00:00",
-    "queue_evicted": 0,
-    "queue_size": 8,
-    "skipped": 0
-  },
-  "content_delivery_queue": {
-    "dkp-17281919": {
-      "attempt_count": 0,
-      "content_id": "dkp-17281919",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-17T09:53:20.848193+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-17281919%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "نتربیت",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "193",
-        "catalog_best_selling_category_name": "مودم - روتر 3G و 4G و 5G",
-        "catalog_best_selling_rank": 5,
-        "catalog_best_selling_ranks_by_category": {
-          "193": {
-            "category_name": "مودم - روتر 3G و 4G و 5G",
-            "observed_at": "2026-11-17T04:24:49.607052+00:00",
-            "rank": 5,
-            "rank_history": [
-              {
-                "category_name": "مودم - روتر 3G و 4G و 5G",
-                "observed_at": "2026-11-17T04:24:49.607052+00:00",
-                "rank": 5
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-17T04:56:31.578516+00:00",
-        "catalog_cycle_snapshot_rank": 116,
-        "catalog_rank_observed_at": "2026-11-17T04:24:49.607052+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "computer_network",
-        "checked_at": "2026-11-17T05:04:33.603741+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-17281919",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 9386300,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 66.28,
-        "discount_percent": 44,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-17T05:05:12.708782+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-17",
-        "history_high_toman": 9386300,
-        "history_low_toman": 9386300,
-        "history_median_toman": 9386300,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-17",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/07e17c03b957acc52e5c8833757076336c9fd5e3_1786388218.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "مودم روتر 4G خانگی نتربیت مدل NWR-M920v2 با پشتیبانی سیم‌کارت LTE/3G",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 81.57,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 66.28,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 86.0,
-          "generality_group": "mobile_productivity",
-          "live_demand": 99.38,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T05:05:25.910947+00:00",
-          "weakest_factor_score": 66.28
-        },
-        "original_price": 16623200,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-17281919",
-        "product_url": "https://www.digikala.com/product/dkp-17281919/",
-        "promo_score": 41,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.38,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 429,
-        "savings_toman": 7236900,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 5,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 81.57,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 66.28,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 86.0,
-          "generality_group": "mobile_productivity",
-          "live_demand": 99.38,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T05:05:25.910947+00:00",
-          "weakest_factor_score": 66.28
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1491,
-        "title": "مودم روتر 4G خانگی نتربیت مدل NWR-M920v2 با پشتیبانی سیم‌کارت LTE/3G، استاندارد IEEE 802.11b/g/n، چهار آنتن 5 دسی‌بل، فایروال SPI و NAT، اتصال همزمان بیش از 10 کاربر",
-        "variant_label": "مشکی"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-17281919",
-      "product_plan_cycle_id": "2026-11-17T07:09:41.079440+00:00",
-      "scheduled_at": "2026-11-17T09:09:20.848193+00:00",
-      "selected_at": "2026-11-17T05:05:33.886476+00:00",
-      "sequence_number": 1491,
-      "status": "queued"
     },
-    "dkp-18294816": {
-      "attempt_count": 0,
-      "content_id": "dkp-18294816",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-17T08:43:20.848193+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-18294816%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "مکران",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "11154",
-        "catalog_best_selling_category_name": "ست تی‌شرت و شلوارک ورزشی مردانه",
-        "catalog_best_selling_rank": 11,
-        "catalog_best_selling_ranks_by_category": {
-          "11154": {
-            "category_name": "ست تی‌شرت و شلوارک ورزشی مردانه",
-            "observed_at": "2026-11-17T03:19:51.613529+00:00",
-            "rank": 11,
-            "rank_history": [
-              {
-                "category_name": "ست تی‌شرت و شلوارک ورزشی مردانه",
-                "observed_at": "2026-11-17T03:19:51.613529+00:00",
-                "rank": 11
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-17T03:52:30.184476+00:00",
-        "catalog_cycle_snapshot_rank": 719,
-        "catalog_rank_observed_at": "2026-11-17T03:19:51.613529+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "sports_outdoor",
-        "checked_at": "2026-11-17T04:25:34.395574+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-18294816",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 1288000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 23.8,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 66.6,
-        "discount_percent": 55,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-17T04:25:57.899058+00:00",
-        "history_days": 3,
-        "history_end_day": "2026-11-17",
-        "history_high_toman": 1288000,
-        "history_low_toman": 1288000,
-        "history_median_toman": 1288000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 1288000,
-        "history_start_day": "2026-11-15",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/e2fcfee2ea74c241f8432bae50e3c44ac0b2b2fb_1771683011.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 67.03,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 66.6,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 56.0,
-          "generality_group": "sports_fitness",
-          "live_demand": 84.14,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T04:25:57.901036+00:00",
-          "weakest_factor_score": 56.0
-        },
-        "original_price": 2861000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-18294816",
-        "product_url": "https://www.digikala.com/product/dkp-18294816/",
-        "promo_score": 43,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 3.85,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 18,
-        "savings_toman": 1573000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 11,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 67.03,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 66.6,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 56.0,
-          "generality_group": "sports_fitness",
-          "live_demand": 84.14,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T04:25:57.901036+00:00",
-          "weakest_factor_score": 56.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1489,
-        "title": "ست تی‌شرت آستین بلند و شلوارک ورزشی مردانه مکران مدل دروازبانی",
-        "variant_label": "مشکی M"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-18294816",
-      "product_plan_cycle_id": "2026-11-17T07:09:41.079440+00:00",
-      "scheduled_at": "2026-11-17T07:59:20.848193+00:00",
-      "selected_at": "2026-11-17T04:26:05.693869+00:00",
-      "sequence_number": 1489,
-      "status": "queued"
-    },
-    "dkp-22404391": {
+    {
       "attempt_count": 0,
       "content_id": "dkp-22404391",
       "content_type": "product",
+      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
       "next_attempt_at": "2026-11-17T08:07:20.848193+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22404391%2F",
@@ -44205,13 +43679,369 @@
       "scheduled_at": "2026-11-17T07:23:20.848193+00:00",
       "selected_at": "2026-11-17T04:26:05.693869+00:00",
       "sequence_number": 1488,
+      "status": "stale_selection",
+      "updated_at": "2026-11-17T07:31:39.510253+00:00"
+    }
+  ],
+  "content_delivery_last_enqueue_summary": {
+    "added": 1,
+    "at": "2026-11-17T05:05:33.886476+00:00",
+    "queue_evicted": 0,
+    "queue_size": 8,
+    "skipped": 0
+  },
+  "content_delivery_queue": {
+    "dkp-17281919": {
+      "attempt_count": 0,
+      "content_id": "dkp-17281919",
+      "content_type": "product",
+      "next_attempt_at": "2026-11-17T09:18:06.840487+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-17281919%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "نتربیت",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "A",
+        "catalog_best_selling_category_id": "193",
+        "catalog_best_selling_category_name": "مودم - روتر 3G و 4G و 5G",
+        "catalog_best_selling_rank": 5,
+        "catalog_best_selling_ranks_by_category": {
+          "193": {
+            "category_name": "مودم - روتر 3G و 4G و 5G",
+            "observed_at": "2026-11-17T04:24:49.607052+00:00",
+            "rank": 5,
+            "rank_history": [
+              {
+                "category_name": "مودم - روتر 3G و 4G و 5G",
+                "observed_at": "2026-11-17T04:24:49.607052+00:00",
+                "rank": 5
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-17T04:56:31.578516+00:00",
+        "catalog_cycle_snapshot_rank": 116,
+        "catalog_rank_observed_at": "2026-11-17T04:24:49.607052+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "computer_network",
+        "checked_at": "2026-11-17T05:04:33.603741+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-17281919",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 9386300,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 66.28,
+        "discount_percent": 44,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-17T05:05:12.708782+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-17",
+        "history_high_toman": 9386300,
+        "history_low_toman": 9386300,
+        "history_median_toman": 9386300,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-17",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/07e17c03b957acc52e5c8833757076336c9fd5e3_1786388218.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_error": "RuntimeError",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_query": "مودم روتر 4G خانگی نتربیت مدل NWR-M920v2 با پشتیبانی سیم‌کارت LTE/3G",
+        "market_status": "unavailable",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 81.57,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 66.28,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 86.0,
+          "generality_group": "mobile_productivity",
+          "live_demand": 99.38,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-17T05:05:25.910947+00:00",
+          "weakest_factor_score": 66.28
+        },
+        "original_price": 16623200,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-17281919",
+        "product_url": "https://www.digikala.com/product/dkp-17281919/",
+        "promo_score": 41,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.38,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 429,
+        "savings_toman": 7236900,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 5,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 81.57,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 66.28,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 86.0,
+          "generality_group": "mobile_productivity",
+          "live_demand": 99.38,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-17T05:05:25.910947+00:00",
+          "weakest_factor_score": 66.28
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1491,
+        "title": "مودم روتر 4G خانگی نتربیت مدل NWR-M920v2 با پشتیبانی سیم‌کارت LTE/3G، استاندارد IEEE 802.11b/g/n، چهار آنتن 5 دسی‌بل، فایروال SPI و NAT، اتصال همزمان بیش از 10 کاربر",
+        "variant_label": "مشکی"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-17281919",
+      "product_plan_cycle_id": "2026-11-17T07:09:41.079440+00:00",
+      "scheduled_at": "2026-11-17T09:18:06.840487+00:00",
+      "selected_at": "2026-11-17T05:05:33.886476+00:00",
+      "sequence_number": 1491,
+      "status": "queued"
+    },
+    "dkp-18294816": {
+      "attempt_count": 0,
+      "content_id": "dkp-18294816",
+      "content_type": "product",
+      "next_attempt_at": "2026-11-17T08:08:06.840487+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-18294816%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "مکران",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "11154",
+        "catalog_best_selling_category_name": "ست تی‌شرت و شلوارک ورزشی مردانه",
+        "catalog_best_selling_rank": 11,
+        "catalog_best_selling_ranks_by_category": {
+          "11154": {
+            "category_name": "ست تی‌شرت و شلوارک ورزشی مردانه",
+            "observed_at": "2026-11-17T03:19:51.613529+00:00",
+            "rank": 11,
+            "rank_history": [
+              {
+                "category_name": "ست تی‌شرت و شلوارک ورزشی مردانه",
+                "observed_at": "2026-11-17T03:19:51.613529+00:00",
+                "rank": 11
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-17T03:52:30.184476+00:00",
+        "catalog_cycle_snapshot_rank": 719,
+        "catalog_rank_observed_at": "2026-11-17T03:19:51.613529+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "sports_outdoor",
+        "checked_at": "2026-11-17T04:25:34.395574+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-18294816",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 1288000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 23.8,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 66.6,
+        "discount_percent": 55,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-17T04:25:57.899058+00:00",
+        "history_days": 3,
+        "history_end_day": "2026-11-17",
+        "history_high_toman": 1288000,
+        "history_low_toman": 1288000,
+        "history_median_toman": 1288000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": 1288000,
+        "history_start_day": "2026-11-15",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/e2fcfee2ea74c241f8432bae50e3c44ac0b2b2fb_1771683011.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 67.03,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 66.6,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 56.0,
+          "generality_group": "sports_fitness",
+          "live_demand": 84.14,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-17T04:25:57.901036+00:00",
+          "weakest_factor_score": 56.0
+        },
+        "original_price": 2861000,
+        "pct_above_stable_low": 0,
+        "product_id": "dkp-18294816",
+        "product_url": "https://www.digikala.com/product/dkp-18294816/",
+        "promo_score": 43,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 3.85,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 18,
+        "savings_toman": 1573000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 11,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 67.03,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 66.6,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 56.0,
+          "generality_group": "sports_fitness",
+          "live_demand": 84.14,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-17T04:25:57.901036+00:00",
+          "weakest_factor_score": 56.0
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1489,
+        "title": "ست تی‌شرت آستین بلند و شلوارک ورزشی مردانه مکران مدل دروازبانی",
+        "variant_label": "مشکی M"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-18294816",
+      "product_plan_cycle_id": "2026-11-17T07:09:41.079440+00:00",
+      "scheduled_at": "2026-11-17T08:08:06.840487+00:00",
+      "selected_at": "2026-11-17T04:26:05.693869+00:00",
+      "sequence_number": 1489,
       "status": "queued"
     },
     "dkp-6705171": {
       "attempt_count": 0,
       "content_id": "dkp-6705171",
       "content_type": "product",
-      "next_attempt_at": "2026-11-17T09:16:20.848193+00:00",
+      "next_attempt_at": "2026-11-17T08:41:06.840487+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-6705171%2F",
         "availability": "in_stock",
@@ -44380,7 +44210,7 @@
       },
       "product_id": "dkp-6705171",
       "product_plan_cycle_id": "2026-11-17T07:09:41.079440+00:00",
-      "scheduled_at": "2026-11-17T08:32:20.848193+00:00",
+      "scheduled_at": "2026-11-17T08:41:06.840487+00:00",
       "selected_at": "2026-11-17T04:26:05.693869+00:00",
       "sequence_number": 1490,
       "status": "queued"
@@ -195605,22 +195435,17 @@
   },
   "editorial_cycle": {
     "bank_ids": [
-      "check-box-contents",
       "check-delivery-window",
-      "check-model-number",
       "inspect-on-arrival",
       "keep-purchase-records",
-      "measure-room-size",
       "negative-review-balance",
       "plan-before-buy",
-      "product-description-details",
       "return-shipping-cost",
       "review-patterns",
       "reviews-beyond-stars",
       "seller-and-return-policy",
       "shipping-window",
-      "sponsored-review",
-      "used-refurbished"
+      "sponsored-review"
     ],
     "cycle_number": 2,
     "cycle_started_at": "2026-11-16T22:40:16.727223+00:00",
@@ -196879,42 +196704,42 @@
     },
     {
       "content_id": "editorial:check-delivery-window",
-      "delivery_duration_seconds": 10.5,
+      "delivery_duration_seconds": 27.6,
       "destinations": {
         "aparat": {
           "attempts": 0,
           "status": "pending"
         },
         "bale": {
-          "attempt_started_at": "2026-11-17T06:00:47.372340+00:00",
+          "attempt_started_at": "2026-11-17T07:31:42.619013+00:00",
           "attempts": 1,
-          "message_id": "2228",
+          "message_id": "2231",
           "status": "sent",
-          "updated_at": "2026-11-17T06:00:49.265930+00:00"
+          "updated_at": "2026-11-17T07:32:01.086841+00:00"
         },
         "eitaa": {
           "attempts": 0,
           "last_error": "eitaa_not_enabled_or_credentials_missing",
           "status": "not_connected",
-          "updated_at": "2026-11-17T06:00:55.322785+00:00"
+          "updated_at": "2026-11-17T07:32:07.259383+00:00"
         },
         "filo": {
           "attempts": 0,
           "status": "pending"
         },
         "rubika": {
-          "attempt_started_at": "2026-11-17T06:00:49.660416+00:00",
+          "attempt_started_at": "2026-11-17T07:32:01.498272+00:00",
           "attempts": 1,
-          "message_id": "1974380780431588651",
+          "message_id": "1974424799841588651",
           "status": "sent",
-          "updated_at": "2026-11-17T06:00:54.977813+00:00"
+          "updated_at": "2026-11-17T07:32:06.840487+00:00"
         },
         "telegram": {
-          "attempt_started_at": "2026-11-17T06:00:45.652717+00:00",
+          "attempt_started_at": "2026-11-17T07:31:40.663340+00:00",
           "attempts": 1,
-          "message_id": "1667",
+          "message_id": "1669",
           "status": "sent",
-          "updated_at": "2026-11-17T06:00:46.983530+00:00"
+          "updated_at": "2026-11-17T07:31:42.201566+00:00"
         },
         "youtube": {
           "attempts": 0,
@@ -196924,7 +196749,7 @@
       "editorial_id": "check-delivery-window",
       "published_at": "2026-11-16T18:09:46.053800+00:00",
       "related_product_id": "dkp-22239871",
-      "sequence_number": 1493,
+      "sequence_number": 1495,
       "topic": "delivery"
     },
     {
@@ -197178,7 +197003,90 @@
       "topic": "review-literacy"
     }
   ],
-  "editorial_delivery_queue": {},
+  "editorial_delivery_queue": {
+    "editorial:check-delivery-window": {
+      "attempt_count": 0,
+      "content_id": "editorial:check-delivery-window",
+      "content_type": "editorial",
+      "delivery_duration_seconds": 27.6,
+      "delivery_runway_seconds": 33,
+      "delivery_started_at": "2026-11-17T07:31:40.090589+00:00",
+      "dispatch_runway_seconds": 93,
+      "next_attempt_at": "2026-11-17T07:31:39.510253+00:00",
+      "payload": {
+        "body": "⏱️ زمان رسیدن سفارش برای همه کالاها یکسان نیست؛ نوع کالا، شهر مقصد، موجودی فروشنده و روش ارسال می‌توانند آن را تغییر دهند. پیش از پرداخت، بازه تحویل و روش‌های فعال برای همان کالا و نشانی را در صفحه سفارش بررسی کن؛ به یک زمان عمومی تکیه نکن.",
+        "content_id": "editorial:check-delivery-window",
+        "content_type": "editorial",
+        "delivery_status": "selected_not_published",
+        "editorial_cycle_number": 2,
+        "editorial_id": "check-delivery-window",
+        "idempotency_key": "fcdd7e8bd5a229df",
+        "related_product_id": "dkp-18294816",
+        "review_due_at": "2027-02-13T04:30:00Z",
+        "reviewed_at": "2026-11-15T04:30:00Z",
+        "sequence_number": 1495,
+        "sources": [
+          {
+            "publisher": "دیجی‌کالا مگ",
+            "source_id": "digikala-mag-delivery-time",
+            "title": "سفارش دیجی‌کالا چند روزه می‌رسد؟ مقایسه‌ روش‌های ارسال از نظر سرعت",
+            "url": "https://www.digikala.com/mag/digikala-delivery-time/"
+          }
+        ],
+        "title": "زمان تحویل را برای همان سفارش بررسی کن",
+        "topic": "delivery"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-17T07:31:42.619013+00:00",
+          "attempts": 1,
+          "message_id": "2231",
+          "status": "sent",
+          "updated_at": "2026-11-17T07:32:01.086841+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "eitaa_not_enabled_or_credentials_missing",
+          "status": "not_connected",
+          "updated_at": "2026-11-17T07:32:07.259383+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-17T07:32:01.498272+00:00",
+          "attempts": 1,
+          "message_id": "1974424799841588651",
+          "status": "sent",
+          "updated_at": "2026-11-17T07:32:06.840487+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-17T07:31:40.663340+00:00",
+          "attempts": 1,
+          "message_id": "1669",
+          "status": "sent",
+          "updated_at": "2026-11-17T07:31:42.201566+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "related_product_id": "dkp-18294816",
+      "related_product_original_scheduled_at": "2026-11-17T07:59:20.848193+00:00",
+      "related_product_reserved_scheduled_at": "2026-11-17T08:16:39.510253+00:00",
+      "scheduled_at": "2026-11-17T07:31:39.510253+00:00",
+      "selected_at": "2026-11-17T07:31:39.510253+00:00",
+      "sequence_number": 1495,
+      "status": "partial",
+      "window_closes_at": "2026-11-17T07:45:39.510253+00:00"
+    }
+  },
   "emergency_continuity": {
     "baseline_clean_cycle_completed_at": "2026-11-10T21:00:41.336795+00:00",
     "baseline_clean_cycle_duration_seconds": 121458,
@@ -197494,12 +197402,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-17T06:41:20.848193+00:00",
+  "last_channel_published_at": "2026-11-17T07:32:06.840487+00:00",
   "last_content_selection_at": "2026-11-17T05:05:33.886476+00:00",
-  "last_editorial_attempt_at": "2026-11-17T07:20:25.411198+00:00",
-  "last_editorial_confirmed_at": "2026-11-17T06:00:54.977813+00:00",
+  "last_editorial_attempt_at": "2026-11-17T07:31:39.510253+00:00",
+  "last_editorial_confirmed_at": "2026-11-17T07:32:06.840487+00:00",
   "last_product_channel_published_at": "2026-11-17T06:41:20.848193+00:00",
-  "last_published_at": "2026-11-17T06:41:20.848193+00:00",
+  "last_published_at": "2026-11-17T07:32:06.840487+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -246611,8 +246519,8 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-17T07:20:24.036191+00:00",
-    "candidate_count": 4,
+    "calculated_at": "2026-11-17T07:32:06.840487+00:00",
+    "candidate_count": 3,
     "catalog_cycle_id": "2026-11-17T07:09:41.079440+00:00",
     "current_cycle_started_at": "2026-11-17T07:09:41.368607+00:00",
     "daily_post_limit": 55,
@@ -246624,39 +246532,38 @@
     "interval_seconds": 1860.0,
     "last_clean_cycle_completed_at": "2026-11-17T07:09:41.079440+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-17T06:41:20.848193+00:00",
-    "plan_anchor_kind": "last_product",
-    "planned_product_slots": 4,
+    "plan_anchor_at": "2026-11-17T07:32:06.840487+00:00",
+    "plan_anchor_kind": "last_channel",
+    "planned_product_slots": 3,
     "planned_window_end_at": "2026-11-17T07:41:48.368607+00:00",
-    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes",
+    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
     "scan_eta_is_provisional": false,
     "scan_eta_source": "last_observed_full_cycle_duration",
     "scheduled_product_count": 4,
-    "seconds_from_plan_anchor_to_next_scan": 3627.520414,
-    "seconds_until_estimated_next_clean_scan": 1284.332416
+    "seconds_from_plan_anchor_to_next_scan": 581.52812,
+    "seconds_until_estimated_next_clean_scan": 581.52812
   },
   "product_publication_interval_seconds": 1860.0,
   "product_publication_plan": {
-    "anchor_at": "2026-11-17T06:41:20.848193+00:00",
-    "anchor_kind": "last_product",
+    "anchor_at": "2026-11-17T07:32:06.840487+00:00",
+    "anchor_kind": "last_channel",
     "catalog_cycle_id": "2026-11-17T07:09:41.079440+00:00",
     "first_slot_due_now": false,
     "interval_minutes": 31.0,
     "interval_seconds": 1860.0,
     "maximum_product_interval_seconds": 3420,
     "next_clean_scan_at": "2026-11-17T07:41:48.368607+00:00",
-    "pending_product_count": 4,
+    "pending_product_count": 3,
     "product_ids": [
-      "dkp-22404391",
       "dkp-18294816",
       "dkp-6705171",
       "dkp-17281919"
     ],
-    "scheduled_product_count": 4,
-    "updated_at": "2026-11-17T07:20:24.036191+00:00"
+    "scheduled_product_count": 3,
+    "updated_at": "2026-11-17T07:32:06.840487+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-17T06:41:20.848193+00:00",
-  "product_publication_plan_anchor_kind": "last_product",
+  "product_publication_plan_anchor_at": "2026-11-17T07:32:06.840487+00:00",
+  "product_publication_plan_anchor_kind": "last_channel",
   "product_publication_plan_cycle_id": "2026-11-17T07:09:41.079440+00:00",
   "publication_diversity_fallback_count": 5307,
   "publication_diversity_fallback_events": [
@@ -290300,7 +290207,7 @@
       "ts": 1794875519.055357
     }
   },
-  "publication_sequence_counter": 1494,
+  "publication_sequence_counter": 1495,
   "published": {
     "dkp-10002173": {
       "aparat_skip_reason": "verified_expiry_required",
