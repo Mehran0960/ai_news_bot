@@ -635,9 +635,10 @@ def get_last_channel_published_at(state: dict) -> datetime | None:
 
     observed_latest = max(observed) if observed else None
     legacy = _utc(state.get("last_published_at"))
-    # Older state may have the product-only channel clock but no shared clock yet.
-    # A confirmed product is still a public channel post and is safe as the fallback.
-    legacy_product = get_last_product_channel_published_at(state)
+    # Older state may have an explicitly stored product-only clock but no shared
+    # clock yet. Read this field directly to avoid recursion through the legacy
+    # product-clock migration fallback below.
+    legacy_product = _utc(state.get("last_product_channel_published_at"))
     candidates = [
         value for value in (stored, observed_latest, legacy_product)
         if value is not None
@@ -920,9 +921,6 @@ def enqueue_selected_content(
     last_channel_published = get_last_channel_published_at(state)
     # This is only an initial hand-off estimate. The catalog-aware planner
     # subsequently reflows every unsent selection across the full scan window.
-    effective_interval_seconds = max(
-        float(MIN_CHANNEL_POST_INTERVAL_SECONDS), interval_seconds
-    )
     next_slot = now
 
     added = skipped = 0
