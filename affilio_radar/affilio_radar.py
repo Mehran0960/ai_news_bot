@@ -10331,6 +10331,14 @@ def _has_pending_video_destination(
         if generation in {"pending", "generated"} and status in VIDEO_DESTINATION_PENDING_STATUSES:
             return True
         if (
+            platform == "youtube"
+            and status == "skipped_platform_limit"
+            and str(record.get("youtube_skip_reason") or "") in {
+                "youtube_daily_quota_pause", "youtube_http_429_rate_limited"
+            }
+        ):
+            return True
+        if (
             platform == "aparat"
             and generation in {"pending", "generated"}
             and status == "skipped_unverified_deadline"
@@ -10507,6 +10515,18 @@ def process_pending_short_video(
         state.pop("youtube_upload_pause_reason", None)
         youtube_pause_until = None
         state_changed = True
+        # Convert legacy daily-quota skips back into due work after the cooldown.
+        for queued_record in published.values():
+            if not isinstance(queued_record, dict):
+                continue
+            if (
+                str(queued_record.get("youtube_upload_status") or "") == "skipped_platform_limit"
+                and str(queued_record.get("youtube_skip_reason") or "") == "youtube_daily_quota_pause"
+            ):
+                queued_record["youtube_upload_status"] = "retry"
+                queued_record.pop("youtube_skip_reason", None)
+                queued_record.pop("youtube_next_attempt_at", None)
+                state_changed = True
 
     # Delete old per-platform pacing fields. No artificial delay is applied between
     # uploads; only YouTube's actual platform quota response can pause YouTube itself.
@@ -10521,15 +10541,19 @@ def process_pending_short_video(
     if youtube_pause_active:
         print(
             f"YOUTUBE_UPLOADS_PAUSED reason={state.get('youtube_upload_pause_reason', 'daily_upload_limit')} "
-            f"until={youtube_pause_until.isoformat()}; queued YouTube items will be skipped"
+            f"until={youtube_pause_until.isoformat()}; queued YouTube items will retry after cooldown"
         )
         for queued_record in published.values():
             if not isinstance(queued_record, dict):
                 continue
-            if str(queued_record.get("youtube_upload_status") or "") in pending_youtube:
-                queued_record["youtube_upload_status"] = "skipped_platform_limit"
+            queued_status = str(queued_record.get("youtube_upload_status") or "")
+            if queued_status in pending_youtube or (
+                queued_status == "skipped_platform_limit"
+                and str(queued_record.get("youtube_skip_reason") or "") == "youtube_daily_quota_pause"
+            ):
+                queued_record["youtube_upload_status"] = "retry"
                 queued_record["youtube_skip_reason"] = "youtube_daily_quota_pause"
-                queued_record.pop("youtube_next_attempt_at", None)
+                queued_record["youtube_next_attempt_at"] = youtube_pause_until.isoformat()
                 state_changed = True
 
     if youtube_ready:
@@ -10889,9 +10913,26 @@ def process_pending_short_video(
         ):
             print(f"YOUTUBE_UNVERIFIED_DEADLINE_ALLOWED id={pid} policy=publisher_last_mile_checks_plus_integrity_audit")
 
+        youtube_retry_at = _parse_utc_datetime(record.get("youtube_next_attempt_at"))
+        youtube_retry_wait = bool(youtube_retry_at and current < youtube_retry_at)
+        if (
+            upload_status in {"retry", "skipped_platform_limit"}
+            and str(record.get("youtube_skip_reason") or "") in {
+                "youtube_daily_quota_pause", "youtube_http_429_rate_limited"
+            }
+        ):
+            upload_status = "retry"
+            record["youtube_upload_status"] = "retry"
+            if youtube_retry_at and current < youtube_retry_at:
+                youtube_retry_wait = True
+            else:
+                record.pop("youtube_skip_reason", None)
+                record.pop("youtube_next_attempt_at", None)
+                youtube_retry_wait = False
+            state_changed = True
         yt_need = (
             youtube_upload_due and upload_status in pending_youtube
-            and not youtube_in_flight
+            and not youtube_retry_wait and not youtube_in_flight
         )
         aparat_pending = aparat_ready and aparat_status in PENDING_APARAT_STATUSES and not aparat_in_flight
         aparat_need = aparat_pending and (APARAT_SHORTS_ONLY or aparat_upload_due)
@@ -10926,8 +10967,9 @@ def process_pending_short_video(
             # A previously generated MP4 has no configured destination needing work.
             continue
 
-        # Legacy next-at timestamps are no longer pacing controls. Retries are immediate
-        # and bounded; uncertain submissions are sent to manual review instead of retried.
+        # Per-destination retry timestamps apply only to the destination that failed.
+        # They never delay Aparat/Filo or any photo channel; uncertain submissions remain
+        # manual-review items to avoid accidental duplicate uploads.
         if not str(record.get("image_url") or "").strip():
             try:
                 attempts = int(record.get("video_generation_attempts", 0) or 0) + 1
@@ -11346,17 +11388,27 @@ def process_pending_short_video(
                     state["youtube_upload_pause_diagnostic_migrated"] = True
                     youtube_pause_until = next_attempt
                     youtube_pause_active = True
-                    record["youtube_upload_status"] = "skipped_platform_limit"
+                    youtube_upload_due = False
+                    record["youtube_upload_status"] = "retry"
                     record["youtube_skip_reason"] = "youtube_daily_quota_pause"
+                    record["youtube_next_attempt_at"] = next_attempt.isoformat()
                     for queued_record in published.values():
-                        if isinstance(queued_record, dict) and str(queued_record.get("youtube_upload_status") or "") in pending_youtube:
-                            queued_record["youtube_upload_status"] = "skipped_platform_limit"
+                        if not isinstance(queued_record, dict):
+                            continue
+                        queued_status = str(queued_record.get("youtube_upload_status") or "")
+                        if queued_status in pending_youtube or (
+                            queued_status == "skipped_platform_limit"
+                            and str(queued_record.get("youtube_skip_reason") or "") == "youtube_daily_quota_pause"
+                        ):
+                            queued_record["youtube_upload_status"] = "retry"
                             queued_record["youtube_skip_reason"] = "youtube_daily_quota_pause"
-                            queued_record.pop("youtube_next_attempt_at", None)
+                            queued_record["youtube_next_attempt_at"] = next_attempt.isoformat()
                 elif http_status == 429:
-                    record["youtube_upload_status"] = "skipped_platform_limit"
+                    record["youtube_upload_status"] = "retry"
                     record["youtube_skip_reason"] = "youtube_http_429_rate_limited"
-                    record.pop("youtube_next_attempt_at", None)
+                    record["youtube_next_attempt_at"] = (
+                        failure_time + timedelta(minutes=15)
+                    ).isoformat()
                 elif attempts >= MAX_VIDEO_UPLOAD_ATTEMPTS:
                     record["youtube_upload_status"] = "skipped_after_retries"
                     record["youtube_skip_reason"] = "retry_budget_exhausted"

@@ -168,6 +168,24 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
         }
         self.assertTrue(radar._has_pending_video_destination(record, {"youtube"}, now=now))
 
+    def test_youtube_daily_quota_skip_remains_pending_in_dispatch_projection(self):
+        now = datetime(2026, 11, 17, 18, 0, tzinfo=timezone.utc)
+        record = {
+            "ts": now.timestamp(),
+            "video_generation_status": "generated",
+            "distribution_queue_id": "youtube-quota-retry",
+            "youtube_upload_status": "skipped_platform_limit",
+            "youtube_skip_reason": "youtube_daily_quota_pause",
+            "youtube_next_attempt_at": (now + timedelta(hours=24)).isoformat(),
+        }
+        self.assertTrue(radar._has_pending_video_destination(record, {"youtube"}, now=now))
+        sidecar = radar.build_video_upload_dispatch_state({
+            "published": {"item": record},
+            "youtube_uploads_paused_until": (now + timedelta(hours=24)).isoformat(),
+        })
+        self.assertIn("item", sidecar["published"])
+        self.assertEqual(sidecar["youtube_uploads_paused_until"], (now + timedelta(hours=24)).isoformat())
+
     def test_aparat_unverified_deadline_skip_is_requeued_independently(self):
         now = datetime(2026, 11, 14, 14, 30, tzinfo=timezone.utc)
         record = {
