@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-17T14:55:10.684085+00:00",
+  "generated_at": "2026-11-17T15:04:58.896549+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
@@ -169,14 +169,13 @@
       "کنسرو ذرت": 1,
       "کوسن": 1,
       "کیسه فریزر": 1,
-      "کیف و کاور لپ تاپ": 1,
       "کیک و شیرینی خانگی": 1
     },
     "category_post_counts": {
       "automotive": 2,
       "beauty_fragrance": 1,
       "books_stationery": 1,
-      "computer_network": 3,
+      "computer_network": 2,
       "digital_accessories": 3,
       "fashion": 11,
       "grocery_food": 10,
@@ -193,32 +192,32 @@
       "automotive": 2.8,
       "beauty_fragrance": 1.4,
       "books_stationery": 1.4,
-      "computer_network": 4.2,
+      "computer_network": 2.8,
       "digital_accessories": 4.2,
-      "fashion": 15.3,
-      "grocery_food": 13.9,
-      "home": 8.3,
+      "fashion": 15.5,
+      "grocery_food": 14.1,
+      "home": 8.5,
       "home_cleaning": 2.8,
       "kids_sports": 5.6,
       "large_appliances": 1.4,
       "mobile_devices": 2.8,
-      "other": 23.6,
-      "personal_care": 11.1,
+      "other": 23.9,
+      "personal_care": 11.3,
       "power_backup": 1.4
     },
-    "distinct_catalog_categories": 71,
+    "distinct_catalog_categories": 70,
     "distinct_categories": 15,
-    "distinct_families": 72,
+    "distinct_families": 71,
     "distinct_retailers": 1,
     "distinct_use_cases": 14,
     "known_brand_posts": 34,
-    "posts": 72,
+    "posts": 71,
     "repeated_brand_count": 1,
     "repeated_brands": {
       "brand:مری_کینگ": 2
     },
     "retailer_post_counts": {
-      "digikala": 72
+      "digikala": 71
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -233,7 +232,7 @@
       "home_cleaning": 2,
       "home_living": 3,
       "kitchen_food": 6,
-      "mobile_productivity": 8,
+      "mobile_productivity": 7,
       "outdoor_travel": 1,
       "personal_care": 8,
       "pet_care": 2,
@@ -557,31 +556,14 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1599,
+    "all_time_count": 1600,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "brand_repeat": 4,
-      "family_repeat": 397,
-      "similarity_repeat": 500
+      "brand_repeat": 5,
+      "family_repeat": 396,
+      "similarity_repeat": 499
     },
     "recent_events": [
-      {
-        "at": "2026-11-17T04:03:54.926315+00:00",
-        "brand": "",
-        "catalog_category_id": "9083",
-        "catalog_category_name": "لوازم ماهیگیری",
-        "category": "other",
-        "compared_to_product_id": "dkp-13338289",
-        "family": "digikala_category:9083",
-        "product_id": "dkp-4080071",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "چوب ماهیگیری ساپا مدل VALERIE-210",
-        "use_case": "outdoor_travel"
-      },
       {
         "at": "2026-11-17T04:16:27.733372+00:00",
         "brand": "brand:هایک_سمی",
@@ -908,6 +890,22 @@
         ],
         "title": "گیمبال و لرزشگیر مدل L7BPRO",
         "use_case": "gaming"
+      },
+      {
+        "at": "2026-11-17T15:04:58.896549+00:00",
+        "brand": "callista",
+        "catalog_category_id": "6485",
+        "catalog_category_name": "ریمل",
+        "category": "other",
+        "compared_to_product_id": "dkp-580581",
+        "family": "digikala_category:6485",
+        "product_id": "dkp-21066186",
+        "reason": "brand_repeat",
+        "reasons": [
+          "brand_repeat"
+        ],
+        "title": "ریمل رنگی کالیستا مدل Pastella رنگ قهوه ای",
+        "use_case": "grocery_food"
       }
     ]
   }
