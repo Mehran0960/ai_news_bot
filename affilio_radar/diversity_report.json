@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-17T10:59:30.560626+00:00",
+  "generated_at": "2026-11-17T11:26:56.867039+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
@@ -600,30 +600,13 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1589,
+    "all_time_count": 1590,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 397,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-17T00:43:31.878686+00:00",
-        "brand": "",
-        "catalog_category_id": "9083",
-        "catalog_category_name": "لوازم ماهیگیری",
-        "category": "other",
-        "compared_to_product_id": "dkp-13338289",
-        "family": "digikala_category:9083",
-        "product_id": "dkp-4080071",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "چوب ماهیگیری ساپا مدل VALERIE-210",
-        "use_case": "outdoor_travel"
-      },
       {
         "at": "2026-11-17T00:54:45.826169+00:00",
         "brand": "brand:هایک_سمی",
@@ -946,6 +929,23 @@
         ],
         "title": "چسب آلومینیوم دایسو مدل آشپزخانه عرض 5 سانتی متر",
         "use_case": "kitchen_food"
+      },
+      {
+        "at": "2026-11-17T11:26:56.867039+00:00",
+        "brand": "",
+        "catalog_category_id": "9297",
+        "catalog_category_name": "ست لباس راحتی زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-22750115",
+        "family": "digikala_category:9297",
+        "product_id": "dkp-21003279",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ست بلوز و شلوار راحتی زنانه مدل گل کد A1111",
+        "use_case": "fashion_lifestyle"
       }
     ]
   }
