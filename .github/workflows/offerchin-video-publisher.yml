@@ -1,55 +1,44 @@
-name: OfferChin Unified Video Publisher
+name: OfferChin Independent Video Destinations
 
 on:
-  # One event per selected canonical product queue. Cloudflare also dispatches
-  # this workflow as a recovery path while any video destination remains pending.
+  # Cloudflare dispatches the coordinator while any selected video destination is pending.
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  # The unified runner is the only automatic writer for the three video destinations.
-  # It shares the publisher lock because all upload statuses live in state.json.
-  group: offerchin-content-publisher
+  # Serialize only coordinator runs. The photo publisher has a different group.
+  group: offerchin-video-dispatcher
   cancel-in-progress: false
 
 jobs:
-  publish-videos:
+  upload:
+    name: Publish ${{ matrix.destination }} independently
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        destination: [youtube, aparat, filo]
     steps:
-      - name: Check out the latest canonical product and delivery state
+      - name: Check out current canonical state
         uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 100
 
-      # All selected-channel/video delivery receipts are projected here. An empty
-      # projection means there is no canonical video work to process; do not hold
-      # the shared publisher lock while installing Chromium or checking credentials.
-      - name: Skip immediately when the canonical video queue is empty
-        id: video_queue
-        shell: bash
-        run: |
-          if jq -e '.published | type == "object" and length > 0' affilio_radar/video_upload_dispatch_state.json >/dev/null 2>&1; then
-            echo "has_video_records=true" >> "$GITHUB_OUTPUT"
-            echo "UNIFIED_VIDEO_QUEUE_NONEMPTY"
-          else
-            echo "has_video_records=false" >> "$GITHUB_OUTPUT"
-            echo "UNIFIED_VIDEO_QUEUE_EMPTY; releasing the shared content-publisher lock without installing upload dependencies."
-          fi
+      - name: Snapshot merge base before this destination works
+        run: cp affilio_radar/state.json affilio_radar/state.base.json
 
       - name: Set up Python
-        if: steps.video_queue.outputs.has_video_records == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: affilio_radar/requirements.txt
 
-      - name: Install project dependencies
-        if: steps.video_queue.outputs.has_video_records == 'true'
+      - name: Install project dependencies with retries
         run: |
           for attempt in 1 2 3; do
             python -m pip install -r affilio_radar/requirements.txt && break
@@ -61,14 +50,13 @@ jobs:
             fi
           done
 
-      - name: Install Playwright Chromium for the Filo adapter
-        if: steps.video_queue.outputs.has_video_records == 'true'
+      - name: Install Playwright Chromium for Filo only
+        if: matrix.destination == 'filo'
         run: |
           python -m pip install "playwright>=1.48,<2"
           python -m playwright install --with-deps chromium
 
-      - name: Stage official DigiPay logo for matching video cards
-        if: steps.video_queue.outputs.has_video_records == 'true'
+      - name: Stage official DigiPay logo for video rendering
         continue-on-error: true
         run: |
           mkdir -p affilio_radar/assets/retailer-logos
@@ -80,28 +68,30 @@ jobs:
           import offerchin_visuals
           logo = offerchin_visuals._load_digipay_logo()
           assert logo is not None and logo.width > 0 and logo.height > 0
-          print("DIGIPAY_OFFICIAL_LOGO_READY_FOR_UNIFIED_VIDEO_RENDER")
+          print("DIGIPAY_OFFICIAL_LOGO_READY_FOR_INDEPENDENT_VIDEO_RENDER")
           PY
 
-      - name: Validate the shared FIFO and video upload adapters
-        if: steps.video_queue.outputs.has_video_records == 'true'
+      - name: Validate destination adapters and editorial selection
         run: |
           python -m py_compile \
             affilio_radar/affilio_radar.py \
             affilio_radar/short_video.py \
             affilio_radar/offerchin_visuals.py \
             affilio_radar/aparat_uploader.py \
-            affilio_radar/filo_uploader.py
+            affilio_radar/filo_uploader.py \
+            affilio_radar/editorial_content.py \
+            affilio_radar/editorial_publisher.py \
+            affilio_radar/merge_video_destination_state.py
           cd affilio_radar
           python -m unittest -v \
             test_shared_selection_media_routing.py \
-            test_aparat_upload_schedule.py \
-            test_filo_upload_schedule.py \
-            test_filo_uploader.py \
-            test_short_video.py
+            test_editorial_content.py \
+            test_editorial_publisher.py \
+            test_merge_video_destination_state.py
 
       - name: Verify Filo login without publishing
-        if: steps.video_queue.outputs.has_video_records == 'true'
+        id: filo_login
+        if: matrix.destination == 'filo'
         continue-on-error: true
         env:
           FILO_USER: ${{ secrets.FILO_USER }}
@@ -109,9 +99,12 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py --filo-login-check-only
 
-      - name: Publish the active editorial video before newer product videos
-        if: steps.video_queue.outputs.has_video_records == 'true'
+      - name: Publish the active editorial item to this destination only
+        if: matrix.destination != 'filo' || steps.filo_login.outcome == 'success'
         env:
+          OFFERCHIN_EDITORIAL_VIDEO_DESTINATION: ${{ matrix.destination }}
+          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: "true"
+          OFFERCHIN_EDITORIAL_MAX_ATTEMPTS: "3"
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
@@ -122,21 +115,11 @@ jobs:
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
           FILO_USER: ${{ secrets.FILO_USER }}
           FILO_PASS: ${{ secrets.FILO_PASS }}
-          OFFERCHIN_EDITORIAL_MAX_ATTEMPTS: "3"
-          OFFERCHIN_EDITORIAL_PUBLISH_ENABLED: "true"
           PYTHONUNBUFFERED: "1"
-        run: |
-          if [[ "${OFFERCHIN_EDITORIAL_PUBLISH_ENABLED,,}" == "true" ]]; then
-            echo "EDITORIAL_VIDEO_PUBLISH_FEATURE_ENABLED_BEFORE_NEWER_PRODUCT_FIFO"
-            python affilio_radar/editorial_publisher.py --videos-only --publish
-          else
-            echo "EDITORIAL_VIDEO_SHADOW_ONLY_PUBLIC_PUBLISH_DISABLED"
-            python affilio_radar/editorial_publisher.py --videos-only
-          fi
+        run: python affilio_radar/editorial_publisher.py --videos-only --publish
 
-
-      - name: Fan out the same FIFO to YouTube, Aparat and Filo
-        if: steps.video_queue.outputs.has_video_records == 'true'
+      - name: Publish product videos to this destination only
+        if: matrix.destination != 'filo' || steps.filo_login.outcome == 'success'
         env:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
@@ -149,48 +132,87 @@ jobs:
           APARAT_CATEGORY_ID: ${{ vars.APARAT_CATEGORY_ID || '5' }}
           FILO_USER: ${{ secrets.FILO_USER }}
           FILO_PASS: ${{ secrets.FILO_PASS }}
-          # Legacy pacing variables are explicitly zero and ignored by the new policy.
           AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "0"
           AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS: "0"
           AFFILIO_FILO_UPLOAD_INTERVAL_HOURS: "0"
           AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT: "250"
           AFFILIO_VIDEO_UPLOAD_MAX_AGE_HOURS: "0"
           AFFILIO_MAX_VIDEO_UPLOAD_ATTEMPTS: "3"
-          # One product per lock acquisition; the minute dispatcher resumes the FIFO\n          # after completion. The 20-minute timeout stays inside the 30-minute\n          # channel-priority window so scheduled photo posts are not starved.\n          AFFILIO_MAX_SHORT_VIDEOS_PER_RUN: "1"
+          AFFILIO_MAX_SHORT_VIDEOS_PER_RUN: "1"
           PYTHONUNBUFFERED: "1"
-        run: python affilio_radar/affilio_radar.py --all-video-upload-only
+        run: |
+          case "${{ matrix.destination }}" in
+            youtube) python affilio_radar/affilio_radar.py --youtube-upload-only ;;
+            aparat) python affilio_radar/affilio_radar.py --aparat-upload-only ;;
+            filo) python affilio_radar/affilio_radar.py --filo-upload-only ;;
+            *) echo "Unsupported video destination"; exit 2 ;;
+          esac
 
-      - name: Preserve rendered video artifacts for diagnostics
-        if: ${{ always() && steps.video_queue.outputs.has_video_records == 'true' }}
+      - name: Preserve generated video for diagnostics
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: offerchin-unified-videos-${{ github.run_id }}
+          name: offerchin-video-artifacts-${{ matrix.destination }}
           path: video_artifacts/*.mp4
           if-no-files-found: ignore
           retention-days: 3
 
-      - name: Persist all per-destination outcomes
-        if: ${{ always() && steps.video_queue.outputs.has_video_records == 'true' }}
+      - name: Upload destination-scoped state delta
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offerchin-video-state-${{ matrix.destination }}
+          path: |
+            affilio_radar/state.base.json
+            affilio_radar/state.json
+          if-no-files-found: error
+          retention-days: 2
+
+  merge:
+    name: Merge independent destination receipts
+    if: always()
+    needs: upload
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out latest main state
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 100
+
+      - name: Download independent destination state deltas
+        uses: actions/download-artifact@v4
+        with:
+          pattern: offerchin-video-state-*
+          path: ${{ runner.temp }}/offerchin-video-states
+          merge-multiple: false
+
+      - name: Merge only destination-scoped state changes
+        env:
+          PYTHONUNBUFFERED: "1"
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [[ -f affilio_radar/state.json ]] && ! git diff --quiet -- affilio_radar/state.json; then
-            git add affilio_radar/state.json
-            if [[ -f affilio_radar/video_upload_dispatch_state.json ]]; then
-              git add affilio_radar/video_upload_dispatch_state.json
+          for attempt in 1 2 3 4 5; do
+            if [[ "$attempt" -gt 1 ]]; then
+              git fetch origin main
+              git reset --hard origin/main
             fi
-            git commit -m "chore: persist unified OfferChin video outcomes [skip ci]"
-            for attempt in 1 2 3; do
-              if git pull --rebase origin main && git push; then
-                echo "UNIFIED_VIDEO_STATE_PERSISTED attempt=$attempt"
-                exit 0
-              fi
-              git rebase --abort 2>/dev/null || true
-              echo "Video state persistence attempt $attempt failed; retrying."
-              sleep $((attempt * 2))
-            done
-            echo "UNIFIED_VIDEO_STATE_PERSIST_FAILED; the next minute-dispatcher run will reconcile pending outcomes."
-            exit 1
-          else
-            echo "No unified video-state changes to persist."
-          fi
+            python affilio_radar/merge_video_destination_state.py \
+              --artifacts-root "${{ runner.temp }}/offerchin-video-states"
+            if git diff --quiet -- affilio_radar/state.json affilio_radar/video_upload_dispatch_state.json; then
+              echo "NO_VIDEO_STATE_DELTA_TO_COMMIT"
+              exit 0
+            fi
+            git add affilio_radar/state.json affilio_radar/video_upload_dispatch_state.json
+            git commit -m "chore: merge independent OfferChin video destination receipts [skip ci]"
+            if git push origin HEAD:main; then
+              echo "VIDEO_DESTINATION_STATE_MERGED attempt=$attempt"
+              exit 0
+            fi
+            echo "Concurrent main update detected; refreshing and re-merging scoped deltas."
+            sleep $((attempt * 2))
+          done
+          echo "VIDEO_DESTINATION_STATE_MERGE_FAILED"
+          exit 1
