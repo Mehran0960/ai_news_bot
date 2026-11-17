@@ -7572,178 +7572,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-21066186",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21066186%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "6485",
-        "catalog_best_selling_category_name": "ریمل",
-        "catalog_best_selling_rank": 29,
-        "catalog_best_selling_ranks_by_category": {
-          "6485": {
-            "category_name": "ریمل",
-            "observed_at": "2026-11-16T07:07:55.751109+00:00",
-            "rank": 29,
-            "rank_history": [
-              {
-                "category_name": "ریمل",
-                "observed_at": "2026-11-16T07:07:55.751109+00:00",
-                "rank": 29
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T07:39:30.980343+00:00",
-        "catalog_cycle_snapshot_rank": 171,
-        "catalog_rank_observed_at": "2026-11-16T07:07:55.751109+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-16T07:56:37.324271+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-21066186",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 887000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 13.4,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 40.78,
-        "discount_percent": 17,
-        "discount_vs_30d_median_pct": -8,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T07:56:53.059230+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 887000,
-        "history_low_toman": 762500,
-        "history_median_toman": 824750,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 887000,
-        "history_start_day": "2026-11-15",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/78721977ae44ea6640d266f1ba92b8ffcc20cc51_1765713348.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "affordability": 81.82,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 38.41,
-          "discount_attractiveness": 40.78,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 84.36,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "6485",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T07:57:06.113338+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "original_price": 1066346,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-21066186",
-        "product_url": "https://www.digikala.com/product/dkp-21066186/",
-        "promo_score": 14,
-        "publication_policy": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-        "qualifies_as_deal": true,
-        "rating": 3.34,
-        "recent_review_growth_7d": 1,
-        "recent_review_growth_window": 1,
-        "review_count": 167,
-        "savings_toman": 179346,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 29,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "affordability": 81.82,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 38.41,
-          "discount_attractiveness": 40.78,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 84.36,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "6485",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T07:57:06.113338+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1198,
-        "title": "ریمل رنگی کالیستا مدل Pastella رنگ قهوه ای"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-21066186",
-      "product_plan_cycle_id": "2026-11-16T07:39:30.980343+00:00",
-      "selected_at": "2026-11-16T07:57:09.877569+00:00",
-      "sequence_number": 1198,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T08:15:12.415463+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-21111292",
       "content_type": "product",
       "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
@@ -43487,6 +43315,188 @@
       "sequence_number": 1449,
       "status": "published",
       "updated_at": "2026-11-16T23:58:25.088737+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-22683249",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-16T23:59:32.039392+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-16T23:59:04.009405+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22683249%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "A",
+        "catalog_best_selling_category_id": "11373",
+        "catalog_best_selling_category_name": "سرهمی زنانه",
+        "catalog_best_selling_rank": 8,
+        "catalog_best_selling_ranks_by_category": {
+          "11373": {
+            "category_name": "سرهمی زنانه",
+            "observed_at": "2026-11-16T22:05:21.650715+00:00",
+            "rank": 8,
+            "rank_history": [
+              {
+                "category_name": "سرهمی زنانه",
+                "observed_at": "2026-11-16T22:05:21.650715+00:00",
+                "rank": 8
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-16T22:44:40.746589+00:00",
+        "catalog_cycle_snapshot_rank": 694,
+        "catalog_rank_observed_at": "2026-11-16T22:05:21.650715+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "other",
+        "checked_at": "2026-11-16T23:23:10.877622+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-22683249",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 8900000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 59.7,
+        "discount_percent": 32,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-16T23:23:42.298308+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-16",
+        "history_high_toman": 8900000,
+        "history_low_toman": 8900000,
+        "history_median_toman": 8900000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-16",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/6a96d78e66e5b37cfa6215ddb9ec073b0a91a95e_1788785424.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 36.4,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 59.7,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 18.0,
+          "generality_group": "catalog_taxonomy_other",
+          "live_demand": 98.8,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-16T23:23:42.300634+00:00",
+          "weakest_factor_score": 18.0
+        },
+        "original_price": 13000000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-22683249",
+        "product_url": "https://www.digikala.com/product/dkp-22683249/",
+        "promo_score": 31,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 5.0,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 2,
+        "savings_toman": 4100000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 8,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 36.4,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 59.7,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 18.0,
+          "generality_group": "catalog_taxonomy_other",
+          "live_demand": 98.8,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-16T23:23:42.300634+00:00",
+          "weakest_factor_score": 18.0
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1450,
+        "title": "سرهمی مجلسی زنانه مدل مینا",
+        "variant_label": "مشکی 38"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-16T23:59:32.039392+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-16T23:59:49.878787+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-16T23:59:32.039392+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-16T23:59:32.039392+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-16T23:59:56.821137+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-16T23:59:32.039392+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-16T23:59:46.525599+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-22683249",
+      "product_plan_cycle_id": "2026-11-16T23:22:31.379757+00:00",
+      "scheduled_at": "2026-11-16T23:59:04.009405+00:00",
+      "selected_at": "2026-11-16T23:23:53.538513+00:00",
+      "sequence_number": 1450,
+      "status": "published",
+      "updated_at": "2026-11-16T23:59:58.071706+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -43501,7 +43511,7 @@
       "attempt_count": 0,
       "content_id": "dkp-12047413",
       "content_type": "product",
-      "next_attempt_at": "2026-11-16T23:59:42.936030+00:00",
+      "next_attempt_at": "2026-11-17T00:00:09.964059+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-12047413%2F",
         "availability": "in_stock",
@@ -43662,180 +43672,9 @@
       },
       "product_id": "dkp-12047413",
       "product_plan_cycle_id": "2026-11-16T23:22:31.379757+00:00",
-      "scheduled_at": "2026-11-16T23:59:42.936030+00:00",
+      "scheduled_at": "2026-11-17T00:00:09.964059+00:00",
       "selected_at": "2026-11-16T23:32:17.621141+00:00",
       "sequence_number": 1452,
-      "status": "queued"
-    },
-    "dkp-22683249": {
-      "attempt_count": 0,
-      "content_id": "dkp-22683249",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-16T23:59:04.009405+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22683249%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "11373",
-        "catalog_best_selling_category_name": "سرهمی زنانه",
-        "catalog_best_selling_rank": 8,
-        "catalog_best_selling_ranks_by_category": {
-          "11373": {
-            "category_name": "سرهمی زنانه",
-            "observed_at": "2026-11-16T22:05:21.650715+00:00",
-            "rank": 8,
-            "rank_history": [
-              {
-                "category_name": "سرهمی زنانه",
-                "observed_at": "2026-11-16T22:05:21.650715+00:00",
-                "rank": 8
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T22:44:40.746589+00:00",
-        "catalog_cycle_snapshot_rank": 694,
-        "catalog_rank_observed_at": "2026-11-16T22:05:21.650715+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-16T23:23:10.877622+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22683249",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 8900000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 59.7,
-        "discount_percent": 32,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T23:23:42.298308+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 8900000,
-        "history_low_toman": 8900000,
-        "history_median_toman": 8900000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/6a96d78e66e5b37cfa6215ddb9ec073b0a91a95e_1788785424.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 36.4,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 59.7,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 98.8,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T23:23:42.300634+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "original_price": 13000000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-22683249",
-        "product_url": "https://www.digikala.com/product/dkp-22683249/",
-        "promo_score": 31,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 5.0,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 2,
-        "savings_toman": 4100000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 8,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 36.4,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 59.7,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 98.8,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T23:23:42.300634+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1450,
-        "title": "سرهمی مجلسی زنانه مدل مینا",
-        "variant_label": "مشکی 38"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22683249",
-      "product_plan_cycle_id": "2026-11-16T23:22:31.379757+00:00",
-      "scheduled_at": "2026-11-16T23:59:04.009405+00:00",
-      "selected_at": "2026-11-16T23:23:53.538513+00:00",
-      "sequence_number": 1450,
       "status": "queued"
     },
     "dkp-22837377": {
@@ -199931,12 +199770,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-16T23:58:25.082780+00:00",
+  "last_channel_published_at": "2026-11-16T23:59:58.065463+00:00",
   "last_content_selection_at": "2026-11-16T23:32:17.621141+00:00",
   "last_editorial_attempt_at": "2026-11-16T23:49:18.803343+00:00",
   "last_editorial_confirmed_at": "2026-11-16T23:40:47.873727+00:00",
-  "last_product_channel_published_at": "2026-11-16T23:58:25.082780+00:00",
-  "last_published_at": "2026-11-16T23:58:25.082780+00:00",
+  "last_product_channel_published_at": "2026-11-16T23:59:58.065463+00:00",
+  "last_published_at": "2026-11-16T23:59:58.065463+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -247997,8 +247836,8 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-16T23:58:25.082788+00:00",
-    "candidate_count": 3,
+    "calculated_at": "2026-11-16T23:59:58.065473+00:00",
+    "candidate_count": 2,
     "catalog_cycle_id": "2026-11-16T23:22:31.379757+00:00",
     "current_cycle_started_at": "2026-11-16T23:22:31.862655+00:00",
     "daily_post_limit": 72,
@@ -248006,41 +247845,40 @@
     "estimated_clean_cycle_seconds": 2270,
     "estimated_next_clean_scan_at": "2026-11-17T00:00:21.862655+00:00",
     "first_slot_due_now": false,
-    "interval_minutes": 0.649,
-    "interval_seconds": 38.926625,
+    "interval_minutes": 0.198,
+    "interval_seconds": 11.898596,
     "last_clean_cycle_completed_at": "2026-11-16T23:22:31.379757+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-16T23:58:25.082780+00:00",
+    "plan_anchor_at": "2026-11-16T23:59:58.065463+00:00",
     "plan_anchor_kind": "last_product",
-    "planned_product_slots": 3,
+    "planned_product_slots": 2,
     "planned_window_end_at": "2026-11-17T00:00:21.862655+00:00",
     "policy": "even_scan_window_spacing_capped_at_57_minutes_with_provisional_fallback_when_eta_overdue",
     "scan_eta_is_provisional": false,
     "scan_eta_source": "last_observed_full_cycle_duration",
     "scheduled_product_count": 13,
-    "seconds_from_plan_anchor_to_next_scan": 116.779875,
-    "seconds_until_estimated_next_clean_scan": 116.779867
+    "seconds_from_plan_anchor_to_next_scan": 23.797192,
+    "seconds_until_estimated_next_clean_scan": 23.797182
   },
-  "product_publication_interval_seconds": 38.926625,
+  "product_publication_interval_seconds": 11.898596,
   "product_publication_plan": {
-    "anchor_at": "2026-11-16T23:58:25.082780+00:00",
+    "anchor_at": "2026-11-16T23:59:58.065463+00:00",
     "anchor_kind": "last_product",
     "catalog_cycle_id": "2026-11-16T23:22:31.379757+00:00",
     "first_slot_due_now": false,
-    "interval_minutes": 0.649,
-    "interval_seconds": 38.926625,
+    "interval_minutes": 0.198,
+    "interval_seconds": 11.898596,
     "maximum_product_interval_seconds": 3420,
     "next_clean_scan_at": "2026-11-17T00:00:21.862655+00:00",
-    "pending_product_count": 3,
+    "pending_product_count": 2,
     "product_ids": [
-      "dkp-22683249",
       "dkp-12047413",
       "dkp-22837377"
     ],
-    "scheduled_product_count": 3,
-    "updated_at": "2026-11-16T23:58:25.082788+00:00"
+    "scheduled_product_count": 2,
+    "updated_at": "2026-11-16T23:59:58.065473+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-16T23:58:25.082780+00:00",
+  "product_publication_plan_anchor_at": "2026-11-16T23:59:58.065463+00:00",
   "product_publication_plan_anchor_kind": "last_product",
   "product_publication_plan_cycle_id": "2026-11-16T23:22:31.379757+00:00",
   "publication_diversity_fallback_count": 5307,
@@ -355899,6 +355737,134 @@
       "ts": 1793251321.90218,
       "video_generation_status": "skipped_expiring_soon",
       "youtube_upload_status": "skipped_expiring_soon"
+    },
+    "dkp-22683249": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2205,
+      "bale_posted_at": "2026-11-16T23:59:49.878787+00:00",
+      "brand": "",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "A",
+      "catalog_best_selling_category_id": "11373",
+      "catalog_best_selling_category_name": "سرهمی زنانه",
+      "catalog_best_selling_rank": 8,
+      "catalog_best_selling_ranks_by_category": {
+        "11373": {
+          "category_name": "سرهمی زنانه",
+          "observed_at": "2026-11-16T22:05:21.650715+00:00",
+          "rank": 8,
+          "rank_history": [
+            {
+              "category_name": "سرهمی زنانه",
+              "observed_at": "2026-11-16T22:05:21.650715+00:00",
+              "rank": 8
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-16T22:44:40.746589+00:00",
+      "catalog_cycle_snapshot_rank": 694,
+      "catalog_rank_observed_at": "2026-11-16T22:05:21.650715+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-22683249",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "B",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-16T23:59:56.821162+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 0,
+      "distribution_queue_id": "dkp-22683249:2026-11-16T23:23:53.538513+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-16T23:23:42.298308+00:00",
+      "history_days": 1,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/6a96d78e66e5b37cfa6215ddb9ec073b0a91a95e_1788785424.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "not_checked",
+      "platform_message_ids": {
+        "rubika": "1974327751335588651"
+      },
+      "posted_current_price": 8900000,
+      "posted_discount_percent": 32,
+      "posted_original_price": 13000000,
+      "product_url": "https://www.digikala.com/product/dkp-22683249/",
+      "promo_score": 31,
+      "publication_category": "other",
+      "publication_family": "digikala_category:11373",
+      "publication_use_case": "catalog_taxonomy_other",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 0.0,
+      "rubika_posted_at": "2026-11-16T23:59:56.821137+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 8,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 36.4,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 59.7,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 18.0,
+        "generality_group": "catalog_taxonomy_other",
+        "live_demand": 98.8,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-16T23:23:42.300634+00:00",
+        "weakest_factor_score": 18.0
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1450,
+      "telegram_message_id": 1652,
+      "telegram_posted_at": "2026-11-16T23:59:46.525599+00:00",
+      "title": "سرهمی مجلسی زنانه مدل مینا",
+      "ts": 1794873572.039392,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
     },
     "dkp-22689922": {
       "aparat_upload_status": "pending",
