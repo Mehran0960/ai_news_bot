@@ -232,5 +232,64 @@ class EditorialContentTests(unittest.TestCase):
         self.assertEqual(len(state["editorial_delivery_history"]), 1)
 
 
+    def test_publication_history_distinguishes_reuse_from_destination_receipts(self):
+        state = {}
+        first = select_editorial_fallback([item()], state, now=NOW)
+        first["sequence_number"] = 101
+        record_editorial_delivery(
+            state, first, published_at=NOW,
+            destinations={"telegram": {"status": "sent", "message_id": "tg-1"}},
+        )
+        record_editorial_delivery(
+            state, first, published_at=NOW + timedelta(minutes=1),
+            destinations={
+                "telegram": {"status": "sent", "message_id": "tg-1"},
+                "bale": {"status": "sent", "message_id": "ba-1"},
+            },
+        )
+        self.assertEqual(len(state["editorial_delivery_history"]), 1)
+        first_row = state["editorial_delivery_history"][0]
+        self.assertEqual(first_row["destinations"]["telegram"]["message_id"], "tg-1")
+        self.assertEqual(first_row["destinations"]["bale"]["message_id"], "ba-1")
+        self.assertEqual(first_row["published_at"], (NOW + timedelta(minutes=1)).isoformat())
+
+        second = dict(first)
+        second["sequence_number"] = 102
+        second_at = NOW + timedelta(hours=25)
+        record_editorial_delivery(
+            state, second, published_at=second_at,
+            destinations={"telegram": {"status": "sent", "message_id": "tg-2"}},
+        )
+        self.assertEqual(len(state["editorial_delivery_history"]), 2)
+        self.assertEqual(
+            [row["sequence_number"] for row in state["editorial_delivery_history"]],
+            [101, 102],
+        )
+        self.assertIsNone(
+            select_editorial_fallback([item()], state, now=second_at + timedelta(hours=1))
+        )
+
+    def test_topic_cooldown_is_enforced_even_with_a_new_editorial_id(self):
+        state = {}
+        original = item("first-delivery-guide", "purchase-planning")
+        original["title"] = "راهنمای تحویل سفارش را بررسی کن"
+        original["body"] = "بازه تحویل، نشانی و روش ارسال را پیش از پرداخت بررسی کن."
+        first = select_editorial_fallback([original], state, now=NOW)
+        first["sequence_number"] = 1
+        record_editorial_delivery(
+            state, first, published_at=NOW,
+            destinations={"telegram": {"status": "sent"}},
+        )
+        distinct = item("second-delivery-guide", "purchase-planning")
+        distinct["title"] = "زمان پردازش و ارسال را جداگانه بررسی کن"
+        distinct["body"] = "زمان آماده‌سازی، تحویل به حامل و بازه دریافت را با هم اشتباه نگیر."
+        self.assertIsNone(
+            select_editorial_fallback([distinct], state, now=NOW + timedelta(hours=3))
+        )
+        self.assertIsNotNone(
+            select_editorial_fallback([distinct], state, now=NOW + timedelta(hours=5))
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -3040,3 +3040,19 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** انتشار بیشتر در cooldown واقعی YouTube ممکن نیست؛ دورزدن سهمیه قابل اتکا نیست. اصلاح فقط صف را حفظ می‌کند تا در اولین زمان مجاز ادامه یابد. rollback با revert PR و بازگرداندن رفتار قدیمی انجام می‌شود.
 
 **وضعیت:** تغییر در PR #236 منتظر CI است؛ انتشار YouTube تا reset سهمیهٔ API متوقف می‌ماند، ولی سایر رسانه‌ها مستقل‌اند.
+
+## ۲۰۲۶-۱۱-۱۷ — اصلاح تکرار تحریریه و استقلال ارسال مقصدهای تصویری
+
+**هدف:** جلوگیری از انتشار دوبارهٔ یک مطلب تحریریه به‌علت ثبت‌نشدن occurrenceهای بعدی، حذف رقابت ناشر اضطراری و عادی روی یک صف، و جلوگیری از تأخیر میان مقصدهای تصویری.
+
+**تغییر/اقدام:** تاریخچهٔ تحریریه با کلید content_id + sequence_number ثبت می‌شود؛ رسید چند مقصد برای یک نوبت ادغام و ارسال مجدد همان مطلب در نوبت جدید به‌عنوان occurrence جدید ذخیره می‌شود. cooldown موضوع چهار ساعت اعمال شد. Telegram/Bale/Rubika/Eitaa برای تحریریه در workerهای موازی با ادغام رسید مقصدی ارسال می‌شوند. concurrency ناشر اضطراری با ناشر عادی یکسان شد.
+
+**فایل‌ها/سامانه‌ها:** affilio_radar/editorial_content.py، test_editorial_content.py، editorial_publisher.py، test_editorial_publisher.py، .github/workflows/affilio-publisher.yml؛ گزارش: docs/OFFERCHIN_EDITORIAL_REPUBLISH_FIX_2026-11-17_FA.md.
+
+**آزمون و نتیجه:** اجرای PR #237: تست‌های قرارداد تحریریه، اعتبارسنجی مسیرهای ویدئو و گیت مستندات موفق؛ شاخه نیازمند بازپایه‌گذاری روی main قبل از merge.
+
+**شواهد/شناسه:** PR #237؛ شاخهٔ موقت بازپایه‌گذاری: fix/offerchin-editorial-republish-rebase-20261117.
+
+**ریسک/بازگشت:** تغییر در منطق ثبت سابقه و ارسال موازی است؛ rollback فقط کد را revert می‌کند و state/history/receiptها نباید reset شوند.
+
+**وضعیت:** تست‌شده؛ در انتظار بازپایه‌گذاری نهایی و ادغام.

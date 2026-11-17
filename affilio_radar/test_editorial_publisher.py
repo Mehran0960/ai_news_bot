@@ -12,6 +12,7 @@ from PIL import Image
 from editorial_publisher import (
     _finalize_if_terminal,
     _handle_channel_destination,
+    _merge_editorial_channel_worker_state,
     _record_failure,
     _format_message,
     _public_editorial_payload,
@@ -795,6 +796,58 @@ class EditorialPublisherTests(unittest.TestCase):
         state = {"editorial_delivery_queue": {entry["content_id"]: entry}}
         self.assertFalse(_finalize_if_terminal(state, entry, NOW))
         self.assertIn(entry["content_id"], state["editorial_delivery_queue"])
+
+
+    def test_parallel_editorial_channel_results_merge_without_overwriting_peers(self):
+        content_id = "editorial:parallel-guide"
+        entry = {
+            "content_id": content_id,
+            "sequence_number": 55,
+            "platforms": {
+                "telegram": {"status": "sent", "message_id": "tg-55"},
+                "bale": {"status": "pending"},
+                "rubika": {"status": "pending"},
+                "eitaa": {"status": "not_connected"},
+            },
+        }
+        state = {
+            "editorial_delivery_history": [{
+                "content_id": content_id, "sequence_number": 55,
+                "editorial_id": "parallel-guide", "topic": "purchase-planning",
+                "published_at": NOW.isoformat(),
+                "destinations": {"telegram": {"status": "sent", "message_id": "tg-55"}},
+            }],
+            "editorial_cycle": {"used_ids": ["parallel-guide"]},
+        }
+        worker_entry = {
+            "content_id": content_id, "sequence_number": 55,
+            "payload": {"editorial_id": "parallel-guide"},
+            "platforms": {
+                "telegram": {"status": "pending"},
+                "bale": {"status": "sent", "message_id": "ba-55"},
+                "rubika": {"status": "pending"},
+                "eitaa": {"status": "not_connected"},
+            },
+        }
+        worker_state = {
+            "editorial_delivery_queue": {content_id: worker_entry},
+            "editorial_delivery_history": [{
+                "content_id": content_id, "sequence_number": 55,
+                "editorial_id": "parallel-guide", "topic": "purchase-planning",
+                "published_at": (NOW + timedelta(seconds=30)).isoformat(),
+                "destinations": {"bale": {"status": "sent", "message_id": "ba-55"}},
+            }],
+            "last_channel_published_at": (NOW + timedelta(seconds=30)).isoformat(),
+            "last_editorial_confirmed_at": (NOW + timedelta(seconds=30)).isoformat(),
+            "editorial_cycle": {"used_ids": ["parallel-guide"], "last_editorial_id": "parallel-guide"},
+        }
+        self.assertTrue(_merge_editorial_channel_worker_state(state, entry, "bale", worker_state))
+        self.assertEqual(entry["platforms"]["telegram"]["message_id"], "tg-55")
+        self.assertEqual(entry["platforms"]["bale"]["message_id"], "ba-55")
+        row = state["editorial_delivery_history"][0]
+        self.assertEqual(row["destinations"]["telegram"]["message_id"], "tg-55")
+        self.assertEqual(row["destinations"]["bale"]["message_id"], "ba-55")
+        self.assertEqual(row["published_at"], (NOW + timedelta(seconds=30)).isoformat())
 
 
 if __name__ == "__main__":
