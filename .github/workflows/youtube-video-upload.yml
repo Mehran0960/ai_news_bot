@@ -68,7 +68,7 @@ jobs:
           print("YOUTUBE_ONLY_UPLOAD_PATH_VALIDATED")
           PY
           cd affilio_radar
-          python -m unittest -v test_shared_selection_media_routing.py
+          python -m unittest -v test_shared_selection_media_routing.py test_merge_state_conflicts.py
 
       - name: Process only the YouTube video queue
         env:
@@ -106,7 +106,7 @@ jobs:
             fi
             git commit -m "chore: persist independent YouTube upload state [skip ci]"
             for attempt in 1 2 3; do
-              if git pull --rebase origin main && git push; then
+              if (git pull --rebase origin main || python affilio_radar/merge_state_conflicts.py --paths affilio_radar/state.json affilio_radar/video_upload_dispatch_state.json) && git push; then
                 echo "YOUTUBE_STATE_PERSISTED attempt=$attempt"
                 exit 0
               fi
