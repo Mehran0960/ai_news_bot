@@ -830,10 +830,6 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         _save(state)
         print("PUBLISHER_INTEGRITY_LEDGER_APPLIED")
     now = _now()
-    evicted = enforce_queue_limit(state, now=now)
-    if evicted:
-        _save(state)
-        print(f"PUBLISHER_RETRY_QUEUE_BOUNDED evicted={evicted}")
     queue = state.get("content_delivery_queue")
     queue = queue if isinstance(queue, dict) else {}
     due = due_content(state, now=now, limit=MAX_ITEMS_PER_RUN) if queue else []
@@ -866,6 +862,28 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         )
         return 0
     catalog_context = radar.publication_catalog_context()
+    evicted = enforce_queue_limit(state, now=now)
+    if evicted:
+        _save(state)
+        print(f"PUBLISHER_RETRY_QUEUE_BOUNDED evicted={evicted}")
+    queue = state.get("content_delivery_queue")
+    queue = queue if isinstance(queue, dict) else {}
+    due = due_content(state, now=now, limit=MAX_ITEMS_PER_RUN) if queue else []
+    retrying_existing_channel_post = bool(
+        due
+        and isinstance(due[0][1], dict)
+        and _product_has_core_photo_success(due[0][1])
+    )
+    if spacing_wait > 0 and not retrying_existing_channel_post:
+        next_slot = next_channel_publication_at(state)
+        print(
+            "PUBLISHER_SHARED_CHANNEL_SPACING_GUARD_AFTER_QUEUE_BOUND "
+            f"remaining_seconds={spacing_wait} "
+            f"next_slot={next_slot.isoformat() if next_slot else 'unknown'} "
+            f"minimum_gap_seconds={MIN_CHANNEL_POST_INTERVAL_SECONDS}"
+        )
+        _refresh_dispatch_projection(state)
+        return 0
     editorial_before_product = _due_editorial_precedes_product(state, now, due)
     if editorial_before_product is not None:
         # Persist the one-time midpoint attempt before rendering or any outbound side effect.
