@@ -2955,3 +2955,20 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** login verification می‌تواند هم‌زمان با آپلود شروع شود، اما فقط فیلدهای احراز هویت را در state ادغام می‌کند. در صورت شکست persistence، login status قبلی حفظ می‌شود و Workflow آپلود از کار نمی‌افتد. rollback با revert این PR انجام می‌شود.
 
 **وضعیت:** تغییرات در PR پیگیری و منتظر تست‌های خودکار هستند؛ ادغام تا سبزشدن گیت‌ها انجام نمی‌شود.
+
+
+## ۲۰۲۶-۱۱-۱۷ — حذف گیت اختصاصی deadline آپارات برای استقلال انتشار
+
+**هدف:** آپارات به‌دلیل نداشتن timer خرده‌فروش در انتظار نماند، در حالی که صحت و تازگی آفر حفظ شود.
+
+**تغییر/اقدام:** گیت `verified_expiry_required` برای Aparat حذف شد. آفرهای فاقد timer با last-mile price/stock validation ناشر، integrity audit مستقل و سقف تازگی ۲۴ساعته منتشرشدنی هستند. آفر دارای زمان انقضای معتبر که داخل buffer ایمن باشد همچنان در همهٔ مقصدها متوقف می‌شود. وضعیت‌های قبلی `skipped_unverified_deadline` برای Aparat requeue می‌شوند. Worker نیز این موارد را مستقل Dispatch می‌کند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `affilio_radar/short_video.py`، `affilio_radar/test_filo_upload_schedule.py`، `affilio_radar/test_shared_selection_media_routing.py`، `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، Handbook و سیاست استقلال رسانه‌ها.
+
+**آزمون و نتیجه:** تست‌ها برای requeue شدن Aparat بدون timer، حفظ گیت انقضای واقعی و استقلال Worker به‌روزرسانی شدند. نتیجهٔ CI پس از PR ثبت می‌شود.
+
+**شواهد/شناسه:** snapshot عملیاتی ۱۷ نوامبر شامل ۱۱۸ رکورد Aparat با وضعیت `skipped_unverified_deadline` و یک رکورد pending بود؛ علت این توقف، سیاست داخلی deadline بود، نه خطای خود پلتفرم. PR #233.
+
+**ریسک/بازگشت:** در نبود timer، انقضای طبیعی خرده‌فروش به‌صورت زمان دقیق قابل زمان‌بندی نیست؛ ریسک با last-mile price/stock، integrity audit و تازگی ۲۴ساعته کاهش می‌یابد. known near-expiry همچنان fail-closed است. در صورت مشاهدهٔ stale offer، rollback با revert این PR و بازگرداندن گیت انجام می‌شود.
+
+**وضعیت:** تغییر در PR #233 منتظر CI است؛ تا ادغام و Deploy، این گیت در نسخهٔ زنده هنوز فعال است.
