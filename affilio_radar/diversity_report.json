@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-17T11:54:23.272748+00:00",
+  "generated_at": "2026-11-17T11:59:21.084020+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
@@ -168,7 +168,6 @@
       "لوبیای محلی و ارگانیک": 1,
       "لپه محلی و ارگانیک": 1,
       "ماوس پد": 1,
-      "مایو و لباس شنای مردانه": 1,
       "مبدل": 1,
       "مجموعه هودی مردانه": 1,
       "محافظ و آبگیر کنار سینک": 1,
@@ -219,41 +218,41 @@
       "other": 25,
       "personal_care": 11,
       "power_backup": 2,
-      "sports_outdoor": 6
+      "sports_outdoor": 5
     },
     "category_share_percent": {
       "automotive": 1.9,
       "beauty_fragrance": 1.0,
       "books_stationery": 1.0,
-      "computer_network": 4.8,
+      "computer_network": 4.9,
       "digital_accessories": 2.9,
-      "fashion": 14.4,
+      "fashion": 14.6,
       "gaming": 1.9,
-      "grocery_food": 12.5,
-      "home": 6.7,
+      "grocery_food": 12.6,
+      "home": 6.8,
       "home_cleaning": 1.9,
       "kids_sports": 5.8,
       "large_appliances": 1.0,
       "mobile_devices": 1.9,
-      "other": 24.0,
-      "personal_care": 10.6,
+      "other": 24.3,
+      "personal_care": 10.7,
       "power_backup": 1.9,
-      "sports_outdoor": 5.8
+      "sports_outdoor": 4.9
     },
-    "distinct_catalog_categories": 101,
+    "distinct_catalog_categories": 100,
     "distinct_categories": 17,
-    "distinct_families": 104,
+    "distinct_families": 103,
     "distinct_retailers": 1,
     "distinct_use_cases": 18,
     "known_brand_posts": 46,
-    "posts": 104,
+    "posts": 103,
     "repeated_brand_count": 2,
     "repeated_brands": {
       "brand:تکسان": 2,
       "brand:مری_کینگ": 2
     },
     "retailer_post_counts": {
-      "digikala": 104
+      "digikala": 103
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -263,7 +262,7 @@
       "baby_care": 3,
       "books_learning": 2,
       "catalog_taxonomy_other": 17,
-      "fashion_lifestyle": 14,
+      "fashion_lifestyle": 13,
       "gaming": 3,
       "general": 1,
       "grocery_food": 16,
@@ -594,30 +593,13 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1590,
+    "all_time_count": 1591,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "family_repeat": 397,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-17T00:54:45.826169+00:00",
-        "brand": "brand:هایک_سمی",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "home",
-        "compared_to_product_id": "dkp-532451",
-        "family": "home:kitchen",
-        "product_id": "dkp-17125980",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "اس اس دی اینترنال SATA III هایک سمی مدل WAVE S ظرفیت 256 گیگابایت",
-        "use_case": "home_living"
-      },
       {
         "at": "2026-11-17T01:13:12.440810+00:00",
         "brand": "brand:هایک_سمی",
@@ -940,6 +922,23 @@
         ],
         "title": "ست بلوز و شلوار راحتی زنانه مدل گل کد A1111",
         "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-17T11:59:21.084020+00:00",
+        "brand": "brand:مکران",
+        "catalog_category_id": "11154",
+        "catalog_category_name": "ست تی‌شرت و شلوارک ورزشی مردانه",
+        "category": "sports_outdoor",
+        "compared_to_product_id": "dkp-21043100",
+        "family": "digikala_category:11154",
+        "product_id": "dkp-17464311",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ست تی‌شرت آستین کوتاه و شلوارک ورزشی مردانه مکران مدل شیراز",
+        "use_case": "sports_fitness"
       }
     ]
   }
