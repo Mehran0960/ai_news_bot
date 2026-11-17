@@ -519,8 +519,6 @@ export function videoRecordDue(record, platform, now) {
   if (expiry !== null && expiry <= timestamp + 10 * 60 * 1000) return false;
   const verifiedExpiry = hasVerifiedVideoExpiry(record);
 
-  if (platform === "aparat" && !verifiedExpiry) return false;
-
   if (generation === "skipped_expiring_soon") {
     // Only a directly verified, still-live deadline can reactivate an old skip.
     return verifiedExpiry && (
@@ -536,12 +534,16 @@ export function videoRecordDue(record, platform, now) {
       return VIDEO_PENDING_STATUSES.has(status) || status === "skipped_unverified_deadline";
     }
     if (platform === "aparat") {
-      return verifiedExpiry && (
-        VIDEO_PENDING_STATUSES.has(status) || status === "skipped_unverified_deadline"
-      );
+      return VIDEO_PENDING_STATUSES.has(status) || status === "skipped_unverified_deadline";
     }
     return false;
   }
+
+  if (
+    platform === "aparat" &&
+    ["pending", "generated"].includes(generation) &&
+    status === "skipped_unverified_deadline"
+  ) return true;
 
   return VIDEO_PENDING_STATUSES.has(status);
 }
