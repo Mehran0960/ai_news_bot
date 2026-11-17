@@ -560,6 +560,10 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertIn("به یک زمان عمومی تکیه نکن", message)
         for forbidden in ("منبع:", "consumer.ftc.gov", "digikala.com/mag/", "aflo.ir", "پیوند همکاری در فروش", "مشاهدهٔ پیشنهاد مرتبط"):
             self.assertNotIn(forbidden, message)
+        video_description = _video_description(item)
+        self.assertIn("به یک زمان عمومی تکیه نکن", video_description)
+        for forbidden in ("منبع:", "digikala.com/mag/", "aflo.ir", "پیوند همکاری در فروش", "مشاهدهٔ پیشنهاد مرتبط"):
+            self.assertNotIn(forbidden, video_description)
 
         bale = _format_message(item, html_mode=True, platform="bale")
         self.assertIn("راهنمای کوتاه خرید آگاهانه", bale)
