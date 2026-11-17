@@ -511,6 +511,8 @@ export function videoRecordDue(record, platform, now) {
   const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
   const status = String(record[platform + "_upload_status"] || "").trim().toLowerCase();
   const generation = String(record.video_generation_status || "").trim().toLowerCase();
+  const retryAt = dateValue(record[platform + "_next_attempt_at"]);
+  if (retryAt !== null && retryAt > timestamp) return false;
   if (!["pending", "generated", "skipped_expiring_soon", "skipped_unverified_deadline"].includes(generation)) {
     return false;
   }
@@ -545,6 +547,14 @@ export function videoRecordDue(record, platform, now) {
     status === "skipped_unverified_deadline"
   ) return true;
 
+  if (
+    platform === "youtube" &&
+    status === "skipped_platform_limit" &&
+    ["youtube_daily_quota_pause", "youtube_http_429_rate_limited"].includes(
+      String(record.youtube_skip_reason || "")
+    )
+  ) return true;
+
   return VIDEO_PENDING_STATUSES.has(status);
 }
 
@@ -560,12 +570,15 @@ export function isFiloLoginVerified(state, now) {
   );
 }
 
-export function hasDueVideoRecord(state, platform, now) {
+export function hasDueVideoRecord(state, platform, now = Date.now()) {
+  if (platform === "youtube") {
+    const pauseUntil = dateValue(state && state.youtube_uploads_paused_until);
+    if (pauseUntil !== null && pauseUntil > now) return false;
+  }
   const published = state && state.published && typeof state.published === "object"
     ? state.published : {};
   // The compact dispatcher sidecar already caps this at the 250 most recent
-  // selected-product records. Do not inspect only the newest six: that can
-  // hide an older pending upload behind six newer completed uploads.
+  // selected-product records. Do not inspect only the newest six.
   return Object.values(published).some(record => videoRecordDue(record, platform, now));
 }
 
