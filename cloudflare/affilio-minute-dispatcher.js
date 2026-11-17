@@ -627,20 +627,10 @@ export function hasPendingVideoQueue(state, now = Date.now()) {
 // Video uploads share the publication-state lock with channel publishing.
 // Keep a full bounded video-run window plus a safety margin before the next
 // reserved channel/editorial slot, but do not wait for every future slot to vanish.
-export const VIDEO_CHANNEL_PRIORITY_WINDOW_MS = 30 * 60 * 1000;
-
-export function videoQueueDispatchDeferReason(
-  state,
-  publisherActive = false,
-  now = Date.now()
-) {
+export function videoQueueDispatchDeferReason(state, _publisherActive = false, now = Date.now()) {
+  // Destination jobs merge only their own receipts. Photo channel schedules and
+  // locks never reserve, delay or cancel a video destination.
   if (!hasPendingVideoQueue(state, now)) return "video_queue_empty";
-  const nextDueAt = nextPublisherDueAt(state);
-  const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
-  if (nextDueAt !== null && nextDueAt <= timestamp + VIDEO_CHANNEL_PRIORITY_WINDOW_MS) {
-    return "channel_content_slot_imminent";
-  }
-  if (publisherActive) return "publisher_workflow_active";
   return null;
 }
 
@@ -648,34 +638,22 @@ export function videoQueueDispatchDeferReason(
 async function dispatchVideoUploadsWhenDue(env, tick, state) {
   if (!state || !env.GITHUB_TOKEN) return;
 
-  const preliminaryReason = videoQueueDispatchDeferReason(
-    state, false, tick.getTime()
-  );
-  if (preliminaryReason) {
-    if (preliminaryReason !== "video_queue_empty") {
-      console.log("OFFERCHIN_VIDEO_DISPATCH_DEFERRED reason=" + preliminaryReason);
+  const deferReason = videoQueueDispatchDeferReason(state, false, tick.getTime());
+  if (deferReason) {
+    if (deferReason !== "video_queue_empty") {
+      console.log("OFFERCHIN_VIDEO_DISPATCH_DEFERRED reason=" + deferReason);
     }
     return;
   }
 
-  // Catalog sweep uses its own concurrency group and checkpoints only catalog
-  // ledgers. It must not starve the video queue while no channel slot is planned.
-  // The main product publisher still owns the shared publication-state lock.
-  const activePublisher = await findActiveWorkflow(PUBLISHER_API, env.GITHUB_TOKEN);
-  const deferReason = videoQueueDispatchDeferReason(
-    state, Boolean(activePublisher), tick.getTime()
-  );
-  if (deferReason) {
-    console.log("OFFERCHIN_VIDEO_DISPATCH_DEFERRED reason=" + deferReason);
-    return;
-  }
-
+  // The coordinator serializes only its own matrix runs. Photo-channel publishing
+  // and catalog discovery have separate workflows/concurrency and never gate this path.
   await dispatchWorkflowIfIdle(
     VIDEO_PUBLISHER_API,
     env.GITHUB_TOKEN,
     VIDEO_PUBLISHER_WORKFLOW,
-    45,
-    30
+    35,
+    20
   );
 }
 async function runScheduledCheck(env, scheduledTime) {
