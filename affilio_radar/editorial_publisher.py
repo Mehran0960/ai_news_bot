@@ -21,6 +21,7 @@ from content_delivery import (
     allocate_publication_sequence,
     channel_publication_wait_seconds,
     editorial_delivery_p90_seconds,
+    editorial_dispatch_poll_seconds,
     editorial_dispatch_runway_seconds,
     get_last_channel_published_at,
     next_channel_publication_at,
@@ -368,8 +369,11 @@ def queue_editorial_if_due(
         current,
         anchor + timedelta(seconds=editorial_gap_seconds),
     )
-    product_gap_seconds = channel_post_interval_seconds(
-        f"product-after-editorial:{related_product_id}:{product_entry.get('sequence_number', '')}"
+    product_gap_seconds = max(
+        MIN_CHANNEL_POST_INTERVAL_SECONDS + editorial_dispatch_poll_seconds(),
+        channel_post_interval_seconds(
+            f"product-after-editorial:{related_product_id}:{product_entry.get('sequence_number', '')}"
+        ),
     )
     original_product_at = product_at
     reserved_product_at = max(
@@ -1253,8 +1257,9 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         return 0
 
     window_closes_at = _utc(entry.get("window_closes_at"))
-    if window_closes_at is not None and current.astimezone(timezone.utc) >= window_closes_at:
+    if window_closes_at is not None and current.astimezone(timezone.utc) > window_closes_at:
         entry["status"] = "cancelled"
+        _release_failed_editorial_product_reservation(state, entry)
         entry["last_detail"] = "editorial_dispatch_window_closed_before_product"
         queue = state.get("editorial_delivery_queue")
         if isinstance(queue, dict):
