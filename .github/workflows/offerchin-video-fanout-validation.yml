@@ -26,6 +26,7 @@ on:
       - ".github/workflows/youtube-video-upload.yml"
       - ".github/workflows/aparat-video-upload.yml"
       - ".github/workflows/offerchin-publisher.yml"
+      - ".github/workflows/affilio-publisher.yml"
       - ".github/workflows/offerchin-video-fanout-validation.yml"
       - "docs/OFFERCHIN_SHARED_SELECTION_MEDIA_ROUTING_FA.md"
       - "docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md"
@@ -89,8 +90,11 @@ jobs:
           # The standard product publisher must not start a long video job while
           # it still owns the shared state/concurrency pipeline.
           assert "offerchin-video-publisher.yml" not in publisher
-          # The legacy emergency publisher retains its separately authorized path.
-          assert "offerchin-video-publisher.yml" in emergency
+          # Emergency recovery dispatches each video destination separately too.
+          assert "youtube-video-upload.yml" in emergency
+          assert "aparat-video-upload.yml" in emergency
+          assert "filo-video-upload.yml" in emergency
+          assert "offerchin-video-publisher.yml" not in emergency
           assert "actions: write" in emergency
           assert "--all-video-upload-only" in unified
           assert "VIDEO_WORKFLOW_RETRY_GAP_MS" not in worker
