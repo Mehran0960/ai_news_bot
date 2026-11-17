@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-17T13:26:16.767746+00:00",
+  "generated_at": "2026-11-17T13:34:42.274628+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
@@ -564,48 +564,14 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1595,
+    "all_time_count": 1597,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "brand_repeat": 2,
+      "brand_repeat": 4,
       "family_repeat": 397,
       "similarity_repeat": 500
     },
     "recent_events": [
-      {
-        "at": "2026-11-17T03:44:06.607957+00:00",
-        "brand": "",
-        "catalog_category_id": "9369",
-        "catalog_category_name": "کفش تخت زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-9673230",
-        "family": "digikala_category:9369",
-        "product_id": "dkp-13050880",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "کفش زنانه مدل دوگره کد sh.p.p.d.g",
-        "use_case": "fashion_lifestyle"
-      },
-      {
-        "at": "2026-11-17T03:44:06.607957+00:00",
-        "brand": "",
-        "catalog_category_id": "9083",
-        "catalog_category_name": "لوازم ماهیگیری",
-        "category": "other",
-        "compared_to_product_id": "dkp-13338289",
-        "family": "digikala_category:9083",
-        "product_id": "dkp-4080071",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "چوب ماهیگیری ساپا مدل VALERIE-210",
-        "use_case": "outdoor_travel"
-      },
       {
         "at": "2026-11-17T03:55:46.907401+00:00",
         "brand": "brand:هایک_سمی",
@@ -913,6 +879,42 @@
         ],
         "title": "روپوش پزشکی مردانه ناب تن مدل T101",
         "use_case": "health_wellness"
+      },
+      {
+        "at": "2026-11-17T13:34:42.274628+00:00",
+        "brand": "brand:ناب_تن",
+        "catalog_category_id": "11044",
+        "catalog_category_name": "البسه طبی و پزشکی",
+        "category": "other",
+        "compared_to_product_id": "dkp-14396631",
+        "family": "digikala_category:11044",
+        "product_id": "dkp-14395622",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "روپوش پزشکی مردانه ناب تن مدل T101",
+        "use_case": "health_wellness"
+      },
+      {
+        "at": "2026-11-17T13:34:42.274628+00:00",
+        "brand": "brand:وی_کر",
+        "catalog_category_id": "6765",
+        "catalog_category_name": "شورت آموزشی کودک",
+        "category": "kids_sports",
+        "compared_to_product_id": "dkp-16470889",
+        "family": "digikala_category:6765",
+        "product_id": "dkp-16470746",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "شورت آموزشی کودک وی کر مدل دکمه دار طرح Bear Girl کد U808",
+        "use_case": "books_learning"
       }
     ]
   }
