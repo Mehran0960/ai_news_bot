@@ -574,27 +574,29 @@ test("pending video projection ignores terminal statuses so completed queue entr
   assert.equal(hasPendingVideoQueue(state), false);
 });
 
-test("unified video queue ignores legacy age and retry timestamps for all platforms", () => {
+test("video queue ignores legacy age but respects destination-local retry timestamps", () => {
   const now = Date.now();
   const oldRecord = {
     ts: (now - 10 * 24 * 60 * 60 * 1000) / 1000,
     delivery_status: { telegram: "sent" },
-    youtube_upload_status: "pending",
-    aparat_upload_status: "pending",
-    filo_upload_status: "pending",
+    youtube_upload_status: "retry",
+    aparat_upload_status: "retry",
+    filo_upload_status: "retry",
     video_generation_status: "generated",
     youtube_next_attempt_at: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
     aparat_next_attempt_at: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
     filo_next_attempt_at: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
-    video_generation_next_attempt_at: new Date(now + 24 * 60 * 60 * 1000).toISOString(),
     expiry_source: "digikala_live_deals_feed",
     expiry_deadline_verified_directly: true,
     expires_at: new Date(now + 48 * 60 * 60 * 1000).toISOString(),
   };
   const state = { published: { old_but_valid: oldRecord } };
   for (const platform of ["youtube", "aparat", "filo"]) {
-    assert.equal(videoRecordDue(oldRecord, platform, now), true, platform);
-    assert.equal(hasDueVideoRecord(state, platform, now), true, platform);
+    assert.equal(videoRecordDue(oldRecord, platform, now), false, platform);
+    assert.equal(hasDueVideoRecord(state, platform, now), false, platform);
+    const dueRecord = { ...oldRecord, [platform + "_next_attempt_at"]: new Date(now - 1).toISOString() };
+    assert.equal(videoRecordDue(dueRecord, platform, now), true, platform);
+    assert.equal(hasDueVideoRecord({ published: { due: dueRecord } }, platform, now), true, platform);
   }
 });
 
