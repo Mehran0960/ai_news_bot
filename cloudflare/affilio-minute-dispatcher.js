@@ -652,8 +652,8 @@ async function dispatchVideoUploadsWhenDue(env, tick, state) {
     VIDEO_PUBLISHER_API,
     env.GITHUB_TOKEN,
     VIDEO_PUBLISHER_WORKFLOW,
-    35,
-    20
+    90,
+    45
   );
 }
 async function runScheduledCheck(env, scheduledTime) {
