@@ -107,7 +107,7 @@ jobs:
           assert "MAX_CHANNEL_POST_INTERVAL_SECONDS = 47 * 60" in policy
           assert "channel_post_interval_seconds" in policy
           assert "PRODUCTS_PER_EDITORIAL_POST = 6" in policy
-          assert "DEFAULT_DAILY_CHANNEL_POST_LIMIT = 55" in policy
+          assert "DEFAULT_DAILY_CHANNEL_POST_LIMIT = 72" in policy
           assert "MIN_CHANNEL_POST_INTERVAL_SECONDS" in delivery
           assert "channel_publication_wait_seconds" in delivery
           assert "remaining_seconds / candidates" in delivery
