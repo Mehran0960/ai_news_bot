@@ -174,7 +174,7 @@ def _merge_editorial_history(target_state: dict, source_state: dict, destination
             changed += 1
         if not target_row.get("content_fingerprint") and source_row.get("content_fingerprint"):
             target_row["content_fingerprint"] = source_row["content_fingerprint"]
-        for key in ("editorial_id", "topic", "related_product_id", "sequence_number"):
+        for key in ("editorial_id", "topic", "related_product_id", "sequence_number", "title", "body"):
             if not target_row.get(key) and source_row.get(key) is not None:
                 target_row[key] = copy.deepcopy(source_row[key])
     target_state["editorial_delivery_history"] = target_history[-200:]
