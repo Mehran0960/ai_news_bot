@@ -2938,3 +2938,20 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** در صورت شکست یک dispatch فقط همان مقصد retry می‌شود؛ state مقصدهای دیگر نباید reset شود. rollback با revert همین تغییر انجام می‌شود.
 
 **وضعیت:** در PR #231 ثبت شد؛ ادغام/استقرار تا سبزشدن همهٔ گیت‌ها انجام‌شده تلقی نمی‌شود.
+
+
+## ۲۰۲۶-۱۱-۱۷ — جداسازی احراز هویت فیلو از صف آپلود
+
+**هدف:** تست ورود فیلو نباید صف آپلود فیلو یا انتشار رسانه‌های دیگر را متوقف کند.
+
+**تغییر/اقدام:** push-trigger از Workflow آپلود فیلو حذف شد؛ Workflow مستقل login verification با تغییر فایل آپلود فیلو فعال می‌شود. مرحلهٔ persistence احراز هویت concurrency group اختصاصی و merge سه‌طرفهٔ state دارد.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/filo-video-upload.yml`، `.github/workflows/filo-login-verification.yml`، `.github/workflows/offerchin-video-fanout-validation.yml`، Handbook و Changelog.
+
+**آزمون و نتیجه:** گیت رگرسیون بررسی می‌کند که workflow آپلود فیلو push-trigger نداشته باشد و login-state persistence از concurrency group ناشر رسانه‌ها استفاده نکند. نتیجهٔ CI پس از اجرای PR ثبت می‌شود.
+
+**شواهد/شناسه:** PR پیگیری روی شاخهٔ `fix/offerchin-filo-login-isolation-20261117`؛ PR اصلی استقلال رسانه‌ها #231 ادغام شده است.
+
+**ریسک/بازگشت:** login verification می‌تواند هم‌زمان با آپلود شروع شود، اما فقط فیلدهای احراز هویت را در state ادغام می‌کند. در صورت شکست persistence، login status قبلی حفظ می‌شود و Workflow آپلود از کار نمی‌افتد. rollback با revert این PR انجام می‌شود.
+
+**وضعیت:** تغییرات در PR پیگیری و منتظر تست‌های خودکار هستند؛ ادغام تا سبزشدن گیت‌ها انجام نمی‌شود.

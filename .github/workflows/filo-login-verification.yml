@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/filo-login-verification.yml"
       - "affilio_radar/filo_uploader.py"
+      - ".github/workflows/filo-video-upload.yml"
   # Re-run isolated verification whenever this workflow's policy is intentionally refreshed.
   workflow_dispatch:
 
@@ -79,8 +80,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     concurrency:
-      # Merge the small verification delta only after the content publisher releases state.json.
-      group: offerchin-content-publisher
+      # Login state has its own small persistence path; it must not reserve media delivery.
+      group: offerchin-filo-login-state
       cancel-in-progress: false
     permissions:
       contents: write
@@ -148,8 +149,16 @@ jobs:
           git add affilio_radar/state.json affilio_radar/video_upload_dispatch_state.json
           if ! git diff --cached --quiet; then
             git commit -m "chore(filo): persist verified login state [skip ci]"
-            git pull --rebase origin main
-            git push
+            for attempt in 1 2 3; do
+              if (git pull --rebase origin main || python affilio_radar/merge_state_conflicts.py --paths affilio_radar/state.json affilio_radar/video_upload_dispatch_state.json) && git push; then
+                echo "FILO_LOGIN_STATE_PERSISTED attempt=$attempt"
+                exit 0
+              fi
+              git rebase --abort 2>/dev/null || true
+              echo "Filo login-state persistence attempt $attempt failed; retrying."
+              sleep $((attempt * 2))
+            done
+            exit 1
           else
             echo "Filo login verification state was already current."
           fi
