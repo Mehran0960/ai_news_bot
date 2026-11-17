@@ -10967,8 +10967,9 @@ def process_pending_short_video(
             # A previously generated MP4 has no configured destination needing work.
             continue
 
-        # Legacy next-at timestamps are no longer pacing controls. Retries are immediate
-        # and bounded; uncertain submissions are sent to manual review instead of retried.
+        # Per-destination retry timestamps apply only to the destination that failed.
+        # They never delay Aparat/Filo or any photo channel; uncertain submissions remain
+        # manual-review items to avoid accidental duplicate uploads.
         if not str(record.get("image_url") or "").strip():
             try:
                 attempts = int(record.get("video_generation_attempts", 0) or 0) + 1
