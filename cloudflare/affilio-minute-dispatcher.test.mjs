@@ -609,38 +609,12 @@ test("video fan-out is not starved by catalog scans but preserves product priori
     },
   };
 
-  // Catalog scans use a separate lock. An active publisher always wins; a
-  // channel/editorial slot blocks videos only inside the bounded 30-minute window.
-  assert.equal(videoQueueDispatchDeferReason(videoState, false, now), null);
-  assert.equal(
-    videoQueueDispatchDeferReason(videoState, true, now),
-    "publisher_workflow_active"
-  );
-  for (const minutes of [0, 10, 29, 30]) {
-    assert.equal(
-      videoQueueDispatchDeferReason({
-        ...videoState,
-        next_channel_content_due_at: new Date(now + minutes * 60_000).toISOString(),
-      }, false, now),
-      "channel_content_slot_imminent",
-      `channel slot at +${minutes}m must retain priority`
-    );
-  }
-  assert.equal(
-    videoQueueDispatchDeferReason({
-      ...videoState,
-      next_channel_content_due_at: new Date(now + 31 * 60_000).toISOString(),
-    }, false, now),
-    null,
-    "a distant future slot must not starve the video queue"
-  );
-  assert.equal(
-    videoQueueDispatchDeferReason({
-      ...videoState,
-      next_editorial_planning_at: new Date(now + 5 * 60_000).toISOString(),
-    }, false, now),
-    "channel_content_slot_imminent",
-    "an imminent editorial reservation also retains priority"
-  );
-  assert.equal(videoQueueDispatchDeferReason({ published: {} }, false, now), "video_queue_empty");
+  // Channel/editorial reservations never defer independent video destinations.
+  assert.equal(videoQueueDispatchDeferReason(videoState), null);
+  assert.equal(videoQueueDispatchDeferReason({
+    ...videoState,
+    next_channel_content_due_at: new Date(now).toISOString(),
+    next_editorial_planning_at: new Date(now).toISOString(),
+  }), null);
+  assert.equal(videoQueueDispatchDeferReason({ published: {} }), "video_queue_empty");
 });
