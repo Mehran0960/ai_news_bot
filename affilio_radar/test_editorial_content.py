@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 from editorial_content import (
     editorial_topics_for_product,
+    editorial_content_fingerprint,
     record_editorial_delivery,
     select_editorial_fallback,
     validate_editorial_item,
@@ -66,6 +67,72 @@ class EditorialContentTests(unittest.TestCase):
         }]}
         chosen = select_editorial_fallback([item()], state, now=NOW)
         self.assertEqual(chosen["editorial_id"], "buying-checklist")
+
+    def test_same_editorial_is_blocked_inside_24_hour_cooldown_even_after_cycle_exhaustion(self):
+        state = {
+            "editorial_cycle": {
+                "bank_ids": ["buying-checklist"],
+                "used_ids": ["buying-checklist"],
+                "cycle_number": 4,
+            },
+            "editorial_delivery_history": [{
+                "editorial_id": "buying-checklist",
+                "topic": "purchase-planning",
+                "published_at": (NOW - timedelta(hours=2)).isoformat(),
+            }],
+        }
+        self.assertIsNone(select_editorial_fallback([item()], state, now=NOW))
+        self.assertEqual(state["editorial_cycle"]["cycle_number"], 5)
+
+    def test_same_copy_with_new_id_is_blocked_by_normalized_fingerprint(self):
+        first = item("original-guide")
+        fingerprint = editorial_content_fingerprint(first)
+        state = {"editorial_delivery_history": [{
+            "editorial_id": "original-guide",
+            "content_fingerprint": fingerprint,
+            "topic": "purchase-planning",
+            "published_at": (NOW - timedelta(hours=2)).isoformat(),
+        }]}
+        rewritten_id = item("new-id")
+        self.assertIsNone(select_editorial_fallback([rewritten_id], state, now=NOW))
+
+    def test_near_identical_rewrite_is_blocked_inside_duplicate_cooldown(self):
+        original = item("original-guide")
+        state = {"editorial_delivery_history": [{
+            **original,
+            "editorial_id": "original-guide",
+            "content_id": "editorial:original-guide",
+            "published_at": (NOW - timedelta(hours=2)).isoformat(),
+        }]}
+        rewrite = item("rewritten-guide")
+        rewrite["title"] = "چک‌لیست انتخاب کالای بادوام"
+        rewrite["body"] = "پیش از خرید، نیاز واقعی، هزینه نگهداری، ضمانت و امکان تعمیر را بررسی کنید. حتماً."
+        self.assertIsNone(select_editorial_fallback([rewrite], state, now=NOW))
+
+    def test_same_topic_is_blocked_for_four_hours_but_other_topic_can_run(self):
+        state = {"editorial_delivery_history": [{
+            "editorial_id": "previous-guide",
+            "topic": "purchase-planning",
+            "published_at": (NOW - timedelta(hours=1)).isoformat(),
+        }]}
+        bank = [
+            item("same-topic", "purchase-planning"),
+            item("different-topic", "seller-check"),
+        ]
+        chosen = select_editorial_fallback(bank, state, now=NOW)
+        self.assertEqual(chosen["editorial_id"], "different-topic")
+
+    def test_editorial_delivery_history_persists_content_fingerprint(self):
+        state = {}
+        chosen = select_editorial_fallback([item()], state, now=NOW)
+        record_editorial_delivery(
+            state, chosen, published_at=NOW,
+            destinations={"telegram": {"status": "sent"}},
+        )
+        self.assertEqual(
+            state["editorial_delivery_history"][0]["content_fingerprint"],
+            editorial_content_fingerprint(chosen),
+        )
 
     def test_selector_returns_non_recent_reviewed_item(self):
         chosen = select_editorial_fallback(
