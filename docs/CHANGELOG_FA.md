@@ -2873,3 +2873,8 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 ## کاهش زمان checkout در Documentation Gate — ۱۷ نوامبر ۲۰۲۶
 
 گیت مستندات برای اعتبارسنجی SHA دقیق PR base/head دیگر کل تاریخچهٔ مخزن را دریافت نمی‌کند؛ عمق ۵۰ commit انتخاب شد، چون اختلاف مبنای PR #229 با head بسیار کمتر از این مقدار است. این کار محتوای اعتبارسنجی را تغییر نمی‌دهد و دسترسی به هر دو commit لازم را حفظ می‌کند؛ فقط دانلود تاریخچهٔ قدیمی snapshotهای حجیم را حذف می‌کند. فایل اصلاح‌شده: `.github/workflows/offerchin-documentation-gate.yml`.
+
+
+## محدودسازی فایل‌های checkout در Documentation Gate — ۱۷ نوامبر ۲۰۲۶
+
+بهینه‌سازی depth=50 به‌تنهایی کافی نبود؛ checkout هنوز blobهای حجیم catalog/state را برای گیتی دریافت می‌کرد که فقط handbook/changelog را اعتبارسنجی می‌کند. actions/checkout اکنون از filter=blob:none و sparse-checkout محدود به پوشه‌های scripts و docs استفاده می‌کند. git diff و git show برای SHAهای دقیق base/head همچنان مبنای اعتبارسنجی هستند. این تغییر مسیر انتشار یا state عملیاتی را لمس نمی‌کند.
