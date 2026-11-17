@@ -6477,7 +6477,12 @@ class AffilioRadarTests(unittest.TestCase):
             patch("short_video.youtube_credentials_available", return_value=False),
             patch("short_video.render_short_video", side_effect=fake_render),
             patch("aparat_uploader.aparat_credentials_available", return_value=True),
-            patch("aparat_uploader.upload_aparat_video") as upload_aparat,
+            patch("aparat_uploader.upload_aparat_video", return_value={
+                "video_id": "74051236",
+                "video_hash": "aparatselected123",
+                "url": "https://www.aparat.com/v/aparatselected123",
+                "visibility": "public",
+            }) as upload_aparat,
         ):
             self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
             self.assertTrue((Path(output_dir) / f"offerchin-{pid}.mp4").is_file())
@@ -6693,9 +6698,9 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(record["youtube_upload_status"], "uploaded")
         self.assertEqual(record["youtube_video_id"], "yt_no_expiry_123")
 
-    def test_public_aparat_upload_stays_blocked_without_verified_expiry(self):
+    def test_public_aparat_upload_proceeds_without_verified_expiry_after_last_mile_checks(self):
         now = datetime.now(timezone.utc)
-        pid = "dkp-aparat-needs-expiry"
+        pid = "dkp-aparat-no-expiry-required"
         record = {
             "ts": now.timestamp(),
             "title": "محصول بدون تایمر معتبر برای آپارات",
@@ -6712,32 +6717,42 @@ class AffilioRadarTests(unittest.TestCase):
             "youtube_next_upload_at": (now + timedelta(hours=1)).isoformat(),
         }
 
+        def fake_render(image_bytes, discount, path, **kwargs):
+            output = Path(path)
+            output.write_bytes(b"aparat-video-no-retailer-deadline")
+            return output
+
+        aparat_result = {
+            "video_id": "74051235",
+            "video_hash": "aparatnoexpiry123",
+            "url": "https://www.aparat.com/v/aparatnoexpiry123",
+            "visibility": "public",
+        }
         with (
             TemporaryDirectory() as output_dir,
-            patch("affilio_radar._fetch_image") as fetch_image,
+            patch("affilio_radar._fetch_image", return_value=b"fake-image"),
             patch("affilio_radar.save_json"),
             patch("affilio_radar.APARAT_UPLOAD_ENABLED", True),
             patch("short_video.youtube_credentials_available", return_value=True),
             patch("aparat_uploader.aparat_credentials_available", return_value=True),
-            patch("short_video.render_short_video") as render,
-            patch("aparat_uploader.upload_aparat_video") as upload_aparat,
+            patch("short_video.render_short_video", side_effect=fake_render),
+            patch("aparat_uploader.find_uploaded_aparat_video", return_value=None),
+            patch("aparat_uploader.upload_aparat_video", return_value=aparat_result) as upload_aparat,
         ):
-            self.assertFalse(process_pending_short_video(
+            self.assertTrue(process_pending_short_video(
                 state, now=now, output_dir=output_dir, destinations={"aparat"}
             ))
 
-        fetch_image.assert_not_called()
-        render.assert_not_called()
-        upload_aparat.assert_not_called()
-        self.assertEqual(record["aparat_upload_status"], "skipped_unverified_deadline")
-        self.assertEqual(record["aparat_skip_reason"], "verified_expiry_required")
+        upload_aparat.assert_called_once()
+        self.assertEqual(record["aparat_upload_status"], "uploaded")
+        self.assertEqual(record["aparat_video_url"], aparat_result["url"])
 
-    def test_aparat_only_run_skips_manual_youtube_artifact_candidates_and_uses_verified_expiry(self):
+    def test_aparat_only_run_skips_manual_youtube_artifacts_and_accepts_no_timer_offer(self):
         now = datetime.now(timezone.utc)
         unverified_id = "dkp-aparat-unverified-high-discount"
         verified_id = "dkp-aparat-verified-lower-discount"
         unverified = {
-            "ts": now.timestamp(),
+            "ts": now.timestamp() - 1,
             "title": "پیشنهاد با تخفیف بیشتر اما بدون زمان انقضای تأییدشده",
             "product_url": f"https://www.digikala.com/product/{unverified_id}/",
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
@@ -6748,7 +6763,7 @@ class AffilioRadarTests(unittest.TestCase):
             "aparat_upload_status": "pending",
         }
         verified = {
-            "ts": now.timestamp() - 1,
+            "ts": now.timestamp(),
             "title": "پیشنهاد واجدشرایط آپارات با مهلت معتبر",
             "product_url": f"https://www.digikala.com/product/{verified_id}/",
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
@@ -6766,13 +6781,13 @@ class AffilioRadarTests(unittest.TestCase):
 
         def fake_render(image_bytes, discount, path, **kwargs):
             output = Path(path)
-            output.write_bytes(b"aparat-only-verified-expiry-mp4")
+            output.write_bytes(b"aparat-only-no-expiry-mp4")
             return output
 
         aparat_result = {
             "video_id": "74051234",
-            "video_hash": "aparatverified123",
-            "url": "https://www.aparat.com/v/aparatverified123",
+            "video_hash": "aparatnoexpiry123",
+            "url": "https://www.aparat.com/v/aparatnoexpiry123",
             "visibility": "public",
         }
         with (
@@ -6796,16 +6811,14 @@ class AffilioRadarTests(unittest.TestCase):
             ))
 
         render.assert_called_once()
-        self.assertEqual(render.call_args.kwargs["title"], verified["title"])
+        self.assertEqual(render.call_args.kwargs["title"], unverified["title"])
         upload_aparat.assert_called_once()
-        self.assertEqual(unverified["video_generation_status"], "pending")
-        self.assertEqual(unverified["aparat_upload_status"], "skipped_unverified_deadline")
-        self.assertEqual(unverified["aparat_skip_reason"], "verified_expiry_required")
-        self.assertEqual(verified["video_generation_status"], "generated")
-        self.assertEqual(verified["aparat_upload_status"], "uploaded")
-        self.assertEqual(verified["aparat_video_url"], "https://www.aparat.com/v/aparatverified123")
+        self.assertEqual(unverified["video_generation_status"], "generated")
+        self.assertEqual(unverified["aparat_upload_status"], "uploaded")
+        self.assertEqual(unverified["aparat_video_url"], "https://www.aparat.com/v/aparatnoexpiry123")
+        self.assertEqual(verified["aparat_upload_status"], "pending")
 
-    def test_aparat_expiry_gate_uses_the_selected_video_not_the_last_scanned_record(self):
+    def test_aparat_upload_uses_the_selected_video_not_the_last_scanned_record_without_timer(self):
         now = datetime.now(timezone.utc)
         no_timer_id = "dkp-youtube-first-choice"
         verified_id = "dkp-aparat-lower-demand"
@@ -6869,8 +6882,10 @@ class AffilioRadarTests(unittest.TestCase):
             ))
 
         upload_youtube.assert_called_once()
-        upload_aparat.assert_not_called()
+        upload_aparat.assert_called_once()
+        self.assertIn(no_timer_id, str(upload_aparat.call_args.args[0]))
         self.assertEqual(no_timer["youtube_upload_status"], "uploaded")
+        self.assertEqual(no_timer["aparat_upload_status"], "uploaded")
         self.assertEqual(no_timer["video_generation_status"], "generated")
         self.assertEqual(verified_lower_demand["aparat_upload_status"], "pending")
 
