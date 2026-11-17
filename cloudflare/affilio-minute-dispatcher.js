@@ -697,8 +697,8 @@ async function runScheduledCheck(env, scheduledTime) {
 
   // Continue persisted catalog pages on every tick. If category discovery is in
   // backoff and no work remains, wait for its retry_after rather than launching a
-  // failing full workflow every minute. Reuse this snapshot for the lower-priority
-  // video gate so no second status read can race the catalog dispatch decision.
+  // failing full workflow every minute. Catalog status is used only for catalog
+  // dispatch; video fan-out has an independent gate and never waits for this scan.
   let catalogStatusForDispatch = null;
   try {
     catalogStatusForDispatch = await readCatalogSweepStatus(env.GITHUB_TOKEN);
@@ -738,9 +738,9 @@ async function runScheduledCheck(env, scheduledTime) {
     console.error("OFFERCHIN_PUBLISHER_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 
-  // Video fan-out is lower priority than products, editorial midpoints and a
-  // clean full-catalog scan. Its queue remains persisted and will be retried on
-  // later ticks when the shared publisher state lock is genuinely idle.
+  // Video fan-out remains lower priority than products and reserved editorial
+  // slots, but is independent from catalog scanning. Its queue remains persisted
+  // and is retried when no channel slot is planned and the publisher lock is idle.
   try {
     await dispatchVideoUploadsWhenDue(env, tick, state);
   } catch (error) {
