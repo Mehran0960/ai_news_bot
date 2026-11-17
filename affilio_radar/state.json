@@ -7652,178 +7652,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-411817",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-411817%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "6475",
-        "catalog_best_selling_category_name": "بالم لب",
-        "catalog_best_selling_rank": 52,
-        "catalog_best_selling_ranks_by_category": {
-          "6475": {
-            "category_name": "بالم لب",
-            "observed_at": "2026-11-16T07:08:26.636445+00:00",
-            "rank": 52,
-            "rank_history": [
-              {
-                "category_name": "بالم لب",
-                "observed_at": "2026-11-16T07:08:26.636445+00:00",
-                "rank": 52
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T07:39:30.980343+00:00",
-        "catalog_cycle_snapshot_rank": 372,
-        "catalog_rank_observed_at": "2026-11-16T07:08:26.636445+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "grocery_food",
-        "checked_at": "2026-11-16T08:03:21.632921+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-411817",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 393420,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 11.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 57.02,
-        "discount_percent": 40,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T08:03:38.556941+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 393420,
-        "history_low_toman": 393420,
-        "history_median_toman": 393420,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 393420,
-        "history_start_day": "2026-11-15",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/eb50bb16ef566809bd62d17a4909329367bef60f_1785437989.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "affordability": 90.65,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 73.25,
-          "discount_attractiveness": 57.02,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 86.0,
-          "generality_group": "mobile_productivity",
-          "live_demand": 69.41,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "6475",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T08:03:38.559262+00:00",
-          "weakest_factor_score": 57.02
-        },
-        "original_price": 655780,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-411817",
-        "product_url": "https://www.digikala.com/product/dkp-411817/",
-        "promo_score": 30,
-        "publication_policy": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-        "qualifies_as_deal": true,
-        "rating": 4.09,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 762,
-        "savings_toman": 262360,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 52,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "affordability": 90.65,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 73.25,
-          "discount_attractiveness": 57.02,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 86.0,
-          "generality_group": "mobile_productivity",
-          "live_demand": 69.41,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "6475",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T08:03:38.559262+00:00",
-          "weakest_factor_score": 57.02
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1204,
-        "title": "بالم لب مرطوب‌کننده و ترمیم‌کننده الارو مدل Repair And Hydrate با عصاره روغن نارگیل، موم زنبور عسل، لانولین و روغن دانه آفتابگردان مناسب پوست خشک و معمولی، محافظت در برابر سرما و آ"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-411817",
-      "product_plan_cycle_id": "2026-11-16T07:39:30.980343+00:00",
-      "selected_at": "2026-11-16T08:03:41.789254+00:00",
-      "sequence_number": 1204,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T08:15:12.415463+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-616041",
       "content_type": "product",
       "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
@@ -43666,6 +43494,187 @@
       "sequence_number": 1482,
       "status": "published",
       "updated_at": "2026-11-17T04:04:30.455387+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-22790947",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-17T04:41:36.112519+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-17T04:40:30.455334+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22790947%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "مایا",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "20",
+        "catalog_best_selling_category_name": "کامپیوترهای All-in-One",
+        "catalog_best_selling_rank": 11,
+        "catalog_best_selling_ranks_by_category": {
+          "20": {
+            "category_name": "کامپیوترهای All-in-One",
+            "observed_at": "2026-11-17T03:19:51.133125+00:00",
+            "rank": 11,
+            "rank_history": [
+              {
+                "category_name": "کامپیوترهای All-in-One",
+                "observed_at": "2026-11-17T03:19:51.133125+00:00",
+                "rank": 11
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-17T03:52:30.184476+00:00",
+        "catalog_cycle_snapshot_rank": 402,
+        "catalog_rank_observed_at": "2026-11-17T03:19:51.133125+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "computer_network",
+        "checked_at": "2026-11-17T04:15:39.311095+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-22790947",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 164190000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 58.09,
+        "discount_percent": 24,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-17T04:16:14.177360+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-17",
+        "history_high_toman": 164190000,
+        "history_low_toman": 164190000,
+        "history_median_toman": 164190000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-17",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/aef572b7050a9cfd99bdd94e8f059bbc976bef7b_1789993243.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 73.69,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 58.09,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 86.0,
+          "generality_group": "mobile_productivity",
+          "live_demand": 84.27,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-17T04:16:27.733372+00:00",
+          "weakest_factor_score": 58.09
+        },
+        "original_price": 216099000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-22790947",
+        "product_url": "https://www.digikala.com/product/dkp-22790947/",
+        "promo_score": 34,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "savings_toman": 51909000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 11,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 73.69,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 58.09,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 86.0,
+          "generality_group": "mobile_productivity",
+          "live_demand": 84.27,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-17T04:16:27.733372+00:00",
+          "weakest_factor_score": 58.09
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1483,
+        "title": "کامپیوتر همه کاره 21.5 اینچ مایا مدل MA22 B6 با پردازنده Core i5-6300U، رم 8 گیگابایت از نوع DDR4 و حافظه داخلی 500 گیگابایت SSD، گرافیک Intel UHD Graphics، نمایشگر از نوع IPS",
+        "variant_label": "مشکی"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-17T04:41:36.112519+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-17T04:42:06.715046+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-17T04:41:36.112519+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-17T04:41:36.112519+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-17T04:42:13.412873+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-17T04:41:36.112519+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-17T04:41:50.174451+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-22790947",
+      "product_plan_cycle_id": "2026-11-17T04:24:29.996333+00:00",
+      "scheduled_at": "2026-11-17T04:40:30.455334+00:00",
+      "selected_at": "2026-11-17T04:16:38.474645+00:00",
+      "sequence_number": 1483,
+      "status": "published",
+      "updated_at": "2026-11-17T04:42:14.663581+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -43680,7 +43689,7 @@
       "attempt_count": 0,
       "content_id": "dkp-18294816",
       "content_type": "product",
-      "next_attempt_at": "2026-11-17T08:26:30.455334+00:00",
+      "next_attempt_at": "2026-11-17T08:28:14.662633+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-18294816%2F",
         "availability": "in_stock",
@@ -43843,7 +43852,7 @@
       },
       "product_id": "dkp-18294816",
       "product_plan_cycle_id": "2026-11-17T04:24:29.996333+00:00",
-      "scheduled_at": "2026-11-17T08:26:30.455334+00:00",
+      "scheduled_at": "2026-11-17T08:28:14.662633+00:00",
       "selected_at": "2026-11-17T04:26:05.693869+00:00",
       "sequence_number": 1489,
       "status": "queued"
@@ -43852,7 +43861,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21409421",
       "content_type": "product",
-      "next_attempt_at": "2026-11-17T05:48:30.455334+00:00",
+      "next_attempt_at": "2026-11-17T05:50:14.662633+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21409421%2F",
         "availability": "in_stock",
@@ -44014,7 +44023,7 @@
       },
       "product_id": "dkp-21409421",
       "product_plan_cycle_id": "2026-11-17T04:24:29.996333+00:00",
-      "scheduled_at": "2026-11-17T05:48:30.455334+00:00",
+      "scheduled_at": "2026-11-17T05:50:14.662633+00:00",
       "selected_at": "2026-11-17T04:26:05.693869+00:00",
       "sequence_number": 1485,
       "status": "queued"
@@ -44023,7 +44032,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22097631",
       "content_type": "product",
-      "next_attempt_at": "2026-11-17T07:08:30.455334+00:00",
+      "next_attempt_at": "2026-11-17T07:10:14.662633+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22097631%2F",
         "availability": "in_stock",
@@ -44185,7 +44194,7 @@
       },
       "product_id": "dkp-22097631",
       "product_plan_cycle_id": "2026-11-17T04:24:29.996333+00:00",
-      "scheduled_at": "2026-11-17T07:08:30.455334+00:00",
+      "scheduled_at": "2026-11-17T07:10:14.662633+00:00",
       "selected_at": "2026-11-17T04:26:05.693869+00:00",
       "sequence_number": 1487,
       "status": "queued"
@@ -44194,7 +44203,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22404391",
       "content_type": "product",
-      "next_attempt_at": "2026-11-17T07:50:30.455334+00:00",
+      "next_attempt_at": "2026-11-17T07:52:14.662633+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22404391%2F",
         "availability": "in_stock",
@@ -44356,7 +44365,7 @@
       },
       "product_id": "dkp-22404391",
       "product_plan_cycle_id": "2026-11-17T04:24:29.996333+00:00",
-      "scheduled_at": "2026-11-17T07:50:30.455334+00:00",
+      "scheduled_at": "2026-11-17T07:52:14.662633+00:00",
       "selected_at": "2026-11-17T04:26:05.693869+00:00",
       "sequence_number": 1488,
       "status": "queued"
@@ -44365,7 +44374,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22413523",
       "content_type": "product",
-      "next_attempt_at": "2026-11-17T05:11:30.455334+00:00",
+      "next_attempt_at": "2026-11-17T05:13:14.662633+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22413523%2F",
         "availability": "in_stock",
@@ -44524,186 +44533,16 @@
       },
       "product_id": "dkp-22413523",
       "product_plan_cycle_id": "2026-11-17T04:24:29.996333+00:00",
-      "scheduled_at": "2026-11-17T05:11:30.455334+00:00",
+      "scheduled_at": "2026-11-17T05:13:14.662633+00:00",
       "selected_at": "2026-11-17T04:16:38.474645+00:00",
       "sequence_number": 1484,
-      "status": "queued"
-    },
-    "dkp-22790947": {
-      "attempt_count": 0,
-      "content_id": "dkp-22790947",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-17T04:40:30.455334+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22790947%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "مایا",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "20",
-        "catalog_best_selling_category_name": "کامپیوترهای All-in-One",
-        "catalog_best_selling_rank": 11,
-        "catalog_best_selling_ranks_by_category": {
-          "20": {
-            "category_name": "کامپیوترهای All-in-One",
-            "observed_at": "2026-11-17T03:19:51.133125+00:00",
-            "rank": 11,
-            "rank_history": [
-              {
-                "category_name": "کامپیوترهای All-in-One",
-                "observed_at": "2026-11-17T03:19:51.133125+00:00",
-                "rank": 11
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-17T03:52:30.184476+00:00",
-        "catalog_cycle_snapshot_rank": 402,
-        "catalog_rank_observed_at": "2026-11-17T03:19:51.133125+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "computer_network",
-        "checked_at": "2026-11-17T04:15:39.311095+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22790947",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 164190000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 58.09,
-        "discount_percent": 24,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-17T04:16:14.177360+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-17",
-        "history_high_toman": 164190000,
-        "history_low_toman": 164190000,
-        "history_median_toman": 164190000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-17",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/aef572b7050a9cfd99bdd94e8f059bbc976bef7b_1789993243.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 73.69,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 58.09,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 86.0,
-          "generality_group": "mobile_productivity",
-          "live_demand": 84.27,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T04:16:27.733372+00:00",
-          "weakest_factor_score": 58.09
-        },
-        "original_price": 216099000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-22790947",
-        "product_url": "https://www.digikala.com/product/dkp-22790947/",
-        "promo_score": 34,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "savings_toman": 51909000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 11,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 73.69,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 58.09,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 86.0,
-          "generality_group": "mobile_productivity",
-          "live_demand": 84.27,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T04:16:27.733372+00:00",
-          "weakest_factor_score": 58.09
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1483,
-        "title": "کامپیوتر همه کاره 21.5 اینچ مایا مدل MA22 B6 با پردازنده Core i5-6300U، رم 8 گیگابایت از نوع DDR4 و حافظه داخلی 500 گیگابایت SSD، گرافیک Intel UHD Graphics، نمایشگر از نوع IPS",
-        "variant_label": "مشکی"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22790947",
-      "product_plan_cycle_id": "2026-11-17T04:24:29.996333+00:00",
-      "scheduled_at": "2026-11-17T04:40:30.455334+00:00",
-      "selected_at": "2026-11-17T04:16:38.474645+00:00",
-      "sequence_number": 1483,
       "status": "queued"
     },
     "dkp-4825904": {
       "attempt_count": 0,
       "content_id": "dkp-4825904",
       "content_type": "product",
-      "next_attempt_at": "2026-11-17T06:21:30.455334+00:00",
+      "next_attempt_at": "2026-11-17T06:23:14.662633+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-4825904%2F",
         "availability": "in_stock",
@@ -44865,7 +44704,7 @@
       },
       "product_id": "dkp-4825904",
       "product_plan_cycle_id": "2026-11-17T04:24:29.996333+00:00",
-      "scheduled_at": "2026-11-17T06:21:30.455334+00:00",
+      "scheduled_at": "2026-11-17T06:23:14.662633+00:00",
       "selected_at": "2026-11-17T04:26:05.693869+00:00",
       "sequence_number": 1486,
       "status": "queued"
@@ -44874,7 +44713,7 @@
       "attempt_count": 0,
       "content_id": "dkp-6705171",
       "content_type": "product",
-      "next_attempt_at": "2026-11-17T08:59:30.455334+00:00",
+      "next_attempt_at": "2026-11-17T09:01:14.662633+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-6705171%2F",
         "availability": "in_stock",
@@ -45043,7 +44882,7 @@
       },
       "product_id": "dkp-6705171",
       "product_plan_cycle_id": "2026-11-17T04:24:29.996333+00:00",
-      "scheduled_at": "2026-11-17T08:59:30.455334+00:00",
+      "scheduled_at": "2026-11-17T09:01:14.662633+00:00",
       "selected_at": "2026-11-17T04:26:05.693869+00:00",
       "sequence_number": 1490,
       "status": "queued"
@@ -199093,12 +198932,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-17T04:04:30.455334+00:00",
+  "last_channel_published_at": "2026-11-17T04:42:14.662633+00:00",
   "last_content_selection_at": "2026-11-17T04:26:05.693869+00:00",
   "last_editorial_attempt_at": "2026-11-17T01:34:36.919143+00:00",
   "last_editorial_confirmed_at": "2026-11-17T01:25:12.675355+00:00",
-  "last_product_channel_published_at": "2026-11-17T04:04:30.455334+00:00",
-  "last_published_at": "2026-11-17T04:04:30.455334+00:00",
+  "last_product_channel_published_at": "2026-11-17T04:42:14.662633+00:00",
+  "last_published_at": "2026-11-17T04:42:14.662633+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -248149,8 +247988,8 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-17T04:34:53.352407+00:00",
-    "candidate_count": 8,
+    "calculated_at": "2026-11-17T04:42:14.662642+00:00",
+    "candidate_count": 7,
     "catalog_cycle_id": "2026-11-17T04:24:29.996333+00:00",
     "current_cycle_started_at": "2026-11-17T04:24:30.388201+00:00",
     "daily_post_limit": 55,
@@ -248162,30 +248001,29 @@
     "interval_seconds": 1860.0,
     "last_clean_cycle_completed_at": "2026-11-17T04:24:29.996333+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-17T04:04:30.455334+00:00",
-    "plan_anchor_kind": "last_product",
-    "planned_product_slots": 8,
+    "plan_anchor_at": "2026-11-17T04:42:14.662633+00:00",
+    "plan_anchor_kind": "last_channel",
+    "planned_product_slots": 7,
     "planned_window_end_at": "2026-11-17T04:56:29.388201+00:00",
-    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes",
+    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
     "scan_eta_is_provisional": false,
     "scan_eta_source": "last_observed_full_cycle_duration",
     "scheduled_product_count": 8,
-    "seconds_from_plan_anchor_to_next_scan": 3118.932867,
-    "seconds_until_estimated_next_clean_scan": 1296.035794
+    "seconds_from_plan_anchor_to_next_scan": 854.725568,
+    "seconds_until_estimated_next_clean_scan": 854.725559
   },
   "product_publication_interval_seconds": 1860.0,
   "product_publication_plan": {
-    "anchor_at": "2026-11-17T04:04:30.455334+00:00",
-    "anchor_kind": "last_product",
+    "anchor_at": "2026-11-17T04:42:14.662633+00:00",
+    "anchor_kind": "last_channel",
     "catalog_cycle_id": "2026-11-17T04:24:29.996333+00:00",
     "first_slot_due_now": false,
     "interval_minutes": 31.0,
     "interval_seconds": 1860.0,
     "maximum_product_interval_seconds": 3420,
     "next_clean_scan_at": "2026-11-17T04:56:29.388201+00:00",
-    "pending_product_count": 8,
+    "pending_product_count": 7,
     "product_ids": [
-      "dkp-22790947",
       "dkp-22413523",
       "dkp-21409421",
       "dkp-4825904",
@@ -248194,11 +248032,11 @@
       "dkp-18294816",
       "dkp-6705171"
     ],
-    "scheduled_product_count": 8,
-    "updated_at": "2026-11-17T04:34:53.352407+00:00"
+    "scheduled_product_count": 7,
+    "updated_at": "2026-11-17T04:42:14.662642+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-17T04:04:30.455334+00:00",
-  "product_publication_plan_anchor_kind": "last_product",
+  "product_publication_plan_anchor_at": "2026-11-17T04:42:14.662633+00:00",
+  "product_publication_plan_anchor_kind": "last_channel",
   "product_publication_plan_cycle_id": "2026-11-17T04:24:29.996333+00:00",
   "publication_diversity_fallback_count": 5307,
   "publication_diversity_fallback_events": [
@@ -359661,6 +359499,134 @@
       "ts": 1793362927.769768,
       "video_generation_status": "skipped_expiring_soon",
       "youtube_upload_status": "skipped_expiring_soon"
+    },
+    "dkp-22790947": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2224,
+      "bale_posted_at": "2026-11-17T04:42:06.715046+00:00",
+      "brand": "مایا",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "B",
+      "catalog_best_selling_category_id": "20",
+      "catalog_best_selling_category_name": "کامپیوترهای All-in-One",
+      "catalog_best_selling_rank": 11,
+      "catalog_best_selling_ranks_by_category": {
+        "20": {
+          "category_name": "کامپیوترهای All-in-One",
+          "observed_at": "2026-11-17T03:19:51.133125+00:00",
+          "rank": 11,
+          "rank_history": [
+            {
+              "category_name": "کامپیوترهای All-in-One",
+              "observed_at": "2026-11-17T03:19:51.133125+00:00",
+              "rank": 11
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-17T03:52:30.184476+00:00",
+      "catalog_cycle_snapshot_rank": 402,
+      "catalog_rank_observed_at": "2026-11-17T03:19:51.133125+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-22790947",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "B",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-17T04:42:13.412898+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 0,
+      "distribution_queue_id": "dkp-22790947:2026-11-17T04:16:38.474645+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-17T04:16:14.177360+00:00",
+      "history_days": 1,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/aef572b7050a9cfd99bdd94e8f059bbc976bef7b_1789993243.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "not_checked",
+      "platform_message_ids": {
+        "rubika": "1974357767903588651"
+      },
+      "posted_current_price": 164190000,
+      "posted_discount_percent": 24,
+      "posted_original_price": 216099000,
+      "product_url": "https://www.digikala.com/product/dkp-22790947/",
+      "promo_score": 34,
+      "publication_category": "computer_network",
+      "publication_family": "digikala_category:20",
+      "publication_use_case": "mobile_productivity",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 0.0,
+      "rubika_posted_at": "2026-11-17T04:42:13.412873+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 11,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 73.69,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 58.09,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 86.0,
+        "generality_group": "mobile_productivity",
+        "live_demand": 84.27,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-17T04:16:27.733372+00:00",
+        "weakest_factor_score": 58.09
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1483,
+      "telegram_message_id": 1665,
+      "telegram_posted_at": "2026-11-17T04:41:50.174451+00:00",
+      "title": "کامپیوتر همه کاره 21.5 اینچ مایا مدل MA22 B6 با پردازنده Core i5-6300U، رم 8 گیگابایت از نوع DDR4 و حافظه داخلی 500 گیگابایت SSD، گرافیک Intel UHD Graphics، نمایشگر از نوع IPS",
+      "ts": 1794890496.112519,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
     },
     "dkp-22790974": {
       "aparat_upload_status": "skipped_expiring_soon",
