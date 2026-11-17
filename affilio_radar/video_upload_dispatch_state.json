@@ -1,6 +1,9 @@
 {
-  "product_publication_cadence_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-  "youtube_upload_pause_reason": "daily_upload_limit",
+  "generated_at": "2026-11-17T23:56:55.542591+00:00",
+  "last_channel_published_at": "2026-11-17T23:40:12.396732+00:00",
+  "filo_next_upload_at": null,
+  "emergency_continuity_expires_at": null,
+  "youtube_uploads_paused_until": "2026-11-18T18:39:32.096553+00:00",
   "published": {
     "dkp-10002173": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -2000,31 +2003,6 @@
       "video_generation_status": "generated",
       "youtube_upload_status": "uploaded"
     },
-    "dkp-20317737": {
-      "aparat_upload_status": "uploaded",
-      "bale_message_id": 2135,
-      "content_id": "dkp-20317737",
-      "content_type": "product",
-      "delivery_status": {
-        "bale": "sent",
-        "eitaa": "not_connected",
-        "rubika": "sent",
-        "telegram": "sent"
-      },
-      "distribution_queue_id": "dkp-20317737:2026-11-16T19:44:12.436659+00:00",
-      "expiry_deadline_verified_directly": false,
-      "expiry_deadline_verified_from_site_card": false,
-      "expiry_estimated": false,
-      "expiry_source": "unavailable",
-      "filo_upload_status": "pending",
-      "sequence_number": 1382,
-      "telegram_message_id": 1602,
-      "ts": 1794859727.933369,
-      "video_dispatch_eligible": true,
-      "video_generation_status": "generated",
-      "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
-      "youtube_upload_status": "retry"
-    },
     "dkp-20388055": {
       "aparat_upload_status": "skipped_unverified_deadline",
       "bale_message_id": 1896,
@@ -2735,6 +2713,31 @@
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
       "youtube_upload_status": "uploaded"
+    },
+    "dkp-21706371": {
+      "aparat_upload_status": "uploaded",
+      "bale_message_id": 2192,
+      "content_id": "dkp-21706371",
+      "content_type": "product",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "distribution_queue_id": "dkp-21706371:2026-11-16T23:23:53.538513+00:00",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "sequence_number": 1440,
+      "telegram_message_id": 1641,
+      "ts": 1794871938.568333,
+      "video_dispatch_eligible": true,
+      "video_generation_status": "generated",
+      "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-21758030": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -5736,24 +5739,21 @@
       "youtube_upload_status": "uploaded"
     }
   },
+  "last_product_channel_published_at": "2026-11-17T23:40:12.396732+00:00",
+  "youtube_upload_pause_reason": "daily_upload_limit",
+  "product_publication_cadence_cycle_id": "2026-11-17T23:46:46.818912+00:00",
   "filo_login_verification_status": "verified",
+  "product_publication_interval_seconds": 1860.0,
+  "filo_login_verified_at": "2026-11-17T18:14:11.649894+00:00",
   "aparat_next_upload_at": null,
-  "emergency_continuity_snapshot_sha256": null,
-  "emergency_continuity_baseline_completed_at": null,
-  "pending_product_queue_count": 21,
-  "generated_at": "2026-11-17T23:53:25.470454+00:00",
-  "youtube_uploads_paused_until": "2026-11-18T18:39:32.096553+00:00",
   "youtube_next_upload_at": null,
   "emergency_continuity_active": false,
-  "last_channel_published_at": "2026-11-17T23:40:12.396732+00:00",
-  "emergency_continuity_expires_at": null,
-  "filo_next_upload_at": null,
   "schema_version": 2,
-  "next_channel_content_due_at": "2026-11-18T00:11:12.396732+00:00",
+  "emergency_continuity_baseline_completed_at": null,
   "next_editorial_planning_at": "2026-11-18T00:16:12.396732+00:00",
   "filo_upload_interval_policy_version": 3,
-  "last_product_channel_published_at": "2026-11-17T23:40:12.396732+00:00",
-  "filo_login_verified_at": "2026-11-17T18:14:11.649894+00:00",
+  "next_channel_content_due_at": "2026-11-18T00:11:12.396732+00:00",
   "product_publication_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-  "product_publication_interval_seconds": 1860.0
+  "pending_product_queue_count": 21,
+  "emergency_continuity_snapshot_sha256": null
 }
