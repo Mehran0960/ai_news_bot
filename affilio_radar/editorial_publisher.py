@@ -861,8 +861,7 @@ def _handle_channel_destination(
             target["last_error"] = unavailable_reason
             target["updated_at"] = now.isoformat()
             if persist:
-                if persist:
-            _save(state)
+                _save(state)
         return
     if target.get("status") in TERMINAL:
         return
@@ -879,9 +878,13 @@ def _handle_channel_destination(
 
     target["status"] = "sending"
     target["attempt_started_at"] = now.isoformat()
-    target["attempts"] = int(target.get("attempts") or 0) + 1
+    try:
+        target["attempts"] = int(target.get("attempts") or 0) + 1
+    except (TypeError, ValueError, OverflowError):
+        target["attempts"] = 1
     entry["status"] = "publishing"
-    _save(state)
+    if persist:
+        _save(state)
     try:
         if destination in {"telegram", "bale"}:
             editorial_payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
@@ -899,8 +902,7 @@ def _handle_channel_destination(
             target["last_error"] = "api_accepted_without_public_message_id_unverified"
             target["updated_at"] = _now().isoformat()
             if persist:
-                if persist:
-            _save(state)
+                _save(state)
             print(
                 f"EDITORIAL_DESTINATION_UNVERIFIED content_id={entry['content_id']} "
                 f"platform={destination} reason=api_accepted_without_public_message_id"
@@ -935,11 +937,11 @@ def _merge_editorial_channel_worker_state(
     worker_target = worker_platforms.get(destination)
     if not isinstance(worker_target, dict):
         return False
+    previous_status = _target(entry, destination).get("status")
     _target(entry, destination).clear()
     _target(entry, destination).update(copy.deepcopy(worker_target))
 
-    changed = True
-    incoming_sent = worker_target.get("status") == "sent"
+    incoming_sent = worker_target.get("status") == "sent" and previous_status != "sent"
     for key in ("last_channel_published_at", "last_published_at", "last_editorial_confirmed_at"):
         incoming = _utc(worker_state.get(key))
         existing = _utc(state.get(key))
