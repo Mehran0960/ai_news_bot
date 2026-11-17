@@ -198383,42 +198383,42 @@
     },
     {
       "content_id": "editorial:check-delivery-window",
-      "delivery_duration_seconds": 10.8,
+      "delivery_duration_seconds": 11.4,
       "destinations": {
         "aparat": {
           "attempts": 0,
           "status": "pending"
         },
         "bale": {
-          "attempt_started_at": "2026-11-17T01:02:38.652628+00:00",
+          "attempt_started_at": "2026-11-17T01:25:04.193076+00:00",
           "attempts": 1,
-          "message_id": "2216",
+          "message_id": "2220",
           "status": "sent",
-          "updated_at": "2026-11-17T01:02:41.948543+00:00"
+          "updated_at": "2026-11-17T01:25:05.866586+00:00"
         },
         "eitaa": {
           "attempts": 0,
           "last_error": "eitaa_not_enabled_or_credentials_missing",
           "status": "not_connected",
-          "updated_at": "2026-11-17T01:02:47.054095+00:00"
+          "updated_at": "2026-11-17T01:25:12.968803+00:00"
         },
         "filo": {
           "attempts": 0,
           "status": "pending"
         },
         "rubika": {
-          "attempt_started_at": "2026-11-17T01:02:42.288791+00:00",
+          "attempt_started_at": "2026-11-17T01:25:06.162330+00:00",
           "attempts": 1,
-          "message_id": "1974334755021588651",
+          "message_id": "1974334756095588651",
           "status": "sent",
-          "updated_at": "2026-11-17T01:02:46.721906+00:00"
+          "updated_at": "2026-11-17T01:25:12.675355+00:00"
         },
         "telegram": {
-          "attempt_started_at": "2026-11-17T01:02:37.082691+00:00",
+          "attempt_started_at": "2026-11-17T01:25:02.549464+00:00",
           "attempts": 1,
-          "message_id": "1659",
+          "message_id": "1662",
           "status": "sent",
-          "updated_at": "2026-11-17T01:02:38.281947+00:00"
+          "updated_at": "2026-11-17T01:25:03.888030+00:00"
         },
         "youtube": {
           "attempts": 0,
@@ -198428,7 +198428,7 @@
       "editorial_id": "check-delivery-window",
       "published_at": "2026-11-16T18:09:46.053800+00:00",
       "related_product_id": "dkp-22239871",
-      "sequence_number": 1473,
+      "sequence_number": 1476,
       "topic": "delivery"
     },
     {
@@ -198689,7 +198689,7 @@
       "content_type": "editorial",
       "delivery_runway_seconds": 33,
       "dispatch_runway_seconds": 93,
-      "next_attempt_at": "2026-11-17T01:23:52.791318+00:00",
+      "next_attempt_at": "2026-11-17T01:32:50.328279+00:00",
       "payload": {
         "body": "⏱️ زمان رسیدن سفارش برای همه کالاها یکسان نیست؛ نوع کالا، شهر مقصد، موجودی فروشنده و روش ارسال می‌توانند آن را تغییر دهند. پیش از پرداخت، بازه تحویل و روش‌های فعال برای همان کالا و نشانی را در صفحه سفارش بررسی کن؛ به یک زمان عمومی تکیه نکن.",
         "content_id": "editorial:check-delivery-window",
@@ -198703,7 +198703,7 @@
         "related_product_title": "ست تی‌شرت آستین کوتاه و شلوار راحتی دخترانه مدل دختر و قلعه",
         "review_due_at": "2027-02-13T04:30:00Z",
         "reviewed_at": "2026-11-15T04:30:00Z",
-        "sequence_number": 1475,
+        "sequence_number": 1477,
         "sources": [
           {
             "publisher": "دیجی‌کالا مگ",
@@ -198746,9 +198746,9 @@
         }
       },
       "related_product_id": "dkp-22044970",
-      "scheduled_at": "2026-11-17T01:23:52.791318+00:00",
-      "selected_at": "2026-11-17T01:22:08.688986+00:00",
-      "sequence_number": 1475,
+      "scheduled_at": "2026-11-17T01:32:50.328279+00:00",
+      "selected_at": "2026-11-17T01:25:13.806869+00:00",
+      "sequence_number": 1477,
       "status": "queued",
       "window_closes_at": "2026-11-17T01:40:01.789971+00:00"
     }
@@ -199068,12 +199068,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-17T01:07:10.792664+00:00",
+  "last_channel_published_at": "2026-11-17T01:25:05.866586+00:00",
   "last_content_selection_at": "2026-11-17T01:22:07.740843+00:00",
-  "last_editorial_attempt_at": "2026-11-17T01:22:08.688986+00:00",
-  "last_editorial_confirmed_at": "2026-11-17T01:02:46.721906+00:00",
+  "last_editorial_attempt_at": "2026-11-17T01:25:13.806869+00:00",
+  "last_editorial_confirmed_at": "2026-11-17T01:25:12.675355+00:00",
   "last_product_channel_published_at": "2026-11-17T01:07:10.792664+00:00",
-  "last_published_at": "2026-11-17T01:07:10.792664+00:00",
+  "last_published_at": "2026-11-17T01:25:05.866586+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -291663,7 +291663,7 @@
       "ts": 1794875519.055357
     }
   },
-  "publication_sequence_counter": 1475,
+  "publication_sequence_counter": 1477,
   "published": {
     "dkp-10002173": {
       "aparat_skip_reason": "verified_expiry_required",
