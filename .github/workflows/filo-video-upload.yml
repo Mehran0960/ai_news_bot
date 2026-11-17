@@ -26,7 +26,7 @@ permissions:
 
 concurrency:
   # This workflow shares state.json with the other isolated video uploaders.
-  group: offerchin-content-publisher
+  group: offerchin-filo-video-upload
   cancel-in-progress: false
 
 jobs:
@@ -101,7 +101,7 @@ jobs:
         env:
           FILO_USER: ${{ secrets.FILO_USER }}
           FILO_PASS: ${{ secrets.FILO_PASS }}
-          # Keep one Filo video in step with each 27-minute channel publication.
+          # Filo cadence is local to Filo; it is never aligned to or blocked by channel publication.
           AFFILIO_FILO_UPLOAD_INTERVAL_HOURS: "0.45"
           AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT: "250"
           AFFILIO_VIDEO_UPLOAD_MAX_AGE_HOURS: "24"
