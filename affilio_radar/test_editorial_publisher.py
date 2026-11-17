@@ -53,6 +53,44 @@ def add_confirmed_product_posts(state, count=6, *, published_at=None):
 
 
 class EditorialPublisherTests(unittest.TestCase):
+
+    def test_editorial_share_is_capped_at_one_per_six_confirmed_product_posts(self):
+        state = {}
+        add_confirmed_product_posts(state, 5)
+        self.assertEqual(products_published_since_last_editorial(state), 5)
+        self.assertFalse(editorial_frequency_allowed(state))
+
+        add_confirmed_product_posts(state, 1)
+        self.assertEqual(products_published_since_last_editorial(state), 6)
+        self.assertTrue(editorial_frequency_allowed(state))
+
+        state["editorial_delivery_history"] = [{
+            "content_id": "editorial:ratio-test",
+            "published_at": (NOW - timedelta(minutes=30)).isoformat(),
+            "destinations": {"telegram": {"status": "sent"}},
+        }]
+        self.assertEqual(products_published_since_last_editorial(state), 0)
+        self.assertFalse(editorial_frequency_allowed(state))
+
+        add_confirmed_product_posts(state, 6, published_at=NOW + timedelta(minutes=1))
+        self.assertEqual(products_published_since_last_editorial(state), 6)
+        self.assertTrue(editorial_frequency_allowed(state))
+
+    def test_editorial_is_not_queued_before_six_confirmed_product_posts(self):
+        state = {
+            "content_delivery_queue": {
+                "dkp-next": {
+                    "content_type": "product",
+                    "status": "queued",
+                    "scheduled_at": (NOW + timedelta(hours=2)).isoformat(),
+                    "payload": {"product_id": "dkp-next", "title": "گوشی هوشمند"},
+                    "platforms": {"telegram": {"status": "pending"}, "bale": {"status": "pending"}},
+                }
+            }
+        }
+        self.assertIsNone(queue_editorial_if_due(state, [editorial_item()], now=NOW))
+        self.assertFalse(state.get("editorial_delivery_queue"))
+
     def test_editorial_fifo_lock_is_disabled_by_default(self):
         state = {
             "editorial_delivery_queue": {
