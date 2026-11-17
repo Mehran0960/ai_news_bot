@@ -366,6 +366,10 @@ def reschedule_product_queue_evenly(
         anchor_kind = "last_channel"
         state["product_publication_plan_anchor_at"] = anchor.isoformat()
         state["product_publication_plan_anchor_kind"] = anchor_kind
+        # A stale product scan clock must never authorize a product immediately
+        # after a more recent editorial/channel post. The shared minimum wins.
+        if (current - last_channel).total_seconds() < MIN_CHANNEL_POST_INTERVAL_SECONDS:
+            first_due_now = False
 
     # An active editorial slot is a real public post in the same channel sequence.
     # Preserve its position before the related next product when the catalog plan is
