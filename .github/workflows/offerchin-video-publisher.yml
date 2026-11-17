@@ -16,7 +16,7 @@ jobs:
   upload:
     name: Publish ${{ matrix.destination }} independently
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
@@ -138,7 +138,7 @@ jobs:
           AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT: "250"
           AFFILIO_VIDEO_UPLOAD_MAX_AGE_HOURS: "0"
           AFFILIO_MAX_VIDEO_UPLOAD_ATTEMPTS: "3"
-          AFFILIO_MAX_SHORT_VIDEOS_PER_RUN: "1"
+          AFFILIO_MAX_SHORT_VIDEOS_PER_RUN: "3"
           PYTHONUNBUFFERED: "1"
         run: |
           case "${{ matrix.destination }}" in
