@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-17T16:35:47.922923+00:00",
+  "generated_at": "2026-11-17T16:44:40.125969+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
@@ -550,7 +550,7 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1621,
+    "all_time_count": 1622,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "brand_repeat": 10,
@@ -558,23 +558,6 @@
       "similarity_repeat": 498
     },
     "recent_events": [
-      {
-        "at": "2026-11-17T15:19:37.285824+00:00",
-        "brand": "",
-        "catalog_category_id": "9297",
-        "catalog_category_name": "ست لباس راحتی زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22750115",
-        "family": "digikala_category:9297",
-        "product_id": "dkp-21003279",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ست بلوز و شلوار راحتی زنانه مدل گل کد A1111",
-        "use_case": "fashion_lifestyle"
-      },
       {
         "at": "2026-11-17T15:19:37.285824+00:00",
         "brand": "",
@@ -898,6 +881,23 @@
         ],
         "title": "گیمبال و لرزشگیر مدل L7BPRO",
         "use_case": "gaming"
+      },
+      {
+        "at": "2026-11-17T16:44:40.125969+00:00",
+        "brand": "",
+        "catalog_category_id": "9297",
+        "catalog_category_name": "ست لباس راحتی زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-22750115",
+        "family": "digikala_category:9297",
+        "product_id": "dkp-21003279",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ست بلوز و شلوار راحتی زنانه مدل گل کد A1111",
+        "use_case": "fashion_lifestyle"
       }
     ]
   }
