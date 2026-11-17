@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 from content_delivery import (
     calculate_product_publication_cadence,
+    channel_publication_wait_seconds, next_channel_publication_at,
     due_content, due_unpublished_selection, enqueue_selected_content,
     finish_queue_item, get_last_channel_published_at, get_last_product_channel_published_at,
     has_fresh_unpublished_selection, allocate_publication_sequence, promote_fallback_selection,
@@ -13,6 +14,7 @@ from content_delivery import (
     reflow_product_queue_after_delivery,
 )
 from platform_registry import CORE_PHOTO_PLATFORMS, PHOTO_PLATFORMS, PLATFORM_NAMES
+from publication_policy import MIN_CHANNEL_POST_INTERVAL_SECONDS
 from publisher import (
     publish_due_queue, _fresh_selected_item, _eligible_fallback_candidates,
     MAX_ITEMS_PER_RUN, _due_editorial_precedes_product,
@@ -73,6 +75,19 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(product_entry["content_id"], "dkp-sequence")
         self.assertEqual(allocate_publication_sequence(state), 2)
 
+    def test_shared_channel_wait_applies_to_all_content_types(self):
+        state = {
+            "last_channel_published_at": (self.now - timedelta(minutes=20)).isoformat()
+        }
+        self.assertEqual(channel_publication_wait_seconds(state, now=self.now), 60)
+        next_slot = next_channel_publication_at(state)
+        self.assertEqual(
+            next_slot,
+            self.now + timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS - 20 * 60),
+        )
+        after_gap = self.now + timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS - 20 * 60)
+        self.assertEqual(channel_publication_wait_seconds(state, now=after_gap), 0)
+
     def test_sequence_allocator_recovers_from_failed_editorial_attempt_ledger(self):
         state = {
             "publication_sequence_counter": 2,
@@ -112,7 +127,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
         self.assertEqual(first, self.now)
 
-        state["last_product_channel_published_at"] = self.now.isoformat()
+        state["last_channel_published_at"] = self.now.isoformat()
         state["editorial_delivery_history"] = [{"content_id": "editorial:sample"}]
         enqueue_selected_content(
             state, [self.item("dkp-second")],
@@ -122,7 +137,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         second = datetime.fromisoformat(
             state["content_delivery_queue"]["dkp-second"]["scheduled_at"]
         )
-        self.assertEqual(second, self.now + timedelta(minutes=20))
+        self.assertEqual(second, self.now + timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS))
 
 
     def test_enqueue_persists_platform_neutral_payload_without_delivery(self):
@@ -578,7 +593,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.assertEqual(
             datetime.fromisoformat(queue["dkp-2"]["scheduled_at"])
             - datetime.fromisoformat(queue["dkp-1"]["scheduled_at"]),
-            timedelta(seconds=1200),
+            timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS),
         )
         again = enqueue_selected_content(state, items, now=self.now, interval_seconds=1200, max_items=2)
         self.assertEqual(again["added"], 0)
@@ -603,7 +618,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         old["status"] = "partial"
         old["platforms"]["telegram"]["status"] = "sent"
         old["platforms"]["bale"]["status"] = "failed"
-        next_slot = self.now + timedelta(minutes=20)
+        next_slot = self.now + timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS)
         old["scheduled_at"] = next_slot.isoformat()
         old["next_attempt_at"] = next_slot.isoformat()
         state["last_published_at"] = self.now.isoformat()
@@ -715,7 +730,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         old["platforms"]["youtube"]["status"] = "pending"
         state["last_published_at"] = self.now.isoformat()
 
-        next_time = self.now + timedelta(minutes=20)
+        next_time = self.now + timedelta(seconds=MIN_CHANNEL_POST_INTERVAL_SECONDS)
         summary = enqueue_selected_content(
             state, [self.item("dkp-new")], now=next_time,
             interval_seconds=1200, max_items=1,
