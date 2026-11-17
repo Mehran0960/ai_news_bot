@@ -374,6 +374,14 @@ def queue_editorial_if_due(
         product_at,
         scheduled_at + timedelta(seconds=product_gap_seconds),
     )
+    deal_deadline = _utc(related_product.get("deal_expires_at"))
+    if deal_deadline is not None and deal_deadline <= reserved_product_at:
+        print(
+            "EDITORIAL_SLOT_SKIPPED_NEAR_EXPIRY_PRODUCT "
+            f"product_id={related_product_id} deadline={deal_deadline.isoformat()} "
+            f"reserved_product_slot={reserved_product_at.isoformat()}"
+        )
+        return None
     reservation_seconds = max(0.0, (reserved_product_at - original_product_at).total_seconds())
     if reservation_seconds > 0:
         # Shift the related next product and later product slots by the same amount;
@@ -508,7 +516,7 @@ def _readable_editorial_body(value: Any) -> str:
 
 def _format_message(item: dict, *, html_mode: bool = True, platform: str = "telegram") -> str:
     """Render a self-contained editorial post with no public sources or commercial links."""
-    title = str(item.get("title") or "").strip()[:110]
+    title = _readable_editorial_body(item.get("title")).replace("\n", " ").strip()[:110]
     body = _readable_editorial_body(item.get("body"))
     if len(body) > 430:
         shortened = body[:427].rsplit(" ", 1)[0].rstrip()
