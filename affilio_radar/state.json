@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-17T20:13:11.721049+00:00",
-  "aparat_last_upload_success_at": "2026-11-17T20:13:15.787473+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-17T20:17:04.692273+00:00",
+  "aparat_last_upload_success_at": "2026-11-17T20:17:10.255129+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-17T19:03:33.281277+00:00",
@@ -319788,7 +319788,13 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22097631": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-17T20:17:04.692273+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-17T20:17:10.255129+00:00",
+      "aparat_video_hash": "woz4ztm",
+      "aparat_video_record_id": "74271273",
+      "aparat_video_url": "https://www.aparat.com/v/woz4ztm",
+      "aparat_visibility": "public",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2230,
       "bale_posted_at": "2026-11-17T06:41:13.393010+00:00",
@@ -319914,10 +319920,17 @@
       "telegram_posted_at": "2026-11-17T06:41:10.309326+00:00",
       "title": "ست سویشرت و شلوار راحتی نوزادی مدل 10",
       "ts": 1794897664.08758,
-      "video_generation_status": "pending",
+      "video_file_name": "offerchin-dkp-22097631.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22097631.mp4"
+      },
+      "video_generated_at": "2026-11-17T20:16:59.156391+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
       "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
-      "youtube_skip_reason": "youtube_daily_quota_pause",
-      "youtube_upload_status": "retry"
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22104577": {
       "aparat_upload_status": "skipped_expiring_soon",
@@ -327083,7 +327096,13 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22413523": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-17T20:16:54.175922+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-17T20:16:58.321685+00:00",
+      "aparat_video_hash": "ehnm58z",
+      "aparat_video_record_id": "74271271",
+      "aparat_video_url": "https://www.aparat.com/v/ehnm58z",
+      "aparat_visibility": "public",
       "bale_expiry_status": "unknown",
       "bale_message_id": 2226,
       "bale_posted_at": "2026-11-17T05:15:20.323367+00:00",
@@ -327209,10 +327228,17 @@
       "telegram_posted_at": "2026-11-17T05:15:17.692529+00:00",
       "title": "لوبیا کشاورزی ممتاز بینگوکالا - ۴۵۰ گرم",
       "ts": 1794892468.298995,
-      "video_generation_status": "pending",
+      "video_file_name": "offerchin-dkp-22413523.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22413523.mp4"
+      },
+      "video_generated_at": "2026-11-17T20:16:47.608718+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
       "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
-      "youtube_skip_reason": "youtube_daily_quota_pause",
-      "youtube_upload_status": "retry"
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22414604": {
       "aparat_upload_status": "pending",
