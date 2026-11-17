@@ -1646,7 +1646,7 @@ class AffilioRadarTests(unittest.TestCase):
         state = {
             "last_channel_published_at": now.isoformat(),
             "published": {
-                f"dkp-prior-{index}": {
+                f"dkp-987500000{index:03d}": {
                     "ts": (now - timedelta(hours=1) + timedelta(seconds=index)).timestamp(),
                     "delivery_status": {"telegram": "sent", "bale": "sent"},
                 }
