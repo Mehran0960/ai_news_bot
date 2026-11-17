@@ -50,6 +50,16 @@ EDITORIAL_APPROVED_ITEMS = ROOT / "editorial_approved_items.json"
 CHANNEL_DESTINATIONS = ("telegram", "bale", "rubika", "eitaa")
 VIDEO_DESTINATIONS = ("youtube", "aparat", "filo")
 TERMINAL = {"sent", "not_connected", "manual_review", "skipped_limit"}
+
+
+def _selected_video_destinations() -> tuple[str, ...]:
+    """Limit a matrix worker to its own editorial destination."""
+    selected = str(os.getenv("OFFERCHIN_EDITORIAL_VIDEO_DESTINATION") or "").strip().lower()
+    if not selected:
+        return VIDEO_DESTINATIONS
+    if selected not in VIDEO_DESTINATIONS:
+        raise ValueError("unsupported_editorial_video_destination")
+    return (selected,)
 RETRYABLE = {"pending", "failed", "retry"}
 # Editorial is only placed inside an actual product-to-product window.
 # It never creates a standalone publication slot or delays a product.
@@ -127,14 +137,22 @@ def _active_editorial_entries(state: dict) -> list[dict]:
     return sorted(rows, key=lambda row: int(row.get("sequence_number") or 0))
 
 
-def _pending_product_video_exists(state: dict) -> bool:
+def _pending_product_video_exists(state: dict, destination: str | None = None) -> bool:
     published = state.get("published")
     if not isinstance(published, dict):
         return False
+    if destination in VIDEO_DESTINATIONS:
+        pending = {"pending", "pending_credentials", "retry", "uploading"}
+        status_key = f"{destination}_upload_status"
+        return any(
+            isinstance(row, dict)
+            and row.get("content_type", "product") == "product"
+            and str(row.get(status_key) or "pending_credentials") in pending
+            and row.get("video_dispatch_eligible", True) is not False
+            for row in published.values()
+        )
     checker = getattr(radar, "_has_pending_video_destination", None)
-    if not callable(checker):
-        return False
-    return any(checker(row) for row in published.values() if isinstance(row, dict))
+    return bool(callable(checker) and any(checker(row) for row in published.values() if isinstance(row, dict)))
 
 
 def _recent_attempt_anchor(state: dict) -> datetime | None:
@@ -1228,6 +1246,7 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
 def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = None) -> int:
     if mode not in {"channels", "videos"}:
         raise ValueError("mode_must_be_channels_or_videos")
+    video_destinations = _selected_video_destinations() if mode == "videos" else VIDEO_DESTINATIONS
     current = now or _now()
     state = radar.load_state(apply_integrity_ledger=False)
     if publish and mode == "channels":
@@ -1305,7 +1324,7 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
             _handle_channel_destination(state, entry, destination, image_bytes, message, _now())
     else:
         # Keep all older product videos ahead of a newer editorial video.
-        if _pending_product_video_exists(state):
+        if any(_pending_product_video_exists(state, destination) for destination in video_destinations):
             print("EDITORIAL_VIDEO_WAIT reason=older_product_video_fifo_pending")
             _save(state)
             _refresh_dispatch_projection(state)
@@ -1319,18 +1338,18 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
             from editorial_video import render_editorial_video
             if any(
                 _target(entry, name).get("status") not in TERMINAL
-                for name in VIDEO_DESTINATIONS
+                for name in video_destinations
             ):
                 render_editorial_video(_public_editorial_payload(payload), output_path)
         except Exception as exc:
-            for destination in VIDEO_DESTINATIONS:
+            for destination in video_destinations:
                 target = _target(entry, destination)
                 if target.get("status") not in TERMINAL:
                     target["status"] = "manual_review"
                     target["last_error"] = f"editorial_video_render_failed:{type(exc).__name__}"
             _save(state)
             return 1
-        for destination in VIDEO_DESTINATIONS:
+        for destination in video_destinations:
             _handle_video_destination(state, entry, destination, output_path, _now())
 
     now_after = _now()
