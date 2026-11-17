@@ -2989,3 +2989,20 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** در نبود timer، انقضای طبیعی خرده‌فروش به‌صورت زمان دقیق قابل زمان‌بندی نیست؛ ریسک با last-mile price/stock، integrity audit و تازگی ۲۴ساعته کاهش می‌یابد. known near-expiry همچنان fail-closed است. در صورت مشاهدهٔ stale offer، rollback با revert این PR و بازگرداندن گیت انجام می‌شود.
 
 **وضعیت:** تغییر در PR #233 منتظر CI است؛ تا ادغام و Deploy، این گیت در نسخهٔ زنده هنوز فعال است.
+
+
+## ۲۰۲۶-۱۱-۱۷ — فعال‌سازی مستقل ایتا
+
+**هدف:** ایتا به‌دلیل پیش‌فرض خاموش داخلی، از چرخهٔ انتشار حذف نشود.
+
+**تغییر/اقدام:** پیش‌فرض `EITAA_ENABLE_PUBLISHING` در ناشر اصلی، ناشر تحریریه و مسیر اضطراری به `true` تغییر کرد؛ مقدار صریح Repository Variable همچنان قابل احترام است. مسیر اضطراری نیز Rubika و Eitaa را مانند ناشر اصلی به محیط خود اضافه کرد. تست‌های فعال‌سازی، خاموش‌کردن صریح و نبود اعتبارنامه افزوده شدند.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/offerchin-publisher.yml`، `.github/workflows/affilio-publisher.yml`، `affilio_radar/publisher.py`، `affilio_radar/editorial_publisher.py`، `affilio_radar/test_content_delivery.py`، Handbook و سیاست استقلال رسانه‌ها.
+
+**آزمون و نتیجه:** تست‌ها تأیید می‌کنند که با وجود token/channel ID ایتا فعال است، با مقدار صریح false خاموش می‌شود و نبود اعتبارنامه فقط همان مقصد را غیرفعال می‌کند. نتیجهٔ CI در PR #234 ثبت می‌شود.
+
+**شواهد/شناسه:** snapshot قبلی ایتا را برای همهٔ ۱۱۷ رکورد `not_connected` نشان می‌داد؛ متغیر enable در Workflow پیش‌فرض false بود. PR #234.
+
+**ریسک/بازگشت:** اگر token یا channel ID در GitHub Secrets تعریف نشده باشد، ایتا همچنان نمی‌تواند ارسال کند؛ هیچ secretی از طریق چت خوانده یا افشا نمی‌شود. rollback با تنظیم صریح `EITAA_ENABLE_PUBLISHING=false` یا revert PR انجام می‌شود.
+
+**وضعیت:** تغییرات در PR #234 منتظر CI هستند؛ فعال‌شدن عملی ایتا پس از اجرای Workflow و تأیید receipt سنجیده می‌شود.
