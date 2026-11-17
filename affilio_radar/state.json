@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-17T22:59:14.829022+00:00",
-  "aparat_last_upload_success_at": "2026-11-17T22:59:18.602233+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-17T23:45:02.653095+00:00",
+  "aparat_last_upload_success_at": "2026-11-17T23:45:08.152535+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-17T23:15:00.088766+00:00",
@@ -279056,7 +279056,13 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-1558255": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-17T23:45:02.653095+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-17T23:45:08.152535+00:00",
+      "aparat_video_hash": "bcnx4fr",
+      "aparat_video_record_id": "74272355",
+      "aparat_video_url": "https://www.aparat.com/v/bcnx4fr",
+      "aparat_visibility": "public",
       "bale_message_id": 2257,
       "bale_posted_at": "2026-11-17T23:40:08.410084+00:00",
       "brand": "درمالیفت",
@@ -279188,8 +279194,17 @@
       "telegram_posted_at": "2026-11-17T23:40:07.553765+00:00",
       "title": "ژل شستشو صورت و بدن درمالیفت مدل سبولیفت مناسب پوست چرب و آکنه ای حجم 200 میلی لیتر",
       "ts": 1794958774.36191,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-1558255.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-1558255.mp4"
+      },
+      "video_generated_at": "2026-11-17T23:44:55.165692+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-15584297": {
       "aparat_upload_status": "skipped_unverified_deadline",
