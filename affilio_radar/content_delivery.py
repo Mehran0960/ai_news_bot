@@ -480,9 +480,9 @@ def reflow_product_queue_after_delivery(
         ),
     )
     anchor_kind = (
-        "cycle_start_after_max_gap" if first_slot_due_now
+        "cycle_start_after_minimum_spacing" if first_slot_due_now
         else "last_channel_provisional" if provisional_window
-        else "last_product"
+        else "last_channel"
     )
     updated_cadence = dict(cadence)
     updated_cadence.update({
