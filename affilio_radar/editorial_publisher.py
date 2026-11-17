@@ -251,6 +251,7 @@ def queue_editorial_if_due(
                 stale_reason = "queued_topic_not_relevant_to_related_product"
             if stale_reason:
                 queued_editorial["status"] = "cancelled"
+                _release_failed_editorial_product_reservation(state, queued_editorial)
                 queued_editorial["last_detail"] = f"stale_or_irrelevant_editorial:{stale_reason}"
                 editorial_queue = state.get("editorial_delivery_queue")
                 if isinstance(editorial_queue, dict):
@@ -284,6 +285,7 @@ def queue_editorial_if_due(
                 valid_active.append(queued_editorial)
                 continue
             queued_editorial["status"] = "cancelled"
+            _release_failed_editorial_product_reservation(state, queued_editorial)
             if product_slot_is_due:
                 queued_editorial["last_detail"] = "editorial_midpoint_passed_related_product_due"
             elif dispatch_window_closed:
@@ -1027,7 +1029,9 @@ def _release_failed_editorial_product_reservation(state: dict, entry: dict) -> N
     if not isinstance(queue, dict):
         return
     for product_id, product_entry in queue.items():
-        if not isinstance(product_entry, dict):
+        if not isinstance(product_entry, dict) or product_entry.get("status") in {
+            "published", "completed", "cancelled", "stale_selection"
+        }:
             continue
         if str(product_id) != related_id:
             product_at = _utc(product_entry.get("scheduled_at"))
