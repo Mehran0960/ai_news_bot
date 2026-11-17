@@ -624,13 +624,22 @@ export function hasPendingVideoQueue(state, now = Date.now()) {
 // product/editorial slot is planned, no publisher or catalog workflow is active,
 // and the catalog scanner has no pending pages. This keeps video retries from
 // reserving the state lock ahead of selected channel posts.
+// Video uploads share the publication-state lock with channel publishing.
+// Keep a full bounded video-run window plus a safety margin before the next
+// reserved channel/editorial slot, but do not wait for every future slot to vanish.
+export const VIDEO_CHANNEL_PRIORITY_WINDOW_MS = 30 * 60 * 1000;
+
 export function videoQueueDispatchDeferReason(
   state,
   publisherActive = false,
   now = Date.now()
 ) {
   if (!hasPendingVideoQueue(state, now)) return "video_queue_empty";
-  if (nextPublisherDueAt(state) !== null) return "channel_content_slot_planned";
+  const nextDueAt = nextPublisherDueAt(state);
+  const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
+  if (nextDueAt !== null && nextDueAt <= timestamp + VIDEO_CHANNEL_PRIORITY_WINDOW_MS) {
+    return "channel_content_slot_imminent";
+  }
   if (publisherActive) return "publisher_workflow_active";
   return null;
 }
