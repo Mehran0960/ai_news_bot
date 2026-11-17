@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-17T15:19:37.285824+00:00",
+  "generated_at": "2026-11-17T15:27:24.808810+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
@@ -555,7 +555,7 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1603,
+    "all_time_count": 1604,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "brand_repeat": 6,
@@ -563,23 +563,6 @@
       "similarity_repeat": 499
     },
     "recent_events": [
-      {
-        "at": "2026-11-17T04:34:43.229883+00:00",
-        "brand": "brand:هایک_سمی",
-        "catalog_category_id": "",
-        "catalog_category_name": "",
-        "category": "home",
-        "compared_to_product_id": "dkp-532451",
-        "family": "home:kitchen",
-        "product_id": "dkp-17125980",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "اس اس دی اینترنال SATA III هایک سمی مدل WAVE S ظرفیت 256 گیگابایت",
-        "use_case": "home_living"
-      },
       {
         "at": "2026-11-17T05:05:25.910947+00:00",
         "brand": "brand:هایک_سمی",
@@ -905,6 +888,23 @@
           "similarity_repeat"
         ],
         "title": "گیمبال و لرزشگیر دوربین مدل Video Making AY-49U",
+        "use_case": "gaming"
+      },
+      {
+        "at": "2026-11-17T15:27:24.808810+00:00",
+        "brand": "",
+        "catalog_category_id": "11020",
+        "catalog_category_name": "استابیلایزر و گیمبال",
+        "category": "gaming",
+        "compared_to_product_id": "dkp-16045969",
+        "family": "digikala_category:11020",
+        "product_id": "dkp-11401055",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "گیمبال و لرزشگیر مدل L7BPRO",
         "use_case": "gaming"
       }
     ]
