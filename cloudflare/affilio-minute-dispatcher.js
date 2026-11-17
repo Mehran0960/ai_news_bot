@@ -18,8 +18,6 @@ const RUNS_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/runs`;
 const FILO_REPO = "Goushibaaz";
 const FILO_WORKFLOW = "filo-native-republish.yml";
 const FILO_API = `https://api.github.com/repos/${OWNER}/${FILO_REPO}/actions/workflows/${FILO_WORKFLOW}`;
-const VIDEO_PUBLISHER_WORKFLOW = "offerchin-video-publisher.yml";
-const VIDEO_PUBLISHER_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${VIDEO_PUBLISHER_WORKFLOW}`;
 
 function response(payload, status = 200) {
   return new Response(JSON.stringify(payload), {
