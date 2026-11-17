@@ -374,7 +374,7 @@ def queue_editorial_if_due(
     product_gap_seconds = min(
         MAX_CHANNEL_POST_INTERVAL_SECONDS,
         max(
-            MIN_CHANNEL_POST_INTERVAL_SECONDS + min(editorial_dispatch_poll_seconds(), 60),
+            MIN_CHANNEL_POST_INTERVAL_SECONDS + max(0, editorial_dispatch_poll_seconds()),
             channel_post_interval_seconds(
                 f"product-after-editorial:{related_product_id}:{product_entry.get('sequence_number', '')}"
             ),
