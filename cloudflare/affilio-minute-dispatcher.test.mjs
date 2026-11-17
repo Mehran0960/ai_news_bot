@@ -607,6 +607,7 @@ test("YouTube daily quota pause defers only YouTube and automatically resumes", 
     video_generation_status: "generated",
     youtube_upload_status: "retry",
     youtube_next_attempt_at: new Date(now + 60 * 60_000).toISOString(),
+    aparat_upload_status: "pending",
   };
   const paused = {
     published: { item: record },
