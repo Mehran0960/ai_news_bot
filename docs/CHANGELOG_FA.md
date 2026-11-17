@@ -2878,3 +2878,20 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 ## محدودسازی فایل‌های checkout در Documentation Gate — ۱۷ نوامبر ۲۰۲۶
 
 بهینه‌سازی depth=50 به‌تنهایی کافی نبود؛ checkout هنوز blobهای حجیم catalog/state را برای گیتی دریافت می‌کرد که فقط handbook/changelog را اعتبارسنجی می‌کند. actions/checkout اکنون از filter=blob:none و sparse-checkout محدود به پوشه‌های scripts و docs استفاده می‌کند. git diff و git show برای SHAهای دقیق base/head همچنان مبنای اعتبارسنجی هستند. این تغییر مسیر انتشار یا state عملیاتی را لمس نمی‌کند.
+
+
+## ۲۰۲۶-۱۱-۱۷ — رفع گرسنگی دائمی fan-out ویدئوی OfferChin، به‌ویژه فیلو
+
+**مشاهده:** Worker زندهٔ `affilio-minute-dispatcher` هر صف ویدئویی را در صورت وجود هر نوبت کانال/تحریریه در آینده متوقف می‌کرد؛ حتی وقتی نوبت ده‌ها دقیقه بعد بود. از آنجا که ناشر نوبت آینده را دائماً در sidecar درج می‌کند، پنجرهٔ خالی عملاً ایجاد نمی‌شد. snapshot عملیاتی ۱۱۹ رکورد `pending` برای تولید ویدئو، YouTube و Filo نشان داد؛ در همان snapshot ورود Filo `verified` بود. بنابراین خطای احراز هویت فیلو علت اصلی این توقف نبود.
+
+**اقدام:**
+- شرط زمان‌بند از «نبودن هر slot آینده» به «نبودن slot کانال/تحریریه در ۳۰ دقیقهٔ آینده» تغییر کرد؛ ناشر فعال همچنان اولویت مطلق دارد.
+- سقف اجرای Workflow ویدئو به ۲۰ دقیقه و حداکثر یک محصول در هر گرفتن قفل کاهش یافت تا نوبت کانال از ویدئو اولویت بگیرد. اجرای بعدی FIFO را زمان‌بند هر یک دقیقه از سر می‌گیرد.
+- تست رگرسیون برای slotهای ۰، ۱۰، ۲۹، ۳۰ و ۳۱ دقیقه و slot تحریریه افزوده شد.
+- گزارش فارسی رخداد ایجاد و به README و Handbook پیوند داده شد.
+
+**فایل‌ها:** `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، `.github/workflows/offerchin-video-publisher.yml`، `docs/OFFERCHIN_PUBLICATION_STARVATION_FIX_2026-11-17_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `README.md`.
+
+**مرزهای سیاست:** Aparat بدون deadline معتبر همچنان fail-closed می‌ماند؛ Eitaa تا اتصال واقعی `not_connected` است؛ وضعیت ارسال‌شده به صف تأیید Filo با انتشار عمومی یکی نیست. هیچ secret خوانده یا افشا نشده است.
+
+**آزمون و استقرار:** PR #230 روی شاخهٔ `fix/offerchin-video-queue-starvation-20261117` ایجاد شد. Worker syntax، تست‌های Node و Wrangler dry-run موفق شدند؛ Documentation Gate در اجرای اول به دلیل به‌روزرسانی‌نشدن handbook/changelog شکست خورد و با همین ورودی مستندات اصلاح شد. ادغام و Deploy نهایی تا مشاهدهٔ نتیجهٔ مجدد گیت‌ها ادعا نمی‌شود.
