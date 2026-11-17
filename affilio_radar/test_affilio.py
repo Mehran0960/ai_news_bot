@@ -6308,7 +6308,18 @@ class AffilioRadarTests(unittest.TestCase):
             "youtube_upload_status": "pending_credentials",
             "video_file_name": f"offerchin-{pid}.mp4",
         }
-        state = {"published": {pid: record}}
+        queued_pid = "dkp-youtube-waiting-behind-daily-quota"
+        queued_record = {
+            "ts": now.timestamp() - 1,
+            "title": "ویدئوی در صف پس از سهمیه روزانه",
+            "product_url": "https://www.digikala.com/product/dkp-youtube-waiting-behind-daily-quota/",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
+            "posted_discount_percent": 35,
+            "delivery_status": {"telegram": "sent"},
+            "video_generation_status": "generated",
+            "youtube_upload_status": "pending",
+        }
+        state = {"published": {pid: record, queued_pid: queued_record}}
 
         def fake_render(image_bytes, discount, path, **kwargs):
             output = Path(path)
@@ -6980,16 +6991,67 @@ class AffilioRadarTests(unittest.TestCase):
         ):
             self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
 
-        self.assertEqual(record["youtube_upload_status"], "skipped_platform_limit")
+        self.assertEqual(record["youtube_upload_status"], "retry")
         self.assertEqual(record["youtube_skip_reason"], "youtube_daily_quota_pause")
         self.assertIn("HTTP 429", record["youtube_last_error"])
         self.assertIn("rateLimitExceeded", record["youtube_last_error"])
         self.assertIn("Video Uploads per day", record["youtube_last_error"])
-        self.assertNotIn("youtube_next_attempt_at", record)
         pause_until = datetime.fromisoformat(state["youtube_uploads_paused_until"])
+        self.assertEqual(record["youtube_next_attempt_at"], pause_until.isoformat())
+        self.assertEqual(queued_record["youtube_upload_status"], "retry")
+        self.assertEqual(queued_record["youtube_next_attempt_at"], pause_until.isoformat())
         self.assertGreaterEqual(pause_until, now + timedelta(hours=24))
         self.assertLess(pause_until, now + timedelta(hours=25))
         self.assertEqual(state["youtube_upload_pause_reason"], "daily_upload_limit")
+
+
+    def test_youtube_daily_quota_items_resume_after_cooldown(self):
+        now = datetime.now(timezone.utc)
+        pause_until = (now - timedelta(minutes=1)).isoformat()
+        pid = "dkp-youtube-resume-after-quota"
+        record = {
+            "ts": now.timestamp(),
+            "title": "ویدئو پس از بازگشت سهمیه یوتیوب",
+            "product_url": f"https://www.digikala.com/product/{pid}/",
+            "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
+            "posted_discount_percent": 40,
+            "delivery_status": {"telegram": "sent"},
+            "video_generation_status": "generated",
+            "youtube_upload_status": "retry",
+            "youtube_skip_reason": "youtube_daily_quota_pause",
+            "youtube_next_attempt_at": pause_until,
+        }
+        state = {
+            "published": {pid: record},
+            "youtube_uploads_paused_until": pause_until,
+            "youtube_upload_pause_reason": "daily_upload_limit",
+        }
+
+        def fake_render(image_bytes, discount, path, **kwargs):
+            output = Path(path)
+            output.write_bytes(b"youtube-after-quota-cooldown")
+            return output
+
+        with (
+            TemporaryDirectory() as output_dir,
+            patch("affilio_radar._fetch_image", return_value=b"fake-image"),
+            patch("affilio_radar.save_json"),
+            patch("short_video.youtube_credentials_available", return_value=True),
+            patch("short_video.render_short_video", side_effect=fake_render),
+            patch("short_video.upload_youtube_video", return_value={
+                "video_id": "quota-reset-video",
+                "url": "https://www.youtube.com/shorts/quota-reset-video",
+            }) as upload,
+        ):
+            self.assertTrue(process_pending_short_video(
+                state, now=now, output_dir=output_dir, destinations={"youtube"}
+            ))
+
+        upload.assert_called_once()
+        self.assertEqual(record["youtube_upload_status"], "uploaded")
+        self.assertNotIn("youtube_uploads_paused_until", state)
+        self.assertNotIn("youtube_next_attempt_at", record)
+        self.assertNotIn("youtube_skip_reason", record)
 
     def test_youtube_daily_limit_pause_does_not_block_aparat_shorts_queue(self):
         now = datetime.now(timezone.utc)
@@ -7043,6 +7105,8 @@ class AffilioRadarTests(unittest.TestCase):
         upload.assert_not_called()
         self.assertEqual(record["aparat_upload_status"], "waiting_shorts_uploader")
         self.assertEqual(record["aparat_shorts_upload_status"], "queued")
+        self.assertEqual(record["youtube_upload_status"], "retry")
+        self.assertEqual(record["youtube_next_attempt_at"], pause_until)
         self.assertEqual(state["youtube_uploads_paused_until"], pause_until)
         self.assertEqual(state["youtube_upload_pause_reason"], "daily_upload_limit")
         self.assertTrue(state["youtube_upload_pause_diagnostic_migrated"])
