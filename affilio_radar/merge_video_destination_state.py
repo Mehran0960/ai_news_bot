@@ -234,6 +234,9 @@ def merge_destination_snapshot(target_state: dict, base_state: dict, source_stat
     target_confirmed = target_state.get("last_editorial_confirmed_at")
     if source_confirmed and (not target_confirmed or str(source_confirmed) > str(target_confirmed)):
         target_state["last_editorial_confirmed_at"] = source_confirmed
+        for key in ("last_editorial_id", "last_topic", "cycle_started_at"):
+            if source_cycle.get(key) is not None:
+                target_cycle[key] = copy.deepcopy(source_cycle[key])
 
     return {
         "destination": destination,
