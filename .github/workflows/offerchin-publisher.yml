@@ -34,7 +34,7 @@ permissions:
 concurrency:
   # Keep publisher executions ordered, but never queue publication behind discovery
   # or expiry maintenance. Destination delivery state is retried independently.
-  group: offerchin-content-publisher
+  group: offerchin-channel-publisher
   cancel-in-progress: false
 
 jobs:
