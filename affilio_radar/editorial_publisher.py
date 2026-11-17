@@ -527,6 +527,14 @@ def _readable_editorial_body(value: Any) -> str:
     return "\n\n".join(paragraphs)
 
 
+def _public_editorial_payload(item: dict) -> dict:
+    """Return display-only editorial fields with no source/commerce footer leakage."""
+    public_item = dict(item)
+    public_item["title"] = _readable_editorial_body(item.get("title")).replace("\n", " ").strip()[:110]
+    public_item["body"] = _readable_editorial_body(item.get("body"))
+    return public_item
+
+
 def _format_message(item: dict, *, html_mode: bool = True, platform: str = "telegram") -> str:
     """Render a self-contained editorial post with no public sources or commercial links."""
     title = _readable_editorial_body(item.get("title")).replace("\n", " ").strip()[:110]
@@ -1284,7 +1292,7 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         _save(state)
         try:
             from editorial_video import render_editorial_poster
-            image_bytes = render_editorial_poster(payload)
+            image_bytes = render_editorial_poster(_public_editorial_payload(payload))
         except Exception as exc:
             print(f"EDITORIAL_POSTER_RENDER_FAILED error={type(exc).__name__}")
             return 1
@@ -1313,7 +1321,7 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
                 _target(entry, name).get("status") not in TERMINAL
                 for name in VIDEO_DESTINATIONS
             ):
-                render_editorial_video(payload, output_path)
+                render_editorial_video(_public_editorial_payload(payload), output_path)
         except Exception as exc:
             for destination in VIDEO_DESTINATIONS:
                 target = _target(entry, destination)
