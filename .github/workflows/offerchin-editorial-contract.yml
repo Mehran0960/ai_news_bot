@@ -130,6 +130,8 @@ jobs:
           editorial_module = Path("affilio_radar/editorial_publisher.py").read_text(encoding="utf-8")
           for public_render in ("_editorial_source_rows", "_editorial_affiliate_url", "_editorial_reply_markup"):
               assert public_render not in editorial_module, public_render
+          assert "render_editorial_poster(_public_editorial_payload(payload))" in editorial_module
+          assert "render_editorial_video(_public_editorial_payload(payload), output_path)" in editorial_module
           assert "No product slot means no editorial wake-up" in radar
           assert "EDITORIAL_SHADOW_ONLY_PUBLIC_PUBLISH_DISABLED" in channel
           assert "EDITORIAL_VIDEO_SHADOW_ONLY_PUBLIC_PUBLISH_DISABLED" in video
