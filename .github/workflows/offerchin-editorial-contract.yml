@@ -115,6 +115,9 @@ jobs:
           assert "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes" in delivery
           assert "channel_post_interval_seconds" in delivery
           assert "channel_publication_wait_seconds" in publisher
+          assert "channel_post_sent_this_run = False" in publisher
+          assert "PUBLISHER_STOP_AFTER_CHANNEL_POST" in publisher
+          assert "never_burst_to_catch_up_missed_slots" in publisher
           assert "EDITORIAL_PRODUCT_SLOT_RESERVED" in publisher
           assert "editorial_frequency_allowed(state)" in publisher
           assert "_release_failed_editorial_product_reservation" in publisher
