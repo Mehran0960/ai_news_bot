@@ -70,7 +70,7 @@ jobs:
           print("APARAT_ONLY_PATH_VALIDATED")
           PY
           cd affilio_radar
-          python -m unittest -v test_shared_selection_media_routing.py
+          python -m unittest -v test_shared_selection_media_routing.py test_merge_state_conflicts.py
 
       - name: Process only the Aparat video queue
         env:
@@ -110,8 +110,17 @@ jobs:
               git add affilio_radar/video_upload_dispatch_state.json
             fi
             git commit -m "chore: persist Aparat upload queue state [skip ci]"
-            git pull --rebase origin main
-            git push
+            for attempt in 1 2 3; do
+              if (git pull --rebase origin main || python affilio_radar/merge_state_conflicts.py --paths affilio_radar/state.json affilio_radar/video_upload_dispatch_state.json) && git push; then
+                echo "APARAT_STATE_PERSISTED attempt=$attempt"
+                exit 0
+              fi
+              git rebase --abort 2>/dev/null || true
+              echo "Aparat state persistence attempt $attempt failed; retrying."
+              sleep $((attempt * 2))
+            done
+            echo "APARAT_STATE_PERSIST_FAILED; next dispatcher run will reconcile the saved upload slot."
+            exit 1
           else
             echo "No Aparat state changes to persist."
           fi
