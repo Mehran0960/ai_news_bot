@@ -886,12 +886,12 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
         return 0
     editorial_before_product = _due_editorial_precedes_product(state, now, due)
     if editorial_before_product is not None:
-        # Persist the one-time midpoint attempt before rendering or any outbound side effect.
+        # Persist the one-time reserved-slot attempt before rendering or any outbound side effect.
         # A render/API failure must not cause the same editorial to starve the product queue.
         editorial_before_product["photo_slot_attempted_at"] = now.isoformat()
         _save(state)
         print(
-            "PUBLISHER_EDITORIAL_SLOT_PRECEDES_PRODUCT "
+            "PUBLISHER_RESERVED_EDITORIAL_SLOT_PRECEDES_PRODUCT "
             f"content_id={editorial_before_product.get('content_id')} "
             f"scheduled_at={editorial_before_product.get('scheduled_at')}"
         )
