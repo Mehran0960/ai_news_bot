@@ -616,6 +616,13 @@ test("YouTube daily quota pause defers only YouTube and automatically resumes", 
   assert.equal(videoRecordDue(record, "youtube", now), false);
   assert.equal(hasDueVideoRecord(paused, "youtube", now), false);
   assert.equal(hasDueVideoRecord(paused, "aparat", now), true, "Aparat must not inherit YouTube's quota pause");
+  const globalOnlyRecord = { ...record };
+  delete globalOnlyRecord.youtube_next_attempt_at;
+  assert.equal(videoRecordDue(globalOnlyRecord, "youtube", now), true);
+  assert.equal(hasDueVideoRecord({
+    published: { item: globalOnlyRecord },
+    youtube_uploads_paused_until: new Date(now + 24 * 60 * 60_000).toISOString(),
+  }, "youtube", now), false, "the global quota pause blocks only YouTube");
   const resumedRecord = { ...record, youtube_next_attempt_at: new Date(now - 1).toISOString() };
   const resumed = { published: { item: resumedRecord }, youtube_uploads_paused_until: new Date(now - 1).toISOString() };
   assert.equal(videoRecordDue(resumedRecord, "youtube", now), true);
