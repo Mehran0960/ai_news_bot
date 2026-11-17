@@ -374,6 +374,22 @@ def reschedule_product_queue_evenly(
         state["product_publication_plan_anchor_at"] = anchor.isoformat()
         state["product_publication_plan_anchor_kind"] = anchor_kind
 
+    # An active editorial slot is a real public post in the same channel sequence.
+    # Preserve its position before the related next product when the catalog plan is
+    # refreshed, rather than allowing a discovery reflow to overwrite the reservation.
+    active_editorials_by_product: dict[str, datetime] = {}
+    editorial_queue = state.get("editorial_delivery_queue")
+    editorial_rows = editorial_queue.values() if isinstance(editorial_queue, dict) else []
+    for editorial in editorial_rows:
+        if not isinstance(editorial, dict) or editorial.get("status") in {
+            "completed", "cancelled", "failed", "published"
+        }:
+            continue
+        related_product_id = str(editorial.get("related_product_id") or "").strip()
+        editorial_at = _utc(editorial.get("scheduled_at"))
+        if related_product_id and editorial_at is not None:
+            active_editorials_by_product[related_product_id] = editorial_at
+
     # The observed scan ETA remains planning telemetry. Actual content slots use
     # deterministic per-item jitter, so each adjacent public post is 31–47 minutes apart.
     deferred = 0
@@ -386,8 +402,15 @@ def reschedule_product_queue_evenly(
         deferred = len(pending)
     else:
         first_due_now = bool((cadence or {}).get("first_slot_due_now"))
+        # A reserved editorial before the first product must keep its bridge interval;
+        # an overdue product is not allowed to leapfrog the editorial.
+        if pending and pending[0][1] in active_editorials_by_product:
+            first_due_now = False
         cursor = current if first_due_now else anchor
         for index, (sequence, product_id, entry) in enumerate(pending):
+            editorial_at = active_editorials_by_product.get(product_id)
+            if editorial_at is not None and editorial_at > cursor:
+                cursor = editorial_at
             if first_due_now and index == 0:
                 scheduled = current
             else:
