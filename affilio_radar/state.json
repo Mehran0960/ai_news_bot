@@ -7788,178 +7788,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-1764174",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1764174%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "8942",
-        "catalog_best_selling_category_name": "زردچوبه",
-        "catalog_best_selling_rank": 5,
-        "catalog_best_selling_ranks_by_category": {
-          "8942": {
-            "category_name": "زردچوبه",
-            "observed_at": "2026-11-16T07:06:15.757415+00:00",
-            "rank": 5,
-            "rank_history": [
-              {
-                "category_name": "زردچوبه",
-                "observed_at": "2026-11-16T07:06:15.757415+00:00",
-                "rank": 5
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T07:39:30.980343+00:00",
-        "catalog_cycle_snapshot_rank": 488,
-        "catalog_rank_observed_at": "2026-11-16T07:06:15.757415+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-16T08:08:56.280344+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-1764174",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 164200,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 12.2,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 45.09,
-        "discount_percent": 25,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T08:09:45.124188+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 164200,
-        "history_low_toman": 164200,
-        "history_median_toman": 164200,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 164200,
-        "history_start_day": "2026-11-15",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/7deee0f3326d0cce4d985a357d0cdc30aff646f4_1665499826.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "affordability": 100.0,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 74.21,
-          "discount_attractiveness": 45.09,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 86.0,
-          "generality_group": "mobile_productivity",
-          "live_demand": 99.03,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "8942",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T08:09:45.126177+00:00",
-          "weakest_factor_score": 45.09
-        },
-        "original_price": 218900,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-1764174",
-        "product_url": "https://www.digikala.com/product/dkp-1764174/",
-        "promo_score": 17,
-        "publication_policy": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-        "qualifies_as_deal": true,
-        "rating": 4.27,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 454,
-        "savings_toman": 54700,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 5,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "affordability": 100.0,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 74.21,
-          "discount_attractiveness": 45.09,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 86.0,
-          "generality_group": "mobile_productivity",
-          "live_demand": 99.03,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "8942",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T08:09:45.126177+00:00",
-          "weakest_factor_score": 45.09
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1213,
-        "title": "بیکینگ پودر شاهسوند مقدار 180گرم"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-1764174",
-      "product_plan_cycle_id": "2026-11-16T07:39:30.980343+00:00",
-      "selected_at": "2026-11-16T08:09:47.275860+00:00",
-      "sequence_number": 1213,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T08:24:03.544401+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-19825845",
       "content_type": "product",
       "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
@@ -43848,6 +43676,211 @@
       "sequence_number": 1491,
       "status": "published",
       "updated_at": "2026-11-17T08:48:10.541029+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-21054478",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-17T09:33:42.839497+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-17T09:33:10.540068+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21054478%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "8200",
+        "catalog_best_selling_category_name": "ابزار مراقبت از پوست",
+        "catalog_best_selling_rank": 8,
+        "catalog_best_selling_ranks_by_category": {
+          "8200": {
+            "category_name": "ابزار مراقبت از پوست",
+            "observed_at": "2026-11-17T07:10:05.128240+00:00",
+            "rank": 8,
+            "rank_history": [
+              {
+                "category_name": "ابزار مراقبت از پوست",
+                "observed_at": "2026-11-17T07:10:05.128240+00:00",
+                "rank": 8
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-17T07:41:37.692784+00:00",
+        "catalog_cycle_snapshot_rank": 1,
+        "catalog_rank_observed_at": "2026-11-17T07:10:05.128240+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "other",
+        "checked_at": "2026-11-17T08:08:44.823618+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-21054478",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 1144000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 68.84,
+        "discount_percent": 63,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-17T08:09:20.842875+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-17",
+        "history_high_toman": 1144000,
+        "history_low_toman": 1144000,
+        "history_median_toman": 1144000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-17",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/48278e95582b4981d0df8668a167c6eb7caa8761_1765269218.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_error": "no_sufficiently_similar_in_stock_product",
+        "market_match_score": 0,
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_query": "دستگاه جوانسازی و لیفتینگ صورت و گردن تریکس مدل Max",
+        "market_search_candidates": [
+          {
+            "match_score": 0,
+            "name": "رول یخی جوانسازی و پاکسازی صورت",
+            "price_toman": 380000,
+            "url": "https://torob.com/p/75d280d4-8343-440a-a4ed-e552b59a2178/"
+          },
+          {
+            "match_score": 0,
+            "name": "رول یخی جوانسازی و پاکسازی صورت",
+            "price_toman": 380000,
+            "url": "https://torob.com/p/8bd6604c-70b9-4a7e-b939-2e6292225813/"
+          },
+          {
+            "match_score": 0,
+            "name": "ماساژور و دستگاه لیفتینگ صورت Energy Beauty Bar | جوانسازی و رفع افتادگی پوست",
+            "price_toman": 519400,
+            "url": "https://torob.com/p/04e3f314-0460-4431-a2c4-80d043408b20/"
+          }
+        ],
+        "market_status": "no_confident_match",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 83.38,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 68.84,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 99.09,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-17T08:09:35.298393+00:00",
+          "weakest_factor_score": 68.84
+        },
+        "original_price": 3100000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-21054478",
+        "product_url": "https://www.digikala.com/product/dkp-21054478/",
+        "promo_score": 49,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 3.62,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 57,
+        "savings_toman": 1956000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 8,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 83.38,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 68.84,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 99.09,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-17T08:09:35.298393+00:00",
+          "weakest_factor_score": 68.84
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1496,
+        "title": "دستگاه جوانسازی و لیفتینگ صورت و گردن تریکس مدل Max",
+        "variant_label": "سفید"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-17T09:33:42.839497+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-17T09:34:09.566944+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-17T09:33:42.839497+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-17T09:33:42.839497+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-17T09:34:21.412749+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-17T09:33:42.839497+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-17T09:34:05.386107+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-21054478",
+      "product_plan_cycle_id": "2026-11-17T09:21:47.301029+00:00",
+      "scheduled_at": "2026-11-17T09:33:10.540068+00:00",
+      "selected_at": "2026-11-17T08:09:41.716853+00:00",
+      "sequence_number": 1496,
+      "status": "published",
+      "updated_at": "2026-11-17T09:34:22.563050+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -43862,7 +43895,7 @@
       "attempt_count": 0,
       "content_id": "dkp-15986208",
       "content_type": "product",
-      "next_attempt_at": "2026-11-17T12:09:10.540068+00:00",
+      "next_attempt_at": "2026-11-17T12:10:22.562157+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-15986208%2F",
         "availability": "in_stock",
@@ -44023,7 +44056,7 @@
       },
       "product_id": "dkp-15986208",
       "product_plan_cycle_id": "2026-11-17T09:21:47.301029+00:00",
-      "scheduled_at": "2026-11-17T12:09:10.540068+00:00",
+      "scheduled_at": "2026-11-17T12:10:22.562157+00:00",
       "selected_at": "2026-11-17T08:20:05.828288+00:00",
       "sequence_number": 1500,
       "status": "queued"
@@ -44032,7 +44065,7 @@
       "attempt_count": 0,
       "content_id": "dkp-18199634",
       "content_type": "product",
-      "next_attempt_at": "2026-11-17T12:48:10.540068+00:00",
+      "next_attempt_at": "2026-11-17T12:49:22.562157+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-18199634%2F",
         "availability": "in_stock",
@@ -44194,210 +44227,16 @@
       },
       "product_id": "dkp-18199634",
       "product_plan_cycle_id": "2026-11-17T09:21:47.301029+00:00",
-      "scheduled_at": "2026-11-17T12:48:10.540068+00:00",
+      "scheduled_at": "2026-11-17T12:49:22.562157+00:00",
       "selected_at": "2026-11-17T08:20:05.828288+00:00",
       "sequence_number": 1501,
-      "status": "queued"
-    },
-    "dkp-21054478": {
-      "attempt_count": 0,
-      "content_id": "dkp-21054478",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-17T09:33:10.540068+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21054478%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "8200",
-        "catalog_best_selling_category_name": "ابزار مراقبت از پوست",
-        "catalog_best_selling_rank": 8,
-        "catalog_best_selling_ranks_by_category": {
-          "8200": {
-            "category_name": "ابزار مراقبت از پوست",
-            "observed_at": "2026-11-17T07:10:05.128240+00:00",
-            "rank": 8,
-            "rank_history": [
-              {
-                "category_name": "ابزار مراقبت از پوست",
-                "observed_at": "2026-11-17T07:10:05.128240+00:00",
-                "rank": 8
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-17T07:41:37.692784+00:00",
-        "catalog_cycle_snapshot_rank": 1,
-        "catalog_rank_observed_at": "2026-11-17T07:10:05.128240+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-17T08:08:44.823618+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-21054478",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 1144000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 68.84,
-        "discount_percent": 63,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-17T08:09:20.842875+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-17",
-        "history_high_toman": 1144000,
-        "history_low_toman": 1144000,
-        "history_median_toman": 1144000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-17",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/48278e95582b4981d0df8668a167c6eb7caa8761_1765269218.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_error": "no_sufficiently_similar_in_stock_product",
-        "market_match_score": 0,
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "دستگاه جوانسازی و لیفتینگ صورت و گردن تریکس مدل Max",
-        "market_search_candidates": [
-          {
-            "match_score": 0,
-            "name": "رول یخی جوانسازی و پاکسازی صورت",
-            "price_toman": 380000,
-            "url": "https://torob.com/p/75d280d4-8343-440a-a4ed-e552b59a2178/"
-          },
-          {
-            "match_score": 0,
-            "name": "رول یخی جوانسازی و پاکسازی صورت",
-            "price_toman": 380000,
-            "url": "https://torob.com/p/8bd6604c-70b9-4a7e-b939-2e6292225813/"
-          },
-          {
-            "match_score": 0,
-            "name": "ماساژور و دستگاه لیفتینگ صورت Energy Beauty Bar | جوانسازی و رفع افتادگی پوست",
-            "price_toman": 519400,
-            "url": "https://torob.com/p/04e3f314-0460-4431-a2c4-80d043408b20/"
-          }
-        ],
-        "market_status": "no_confident_match",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 83.38,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 68.84,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.09,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T08:09:35.298393+00:00",
-          "weakest_factor_score": 68.84
-        },
-        "original_price": 3100000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-21054478",
-        "product_url": "https://www.digikala.com/product/dkp-21054478/",
-        "promo_score": 49,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 3.62,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 57,
-        "savings_toman": 1956000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 8,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 83.38,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 68.84,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.09,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T08:09:35.298393+00:00",
-          "weakest_factor_score": 68.84
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1496,
-        "title": "دستگاه جوانسازی و لیفتینگ صورت و گردن تریکس مدل Max",
-        "variant_label": "سفید"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-21054478",
-      "product_plan_cycle_id": "2026-11-17T09:21:47.301029+00:00",
-      "scheduled_at": "2026-11-17T09:33:10.540068+00:00",
-      "selected_at": "2026-11-17T08:09:41.716853+00:00",
-      "sequence_number": 1496,
       "status": "queued"
     },
     "dkp-22009668": {
       "attempt_count": 0,
       "content_id": "dkp-22009668",
       "content_type": "product",
-      "next_attempt_at": "2026-11-17T10:19:10.540068+00:00",
+      "next_attempt_at": "2026-11-17T10:20:22.562157+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22009668%2F",
         "availability": "in_stock",
@@ -44559,7 +44398,7 @@
       },
       "product_id": "dkp-22009668",
       "product_plan_cycle_id": "2026-11-17T09:21:47.301029+00:00",
-      "scheduled_at": "2026-11-17T10:19:10.540068+00:00",
+      "scheduled_at": "2026-11-17T10:20:22.562157+00:00",
       "selected_at": "2026-11-17T08:20:05.828288+00:00",
       "sequence_number": 1497,
       "status": "queued"
@@ -44568,7 +44407,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22631118",
       "content_type": "product",
-      "next_attempt_at": "2026-11-17T10:51:10.540068+00:00",
+      "next_attempt_at": "2026-11-17T10:52:22.562157+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22631118%2F",
         "availability": "in_stock",
@@ -44731,7 +44570,7 @@
       },
       "product_id": "dkp-22631118",
       "product_plan_cycle_id": "2026-11-17T09:21:47.301029+00:00",
-      "scheduled_at": "2026-11-17T10:51:10.540068+00:00",
+      "scheduled_at": "2026-11-17T10:52:22.562157+00:00",
       "selected_at": "2026-11-17T08:20:05.828288+00:00",
       "sequence_number": 1498,
       "status": "queued"
@@ -44740,7 +44579,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22850165",
       "content_type": "product",
-      "next_attempt_at": "2026-11-17T11:32:10.540068+00:00",
+      "next_attempt_at": "2026-11-17T11:33:22.562157+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22850165%2F",
         "availability": "in_stock",
@@ -44902,7 +44741,7 @@
       },
       "product_id": "dkp-22850165",
       "product_plan_cycle_id": "2026-11-17T09:21:47.301029+00:00",
-      "scheduled_at": "2026-11-17T11:32:10.540068+00:00",
+      "scheduled_at": "2026-11-17T11:33:22.562157+00:00",
       "selected_at": "2026-11-17T08:20:05.828288+00:00",
       "sequence_number": 1499,
       "status": "queued"
@@ -159317,12 +159156,12 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-17T08:48:10.540068+00:00",
+  "last_channel_published_at": "2026-11-17T09:34:22.562157+00:00",
   "last_content_selection_at": "2026-11-17T08:20:05.828288+00:00",
   "last_editorial_attempt_at": "2026-11-17T07:31:39.510253+00:00",
   "last_editorial_confirmed_at": "2026-11-17T07:32:06.840487+00:00",
-  "last_product_channel_published_at": "2026-11-17T08:48:10.540068+00:00",
-  "last_published_at": "2026-11-17T08:48:10.540068+00:00",
+  "last_product_channel_published_at": "2026-11-17T09:34:22.562157+00:00",
+  "last_published_at": "2026-11-17T09:34:22.562157+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -208278,8 +208117,8 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-17T09:26:28.496783+00:00",
-    "candidate_count": 6,
+    "calculated_at": "2026-11-17T09:34:22.562165+00:00",
+    "candidate_count": 5,
     "catalog_cycle_id": "2026-11-17T09:21:47.301029+00:00",
     "current_cycle_started_at": "2026-11-17T09:21:47.778256+00:00",
     "daily_post_limit": 55,
@@ -208291,41 +208130,40 @@
     "interval_seconds": 1860.0,
     "last_clean_cycle_completed_at": "2026-11-17T09:21:47.301029+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-17T08:48:10.540068+00:00",
-    "plan_anchor_kind": "last_product",
-    "planned_product_slots": 6,
+    "plan_anchor_at": "2026-11-17T09:34:22.562157+00:00",
+    "plan_anchor_kind": "last_channel",
+    "planned_product_slots": 5,
     "planned_window_end_at": "2026-11-17T09:53:55.778256+00:00",
-    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes",
+    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
     "scan_eta_is_provisional": false,
     "scan_eta_source": "last_observed_full_cycle_duration",
     "scheduled_product_count": 6,
-    "seconds_from_plan_anchor_to_next_scan": 3945.238188,
-    "seconds_until_estimated_next_clean_scan": 1647.281473
+    "seconds_from_plan_anchor_to_next_scan": 1173.216099,
+    "seconds_until_estimated_next_clean_scan": 1173.216091
   },
   "product_publication_interval_seconds": 1860.0,
   "product_publication_plan": {
-    "anchor_at": "2026-11-17T08:48:10.540068+00:00",
-    "anchor_kind": "last_product",
+    "anchor_at": "2026-11-17T09:34:22.562157+00:00",
+    "anchor_kind": "last_channel",
     "catalog_cycle_id": "2026-11-17T09:21:47.301029+00:00",
     "first_slot_due_now": false,
     "interval_minutes": 31.0,
     "interval_seconds": 1860.0,
     "maximum_product_interval_seconds": 3420,
     "next_clean_scan_at": "2026-11-17T09:53:55.778256+00:00",
-    "pending_product_count": 6,
+    "pending_product_count": 5,
     "product_ids": [
-      "dkp-21054478",
       "dkp-22009668",
       "dkp-22631118",
       "dkp-22850165",
       "dkp-15986208",
       "dkp-18199634"
     ],
-    "scheduled_product_count": 6,
-    "updated_at": "2026-11-17T09:26:28.496783+00:00"
+    "scheduled_product_count": 5,
+    "updated_at": "2026-11-17T09:34:22.562165+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-17T08:48:10.540068+00:00",
-  "product_publication_plan_anchor_kind": "last_product",
+  "product_publication_plan_anchor_at": "2026-11-17T09:34:22.562157+00:00",
+  "product_publication_plan_anchor_kind": "last_channel",
   "product_publication_plan_cycle_id": "2026-11-17T09:21:47.301029+00:00",
   "publication_diversity_fallback_count": 5307,
   "publication_diversity_fallback_events": [
@@ -292946,6 +292784,134 @@
       "youtube_uploaded_at": "2026-10-23T17:09:55.137021+00:00",
       "youtube_video_id": "SApTJhkSGcE",
       "youtube_video_url": "https://www.youtube.com/shorts/SApTJhkSGcE"
+    },
+    "dkp-21054478": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2235,
+      "bale_posted_at": "2026-11-17T09:34:09.566944+00:00",
+      "brand": "",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "B",
+      "catalog_best_selling_category_id": "8200",
+      "catalog_best_selling_category_name": "ابزار مراقبت از پوست",
+      "catalog_best_selling_rank": 8,
+      "catalog_best_selling_ranks_by_category": {
+        "8200": {
+          "category_name": "ابزار مراقبت از پوست",
+          "observed_at": "2026-11-17T07:10:05.128240+00:00",
+          "rank": 8,
+          "rank_history": [
+            {
+              "category_name": "ابزار مراقبت از پوست",
+              "observed_at": "2026-11-17T07:10:05.128240+00:00",
+              "rank": 8
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-17T07:41:37.692784+00:00",
+      "catalog_cycle_snapshot_rank": 1,
+      "catalog_rank_observed_at": "2026-11-17T07:10:05.128240+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-21054478",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "B",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-17T09:34:21.412772+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 0,
+      "distribution_queue_id": "dkp-21054478:2026-11-17T08:09:41.716853+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-17T08:09:20.842875+00:00",
+      "history_days": 1,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/48278e95582b4981d0df8668a167c6eb7caa8761_1765269218.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "no_confident_match",
+      "platform_message_ids": {
+        "rubika": "1974493832787588651"
+      },
+      "posted_current_price": 1144000,
+      "posted_discount_percent": 63,
+      "posted_original_price": 3100000,
+      "product_url": "https://www.digikala.com/product/dkp-21054478/",
+      "promo_score": 49,
+      "publication_category": "personal_care",
+      "publication_family": "digikala_category:8200",
+      "publication_use_case": "personal_care",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 0.0,
+      "rubika_posted_at": "2026-11-17T09:34:21.412749+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 8,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 83.38,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 68.84,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 88.0,
+        "generality_group": "personal_care",
+        "live_demand": 99.09,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-17T08:09:35.298393+00:00",
+        "weakest_factor_score": 68.84
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1496,
+      "telegram_message_id": 1672,
+      "telegram_posted_at": "2026-11-17T09:34:05.386107+00:00",
+      "title": "دستگاه جوانسازی و لیفتینگ صورت و گردن تریکس مدل Max",
+      "ts": 1794908022.839497,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
     },
     "dkp-21056927": {
       "aparat_upload_status": "skipped_unverified_deadline",
