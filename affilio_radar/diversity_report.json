@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-17T15:34:42.723378+00:00",
+  "generated_at": "2026-11-17T15:41:11.726573+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آبکش و آبگیر": 1,
@@ -554,7 +554,7 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1607,
+    "all_time_count": 1609,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
       "brand_repeat": 7,
@@ -562,40 +562,6 @@
       "similarity_repeat": 499
     },
     "recent_events": [
-      {
-        "at": "2026-11-17T09:54:20.335040+00:00",
-        "brand": "brand:دایسو",
-        "catalog_category_id": "6148",
-        "catalog_category_name": "چسب صنعتی",
-        "category": "home",
-        "compared_to_product_id": "dkp-23273790",
-        "family": "digikala_category:6148",
-        "product_id": "dkp-6211569",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "چسب آلومینیوم دایسو مدل آشپزخانه عرض 5 سانتی متر",
-        "use_case": "kitchen_food"
-      },
-      {
-        "at": "2026-11-17T10:59:30.560626+00:00",
-        "brand": "brand:دایسو",
-        "catalog_category_id": "6148",
-        "catalog_category_name": "چسب صنعتی",
-        "category": "home",
-        "compared_to_product_id": "dkp-23273790",
-        "family": "digikala_category:6148",
-        "product_id": "dkp-6211569",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "چسب آلومینیوم دایسو مدل آشپزخانه عرض 5 سانتی متر",
-        "use_case": "kitchen_food"
-      },
       {
         "at": "2026-11-17T11:26:56.867039+00:00",
         "brand": "",
@@ -906,6 +872,40 @@
         ],
         "title": "گیمبال و لرزشگیر دوربین مدل Video Making AY-49U",
         "use_case": "gaming"
+      },
+      {
+        "at": "2026-11-17T15:41:11.726573+00:00",
+        "brand": "",
+        "catalog_category_id": "9297",
+        "catalog_category_name": "ست لباس راحتی زنانه",
+        "category": "fashion",
+        "compared_to_product_id": "dkp-22750115",
+        "family": "digikala_category:9297",
+        "product_id": "dkp-21003279",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ست بلوز و شلوار راحتی زنانه مدل گل کد A1111",
+        "use_case": "fashion_lifestyle"
+      },
+      {
+        "at": "2026-11-17T15:41:11.726573+00:00",
+        "brand": "brand:لاولی_پلاست",
+        "catalog_category_id": "6805",
+        "catalog_category_name": "کهنه کودک و نوزاد",
+        "category": "kids_sports",
+        "compared_to_product_id": "dkp-19623338",
+        "family": "digikala_category:6805",
+        "product_id": "dkp-19622786",
+        "reason": "family_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "similarity_repeat"
+        ],
+        "title": "کهنه کودک لاولی مدل tiepanties بسته 25 عددی",
+        "use_case": "baby_care"
       }
     ]
   }
