@@ -477,8 +477,18 @@ test("Filo accepts every confirmed channel delivery without requiring a retailer
   );
   assert.equal(
     hasDueVideoRecord({ published: { item: { ...base, delivery_status: { telegram: "sent" } } } }, "aparat", now),
-    false,
-    "Aparat's stricter verified-expiry rule must remain in place"
+    true,
+    "Aparat must not wait for a retailer deadline when the selected product passed last-mile checks"
+  );
+  assert.equal(
+    hasDueVideoRecord({ published: { item: {
+      ...base,
+      delivery_status: { telegram: "sent" },
+      video_generation_status: "pending",
+      aparat_upload_status: "skipped_unverified_deadline",
+    } } }, "aparat", now),
+    true,
+    "legacy Aparat deadline skips must be requeued"
   );
   assert.equal(
     hasDueVideoRecord({ published: { item: {
