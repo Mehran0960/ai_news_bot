@@ -39,9 +39,10 @@ jobs:
       - name: Check out both sides of the change
         uses: actions/checkout@v4
         with:
-          # The validator compares the exact PR base/head commit SHAs; retain
-          # the full graph so both refs are guaranteed to be available.
-          fetch-depth: 0
+          # The PR base and head are within the latest 50 commits; retain enough
+          # history for exact-SHA validation without downloading the huge catalog
+          # snapshot history on every documentation-only change.
+          fetch-depth: 50
 
       - name: Set up Python
         uses: actions/setup-python@v5
