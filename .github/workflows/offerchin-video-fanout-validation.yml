@@ -100,7 +100,10 @@ jobs:
           assert "destination: [youtube, aparat, filo]" in unified
           assert "fail-fast: false" in unified
           assert "offerchin-video-dispatcher" in unified
-          assert "offerchin-content-publisher" not in unified
+          upload_jobs = unified.split("  merge:", 1)[0]
+          merge_job = unified.split("  merge:", 1)[1]
+          assert "offerchin-content-publisher" not in upload_jobs
+          assert "offerchin-content-publisher" in merge_job
           assert "state.base.json" in unified
           assert "merge_video_destination_state.py" in unified
           assert "OFFERCHIN_EDITORIAL_VIDEO_DESTINATION" in unified
