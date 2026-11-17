@@ -4,7 +4,8 @@
 
 ## اسناد اصلی
 
-- [منشور هدف، معماری و نقشهٔ راه](docs/PROJECT_CHARTER_FA.md)
+- [منشور هدف و اصول پایه](docs/PROJECT_CHARTER_FA.md)
+- [نقشه‌راه جامع و مرجع اجرایی OfferChin](docs/OFFERCHIN_MASTER_ROADMAP_FA.md) — سند واحد هدف کسب‌وکار، وضعیت مبنا، برنامهٔ P0 تا P7، KPIها، قدم‌های صاحب پروژه و متن آمادهٔ ادامه در گفتگوهای بعدی.
 - [راهنمای فنی و نقطهٔ بازیابی](docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md)
 - [دفتر تغییرات و اقدامات](docs/CHANGELOG_FA.md)
 - [سیاست کشف چندمنبعی RSS و تحریریهٔ تصمیم‌یار خرید](docs/OFFERCHIN_DIGIKALA_MAG_SOURCE_POLICY_FA.md)
