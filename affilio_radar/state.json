@@ -169687,8 +169687,8 @@
     "unchanged": 9,
     "updated": 0
   },
-  "filo_last_upload_attempt_at": "2026-11-17T21:01:37.903623+00:00",
-  "filo_last_upload_success_at": "2026-11-17T21:02:16.399288+00:00",
+  "filo_last_upload_attempt_at": "2026-11-17T21:07:29.465926+00:00",
+  "filo_last_upload_success_at": "2026-11-17T21:08:07.021087+00:00",
   "filo_login_verification_attempted_at": "2026-11-17T18:14:11.649894+00:00",
   "filo_login_verification_status": "verified",
   "filo_login_verified_at": "2026-11-17T18:14:11.649894+00:00",
@@ -314194,7 +314194,14 @@
       "expiry_estimated": false,
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
-      "filo_upload_status": "pending",
+      "filo_last_error": "",
+      "filo_review_required": false,
+      "filo_submitted_at": "2026-11-17T21:08:07.021087+00:00",
+      "filo_upload_started_at": "2026-11-17T21:07:29.465926+00:00",
+      "filo_upload_status": "submitted_pending_approval",
+      "filo_video_code": "iW3TwzS",
+      "filo_video_url": "https://ifilo.net/v/iW3TwzS",
+      "filo_visibility": "pending_review",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-16T10:34:15.487012+00:00",
       "history_days": 1,
@@ -314253,10 +314260,17 @@
       "telegram_posted_at": "2026-11-16T13:08:08.570410+00:00",
       "title": "شلف ایستاده مدل کافی بار t165",
       "ts": 1794834481.763087,
-      "video_generation_status": "pending",
+      "video_file_name": "offerchin-dkp-21873148.mp4",
+      "video_file_names": {
+        "filo": "offerchin-dkp-21873148.mp4"
+      },
+      "video_generated_at": "2026-11-17T21:07:20.814199+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
       "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
-      "youtube_skip_reason": "youtube_daily_quota_pause",
-      "youtube_upload_status": "retry"
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-21878010": {
       "aparat_upload_status": "skipped_unverified_deadline",
