@@ -29,6 +29,7 @@ from content_delivery import (
     reflow_product_queue_after_delivery,
 )
 from publication_policy import (
+    MAX_CHANNEL_POST_INTERVAL_SECONDS,
     MIN_CHANNEL_POST_INTERVAL_SECONDS,
     PRODUCTS_PER_EDITORIAL_POST,
     channel_post_interval_seconds,
@@ -267,7 +268,7 @@ def queue_editorial_if_due(
             product_slot_is_due = product_slot_at is not None and product_slot_at <= current
             dispatch_window_closed = (
                 product_slot_at is not None
-                and product_slot_at - current
+                and (product_slot_at - current).total_seconds()
                 < max(MIN_CHANNEL_POST_INTERVAL_SECONDS, delivery_runway)
             )
             if (
@@ -370,10 +371,13 @@ def queue_editorial_if_due(
         current,
         anchor + timedelta(seconds=editorial_gap_seconds),
     )
-    product_gap_seconds = max(
-        MIN_CHANNEL_POST_INTERVAL_SECONDS + editorial_dispatch_poll_seconds(),
-        channel_post_interval_seconds(
-            f"product-after-editorial:{related_product_id}:{product_entry.get('sequence_number', '')}"
+    product_gap_seconds = min(
+        MAX_CHANNEL_POST_INTERVAL_SECONDS,
+        max(
+            MIN_CHANNEL_POST_INTERVAL_SECONDS + min(editorial_dispatch_poll_seconds(), 60),
+            channel_post_interval_seconds(
+                f"product-after-editorial:{related_product_id}:{product_entry.get('sequence_number', '')}"
+            ),
         ),
     )
     original_product_at = product_at
