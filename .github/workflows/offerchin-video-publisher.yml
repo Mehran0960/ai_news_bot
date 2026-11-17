@@ -11,7 +11,7 @@ permissions:
 concurrency:
   # The unified runner is the only automatic writer for the three video destinations.
   # It shares the publisher lock because all upload statuses live in state.json.
-  group: offerchin-content-publisher
+  group: offerchin-unified-video-legacy
   cancel-in-progress: false
 
 jobs:
@@ -156,7 +156,7 @@ jobs:
           AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT: "250"
           AFFILIO_VIDEO_UPLOAD_MAX_AGE_HOURS: "0"
           AFFILIO_MAX_VIDEO_UPLOAD_ATTEMPTS: "3"
-          # One product per lock acquisition; the minute dispatcher resumes the FIFO\n          # after completion. The 20-minute timeout stays inside the 30-minute\n          # channel-priority window so scheduled photo posts are not starved.\n          AFFILIO_MAX_SHORT_VIDEOS_PER_RUN: "1"
+          # Legacy manual recovery only; automatic dispatch uses isolated workflows.\n          AFFILIO_MAX_SHORT_VIDEOS_PER_RUN: "1"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py --all-video-upload-only
 
