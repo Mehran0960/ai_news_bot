@@ -6975,7 +6975,7 @@ class AffilioRadarTests(unittest.TestCase):
         }
         queued_pid = "dkp-youtube-waiting-behind-daily-quota"
         queued_record = {
-            "ts": now.timestamp() - 1,
+            "ts": now.timestamp() + 1,
             "title": "ویدئوی در صف پس از سهمیه روزانه",
             "product_url": "https://www.digikala.com/product/dkp-youtube-waiting-behind-daily-quota/",
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
