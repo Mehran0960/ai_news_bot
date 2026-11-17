@@ -17,7 +17,7 @@ concurrency:
 jobs:
   publish-videos:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - name: Check out the latest canonical product and delivery state
         uses: actions/checkout@v4
@@ -156,7 +156,7 @@ jobs:
           AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT: "250"
           AFFILIO_VIDEO_UPLOAD_MAX_AGE_HOURS: "0"
           AFFILIO_MAX_VIDEO_UPLOAD_ATTEMPTS: "3"
-          AFFILIO_MAX_SHORT_VIDEOS_PER_RUN: "4"
+          # One product per lock acquisition; the minute dispatcher resumes the FIFO\n          # after completion. The 20-minute timeout stays inside the 30-minute\n          # channel-priority window so scheduled photo posts are not starved.\n          AFFILIO_MAX_SHORT_VIDEOS_PER_RUN: "1"
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py --all-video-upload-only
 
