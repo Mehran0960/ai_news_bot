@@ -1,4 +1,5 @@
 import unittest
+import os
 from pathlib import Path
 from unittest.mock import patch
 import math
@@ -21,13 +22,33 @@ from publication_policy import (
 )
 from publisher import (
     publish_due_queue, _fresh_selected_item, _eligible_fallback_candidates,
-    MAX_ITEMS_PER_RUN, _due_editorial_precedes_product,
+    MAX_ITEMS_PER_RUN, _due_editorial_precedes_product, _target_ready,
 )
 
 
 class ContentDeliveryQueueTests(unittest.TestCase):
     def setUp(self):
         self.now = datetime(2026, 10, 25, 12, 0, tzinfo=timezone.utc)
+
+
+    def test_eitaa_is_enabled_by_default_when_credentials_are_present(self):
+        with patch.dict(os.environ, {
+            "EITAA_BOT_TOKEN": "test-token",
+            "EITAA_CHANNEL_ID": "test-channel",
+        }, clear=True):
+            self.assertTrue(_target_ready("eitaa"))
+
+    def test_eitaa_can_still_be_explicitly_disabled(self):
+        with patch.dict(os.environ, {
+            "EITAA_ENABLE_PUBLISHING": "false",
+            "EITAA_BOT_TOKEN": "test-token",
+            "EITAA_CHANNEL_ID": "test-channel",
+        }, clear=True):
+            self.assertFalse(_target_ready("eitaa"))
+
+    def test_eitaa_missing_credentials_only_disables_eitaa(self):
+        with patch.dict(os.environ, {"EITAA_ENABLE_PUBLISHING": "true"}, clear=True):
+            self.assertFalse(_target_ready("eitaa"))
 
     def test_publication_workflow_has_no_fixed_post_interval_setting(self):
         workflow = (
