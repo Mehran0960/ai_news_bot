@@ -7208,11 +7208,23 @@ class AffilioRadarTests(unittest.TestCase):
                 # Legacy public posts are deliberately not assigned to a guessed A/B arm.
                 "dkp-789": {
                     "telegram_message_id": 789,
-                    "delivery_status": {"telegram": "sent"},
+                    "delivery_status": {
+                        "telegram": "sent",
+                        "rubika": "sent",
+                        "eitaa": "sent",
+                        "filo": "sent",
+                    },
                 },
             }
         }
         report = radar_module.build_performance_report(state, click_snapshot=snapshot)
+        self.assertEqual(report["published_posts_by_platform"], {
+            "telegram": 2,
+            "bale": 1,
+            "rubika": 1,
+            "eitaa": 1,
+            "filo": 1,
+        })
         self.assertEqual(report["tracked_clicks_by_source"], {"telegram": 8, "bale": 4})
         self.assertEqual(report["tracked_clicks_by_product"], {"dkp-123": 12})
         self.assertEqual(report["tracked_clicks_by_product_source"]["dkp-123"], {"telegram": 8})
