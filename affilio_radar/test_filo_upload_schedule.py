@@ -155,6 +155,29 @@ class FiloUploadScheduleTests(unittest.TestCase):
             state["published"]["sample"]["filo_next_attempt_at"],
         )
 
+    def test_dispatch_sidecar_exposes_safe_filo_failure_diagnostics(self):
+        state = {
+            "published": {
+                "sample": {
+                    "ts": self.now.timestamp(),
+                    "delivery_status": {"telegram": "sent"},
+                    "video_generation_status": "generated",
+                    "youtube_upload_status": "pending",
+                    "filo_upload_status": "retry",
+                    "filo_last_error": "filo_thumbnail_upload_not_confirmed",
+                    "filo_upload_attempts": 2,
+                    "filo_review_required": False,
+                    "filo_visibility": "unknown",
+                }
+            }
+        }
+        sidecar = build_video_upload_dispatch_state(state, now=self.now)
+        record = sidecar["published"]["sample"]
+        self.assertEqual(record["filo_last_error"], "filo_thumbnail_upload_not_confirmed")
+        self.assertEqual(record["filo_upload_attempts"], 2)
+        self.assertFalse(record["filo_review_required"])
+        self.assertEqual(record["filo_visibility"], "unknown")
+
     def test_dispatch_sidecar_accepts_rubika_and_eitaa_channel_handoffs(self):
         state = {
             "published": {
