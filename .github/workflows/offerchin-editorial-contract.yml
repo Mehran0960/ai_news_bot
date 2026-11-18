@@ -173,4 +173,4 @@ jobs:
         working-directory: affilio_radar
         run: |
           python -m unittest -v \
-            test_expiration_monitor.ExpirationMonitorTests.test_48_hour_retention_deletes_product_posts_but_preserves_editorial_and_videos
+            test_expiration_monitor.ExpirationMonitorTests.test_7_day_retention_deletes_product_posts_but_preserves_editorial_and_videos
