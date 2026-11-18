@@ -3129,3 +3129,22 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **شواهد/شناسه:** PR #242؛ لاگ‌های Filo run `44227173014`، Aparat run `44227169652` و Integrity Audit run `44226947712` در تاریخ ۱۸ نوامبر ۲۰۲۶، که checkout کامل و حدود سه دقیقه دریافت refها را نشان می‌دهند.
 
 **وضعیت:** در شاخهٔ `perf/offerchin-runner-checkout-and-platform-report-20261118`؛ در انتظار CI و ادغام.
+
+
+## ۲۰۲۶-۱۱-۱۸ — مقاوم‌سازی ثبت رسیدهای رسانه در برابر هم‌زمانی GitHub Actions
+
+**هدف:** جلوگیری از خطای ذخیره‌سازی state پس از ارسال عمومی موفق، وقتی چند workflow مستقل هم‌زمان فایل‌های `state.json` و `video_upload_dispatch_state.json` را تغییر می‌دهند.
+
+**شاهد:** اجرای ناشر #44228258776 مقصدهای اصلی تلگرام و بله را با موفقیت اجرا کرد، اما مرحلهٔ Persist در push نهایی پس از سه تلاش با race/rejected push شکست خورد؛ دو فایل وضعیت هنگام rebase دارای conflict شدند. اجرای قبلی #44228147318 موفق بود. این خطا به معنی رد پست توسط تلگرام/بله نیست.
+
+**تغییر/اقدام:** در شاخهٔ اصلاحی مستقل، شش مسیر نوشتن وضعیت ناشر اصلی، ناشر ویدئویی، Filo، Aparat، YouTube و تحریریه از ۳ تلاش ثابت به ۱۰ تلاش با backoff افزایشی و jitter تغییر کردند. اسکن اصلی افیلیو نیز merge سه‌طرفهٔ فایل‌های JSON را هنگام conflict انجام می‌دهد و تا ۱۰ بار push را تکرار می‌کند؛ پاک‌سازی انقضا نیز retry و merge امن state می‌گیرد. قفل سراسری انتشار اضافه نشد تا استقلال زمان اجرای رسانه‌ها حفظ شود. منطق سه‌طرفهٔ موجود همچنان receipts مقصدها را merge می‌کند.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/offerchin-publisher.yml`، `offerchin-video-publisher.yml`، `filo-video-upload.yml`، `aparat-video-upload.yml`، `youtube-video-upload.yml`، `offerchin-editorial-channel-upload.yml`، `affilio-radar.yml`، `affilio-expiration-cleanup.yml`، `affilio_radar/merge_state_conflicts.py`.
+
+**آزمون و نتیجه:** تست‌های موجود `test_merge_state_conflicts.py` هم‌جوشی رسیدهای مستقل مقصدها، ledger و صف تحریریه را پوشش می‌دهند. workflowهای تغییرکرده پس از بازشدن PR نیازمند CI تازه هستند؛ پیش از آن موفقیت نهایی ادعا نمی‌شود.
+
+**شواهد/شناسه:** اجرای ناموفق #44228258776؛ اجرای قبلی موفق #44228147318؛ شاخهٔ `fix/offerchin-state-persistence-retries-20261118`.
+
+**ریسک/بازگشت:** retry بیشتر ممکن است زمان پایان job را در رقابت شدید افزایش دهد، اما انتشار موازی را متوقف نمی‌کند. سقف ۱۰ تلاش و backoff jittered محدود است؛ rollback با revert همین PR ممکن است.
+
+**وضعیت:** تغییرات شاخه‌ای ثبت شد؛ CI و ادغام در main در انتظار.
