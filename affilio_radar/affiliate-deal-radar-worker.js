@@ -80,13 +80,13 @@ export default {
         clickStoreReady: !!env.CLICKS,
         experimentAttribution: true,
         captionExperimentAttribution: true,
-        routes: ["/health", "/stats", "/p/<dkp-or-snp-product-id>?u=<verified-aflo-link>&src=<telegram|bale|youtube|aparat>&exp=<visual-experiment>&variant=<a|b>&cexp=<caption-experiment>&cvariant=<a|b>"],
+        routes: ["/health", "/stats", "/p/<dkp-or-snp-product-id>?u=<verified-aflo-link>&src=<telegram|bale|rubika|eitaa|youtube|aparat|filo>&exp=<visual-experiment>&variant=<a|b>&cexp=<caption-experiment>&cvariant=<a|b>"],
         stats: "Aggregated product and source click counts for the last 30 days only"
       });
     }
     if (url.pathname === "/stats") {
       if (!env.CLICKS) return jsonResponse({ok:false,error:"click_store_unavailable"},503);
-      const cacheKey = "analytics:clicks:30d:v4";
+      const cacheKey = "analytics:clicks:30d:v5";
       try {
         const cached = await env.CLICKS.get(cacheKey, "json");
         const cacheAgeMs = cached && cached.updatedAt
@@ -131,8 +131,8 @@ export default {
           const page = pages[index];
           for (const key of page.keys || []) {
             const keyName = String(key.name || "");
-            const dual = keyName.match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20})):((?:telegram|bale|youtube|aparat|unknown)):v:([a-z0-9][a-z0-9_-]{0,31}):([ab]):c:([a-z0-9][a-z0-9_-]{0,31}):([ab]):/);
-            const current = keyName.match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20})):((?:telegram|bale|youtube|aparat|unknown)):([a-z0-9][a-z0-9_-]{0,31}):([ab]):/);
+            const dual = keyName.match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20})):((?:telegram|bale|rubika|eitaa|youtube|aparat|filo|unknown)):v:([a-z0-9][a-z0-9_-]{0,31}):([ab]):c:([a-z0-9][a-z0-9_-]{0,31}):([ab]):/);
+            const current = keyName.match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20})):((?:telegram|bale|rubika|eitaa|youtube|aparat|filo|unknown)):([a-z0-9][a-z0-9_-]{0,31}):([ab]):/);
             const legacy = keyName.match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20}))(?::(telegram|bale|youtube|aparat|unknown))?:/);
             if (dual || current || legacy) {
               const productId = dual ? dual[2] : current ? current[2] : legacy[2];
@@ -206,7 +206,7 @@ export default {
     const productId = match[1];
     const destination = validateDestination(url.searchParams.get("u") || "", productId);
     if (!destination) return new Response("Invalid or mismatched product destination", { status: 400 });
-    const allowedSources = new Set(["telegram", "bale", "youtube", "aparat"]);
+    const allowedSources = new Set(["telegram", "bale", "rubika", "eitaa", "youtube", "aparat", "filo"]);
     const requestedSource = String(url.searchParams.get("src") || "unknown").toLowerCase();
     const source = allowedSources.has(requestedSource) ? requestedSource : "unknown";
     const rawExperiment = String(url.searchParams.get("exp") || "").toLowerCase();
