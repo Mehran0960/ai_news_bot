@@ -29,7 +29,7 @@
   "filo_login_verified_at": "2026-11-18T16:23:22.974376+00:00",
   "filo_next_upload_at": null,
   "filo_upload_interval_policy_version": 3,
-  "generated_at": "2026-11-18T17:27:51.882599+00:00",
+  "generated_at": "2026-11-18T17:28:51.156910+00:00",
   "last_channel_published_at": "2026-11-18T16:16:47.312258+00:00",
   "last_product_channel_published_at": "2026-11-18T16:16:47.312258+00:00",
   "next_channel_content_due_at": null,
@@ -2068,31 +2068,6 @@
       "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
       "youtube_upload_status": "skipped_unavailable"
     },
-    "dkp-22065511": {
-      "aparat_upload_status": "pending",
-      "bale_message_id": 2071,
-      "content_id": "dkp-22065511",
-      "content_type": "product",
-      "delivery_status": {
-        "bale": "sent",
-        "eitaa": "not_connected",
-        "rubika": "sent",
-        "telegram": "sent"
-      },
-      "distribution_queue_id": "dkp-22065511:2026-11-16T10:14:11.013227+00:00",
-      "expiry_deadline_verified_directly": false,
-      "expiry_deadline_verified_from_site_card": false,
-      "expiry_estimated": false,
-      "expiry_source": "unavailable",
-      "filo_upload_status": "rejected_by_filo",
-      "sequence_number": 1302,
-      "telegram_message_id": 1547,
-      "ts": 1794831041.096844,
-      "video_dispatch_eligible": true,
-      "video_generation_status": "generated",
-      "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
-      "youtube_upload_status": "skipped_unavailable"
-    },
     "dkp-22122355": {
       "aparat_upload_status": "skipped_unverified_deadline",
       "bale_message_id": 1681,
@@ -2927,28 +2902,6 @@
       "video_generation_status": "generated",
       "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
       "youtube_upload_status": "skipped_unavailable"
-    },
-    "dkp-22924165": {
-      "aparat_upload_status": "skipped_unverified_deadline",
-      "bale_message_id": 1748,
-      "delivery_status": {
-        "bale": "sent",
-        "eitaa": "not_connected",
-        "rubika": "sent",
-        "telegram": "sent"
-      },
-      "distribution_queue_id": "dkp-22924165:2026-11-07T10:19:48.966440+00:00",
-      "expiry_deadline_verified_directly": false,
-      "expiry_deadline_verified_from_site_card": false,
-      "expiry_estimated": false,
-      "expiry_source": "unavailable",
-      "filo_upload_status": "submitted_pending_approval",
-      "telegram_message_id": 1334,
-      "ts": 1794046789.885343,
-      "video_dispatch_eligible": true,
-      "video_generation_status": "generated",
-      "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
-      "youtube_upload_status": "retry"
     },
     "dkp-22958144": {
       "aparat_upload_status": "skipped_unverified_deadline",
