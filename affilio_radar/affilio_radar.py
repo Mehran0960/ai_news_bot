@@ -5078,7 +5078,13 @@ def build_performance_report(
         "generated_at": current.isoformat(),
         "window_days": 30,
         "click_data_status": "complete" if complete else "unavailable_or_legacy_worker",
-        "source_attribution_available": bool(complete and snapshot.get("sources") is not None),
+        # Public purchase CTAs bypass the Worker. Keep the legacy field false for
+        # live sales attribution; expose Worker-only event coverage separately.
+        "source_attribution_available": False,
+        "worker_source_attribution_available": bool(
+            complete and snapshot.get("sources") is not None
+        ),
+        "click_data_scope": "worker_redirect_route_only_not_live_direct_affilio_ctas",
         # Kept for compatibility: this means the Worker supports the field, not that
         # any live post has actually been assigned or measured in an experiment.
         "experiment_attribution_available": experiment_supported,
