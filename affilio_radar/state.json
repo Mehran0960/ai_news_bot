@@ -8704,213 +8704,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-22892572",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "next_attempt_at": "2026-11-16T08:53:30.945261+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22892572%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "10738",
-        "catalog_best_selling_category_name": "کنسرو نخود فرنگی",
-        "catalog_best_selling_rank": 3,
-        "catalog_best_selling_ranks_by_category": {
-          "10738": {
-            "category_name": "کنسرو نخود فرنگی",
-            "observed_at": "2026-11-16T07:39:56.069018+00:00",
-            "rank": 3,
-            "rank_history": [
-              {
-                "category_name": "کنسرو نخود فرنگی",
-                "observed_at": "2026-11-16T07:39:56.069018+00:00",
-                "rank": 3
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T08:20:35.205024+00:00",
-        "catalog_cycle_snapshot_rank": 8,
-        "catalog_rank_observed_at": "2026-11-16T07:39:56.069018+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "grocery_food",
-        "checked_at": "2026-11-16T08:50:34.399946+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22892572",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 82500,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 57.91,
-        "discount_percent": 50,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_api_error": "HTTPError",
-        "history_checked_at": "2026-11-16T08:51:18.239668+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 82500,
-        "history_low_toman": 82500,
-        "history_median_toman": 82500,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/5a9c1d9522fb36e81f2e5b3ee05ec4a5d102301f_1791120678.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_available_offer_count": 1,
-        "market_highest_price_toman": 83000,
-        "market_lowest_price_toman": 83000,
-        "market_match_score": 100,
-        "market_price_advantage_pct": 1,
-        "market_price_checked_at": "2026-11-16T08:51:31.176842+00:00",
-        "market_price_difference_toman": 500,
-        "market_price_spread_toman": null,
-        "market_product_name": "کنسرو نخود سبز مستر استار - 380 گرم",
-        "market_product_url": "https://torob.com/p/6c5aa040-f2af-48a7-a286-bd504a868fad/",
-        "market_publish_blocked": false,
-        "market_query": "کنسرو نخود سبز مستر استار - 380 گرم",
-        "market_reference_kind": "limited_seller_sample",
-        "market_reference_price_toman": 83000,
-        "market_reported_seller_count": 1,
-        "market_search_candidates": [
-          {
-            "match_score": 100,
-            "name": "کنسرو نخود سبز مستر استار - 380 گرم",
-            "price_toman": 83000,
-            "url": "https://torob.com/p/6c5aa040-f2af-48a7-a286-bd504a868fad/"
-          },
-          {
-            "match_score": 67,
-            "name": "کنسرو نخود سبز اویلا ۳۸۰ گرمی",
-            "price_toman": 99900,
-            "url": "https://torob.com/p/f1b4b86d-e29e-4fe4-b330-9d8d8999546e/"
-          },
-          {
-            "match_score": 0,
-            "name": "طرح کنسرو نخود سبز",
-            "price_toman": 80000,
-            "url": "https://torob.com/p/c6e4a3f0-250c-4e13-81fd-d87b3ce5bae7/"
-          }
-        ],
-        "market_status": "limited",
-        "market_value_status": "near_market",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "affordability": 100.0,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 83.3,
-          "discount_attractiveness": 57.91,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 98.91,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "10738",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T08:51:37.264852+00:00",
-          "weakest_factor_score": 57.91
-        },
-        "original_price": 165000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-22892572",
-        "product_url": "https://www.digikala.com/product/dkp-22892572/",
-        "promo_score": 34,
-        "publication_policy": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-        "qualifies_as_deal": true,
-        "rating": 4.71,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "savings_toman": 82500,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 3,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "affordability": 100.0,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 83.3,
-          "discount_attractiveness": 57.91,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 98.91,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "10738",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T08:51:37.264852+00:00",
-          "weakest_factor_score": 57.91
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1229,
-        "title": "کنسرو نخود سبز مستر استار - 380 گرم"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22892572",
-      "product_plan_cycle_id": "2026-11-16T08:20:35.205024+00:00",
-      "scheduled_at": "2026-11-16T08:53:30.945261+00:00",
-      "selected_at": "2026-11-16T08:51:46.345697+00:00",
-      "sequence_number": 1229,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T09:04:53.181255+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-2304995",
       "content_type": "product",
       "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
@@ -44830,6 +44623,188 @@
       "sequence_number": 1512,
       "status": "published",
       "updated_at": "2026-11-17T23:40:12.397777+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-22404391",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-18T00:12:34.894284+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-18T00:11:12.396732+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22404391%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "A",
+        "catalog_best_selling_category_id": "10991",
+        "catalog_best_selling_category_name": "شلوارک راحتی مردانه",
+        "catalog_best_selling_rank": 6,
+        "catalog_best_selling_ranks_by_category": {
+          "10991": {
+            "category_name": "شلوارک راحتی مردانه",
+            "observed_at": "2026-11-17T15:36:53.670904+00:00",
+            "rank": 6,
+            "rank_history": [
+              {
+                "category_name": "شلوارک راحتی مردانه",
+                "observed_at": "2026-11-17T15:36:53.670904+00:00",
+                "rank": 6
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-17T16:08:32.583581+00:00",
+        "catalog_cycle_snapshot_rank": 657,
+        "catalog_rank_observed_at": "2026-11-17T15:36:53.670904+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "fashion",
+        "checked_at": "2026-11-17T17:00:38.647369+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-22404391",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 890000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 20.7,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 59.69,
+        "discount_percent": 41,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-17T17:01:02.031610+00:00",
+        "history_days": 2,
+        "history_end_day": "2026-11-17",
+        "history_high_toman": 890000,
+        "history_low_toman": 890000,
+        "history_median_toman": 890000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": 890000,
+        "history_start_day": "2026-11-16",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/ee2f54d98540469be998fafeef54a85c4dd498b0_1786171715.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 70.58,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 59.69,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 64.0,
+          "generality_group": "fashion_lifestyle",
+          "live_demand": 98.72,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-17T17:01:02.033619+00:00",
+          "weakest_factor_score": 59.69
+        },
+        "original_price": 1500000,
+        "pct_above_stable_low": 0,
+        "product_id": "dkp-22404391",
+        "product_url": "https://www.digikala.com/product/dkp-22404391/",
+        "promo_score": 32,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 3.97,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 16,
+        "savings_toman": 610000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 6,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 70.58,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 59.69,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 64.0,
+          "generality_group": "fashion_lifestyle",
+          "live_demand": 98.72,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-17T17:01:02.033619+00:00",
+          "weakest_factor_score": 59.69
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1513,
+        "title": "شلوارک راحتی مردانه مدل Sunday",
+        "variant_label": "خاکستری فری سایز"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-18T00:12:34.894284+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-18T00:12:41.649580+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-18T00:12:34.894284+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-18T00:12:34.894284+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-18T00:12:45.028031+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-18T00:12:34.894284+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-18T00:12:40.902768+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-22404391",
+      "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
+      "scheduled_at": "2026-11-18T00:11:12.396732+00:00",
+      "selected_at": "2026-11-17T17:01:09.347424+00:00",
+      "sequence_number": 1513,
+      "status": "published",
+      "updated_at": "2026-11-18T00:12:45.353367+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -44844,7 +44819,7 @@
       "attempt_count": 0,
       "content_id": "dkp-12544519",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T13:20:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T13:21:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-12544519%2F",
         "availability": "in_stock",
@@ -45006,7 +44981,7 @@
       },
       "product_id": "dkp-12544519",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T13:20:12.396732+00:00",
+      "scheduled_at": "2026-11-18T13:21:45.352417+00:00",
       "selected_at": "2026-11-18T00:00:57.192209+00:00",
       "sequence_number": 1547,
       "status": "queued"
@@ -45015,7 +44990,7 @@
       "attempt_count": 0,
       "content_id": "dkp-12606113",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T16:10:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T16:11:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-12606113%2F",
         "availability": "in_stock",
@@ -45177,7 +45152,7 @@
       },
       "product_id": "dkp-12606113",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T16:10:12.396732+00:00",
+      "scheduled_at": "2026-11-18T16:11:45.352417+00:00",
       "selected_at": "2026-11-18T00:00:57.192209+00:00",
       "sequence_number": 1552,
       "status": "queued"
@@ -45186,7 +45161,7 @@
       "attempt_count": 0,
       "content_id": "dkp-13276009",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T00:45:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T00:46:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-13276009%2F",
         "availability": "in_stock",
@@ -45349,7 +45324,7 @@
       },
       "product_id": "dkp-13276009",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T00:45:12.396732+00:00",
+      "scheduled_at": "2026-11-18T00:46:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1514,
       "status": "queued"
@@ -45358,7 +45333,7 @@
       "attempt_count": 0,
       "content_id": "dkp-13346026",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T06:00:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T06:01:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-13346026%2F",
         "availability": "in_stock",
@@ -45520,7 +45495,7 @@
       },
       "product_id": "dkp-13346026",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T06:00:12.396732+00:00",
+      "scheduled_at": "2026-11-18T06:01:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1522,
       "status": "queued"
@@ -45529,7 +45504,7 @@
       "attempt_count": 0,
       "content_id": "dkp-17612057",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T08:24:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T08:25:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-17612057%2F",
         "availability": "in_stock",
@@ -45692,7 +45667,7 @@
       },
       "product_id": "dkp-17612057",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T08:24:12.396732+00:00",
+      "scheduled_at": "2026-11-18T08:25:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1526,
       "status": "queued"
@@ -45701,7 +45676,7 @@
       "attempt_count": 0,
       "content_id": "dkp-17642142",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T12:44:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T12:45:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-17642142%2F",
         "availability": "in_stock",
@@ -45867,7 +45842,7 @@
       },
       "product_id": "dkp-17642142",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T12:44:12.396732+00:00",
+      "scheduled_at": "2026-11-18T12:45:45.352417+00:00",
       "selected_at": "2026-11-17T22:13:53.463060+00:00",
       "sequence_number": 1545,
       "status": "queued"
@@ -45876,7 +45851,7 @@
       "attempt_count": 0,
       "content_id": "dkp-18294816",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T07:11:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T07:12:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-18294816%2F",
         "availability": "in_stock",
@@ -46039,7 +46014,7 @@
       },
       "product_id": "dkp-18294816",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T07:11:12.396732+00:00",
+      "scheduled_at": "2026-11-18T07:12:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1524,
       "status": "queued"
@@ -46048,7 +46023,7 @@
       "attempt_count": 0,
       "content_id": "dkp-19855707",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T11:58:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T11:59:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-19855707%2F",
         "availability": "in_stock",
@@ -46213,7 +46188,7 @@
       },
       "product_id": "dkp-19855707",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T11:58:12.396732+00:00",
+      "scheduled_at": "2026-11-18T11:59:45.352417+00:00",
       "selected_at": "2026-11-17T19:09:34.297606+00:00",
       "sequence_number": 1535,
       "status": "queued"
@@ -46222,7 +46197,7 @@
       "attempt_count": 0,
       "content_id": "dkp-20589939",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T14:30:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T14:31:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-20589939%2F",
         "availability": "in_stock",
@@ -46384,7 +46359,7 @@
       },
       "product_id": "dkp-20589939",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T14:30:12.396732+00:00",
+      "scheduled_at": "2026-11-18T14:31:45.352417+00:00",
       "selected_at": "2026-11-18T00:00:57.192209+00:00",
       "sequence_number": 1549,
       "status": "queued"
@@ -46393,7 +46368,7 @@
       "attempt_count": 0,
       "content_id": "dkp-20750127",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T07:46:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T07:47:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-20750127%2F",
         "availability": "in_stock",
@@ -46556,7 +46531,7 @@
       },
       "product_id": "dkp-20750127",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T07:46:12.396732+00:00",
+      "scheduled_at": "2026-11-18T07:47:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1525,
       "status": "queued"
@@ -46565,7 +46540,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21031486",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T11:26:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T11:27:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21031486%2F",
         "availability": "in_stock",
@@ -46732,7 +46707,7 @@
       },
       "product_id": "dkp-21031486",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T11:26:12.396732+00:00",
+      "scheduled_at": "2026-11-18T11:27:45.352417+00:00",
       "selected_at": "2026-11-17T18:30:21.502652+00:00",
       "sequence_number": 1533,
       "status": "queued"
@@ -46741,7 +46716,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21103222",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T10:50:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T10:51:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21103222%2F",
         "availability": "in_stock",
@@ -46914,7 +46889,7 @@
       },
       "product_id": "dkp-21103222",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T10:50:12.396732+00:00",
+      "scheduled_at": "2026-11-18T10:51:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1530,
       "status": "queued"
@@ -46923,7 +46898,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21131845",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T10:16:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T10:17:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21131845%2F",
         "availability": "in_stock",
@@ -47096,7 +47071,7 @@
       },
       "product_id": "dkp-21131845",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T10:16:12.396732+00:00",
+      "scheduled_at": "2026-11-18T10:17:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1529,
       "status": "queued"
@@ -47105,7 +47080,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21409421",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T15:04:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T15:05:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21409421%2F",
         "availability": "in_stock",
@@ -47267,7 +47242,7 @@
       },
       "product_id": "dkp-21409421",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T15:04:12.396732+00:00",
+      "scheduled_at": "2026-11-18T15:05:45.352417+00:00",
       "selected_at": "2026-11-18T00:00:57.192209+00:00",
       "sequence_number": 1550,
       "status": "queued"
@@ -47276,7 +47251,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21895534",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T04:45:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T04:46:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21895534%2F",
         "availability": "in_stock",
@@ -47450,7 +47425,7 @@
       },
       "product_id": "dkp-21895534",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T04:45:12.396732+00:00",
+      "scheduled_at": "2026-11-18T04:46:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1520,
       "status": "queued"
@@ -47459,7 +47434,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22004922",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T06:40:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T06:41:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22004922%2F",
         "availability": "in_stock",
@@ -47621,7 +47596,7 @@
       },
       "product_id": "dkp-22004922",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T06:40:12.396732+00:00",
+      "scheduled_at": "2026-11-18T06:41:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1523,
       "status": "queued"
@@ -47630,7 +47605,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22036587",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T15:37:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T15:38:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22036587%2F",
         "availability": "in_stock",
@@ -47791,7 +47766,7 @@
       },
       "product_id": "dkp-22036587",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T15:37:12.396732+00:00",
+      "scheduled_at": "2026-11-18T15:38:45.352417+00:00",
       "selected_at": "2026-11-18T00:00:57.192209+00:00",
       "sequence_number": 1551,
       "status": "queued"
@@ -47800,7 +47775,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22126022",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T04:01:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T04:02:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22126022%2F",
         "availability": "in_stock",
@@ -47962,187 +47937,16 @@
       },
       "product_id": "dkp-22126022",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T04:01:12.396732+00:00",
+      "scheduled_at": "2026-11-18T04:02:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1519,
-      "status": "queued"
-    },
-    "dkp-22404391": {
-      "attempt_count": 0,
-      "content_id": "dkp-22404391",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-18T00:11:12.396732+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22404391%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "10991",
-        "catalog_best_selling_category_name": "شلوارک راحتی مردانه",
-        "catalog_best_selling_rank": 6,
-        "catalog_best_selling_ranks_by_category": {
-          "10991": {
-            "category_name": "شلوارک راحتی مردانه",
-            "observed_at": "2026-11-17T15:36:53.670904+00:00",
-            "rank": 6,
-            "rank_history": [
-              {
-                "category_name": "شلوارک راحتی مردانه",
-                "observed_at": "2026-11-17T15:36:53.670904+00:00",
-                "rank": 6
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-17T16:08:32.583581+00:00",
-        "catalog_cycle_snapshot_rank": 657,
-        "catalog_rank_observed_at": "2026-11-17T15:36:53.670904+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "fashion",
-        "checked_at": "2026-11-17T17:00:38.647369+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22404391",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 890000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 20.7,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 59.69,
-        "discount_percent": 41,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-17T17:01:02.031610+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-17",
-        "history_high_toman": 890000,
-        "history_low_toman": 890000,
-        "history_median_toman": 890000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 890000,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/ee2f54d98540469be998fafeef54a85c4dd498b0_1786171715.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 70.58,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 59.69,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 64.0,
-          "generality_group": "fashion_lifestyle",
-          "live_demand": 98.72,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T17:01:02.033619+00:00",
-          "weakest_factor_score": 59.69
-        },
-        "original_price": 1500000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-22404391",
-        "product_url": "https://www.digikala.com/product/dkp-22404391/",
-        "promo_score": 32,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 3.97,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 16,
-        "savings_toman": 610000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 6,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 70.58,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 59.69,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 64.0,
-          "generality_group": "fashion_lifestyle",
-          "live_demand": 98.72,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T17:01:02.033619+00:00",
-          "weakest_factor_score": 59.69
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1513,
-        "title": "شلوارک راحتی مردانه مدل Sunday",
-        "variant_label": "خاکستری فری سایز"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22404391",
-      "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T00:11:12.396732+00:00",
-      "selected_at": "2026-11-17T17:01:09.347424+00:00",
-      "sequence_number": 1513,
       "status": "queued"
     },
     "dkp-22431305": {
       "attempt_count": 0,
       "content_id": "dkp-22431305",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T09:44:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T09:45:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22431305%2F",
         "availability": "in_stock",
@@ -48303,7 +48107,7 @@
       },
       "product_id": "dkp-22431305",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T09:44:12.396732+00:00",
+      "scheduled_at": "2026-11-18T09:45:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1528,
       "status": "queued"
@@ -48312,7 +48116,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22732251",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T03:30:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T03:31:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22732251%2F",
         "availability": "in_stock",
@@ -48474,7 +48278,7 @@
       },
       "product_id": "dkp-22732251",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T03:30:12.396732+00:00",
+      "scheduled_at": "2026-11-18T03:31:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1518,
       "status": "queued"
@@ -48483,7 +48287,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22750608",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T05:26:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T05:27:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22750608%2F",
         "availability": "in_stock",
@@ -48645,7 +48449,7 @@
       },
       "product_id": "dkp-22750608",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T05:26:12.396732+00:00",
+      "scheduled_at": "2026-11-18T05:27:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1521,
       "status": "queued"
@@ -48654,7 +48458,7 @@
       "attempt_count": 0,
       "content_id": "dkp-3279500",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T01:27:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T01:28:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-3279500%2F",
         "availability": "in_stock",
@@ -48817,7 +48621,7 @@
       },
       "product_id": "dkp-3279500",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T01:27:12.396732+00:00",
+      "scheduled_at": "2026-11-18T01:28:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1515,
       "status": "queued"
@@ -48826,7 +48630,7 @@
       "attempt_count": 0,
       "content_id": "dkp-3967728",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T13:53:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T13:54:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-3967728%2F",
         "availability": "in_stock",
@@ -48987,7 +48791,7 @@
       },
       "product_id": "dkp-3967728",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T13:53:12.396732+00:00",
+      "scheduled_at": "2026-11-18T13:54:45.352417+00:00",
       "selected_at": "2026-11-18T00:00:57.192209+00:00",
       "sequence_number": 1548,
       "status": "queued"
@@ -48996,7 +48800,7 @@
       "attempt_count": 0,
       "content_id": "dkp-5741395",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T02:12:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T02:13:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-5741395%2F",
         "availability": "in_stock",
@@ -49158,7 +48962,7 @@
       },
       "product_id": "dkp-5741395",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T02:12:12.396732+00:00",
+      "scheduled_at": "2026-11-18T02:13:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1516,
       "status": "queued"
@@ -49167,7 +48971,7 @@
       "attempt_count": 0,
       "content_id": "dkp-6901981",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T09:09:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T09:10:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-6901981%2F",
         "availability": "in_stock",
@@ -49328,7 +49132,7 @@
       },
       "product_id": "dkp-6901981",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T09:09:12.396732+00:00",
+      "scheduled_at": "2026-11-18T09:10:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1527,
       "status": "queued"
@@ -49337,7 +49141,7 @@
       "attempt_count": 0,
       "content_id": "dkp-9102447",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T02:46:12.396732+00:00",
+      "next_attempt_at": "2026-11-18T02:47:45.352417+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-9102447%2F",
         "availability": "in_stock",
@@ -49499,7 +49303,7 @@
       },
       "product_id": "dkp-9102447",
       "product_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
-      "scheduled_at": "2026-11-18T02:46:12.396732+00:00",
+      "scheduled_at": "2026-11-18T02:47:45.352417+00:00",
       "selected_at": "2026-11-17T17:01:09.347424+00:00",
       "sequence_number": 1517,
       "status": "queued"
@@ -171121,13 +170925,13 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-17T23:40:12.396732+00:00",
+  "last_channel_published_at": "2026-11-18T00:12:45.352417+00:00",
   "last_content_selection_at": "2026-11-18T00:00:57.192209+00:00",
   "last_editorial_attempt_at": "2026-11-17T22:13:54.383069+00:00",
   "last_editorial_confirmed_at": "2026-11-17T22:14:14.441744+00:00",
   "last_editorial_empty_bank_check_at": "2026-11-17T23:32:32.565931+00:00",
-  "last_product_channel_published_at": "2026-11-17T23:40:12.396732+00:00",
-  "last_published_at": "2026-11-17T23:40:12.396732+00:00",
+  "last_product_channel_published_at": "2026-11-18T00:12:45.352417+00:00",
+  "last_published_at": "2026-11-18T00:12:45.352417+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -220524,8 +220328,8 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-18T00:00:57.192209+00:00",
-    "candidate_count": 27,
+    "calculated_at": "2026-11-18T00:12:45.352424+00:00",
+    "candidate_count": 26,
     "catalog_cycle_id": "2026-11-17T23:46:46.818912+00:00",
     "current_cycle_started_at": "2026-11-17T23:46:47.250967+00:00",
     "daily_post_limit": 72,
@@ -220537,30 +220341,29 @@
     "interval_seconds": 1860.0,
     "last_clean_cycle_completed_at": "2026-11-17T23:46:46.818912+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-17T23:40:12.396732+00:00",
-    "plan_anchor_kind": "last_product",
-    "planned_product_slots": 27,
+    "plan_anchor_at": "2026-11-18T00:12:45.352417+00:00",
+    "plan_anchor_kind": "last_channel",
+    "planned_product_slots": 26,
     "planned_window_end_at": "2026-11-18T00:19:45.250967+00:00",
-    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes",
+    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
     "scan_eta_is_provisional": false,
     "scan_eta_source": "last_observed_full_cycle_duration",
     "scheduled_product_count": 27,
-    "seconds_from_plan_anchor_to_next_scan": 2372.854235,
-    "seconds_until_estimated_next_clean_scan": 1128.058758
+    "seconds_from_plan_anchor_to_next_scan": 419.89855,
+    "seconds_until_estimated_next_clean_scan": 419.898543
   },
   "product_publication_interval_seconds": 1860.0,
   "product_publication_plan": {
-    "anchor_at": "2026-11-17T23:40:12.396732+00:00",
-    "anchor_kind": "last_product",
+    "anchor_at": "2026-11-18T00:12:45.352417+00:00",
+    "anchor_kind": "last_channel",
     "catalog_cycle_id": "2026-11-17T23:46:46.818912+00:00",
     "first_slot_due_now": false,
     "interval_minutes": 31.0,
     "interval_seconds": 1860.0,
     "maximum_product_interval_seconds": 3420,
     "next_clean_scan_at": "2026-11-18T00:19:45.250967+00:00",
-    "pending_product_count": 27,
+    "pending_product_count": 26,
     "product_ids": [
-      "dkp-22404391",
       "dkp-13276009",
       "dkp-3279500",
       "dkp-5741395",
@@ -220588,11 +220391,11 @@
       "dkp-22036587",
       "dkp-12606113"
     ],
-    "scheduled_product_count": 27,
-    "updated_at": "2026-11-18T00:00:57.192209+00:00"
+    "scheduled_product_count": 26,
+    "updated_at": "2026-11-18T00:12:45.352424+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-17T23:40:12.396732+00:00",
-  "product_publication_plan_anchor_kind": "last_product",
+  "product_publication_plan_anchor_at": "2026-11-18T00:12:45.352417+00:00",
+  "product_publication_plan_anchor_kind": "last_channel",
   "product_publication_plan_cycle_id": "2026-11-17T23:46:46.818912+00:00",
   "publication_diversity_fallback_count": 5307,
   "publication_diversity_fallback_events": [
@@ -326518,6 +326321,134 @@
       "ts": 1793562508.101429,
       "video_generation_status": "skipped_expiring_soon",
       "youtube_upload_status": "skipped_expiring_soon"
+    },
+    "dkp-22404391": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2259,
+      "bale_posted_at": "2026-11-18T00:12:41.649580+00:00",
+      "brand": "",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "A",
+      "catalog_best_selling_category_id": "10991",
+      "catalog_best_selling_category_name": "شلوارک راحتی مردانه",
+      "catalog_best_selling_rank": 6,
+      "catalog_best_selling_ranks_by_category": {
+        "10991": {
+          "category_name": "شلوارک راحتی مردانه",
+          "observed_at": "2026-11-17T15:36:53.670904+00:00",
+          "rank": 6,
+          "rank_history": [
+            {
+              "category_name": "شلوارک راحتی مردانه",
+              "observed_at": "2026-11-17T15:36:53.670904+00:00",
+              "rank": 6
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-17T16:08:32.583581+00:00",
+      "catalog_cycle_snapshot_rank": 657,
+      "catalog_rank_observed_at": "2026-11-17T15:36:53.670904+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-22404391",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "A",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-18T00:12:45.028055+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 0,
+      "distribution_queue_id": "dkp-22404391:2026-11-17T17:01:09.347424+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-17T17:01:02.031610+00:00",
+      "history_days": 2,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/ee2f54d98540469be998fafeef54a85c4dd498b0_1786171715.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "not_checked",
+      "platform_message_ids": {
+        "rubika": "1975297244531588651"
+      },
+      "posted_current_price": 890000,
+      "posted_discount_percent": 41,
+      "posted_original_price": 1500000,
+      "product_url": "https://www.digikala.com/product/dkp-22404391/",
+      "promo_score": 32,
+      "publication_category": "fashion",
+      "publication_family": "digikala_category:10991",
+      "publication_use_case": "fashion_lifestyle",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 20.7,
+      "rubika_posted_at": "2026-11-18T00:12:45.028031+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 6,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 70.58,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 59.69,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 64.0,
+        "generality_group": "fashion_lifestyle",
+        "live_demand": 98.72,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-17T17:01:02.033619+00:00",
+        "weakest_factor_score": 59.69
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1513,
+      "telegram_message_id": 1688,
+      "telegram_posted_at": "2026-11-18T00:12:40.902768+00:00",
+      "title": "شلوارک راحتی مردانه مدل Sunday",
+      "ts": 1794960754.894284,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
     },
     "dkp-22404875": {
       "aparat_upload_status": "skipped_unverified_deadline",
