@@ -28,3 +28,9 @@ This work is staged on `codex/offerchin-optimization-2026-11-18-refresh2`, creat
 - Refresh2 commits and relevant CI results must be checked before merge consideration.
 - Live marketplace-wide demand and completed purchase attribution remain unverified and are not simulated.
 - No merge, deploy, live publish, secret change, or external network activation has been performed.
+
+## Verification update — per-platform exception isolation
+
+Photo delivery for Telegram, Bale, Rubika and Eitaa is now routed through `_deliver_photo_destinations_independently`. Each adapter receives a private copy; its future result is merged independently. A failure on one adapter is recorded for that destination and does not cancel sibling futures. A new test simulates Eitaa failure while requiring Telegram/Bale/Rubika to succeed. The regression workflow now includes this Python suite and Node worker attribution tests.
+
+Limit: the four photo adapters still share one Actions runner; a runner crash/timeout can affect all four. Video platform workflows are separate. The new commit's CI is pending at this point.
