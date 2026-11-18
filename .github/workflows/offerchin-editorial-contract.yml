@@ -169,8 +169,8 @@ jobs:
             test_content_delivery.py \
             test_merge_state_conflicts.py
 
-      - name: Verify 48-hour retention with mocked platform deletions
+      - name: Verify seven-day product retention with mocked platform deletions
         working-directory: affilio_radar
         run: |
           python -m unittest -v \
-            test_expiration_monitor.ExpirationMonitorTests.test_48_hour_retention_deletes_product_posts_but_preserves_editorial_and_videos
+            test_expiration_monitor.ExpirationMonitorTests.test_7_day_retention_deletes_product_posts_but_preserves_editorial_and_videos

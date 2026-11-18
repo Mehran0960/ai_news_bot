@@ -65,11 +65,13 @@ class ExpirationMonitorTests(unittest.TestCase):
         response.status_code = 200
         response.content = json.dumps(payload).encode("utf-8")
         response.json.return_value = payload
-        response.url = "https://api.digikala.com/v2/product/123/"
-        with patch.object(monitor.requests, "get", return_value=response) as request:
+        response.url = "https://api.digikala.com/product/v1/products/123/"
+        with patch.object(monitor, "_digikala_get", return_value=response) as request:
             result = monitor.fetch_live_product_status("dkp-123")
-        request.assert_called_once()
-        self.assertEqual(request.call_args.kwargs["timeout"], (5, monitor.PRODUCT_STATUS_TIMEOUT_SECONDS))
+        request.assert_called_once_with(
+            "https://api.digikala.com/product/v1/products/123/",
+            timeout=(5, monitor.PRODUCT_STATUS_TIMEOUT_SECONDS),
+        )
         self.assertEqual(result["deal_expires_at"], "2026-10-23T18:00:00+00:00")
         self.assertTrue(result["expiry_verified_directly"])
         self.assertEqual(result["current_price"], 100_000)
@@ -77,8 +79,6 @@ class ExpirationMonitorTests(unittest.TestCase):
 
 
     def test_fetch_live_product_status_does_not_repeat_failed_api_calls_in_html_fallback(self):
-        failed_v2 = MagicMock(status_code=404, content=b"", url="https://api.digikala.com/v2/product/123/")
-        failed_v1 = MagicMock(status_code=404, content=b"", url="https://api.digikala.com/v1/product/123/")
         page = MagicMock(
             status_code=200,
             content=b"<html>product</html>",
@@ -93,45 +93,49 @@ class ExpirationMonitorTests(unittest.TestCase):
             "expiry_deadline_verified_directly": False,
         }
         with (
-            patch.object(monitor.requests, "get", side_effect=[failed_v2, failed_v1, page]) as request,
+            patch.object(monitor, "_digikala_get", side_effect=RuntimeError("API unavailable")) as api_request,
+            patch.object(monitor.requests, "get", return_value=page) as request,
             patch.object(monitor, "parse_product_page", return_value=parsed_page),
         ):
             snapshot = monitor.fetch_live_product_status("dkp-123")
-        self.assertEqual(request.call_count, 3)
+        api_request.assert_called_once()
+        self.assertEqual(request.call_count, 1)
         self.assertEqual(snapshot["current_price"], 120_000)
         self.assertIs(snapshot["in_stock"], True)
         self.assertEqual(snapshot["price_source"], "digikala_product_page")
 
-    def test_expiry_cleanup_prefers_direct_feed_and_fills_only_missing_ids_from_live_offer_cards(self):
-        direct = {
-            "dkp-1": "2026-10-20T20:00:00+00:00",
-            "dkp-2": "2026-10-20T21:00:00+00:00",
-        }
+    def test_expiry_cleanup_uses_only_required_product_matched_mcp_deadlines(self):
         mcp = {
             "dkp-1": "2026-10-20T22:30:00+00:00",
             "dkp-3": "2026-10-20T23:00:00+00:00",
             "dkp-not-required": "2026-10-24T23:00:00+00:00",
         }
         with (
-            patch.object(monitor, "fetch_direct_api_offer_expiries", return_value=direct),
-            patch.object(monitor, "fetch_mcp_offer_candidates", return_value=(mcp, [])) as fallback,
+            patch.object(monitor, "fetch_direct_api_offer_expiries") as retired_feed,
+            patch.object(monitor, "fetch_mcp_offer_candidates", return_value=(mcp, [])) as mcp_lookup,
         ):
-            deadlines, sources = monitor.fetch_offer_deadlines(required_product_ids=["dkp-1", "dkp-2", "dkp-3"])
-        self.assertEqual(deadlines["dkp-1"], direct["dkp-1"])
-        self.assertEqual(deadlines["dkp-2"], direct["dkp-2"])
-        self.assertEqual(deadlines["dkp-3"], mcp["dkp-3"])
-        self.assertEqual(sources["dkp-1"], "digikala_live_deals_feed")
-        self.assertEqual(sources["dkp-3"], "digikala_mcp_offer_card")
+            deadlines, sources = monitor.fetch_offer_deadlines(
+                required_product_ids=["dkp-1", "dkp-2", "dkp-3"]
+            )
+        retired_feed.assert_not_called()
+        mcp_lookup.assert_called_once_with(page_numbers=[1])
+        self.assertEqual(deadlines, {
+            "dkp-1": mcp["dkp-1"],
+            "dkp-3": mcp["dkp-3"],
+        })
+        self.assertEqual(sources, {
+            "dkp-1": "digikala_mcp_offer_card",
+            "dkp-3": "digikala_mcp_offer_card",
+        })
+        self.assertNotIn("dkp-2", deadlines)
         self.assertNotIn("dkp-not-required", deadlines)
-        fallback.assert_called_once_with(page_numbers=[1])
 
-        with (
-            patch.object(monitor, "fetch_direct_api_offer_expiries", return_value={}),
-            patch.object(monitor, "fetch_mcp_offer_candidates", return_value=({"dkp-1": "2026-10-20T23:00:00+00:00"}, [])),
-        ):
-            deadlines, sources = monitor.fetch_offer_deadlines(required_product_ids=["dkp-1"])
-        self.assertIn("dkp-1", deadlines)
-        self.assertEqual(sources["dkp-1"], "digikala_mcp_offer_card")
+    def test_retired_direct_expiry_feed_is_a_no_network_compatibility_shim(self):
+        with patch.object(monitor.requests, "Session") as session:
+            result = monitor.fetch_direct_api_offer_expiries()
+        self.assertEqual(result, {})
+        session.assert_not_called()
+
     def test_live_deadline_sync_corrects_stale_deadline_before_cleanup(self):
         now = datetime(2026, 10, 20, 17, 40, tzinfo=timezone.utc)
         published = {
@@ -1869,37 +1873,37 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertNotIn("aparat_expiry_status", record)
 
 
-    def test_48_hour_retention_deletes_product_posts_but_preserves_editorial_and_videos(self):
+    def test_7_day_retention_deletes_product_posts_but_preserves_editorial_and_videos(self):
         now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-tg-oldest": {
                 "content_type": "product",
                 "title": "پست تلگرام قدیمی‌تر",
-                "ts": (now - timedelta(days=4)).timestamp(),
+                "ts": (now - timedelta(days=10)).timestamp(),
                 "telegram_message_id": 101,
             },
             "dkp-tg-next": {
                 "content_type": "product",
                 "title": "پست تلگرام بعدی",
-                "ts": (now - timedelta(days=3)).timestamp(),
+                "ts": (now - timedelta(days=8)).timestamp(),
                 "telegram_message_id": 102,
             },
             "dkp-tg-new": {
                 "content_type": "product",
                 "title": "پست تلگرام جدید",
-                "ts": (now - timedelta(days=1)).timestamp(),
+                "ts": (now - timedelta(days=6)).timestamp(),
                 "telegram_message_id": 103,
             },
             "dkp-bale-oldest": {
                 "content_type": "product",
                 "title": "پست بله قدیمی‌تر",
-                "ts": (now - timedelta(days=3.5)).timestamp(),
+                "ts": (now - timedelta(days=9.5)).timestamp(),
                 "bale_message_id": 201,
             },
             "dkp-bale-next": {
                 "content_type": "product",
                 "title": "پست بله بعدی",
-                "ts": (now - timedelta(days=2.5)).timestamp(),
+                "ts": (now - timedelta(days=7.5)).timestamp(),
                 "bale_message_id": 202,
             },
             "editorial-evergreen": {
@@ -1921,7 +1925,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         env = {
             "TELEGRAM_API_ID": "12345",
             "TELEGRAM_API_HASH": "a" * 32,
-            "AFFILIO_CHANNEL_POST_RETENTION_DAYS": "2",
+            "AFFILIO_CHANNEL_POST_RETENTION_DAYS": "7",
             "AFFILIO_CHANNEL_POST_RETENTION_BUFFER_MINUTES": "0",
             "AFFILIO_CHANNEL_RETENTION_MAX_DELETES": "120",
         }
@@ -1938,10 +1942,11 @@ class ExpirationMonitorTests(unittest.TestCase):
             )
 
         self.assertTrue(changed)
+        self.assertEqual(summary["retention_days"], 7)
         self.assertEqual(
             telegram_delete.call_args.args[0],
             [101, 102],
-            "Telegram deletion must process the oldest expired product post first",
+            "Telegram must delete eligible product posts oldest first after seven days",
         )
         self.assertEqual([call.args[0] for call in bale_delete.call_args_list], [201, 202])
         self.assertEqual(summary["telegram_deleted"], 2)

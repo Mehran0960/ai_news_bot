@@ -596,7 +596,7 @@ def build_click_tracking_link(
     except (TypeError, ValueError):
         return original
 
-    allowed_sources = {"telegram", "bale", "youtube", "aparat"}
+    allowed_sources = {"telegram", "bale", "rubika", "eitaa", "youtube", "aparat", "filo"}
     source_value = str(source or "unknown").strip().lower()
     if source_value not in allowed_sources:
         source_value = "unknown"
@@ -5058,10 +5058,11 @@ def build_performance_report(
         else "partially_assigned" if caption_unassigned_posts > 0
         else "fully_assigned"
     )
+    # Purchase CTAs intentionally retain the direct Aflo link and bypass this Worker.
+    # Worker capability or old tagged events therefore do not prove live CTA attribution.
     caption_experiment_measurement_status = (
         "worker_unavailable" if not caption_experiment_supported
-        else "awaiting_first_tagged_click" if caption_click_total == 0
-        else "clicks_observed"
+        else "blocked_live_cta_bypasses_click_tracker"
     )
     experiment_publication_status = (
         "no_published_products" if published_product_count == 0
@@ -5071,25 +5072,36 @@ def build_performance_report(
     )
     experiment_measurement_status = (
         "worker_unavailable" if not experiment_supported
-        else "awaiting_first_tagged_click" if experiment_click_total == 0
-        else "clicks_observed"
+        else "blocked_live_cta_bypasses_click_tracker"
     )
     return {
         "generated_at": current.isoformat(),
         "window_days": 30,
         "click_data_status": "complete" if complete else "unavailable_or_legacy_worker",
-        "source_attribution_available": bool(complete and snapshot.get("sources") is not None),
+        # Public purchase CTAs bypass the Worker. Keep the legacy field false for
+        # live sales attribution; expose Worker-only event coverage separately.
+        "source_attribution_available": False,
+        "worker_source_attribution_available": bool(
+            complete and snapshot.get("sources") is not None
+        ),
+        "click_data_scope": "worker_redirect_route_only_not_live_direct_affilio_ctas",
         # Kept for compatibility: this means the Worker supports the field, not that
         # any live post has actually been assigned or measured in an experiment.
         "experiment_attribution_available": experiment_supported,
         "experiment_attribution_supported_by_worker": experiment_supported,
         "experiment_publication_status": experiment_publication_status,
         "experiment_measurement_status": experiment_measurement_status,
-        "experiment_attribution_active": bool(experiment_supported and assigned_experiment_posts > 0),
+        "experiment_assignment_active": bool(assigned_experiment_posts > 0),
+        "experiment_attribution_active": False,
         "caption_experiment_attribution_supported_by_worker": caption_experiment_supported,
         "caption_experiment_publication_status": caption_experiment_publication_status,
         "caption_experiment_measurement_status": caption_experiment_measurement_status,
-        "caption_experiment_attribution_active": bool(caption_experiment_supported and caption_assigned_posts > 0),
+        "caption_experiment_assignment_active": bool(caption_assigned_posts > 0),
+        "caption_experiment_attribution_active": False,
+        "live_purchase_link_mode": "direct_affilio_link",
+        "live_purchase_click_tracking_enabled": False,
+        "live_purchase_source_attribution_available": False,
+        "live_purchase_attribution_blocker": "requires_official_affilio_subid_or_report_export",
         "published_product_count": published_product_count,
         "published_experiment_posts": assigned_experiment_posts,
         "unassigned_published_posts": unassigned_published_posts,
@@ -5128,7 +5140,10 @@ def build_performance_report(
         "sales_data_status": "unavailable_until_official_Affilio_report_or_export_is_connected",
         "interpretation": (
             "Tracked clicks and clicks per published post are descriptive signals, not CTR or causal lift. "
-            "Impressions, orders, sales and commission are not inferred from clicks."
+            "Live purchase buttons intentionally use direct Affilio URLs and bypass the Cloudflare click tracker; "
+            "Worker capability and historical tagged events do not establish attribution for current live CTAs. "
+            "Official Affilio SubID support or a report/export is required to attribute orders, sales and commission. "
+            "Impressions, orders, sales and commission are never inferred from clicks."
         ),
     }
 
