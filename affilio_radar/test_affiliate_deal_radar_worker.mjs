@@ -48,7 +48,7 @@ test("health advertises experiment attribution support", async () => {
   assert.equal(body.captionExperimentAttribution, true);
   assert.match(
     body.routes.join(" "),
-    /telegram\\|bale\\|rubika\\|eitaa\\|youtube\\|aparat\\|filo/,
+    /telegram\|bale\|rubika\|eitaa\|youtube\|aparat\|filo/,
   );
 });
 
