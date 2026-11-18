@@ -1,0 +1,104 @@
+name: OfferChin Editorial Photo Channel Delivery
+
+on:
+  # Cloudflare dispatches this recovery workflow only when a photo destination is due.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deliver-editorial-channel:
+    name: Editorial delivery — ${{ matrix.destination }}
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        destination:
+          - telegram
+          - bale
+          - rubika
+          - eitaa
+    concurrency:
+      group: offerchin-editorial-channel-${{ matrix.destination }}
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out current editorial queue and delivery receipts
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: affilio_radar/requirements.txt
+
+      - name: Install editorial delivery dependencies
+        run: |
+          for attempt in 1 2 3; do
+            python -m pip install -r affilio_radar/requirements.txt && exit 0
+            if [[ "$attempt" -lt 3 ]]; then
+              echo "Dependency install attempt $attempt failed; retrying."
+              sleep $((attempt * 3))
+            fi
+          done
+          exit 1
+
+      - name: Validate the selected editorial channel worker
+        run: |
+          python -m py_compile affilio_radar/editorial_publisher.py affilio_radar/editorial_content.py affilio_radar/editorial_video.py
+          python - <<'PY'
+          from pathlib import Path
+          source = Path("affilio_radar/editorial_publisher.py").read_text(encoding="utf-8")
+          assert "_selected_channel_destinations()" in source
+          assert "OFFERCHIN_EDITORIAL_CHANNEL_DESTINATION" in source
+          print("EDITORIAL_SINGLE_CHANNEL_WORKER_VALIDATED")
+          PY
+
+      - name: Publish only the selected editorial channel
+        env:
+          OFFERCHIN_EDITORIAL_CHANNEL_DESTINATION: ${{ matrix.destination }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
+          RUBIKA_BOT_TOKEN: ${{ secrets.RUBIKA_BOT_TOKEN }}
+          RUBIKA_CHANNEL_ID: ${{ secrets.RUBIKA_CHAT_ID || vars.RUBIKA_CHAT_ID || secrets.RUBIKA_CHANNEL_ID || vars.RUBIKA_CHANNEL_ID || 'c0EH9WW0c7fa831d965d050233b7ab35' }}
+          RUBIKA_ENABLE_PUBLISHING: ${{ vars.RUBIKA_ENABLE_PUBLISHING || 'true' }}
+          EITAA_BOT_TOKEN: ${{ secrets.EITAA_BOT_TOKEN }}
+          EITAA_CHANNEL_ID: ${{ secrets.EITAA_CHANNEL_ID }}
+          EITAA_CHANNEL_URL: ${{ vars.EITAA_CHANNEL_URL || '' }}
+          EITAA_ENABLE_PUBLISHING: ${{ vars.EITAA_ENABLE_PUBLISHING || 'true' }}
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/editorial_publisher.py --channels-only --publish
+
+      - name: Persist this destination's delivery receipt
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [[ -f affilio_radar/state.json ]] && ! git diff --quiet -- affilio_radar/state.json; then
+            git add affilio_radar/state.json
+            if [[ -f affilio_radar/video_upload_dispatch_state.json ]]; then
+              git add affilio_radar/video_upload_dispatch_state.json
+            fi
+            git commit -m "chore: persist editorial ${{ matrix.destination }} receipt [skip ci]"
+            for attempt in 1 2 3; do
+              if (git pull --rebase origin main || python affilio_radar/merge_state_conflicts.py --paths affilio_radar/state.json affilio_radar/video_upload_dispatch_state.json) && git push; then
+                echo "EDITORIAL_DESTINATION_STATE_PERSISTED platform=${{ matrix.destination }} attempt=$attempt"
+                exit 0
+              fi
+              git rebase --abort 2>/dev/null || true
+              echo "Editorial ${{ matrix.destination }} state persistence attempt $attempt failed; retrying."
+              sleep $((attempt * 2))
+            done
+            echo "EDITORIAL_DESTINATION_STATE_PERSIST_FAILED platform=${{ matrix.destination }}"
+            exit 1
+          else
+            echo "No editorial state change for ${{ matrix.destination }}, or this destination already had a terminal receipt."
+          fi
