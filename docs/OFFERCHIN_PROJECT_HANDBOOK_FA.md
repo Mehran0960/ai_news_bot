@@ -2996,7 +2996,7 @@ PR #239 ادغام شده و Cloudflare Worker با موفقیت مستقر شد
 
 **تصمیم مهم مسیر خرید:** CTA زنده عمداً لینک مستقیم Aflo را باز می‌کند. تابع `tracked_affiliate_button_url` آن را به همان URL اصلی تبدیل می‌کند و از Worker کلیک عبور نمی‌دهد. بنابراین قابلیت Worker برای ثبت source/experiment به معنی اندازه‌گیری دکمهٔ خرید عمومی نیست؛ گزارش عملکرد اکنون این محدودیت را به‌صورت صریح نشان می‌دهد. لینک خرید نباید بدون آزمایش و تأیید مستقل از مسیر مستقیم خارج شود.
 
-Worker اکنون برای eventهایی که واقعاً به مسیر `/p/{product_id}` وارد شوند، شناسهٔ هر هفت رسانهٔ Telegram، Bale، Rubika، Eitaa، YouTube، Aparat و Filo را در parser و آمار ۳۰روزه می‌شناسد. این تکمیل schema به‌خودی‌خود مسیر CTA زنده یا انتساب فروش را فعال نمی‌کند.
+Worker اکنون برای eventهایی که واقعاً به مسیر `/p/{product_id}` وارد شوند، شناسهٔ هر هفت رسانهٔ Telegram، Bale، Rubika، Eitaa، YouTube، Aparat و Filo را در parser و آمار ۳۰روزه می‌شناسد. گزارش عملکرد نیز `worker_source_attribution_available` را فقط برای دادهٔ مسیر Worker نشان می‌دهد؛ `source_attribution_available` برای CTA مستقیم عمومی `false` است و `click_data_scope` این مرز را صریح می‌کند. بنابراین clickهای ثبت‌شده در Worker، خودبه‌خود کلیک دکمه‌های زنده یا فروش منتسب‌شده نیستند. این تکمیل schema به‌خودی‌خود مسیر CTA زنده یا انتساب فروش را فعال نمی‌کند.
 
 **فایل‌ها:** `docs/OFFERCHIN_AFFILIATE_GROWTH_PLAYBOOK_FA.md`، `affilio_radar/affilio_radar.py`، `affilio_radar/affiliate-deal-radar-worker.js`، تست‌های مربوط، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`.
 
