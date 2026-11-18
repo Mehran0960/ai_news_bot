@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-18T22:39:00.868640+00:00",
-  "aparat_last_upload_success_at": "2026-11-18T22:39:04.990105+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-18T23:25:47.898641+00:00",
+  "aparat_last_upload_success_at": "2026-11-18T23:25:51.571126+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-18T20:10:41.746590+00:00",
@@ -204438,7 +204438,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-12325607": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-18T23:25:47.898641+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-18T23:25:51.571126+00:00",
+      "aparat_video_hash": "clj86yu",
+      "aparat_video_record_id": "74287522",
+      "aparat_video_url": "https://www.aparat.com/v/clj86yu",
+      "aparat_visibility": "public",
       "bale_message_id": 2307,
       "bale_posted_at": "2026-11-18T23:24:42.179080+00:00",
       "brand": "نبض آوا",
@@ -204562,8 +204568,17 @@
       "telegram_posted_at": "2026-11-18T23:24:41.774764+00:00",
       "title": "گوشی پزشکی نبض آوا مدل +NS1 SE",
       "ts": 1795044275.775742,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-12325607.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-12325607.mp4"
+      },
+      "video_generated_at": "2026-11-18T23:25:41.376329+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-12375611": {
       "aparat_skip_reason": "selection_outside_freshness_window",
