@@ -3198,12 +3198,10 @@ def _delete_channel_posts_older_than_retention(
     persist_callback=None,
     max_delete_attempts=None,
 ):
-    """Delete tracked Telegram/Bale channel photo posts after the configured retention window.
+    """Delete tracked product/deal channel posts from Telegram/Bale after seven days by default.
 
-    Product/deal and editorial channel posts share the seven-day default. The source
-    editorial bank and delivery ledger are not deleted; long-form YouTube/Aparat videos
-    are outside this channel-photo cleanup. Telegram uses MTProto because the Bot API
-    cannot delete messages after 48 hours.
+    Evergreen editorial channel posts and long-form YouTube/Aparat videos are retained.
+    Telegram uses MTProto because the Bot API cannot delete messages after 48 hours.
     """
     retention_days = max(
         1, min(30, int(os.getenv("AFFILIO_CHANNEL_POST_RETENTION_DAYS", "7")))
@@ -3226,7 +3224,7 @@ def _delete_channel_posts_older_than_retention(
         if not isinstance(record, dict):
             continue
         content_type = str(record.get("content_type") or "product").strip().lower()
-        if content_type not in {"product", "deal", "editorial"}:
+        if content_type not in {"product", "deal"}:
             continue
         for platform in ("telegram", "bale"):
             raw_id = record.get(f"{platform}_message_id")
