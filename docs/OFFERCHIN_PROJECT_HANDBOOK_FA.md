@@ -2929,3 +2929,10 @@ Workflow آپلود فیلو دیگر روی هر push به‌صورت login-onl
 **فایل‌های اصلی:** affilio_radar/affilio_radar.py، affilio_radar/editorial_publisher.py، cloudflare/affilio-minute-dispatcher.js، cloudflare/affilio-minute-dispatcher.test.mjs، affilio_radar/test_shared_selection_media_routing.py، affilio_radar/test_editorial_publisher.py و سه Workflow مستقل youtube-video-upload.yml، aparat-video-upload.yml و filo-video-upload.yml.
 
 **مرز ایمنی:** این تغییر فقط مسیرهای آتی و صف‌های pending را اصلاح می‌کند؛ هیچ پیام قدیمی از کانال‌ها حذف نمی‌شود، هیچ state زنده‌ای reset نمی‌شود و هیچ انتشار عمومی دستی برای آزمون اجرا نمی‌شود. سبز شدن Workflow به‌تنهایی اثبات انتشار عمومی نیست؛ رسید و وضعیت هر مقصد باید جداگانه بررسی شود.
+
+
+### استقلال جبرانی کانال‌های تصویری تحریریه — ۱۸ نوامبر ۲۰۲۶
+
+علاوه بر اجرای اولیهٔ چهار مقصد تصویری در ناشر کانال، برای بازیابی مستقل، editorial_channel_queue در sidecar ثبت می‌شود. زمان‌بند در صورت باقی‌ماندن ارسال pending/retry، یک Workflow جبرانی matrix را اجرا می‌کند؛ هر job فقط یکی از Telegram، Bale، Rubika یا Eitaa را می‌بیند و concurrency مستقل همان مقصد را دارد. ارسال تأییدشده یا مورد manual_review برای آن مقصد دوباره اجرا نمی‌شود. بنابراین شکست poster/API یا retry یک کانال نباید مانع ادامهٔ سه کانال دیگر باشد.
+
+چون چهار job ممکن است هم‌زمان state را به‌روزرسانی کنند، merge_state_conflicts.py تاریخچهٔ editorial_delivery_history را بر اساس delivery_event_id (یا ترکیب content_id و sequence_number در رکوردهای قدیمی) ادغام می‌کند و ledger را بر اساس content_fingerprint یکتا نگه می‌دارد. receiptهای دو مقصد برای یک رویداد در یک رکورد جمع می‌شوند؛ این merge نباید event را تکثیر کند.
