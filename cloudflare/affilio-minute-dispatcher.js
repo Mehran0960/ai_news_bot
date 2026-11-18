@@ -14,6 +14,8 @@ const APARAT_VIDEO_WORKFLOW = "aparat-video-upload.yml";
 const APARAT_VIDEO_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${APARAT_VIDEO_WORKFLOW}`;
 const OFFERCHIN_FILO_VIDEO_WORKFLOW = "filo-video-upload.yml";
 const OFFERCHIN_FILO_VIDEO_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${OFFERCHIN_FILO_VIDEO_WORKFLOW}`;
+const EDITORIAL_CHANNEL_WORKFLOW = "offerchin-editorial-channel-upload.yml";
+const EDITORIAL_CHANNEL_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${EDITORIAL_CHANNEL_WORKFLOW}`;
 const RUNS_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/runs`;
 const FILO_REPO = "Goushibaaz";
 const FILO_WORKFLOW = "filo-native-republish.yml";
@@ -704,6 +706,42 @@ async function dispatchVideoUploadsWhenDue(env, tick, state) {
     }
   }
 }
+export function hasDueEditorialChannelQueue(state, now = Date.now()) {
+  const queue = Array.isArray(state && state.editorial_channel_queue)
+    ? state.editorial_channel_queue : [];
+  const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
+  return queue.some((record) => {
+    if (!record || typeof record !== "object") return false;
+    if (["completed", "cancelled", "failed"].includes(String(record.status || "").trim().toLowerCase())) {
+      return false;
+    }
+    const platforms = record.platforms && typeof record.platforms === "object" ? record.platforms : {};
+    return ["telegram", "bale", "rubika", "eitaa"].some((platform) => {
+      const target = platforms[platform];
+      if (!target || typeof target !== "object") return false;
+      const status = String(target.status || "").trim().toLowerCase();
+      if (status === "sending") {
+        const attemptAt = dateValue(target.attempt_started_at);
+        return attemptAt === null || attemptAt + 30 * 60 * 1000 <= timestamp;
+      }
+      if (!["pending", "failed", "retry"].includes(status)) return false;
+      const dueAt = dateValue(target.next_attempt_at) ?? dateValue(record.scheduled_at);
+      return dueAt === null || dueAt <= timestamp;
+    });
+  });
+}
+
+async function dispatchEditorialChannelUploadsWhenDue(env, tick, state) {
+  if (!state || !env.GITHUB_TOKEN || !hasDueEditorialChannelQueue(state, tick.getTime())) return;
+  await dispatchWorkflowIfIdle(
+    EDITORIAL_CHANNEL_API,
+    env.GITHUB_TOKEN,
+    "offerchin-editorial-channel-upload",
+    18,
+    8
+  );
+}
+
 async function runScheduledCheck(env, scheduledTime) {
   const hasOfferChinToken = Boolean(env.GITHUB_TOKEN);
   const hasFiloToken = Boolean(env.FILO_GITHUB_TOKEN);
@@ -775,6 +813,12 @@ async function runScheduledCheck(env, scheduledTime) {
 
   // Every video destination has its own due check, workflow and failure boundary.
   // No channel/editorial schedule or sibling media workflow can block it.
+  try {
+    await dispatchEditorialChannelUploadsWhenDue(env, tick, state);
+  } catch (error) {
+    console.error("OFFERCHIN_EDITORIAL_CHANNEL_DISPATCH_FAILED", String(error).slice(0, 900));
+  }
+
   try {
     await dispatchVideoUploadsWhenDue(env, tick, state);
   } catch (error) {
