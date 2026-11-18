@@ -596,7 +596,7 @@ def build_click_tracking_link(
     except (TypeError, ValueError):
         return original
 
-    allowed_sources = {"telegram", "bale", "youtube", "aparat"}
+    allowed_sources = {"telegram", "bale", "rubika", "eitaa", "youtube", "aparat", "filo"}
     source_value = str(source or "unknown").strip().lower()
     if source_value not in allowed_sources:
         source_value = "unknown"
@@ -4928,6 +4928,7 @@ def build_performance_report(
             "caption_variant": caption_variant,
             "selection_demand_evidence": record.get("selection_demand_evidence"),
             "selection_demand_quality": record.get("selection_demand_quality"),
+            "demand_evidence_scope": record.get("selection_demand_scope", "legacy_unknown"),
             "bestseller_rank": record.get("selection_bestseller_rank"),
             "bestseller_category_count": safe_count(record.get("selection_bestseller_category_count")),
             "discount_percent": safe_count(record.get("posted_discount_percent")),
@@ -5058,10 +5059,10 @@ def build_performance_report(
         else "partially_assigned" if caption_unassigned_posts > 0
         else "fully_assigned"
     )
+    # The live purchase CTA intentionally opens the direct Aflo link and bypasses this Worker.
     caption_experiment_measurement_status = (
         "worker_unavailable" if not caption_experiment_supported
-        else "awaiting_first_tagged_click" if caption_click_total == 0
-        else "clicks_observed"
+        else "blocked_live_cta_bypasses_click_tracker"
     )
     experiment_publication_status = (
         "no_published_products" if published_product_count == 0
@@ -5071,25 +5072,35 @@ def build_performance_report(
     )
     experiment_measurement_status = (
         "worker_unavailable" if not experiment_supported
-        else "awaiting_first_tagged_click" if experiment_click_total == 0
-        else "clicks_observed"
+        else "blocked_live_cta_bypasses_click_tracker"
     )
     return {
         "generated_at": current.isoformat(),
         "window_days": 30,
         "click_data_status": "complete" if complete else "unavailable_or_legacy_worker",
-        "source_attribution_available": bool(complete and snapshot.get("sources") is not None),
+        # The live purchase CTA bypasses the Worker, so its source attribution is unavailable.
+        "source_attribution_available": False,
+        "worker_source_attribution_available": bool(
+            complete and snapshot.get("sources") is not None
+        ),
+        "click_data_scope": "worker_redirect_route_only_not_live_direct_affilio_ctas",
         # Kept for compatibility: this means the Worker supports the field, not that
         # any live post has actually been assigned or measured in an experiment.
         "experiment_attribution_available": experiment_supported,
         "experiment_attribution_supported_by_worker": experiment_supported,
         "experiment_publication_status": experiment_publication_status,
         "experiment_measurement_status": experiment_measurement_status,
-        "experiment_attribution_active": bool(experiment_supported and assigned_experiment_posts > 0),
+        "experiment_assignment_active": bool(assigned_experiment_posts > 0),
+        "experiment_attribution_active": False,
         "caption_experiment_attribution_supported_by_worker": caption_experiment_supported,
         "caption_experiment_publication_status": caption_experiment_publication_status,
         "caption_experiment_measurement_status": caption_experiment_measurement_status,
-        "caption_experiment_attribution_active": bool(caption_experiment_supported and caption_assigned_posts > 0),
+        "caption_experiment_assignment_active": bool(caption_assigned_posts > 0),
+        "caption_experiment_attribution_active": False,
+        "live_purchase_link_mode": "direct_affilio_link",
+        "live_purchase_click_tracking_enabled": False,
+        "live_purchase_source_attribution_available": False,
+        "live_purchase_attribution_blocker": "requires_official_affilio_subid_or_report_export",
         "published_product_count": published_product_count,
         "published_experiment_posts": assigned_experiment_posts,
         "unassigned_published_posts": unassigned_published_posts,
@@ -5128,6 +5139,9 @@ def build_performance_report(
         "sales_data_status": "unavailable_until_official_Affilio_report_or_export_is_connected",
         "interpretation": (
             "Tracked clicks and clicks per published post are descriptive signals, not CTR or causal lift. "
+            "Live purchase buttons intentionally use direct Affilio URLs and bypass the Cloudflare click tracker; "
+            "Worker capability and historical tagged events do not establish attribution for current live CTAs. "
+            "Official Affilio SubID support or an order/report export is required for verified source attribution. "
             "Impressions, orders, sales and commission are not inferred from clicks."
         ),
     }
@@ -9721,6 +9735,7 @@ def select_discount_fallback_candidates(
         if selected.get("selection_continuity_mode") == "temporary_three_factor_demand_relaxation":
             selected["selection_demand_evidence"] = "not_verified_emergency_continuity_override"
             selected["selection_demand_quality"] = "demand_not_verified_three_factor_proxy_only"
+            selected["selection_demand_scope"] = "not_verified"
         else:
             selected["selection_demand_evidence"] = (
                 "digikala_native_bestseller_rank" if bestseller_evidence
@@ -9733,6 +9748,11 @@ def select_discount_fallback_candidates(
                 bestseller_evidence.get("evidence_quality") if bestseller_evidence
                 else "indirect_review_growth_proxy_not_sales" if has_current_demand_signal(product, now=current)
                 else "historical_quality_context_only"
+            )
+            selected["selection_demand_scope"] = (
+                "digikala_store_only"
+                if bestseller_evidence or has_current_demand_signal(product, now=current)
+                else "no_current_store_demand_evidence"
             )
         selected["selection_bestseller_rank"] = bestseller_evidence.get("best_rank_across_categories")
         selected["selection_bestseller_category_count"] = bestseller_evidence.get("fresh_category_count", 0)
@@ -9809,7 +9829,7 @@ def restore_selection_discount_tiers(
         tier = {"selection_discount_floor": floor}
         for field in (
             "selection_discount_band", "publication_policy",
-            "selection_demand_evidence", "selection_demand_quality",
+            "selection_demand_evidence", "selection_demand_quality", "selection_demand_scope",
             "selection_bestseller_rank", "selection_bestseller_category_count",
             "selection_bestseller_rank_improvement",
             "selection_review_growth_evidence", "selection_value_evidence",
