@@ -13,6 +13,8 @@ from editorial_publisher import (
     _finalize_if_terminal,
     _handle_channel_destination,
     _hydrate_confirmed_editorial_receipts,
+    _rehydrate_orphaned_editorial_entries,
+    _editorial_photo_delivery_started,
     _pending_product_video_exists,
     _record_failure,
     _selected_channel_destinations,
@@ -134,6 +136,87 @@ class EditorialPublisherTests(unittest.TestCase):
         self.assertEqual(entry["platforms"]["bale"]["message_id"], "ba-101")
         self.assertEqual(entry["platforms"]["filo"]["status"], "manual_review")
         self.assertEqual(entry["platforms"]["youtube"]["status"], "pending")
+
+    def test_recent_orphaned_editorial_rehydrates_video_queue_without_replaying_photo_receipts(self):
+        item = editorial_item("orphan-guide", "delivery")
+        item["content_id"] = "editorial:orphan-guide"
+        published_at = NOW - timedelta(minutes=20)
+        state = {
+            "editorial_delivery_queue": {},
+            "editorial_delivery_attempts": [],
+            "editorial_delivery_history": [{
+                "content_id": "editorial:orphan-guide",
+                "editorial_id": "orphan-guide",
+                "sequence_number": 1554,
+                "related_product_id": "dkp-5741395",
+                "published_at": published_at.isoformat(),
+                "content_fingerprint": __import__("editorial_content").editorial_content_fingerprint(item),
+                "destinations": {
+                    "telegram": {"status": "sent", "message_id": "tg-1554", "attempts": 1},
+                    "bale": {"status": "sent", "message_id": "ba-1554", "attempts": 1},
+                    "rubika": {"status": "sent", "message_id": "rb-1554", "attempts": 1},
+                    "eitaa": {"status": "not_connected", "attempts": 0},
+                    "youtube": {"status": "pending", "attempts": 0},
+                    "aparat": {"status": "pending", "attempts": 0},
+                    "filo": {"status": "pending", "attempts": 0},
+                },
+            }],
+        }
+        recovered = _rehydrate_orphaned_editorial_entries(
+            state, [item], now=NOW
+        )
+        self.assertEqual(recovered, 1)
+        entry = state["editorial_delivery_queue"]["editorial:orphan-guide"]
+        self.assertTrue(_editorial_photo_delivery_started(entry))
+        self.assertEqual(entry["platforms"]["telegram"]["message_id"], "tg-1554")
+        self.assertEqual(entry["platforms"]["bale"]["message_id"], "ba-1554")
+        self.assertEqual(entry["platforms"]["youtube"]["status"], "pending")
+        self.assertEqual(entry["payload"]["sequence_number"], 1554)
+        # The previously posted event remains resumable after its product slot vanished.
+        self.assertIs(
+            queue_editorial_if_due(state, [item], now=NOW + timedelta(minutes=40)),
+            entry,
+        )
+        projection = radar.build_video_upload_dispatch_state(
+            state, now=NOW + timedelta(minutes=40)
+        )
+        self.assertEqual(len(projection["editorial_video_queue"]), 1)
+        self.assertEqual(
+            set(projection["editorial_video_queue"][0]["platforms"]),
+            {"youtube", "aparat", "filo"},
+        )
+        self.assertEqual(projection["editorial_channel_queue"], [])
+
+    def test_orphaned_editorial_recovery_skips_stale_or_terminal_events(self):
+        item = editorial_item("old-guide", "delivery")
+        item["content_id"] = "editorial:old-guide"
+        row = {
+            "content_id": "editorial:old-guide",
+            "editorial_id": "old-guide",
+            "sequence_number": 90,
+            "published_at": (NOW - timedelta(hours=25)).isoformat(),
+            "destinations": {
+                "telegram": {"status": "sent"},
+                "youtube": {"status": "pending"},
+            },
+        }
+        stale_state = {"editorial_delivery_history": [row], "editorial_delivery_queue": {}}
+        self.assertEqual(
+            _rehydrate_orphaned_editorial_entries(stale_state, [item], now=NOW), 0
+        )
+        row["published_at"] = NOW.isoformat()
+        terminal_state = {
+            "editorial_delivery_history": [row],
+            "editorial_delivery_queue": {},
+            "editorial_delivery_attempts": [{
+                "content_id": "editorial:old-guide",
+                "sequence_number": 90,
+                "status": "completed",
+            }],
+        }
+        self.assertEqual(
+            _rehydrate_orphaned_editorial_entries(terminal_state, [item], now=NOW), 0
+        )
 
     def test_load_bank_merges_manually_approved_source_items(self):
         base = editorial_item(editorial_id="base-guide", topic="purchase-planning")
