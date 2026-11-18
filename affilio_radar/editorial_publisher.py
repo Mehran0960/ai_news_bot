@@ -153,6 +153,21 @@ def _editorial_photo_delivery_started(entry: dict) -> bool:
     return False
 
 
+def _has_pending_editorial_destinations(entry: dict) -> bool:
+    """Whether this editorial still has a destination that can usefully be resumed."""
+    platforms = entry.get("platforms") if isinstance(entry, dict) and isinstance(entry.get("platforms"), dict) else {}
+    retryable = RETRYABLE | {"pending_credentials", "sending"}
+    for destination, target in platforms.items():
+        if not isinstance(target, dict):
+            continue
+        status = str(target.get("status") or "").strip().lower()
+        if status in retryable:
+            return True
+        if destination == "youtube" and status == "skipped_limit":
+            return True
+    return False
+
+
 def _channel_spacing_guard_applies(state: dict) -> bool:
     """Apply global channel spacing only before reserving a new editorial event.
 
@@ -491,6 +506,7 @@ def queue_editorial_if_due(
                 valid_item
                 and payload_matches_reviewed
                 and _editorial_photo_delivery_started(queued_editorial)
+                and _has_pending_editorial_destinations(queued_editorial)
             ):
                 # The photo slot is already consumed. Remaining destinations are
                 # independent and must not be cancelled by a later product deadline.
