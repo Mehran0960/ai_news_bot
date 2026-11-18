@@ -43,7 +43,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertGreaterEqual(parsed, before + timedelta(seconds=89))
         self.assertLessEqual(parsed, after + timedelta(seconds=91))
 
-    def test_product_detail_api_exposes_site_campaign_deadline_for_verification(self):
+    def test_product_detail_api_uses_current_first_party_endpoint(self):
         payload = {
             "data": {
                 "product": {
@@ -65,20 +65,19 @@ class ExpirationMonitorTests(unittest.TestCase):
         response.status_code = 200
         response.content = json.dumps(payload).encode("utf-8")
         response.json.return_value = payload
-        response.url = "https://api.digikala.com/v2/product/123/"
-        with patch.object(monitor.requests, "get", return_value=response) as request:
+        with patch.object(monitor, "_digikala_get", return_value=response) as request:
             result = monitor.fetch_live_product_status("dkp-123")
-        request.assert_called_once()
-        self.assertEqual(request.call_args.kwargs["timeout"], (5, monitor.PRODUCT_STATUS_TIMEOUT_SECONDS))
+        request.assert_called_once_with(
+            monitor.DIGIKALA_PRODUCT_DETAIL_API_URL.format(product_id="123"),
+            timeout=(5, monitor.PRODUCT_STATUS_TIMEOUT_SECONDS),
+        )
+        self.assertEqual(result["api_version"], "current_product_detail_api")
         self.assertEqual(result["deal_expires_at"], "2026-10-23T18:00:00+00:00")
         self.assertTrue(result["expiry_verified_directly"])
         self.assertEqual(result["current_price"], 100_000)
         self.assertTrue(result["in_stock"])
 
-
-    def test_fetch_live_product_status_does_not_repeat_failed_api_calls_in_html_fallback(self):
-        failed_v2 = MagicMock(status_code=404, content=b"", url="https://api.digikala.com/v2/product/123/")
-        failed_v1 = MagicMock(status_code=404, content=b"", url="https://api.digikala.com/v1/product/123/")
+    def test_current_product_api_failure_uses_one_bounded_html_fallback(self):
         page = MagicMock(
             status_code=200,
             content=b"<html>product</html>",
@@ -93,45 +92,51 @@ class ExpirationMonitorTests(unittest.TestCase):
             "expiry_deadline_verified_directly": False,
         }
         with (
-            patch.object(monitor.requests, "get", side_effect=[failed_v2, failed_v1, page]) as request,
+            patch.object(monitor, "_digikala_get", side_effect=RuntimeError("API unavailable")) as api_request,
+            patch.object(monitor.requests, "get", return_value=page) as html_request,
             patch.object(monitor, "parse_product_page", return_value=parsed_page),
         ):
             snapshot = monitor.fetch_live_product_status("dkp-123")
-        self.assertEqual(request.call_count, 3)
+        api_request.assert_called_once()
+        html_request.assert_called_once()
+        self.assertEqual(html_request.call_args.args[0], "https://www.digikala.com/product/dkp-123/")
+        self.assertEqual(html_request.call_args.kwargs["timeout"], (5, monitor.PRODUCT_STATUS_TIMEOUT_SECONDS))
         self.assertEqual(snapshot["current_price"], 120_000)
         self.assertIs(snapshot["in_stock"], True)
         self.assertEqual(snapshot["price_source"], "digikala_product_page")
 
-    def test_expiry_cleanup_prefers_direct_feed_and_fills_only_missing_ids_from_live_offer_cards(self):
-        direct = {
-            "dkp-1": "2026-10-20T20:00:00+00:00",
-            "dkp-2": "2026-10-20T21:00:00+00:00",
-        }
+    def test_expiry_cleanup_uses_only_exact_current_mcp_offer_cards(self):
         mcp = {
             "dkp-1": "2026-10-20T22:30:00+00:00",
             "dkp-3": "2026-10-20T23:00:00+00:00",
             "dkp-not-required": "2026-10-24T23:00:00+00:00",
         }
         with (
-            patch.object(monitor, "fetch_direct_api_offer_expiries", return_value=direct),
-            patch.object(monitor, "fetch_mcp_offer_candidates", return_value=(mcp, [])) as fallback,
+            patch.object(
+                monitor, "fetch_direct_api_offer_expiries",
+                side_effect=AssertionError("retired REST feed must not be called"),
+            ) as legacy_feed,
+            patch.object(monitor, "fetch_mcp_offer_candidates", return_value=(mcp, [])) as current_cards,
         ):
-            deadlines, sources = monitor.fetch_offer_deadlines(required_product_ids=["dkp-1", "dkp-2", "dkp-3"])
-        self.assertEqual(deadlines["dkp-1"], direct["dkp-1"])
-        self.assertEqual(deadlines["dkp-2"], direct["dkp-2"])
-        self.assertEqual(deadlines["dkp-3"], mcp["dkp-3"])
-        self.assertEqual(sources["dkp-1"], "digikala_live_deals_feed")
-        self.assertEqual(sources["dkp-3"], "digikala_mcp_offer_card")
-        self.assertNotIn("dkp-not-required", deadlines)
-        fallback.assert_called_once_with(page_numbers=[1])
+            deadlines, sources = monitor.fetch_offer_deadlines(
+                required_product_ids=["dkp-1", "dkp-2", "dkp-3"]
+            )
+        legacy_feed.assert_not_called()
+        current_cards.assert_called_once_with(page_numbers=[1])
+        self.assertEqual(deadlines, {
+            "dkp-1": mcp["dkp-1"],
+            "dkp-3": mcp["dkp-3"],
+        })
+        self.assertEqual(sources, {
+            "dkp-1": "digikala_mcp_offer_card",
+            "dkp-3": "digikala_mcp_offer_card",
+        })
 
-        with (
-            patch.object(monitor, "fetch_direct_api_offer_expiries", return_value={}),
-            patch.object(monitor, "fetch_mcp_offer_candidates", return_value=({"dkp-1": "2026-10-20T23:00:00+00:00"}, [])),
-        ):
-            deadlines, sources = monitor.fetch_offer_deadlines(required_product_ids=["dkp-1"])
-        self.assertIn("dkp-1", deadlines)
-        self.assertEqual(sources["dkp-1"], "digikala_mcp_offer_card")
+    def test_retired_direct_offer_feed_is_a_noop(self):
+        with patch.object(monitor.requests, "get") as request:
+            self.assertEqual(monitor.fetch_direct_api_offer_expiries(), {})
+        request.assert_not_called()
+
     def test_live_deadline_sync_corrects_stale_deadline_before_cleanup(self):
         now = datetime(2026, 10, 20, 17, 40, tzinfo=timezone.utc)
         published = {
