@@ -3148,38 +3148,27 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** retry بیشتر ممکن است زمان پایان job را در رقابت شدید افزایش دهد، اما انتشار موازی را متوقف نمی‌کند. سقف ۱۰ تلاش و backoff jittered محدود است؛ rollback با revert همین PR ممکن است.
 
 **وضعیت:** تغییرات شاخه‌ای ثبت شد؛ CI و ادغام در main در انتظار.
+## 2026-11-18 — بهبود صحت ممیزی، انتساب و استقلال رسانه‌ها
 
+**هدف:** سالم‌سازی ممیزی قیمت/موجودی و زمان آفر، جلوگیری از انتساب اشتباه کلیک و فروش، و قفل‌کردن استقلال خطای هر مقصد انتشار تصویری.
 
-## 2026-11-18 — صداقت انتساب و رشد افیلیت
+**تغییر/اقدام:**
+- ممیزی زندهٔ دیجی‌کالا از endpoint فعلی جزئیات محصول و helper مشترک استفاده می‌کند؛ مسیرهای قدیمی v1/v2 حذف شده‌اند، HTML fallback محدود به یک تلاش است و دادهٔ نامعلوم هرگز موجب حذف پست نمی‌شود.
+- deadlineهای آفر از کارت MCP با تطبیق دقیق product ID می‌آیند؛ فید REST بازنشسته فراخوانی نمی‌شود.
+- گزارش عملکرد مشخص می‌کند CTA فعلی مستقیم Aflo را باز می‌کند و از Worker عبور نمی‌کند؛ رویدادهای Worker یا تخصیص آزمایش به‌عنوان کلیک CTA، سفارش یا فروش ثبت نمی‌شوند.
+- Worker و helper آزمایشی هفت source رسانه‌ای را می‌شناسند؛ لینک مستقیم زندهٔ خرید تغییر نکرده است.
+- دامنهٔ شواهد پرفروش/رشد نظر در فروشگاه دیجی‌کالا با `digikala_store_only` برچسب می‌خورد؛ ترب فقط مقایسهٔ قیمت و MeMarket یک feed مستقل آفر است، نه سنجهٔ تقاضای کل بازار.
+- سیاست نگهداری پست‌های تصویری محصول/آفر Telegram و Bale به ۷ روز تغییر می‌کند؛ محتوای evergreen و ویدئوها مستثنا هستند.
+- چهار مقصد تصویری در تابع مستقل اجرا می‌شوند: هر adapter state copy خودش را دارد؛ خطای یک future فقط همان مقصد را failed/retry می‌کند و بقیه ادامه می‌دهند.
+- workflow رگرسیون، تست استقلال مقصدهای تصویری و تست Node هفت source را اجرا می‌کند.
+- playbook الگوبرداری از HotUKDeals، Wirecutter و Impact.com و بررسی اولیهٔ Deema/Dayan اضافه شد؛ هیچ شبکهٔ جدیدی به انتشار زنده متصل نشده است.
 
-**هدف:** جلوگیری از برداشت اشتباه از آمار کلیک/آزمایش، توسعهٔ ممیزی سالم قیمت/موجودی، حفظ سیاست نگهداری ۷روزه و ثبت الگوهای قابل‌انتقال رشد افیلیت.
+**فایل‌ها/سامانه‌ها:** `.github/workflows/affilio-expiration-cleanup.yml`، `.github/workflows/affilio-radar.yml`، `affilio_radar/expiration_monitor.py`، `affilio_radar/test_expiration_monitor.py`، `affilio_radar/affiliate-deal-radar-worker.js`، `affilio_radar/test_affiliate_deal_radar_worker.mjs`، `affilio_radar/affilio_radar.py`، `affilio_radar/test_affilio.py`، `affilio_radar/publisher.py`، `affilio_radar/test_independent_media_dispatch.py`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، Handbook، Growth Playbook و Network Review.
 
-**تغییرات:**
-- ممیزی قیمت دیجی‌کالا به endpoint جزئیات محصول فعلی منتقل شد؛ مسیرهای قدیمی v1/v2 از مسیر قیمت حذف شدند و فقط یک HTML fallback محدود باقی ماند.
-- deadlineهای آفر از کارت MCP با تطبیق دقیق شناسهٔ محصول گرفته می‌شوند؛ فید REST بازنشسته دیگر فراخوانی نمی‌شود.
-- گزارش عملکرد بین رویدادهای Worker و CTA مستقیم Aflo تمایز می‌گذارد؛ کلیک زنده/انتساب رسانه و فروش تا زمان SubID یا گزارش رسمی افیلیو unavailable ثبت می‌شود.
-- هفت منبع رسانه‌ای در Worker و helper ساخت لینک آزمایشی شناخته می‌شوند.
-- نگهداری پست‌های محصول/آفر تلگرام و بله در workflow به ۷ روز تغییر می‌کند؛ Telegram برای پیام‌های بیش از ۴۸ ساعت به MTProto و اعتبارنامه‌های موجود در Secrets نیاز دارد. محتوای evergreen و ویدئوها خارج از این سیاست‌اند.
-- دامنهٔ شواهد تقاضا در کد به `digikala_store_only` برچسب می‌خورد؛ ترب فقط مقایسهٔ قیمت است و MeMarket نیز به‌عنوان feed آفر مستقل شناخته می‌شود، نه تقاضای کل بازار.
-- راهنمای رشد HotUKDeals/Wirecutter/Impact و due diligence شبکه‌های افیلیت ایران اضافه شد؛ هیچ شبکهٔ جدیدی به production متصل نشد.
+**آزمون و نتیجه:** اجرای رگرسیون #44322978001 روی commit `c074933` با موفقیت تمام شد و ۵۹۷ تست را اجرا کرد؛ پس از آن تست جدید شکست مستقل مقصد نیز اضافه شد. اجرای #44323834686 یک assertion نادرست در تست جدید را مشخص کرد؛ assertion به وضعیت واقعی failed/retry اصلاح شد و run تازهٔ commit `7f0ecf4` در حال بررسی است. تست‌های PR شامل مستندات، adapterها، fallback، لوگو، ویدئو و رتبه‌بندی نیز در جریان هستند؛ تا سبزشدن آخرین head موفقیت کامل ادعا نمی‌شود.
 
-**فایل‌ها/سامانه‌ها:** `.github/workflows/affilio-expiration-cleanup.yml`، `affilio_radar/expiration_monitor.py`، `affilio_radar/test_expiration_monitor.py`، `affilio_radar/affiliate-deal-radar-worker.js`، `affilio_radar/test_affiliate_deal_radar_worker.mjs`، `affilio_radar/affilio_radar.py`، `affilio_radar/test_affilio.py`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، `docs/OFFERCHIN_AFFILIATE_GROWTH_PLAYBOOK_FA.md`، `docs/OFFERCHIN_AFFILIATE_NETWORKS_REVIEW_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
+**شواهد/شناسه:** شاخهٔ `codex/offerchin-optimization-2026-11-18-refresh2`؛ PR #246؛ مبنای شاخه commit `3b5272f71b9be6ed57d0bd8cad28a4310551c155`. PR قدیمی #245 مبنای ادغام نیست.
 
-**آزمون و نتیجه:** تست‌های واحد برای endpoint فعلی، fallback محدود، عدم فراخوانی فید بازنشسته، پشتیبانی هفت رسانه و تمایز انتساب CTA در شاخه به‌روزرسانی شدند. نتیجهٔ CI شاخهٔ refresh2 هنوز در انتظار است؛ تست سبز نیز به‌تنهایی اثبات انتشار عمومی یا فروش نیست.
+**ریسک/بازگشت:** تغییر ممیزی قیمت fail-closed است و در صورت ابهام حذف نمی‌کند؛ بازگشت از طریق revert فایل ممیزی ممکن است. ۷روزه‌کردن حذف Telegram برای پیام‌های قدیمی‌تر از ۴۸ ساعت به Secrets معتبر MTProto نیاز دارد و باید پیش از استقرار بررسی شود. چهار مقصد تصویری هنوز یک runner مشترک دارند؛ crash/timeout خود runner می‌تواند همه را متوقف کند، هرچند exception یک adapter مانع سه مقصد دیگر نیست. لینک خرید، secret و deployment در این شاخه تغییر نکرده‌اند.
 
-**شواهد/شناسه:** شاخهٔ `codex/offerchin-optimization-2026-11-18-refresh2`، مبنای بازبنیان‌گذاری `3b5272f71b9be6ed57d0bd8cad28a4310551c155`. PR قبلی #245 به‌دلیل عقب‌ماندگی شدید نسبت به main مبنای ادغام نیست و این شاخه جایگزین بازبینی‌شدهٔ آن است.
-
-**ریسک/بازگشت:** گزارش انتساب محافظه‌کارانه‌تر می‌شود؛ دادهٔ Worker قدیمی حذف نمی‌شود اما به‌عنوان کلیک CTA زنده تفسیر نمی‌شود. در صورت اختلال endpoint جدید، fallback محدود انجام می‌شود و در صورت نامعلوم‌ماندن داده، پست حذف نمی‌شود. سیاست ۷روزه پس از rollout می‌تواند پست‌های تصویری قدیمی‌تر از ۷ روز را پاک کند؛ پیش از فعال‌سازی باید وجود MTProto Secrets تأیید شود. rollback با revert تغییرهای workflow و کد مربوط ممکن است.
-
-**وضعیت:** شاخه‌ای؛ هیچ merge، deployment، تغییر secret یا حذف پست عمومی انجام نشده است.
-
-
-### تکمیل آزمون استقلال مقصدهای رسانه
-- اجرای ارسال چهار مقصد تصویری به تابع مستقل منتقل شد؛ exception هر future فقط همان مقصد را fail/retry می‌کند.
-- تست شکست کنترل‌شدهٔ Eitaa و موفقیت Telegram/Bale/Rubika اضافه شد.
-- تست‌های Node برای هفت source ردیاب کلیک به workflow رگرسیون اضافه شد.
-- محدودیت اجرایی ثبت شد: چهار مقصد تصویری یک runner مشترک دارند؛ ویدئوها workflowهای جدا دارند.
-
-**فایل‌ها:** `affilio_radar/publisher.py`، `affilio_radar/test_independent_media_dispatch.py`، `affilio_radar/test_affiliate_deal_radar_worker.mjs`، `.github/workflows/affilio-radar.yml`.
-
-**نتیجه:** اجرای CI commit جدید در انتظار؛ پیش از مشاهدهٔ خروجی کامل، موفقیت نهایی ادعا نمی‌شود.
+**وضعیت:** شاخه‌ای و در انتظار تکمیل CI و بازبینی PR؛ هیچ merge، deployment، حذف پست عمومی یا فعال‌سازی شبکهٔ جدید انجام نشده است.
