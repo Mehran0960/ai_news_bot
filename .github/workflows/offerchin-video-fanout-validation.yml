@@ -108,11 +108,10 @@ jobs:
           assert "dispatchVideoPlatformWhenDue" not in worker
           assert "VIDEO_PUBLISHER_API" not in worker
           assert "videoQueueDispatchDeferReason" in worker
-          assert "findActiveWorkflow(PUBLISHER_API" not in worker
           # Each video platform has its own due check; no channel/editorial slot
           # or active publisher may defer it.
           start = worker.index("async function dispatchVideoUploadsWhenDue")
-          end = worker.index("async function runScheduledCheck", start)
+          end = worker.index("export function hasDueEditorialChannelQueue", start)
           video_dispatch = worker[start:end]
           assert 'hasDueVideoRecord(state, "youtube"' in video_dispatch
           assert 'hasDueVideoRecord(state, "aparat"' in video_dispatch

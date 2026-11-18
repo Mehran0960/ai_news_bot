@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: offerchin-content-publisher
+  group: offerchin-channel-publisher
   cancel-in-progress: false
 
 jobs:

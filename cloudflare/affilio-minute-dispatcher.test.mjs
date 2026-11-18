@@ -6,6 +6,8 @@ import {
   isDegradedLiveFallbackAvailable,
   hasDueVideoRecord,
   hasPendingVideoQueue,
+  hasDueEditorialChannelQueue,
+  editorialChannelQueueDispatchDeferReason,
   videoQueueDispatchDeferReason,
   videoRecordDue,
   isFiloLoginVerified,
@@ -635,6 +637,139 @@ test("YouTube daily quota pause defers only YouTube and automatically resumes", 
     youtube_skip_reason: "youtube_daily_quota_pause",
   };
   assert.equal(videoRecordDue(legacyQuotaSkip, "youtube", now), true);
+});
+
+test("editorial photo channel recovery queue is due per destination", () => {
+  const now = Date.now();
+  const state = {
+    editorial_channel_queue: [{
+      content_id: "editorial:delivery-guide",
+      sequence_number: 42,
+      status: "partial",
+      scheduled_at: new Date(now - 60_000).toISOString(),
+      platforms: {
+        telegram: { status: "sent" },
+        bale: { status: "failed", attempts: 1, next_attempt_at: new Date(now - 1).toISOString() },
+        rubika: { status: "retry", next_attempt_at: new Date(now + 60 * 60_000).toISOString() },
+        eitaa: { status: "manual_review" },
+      },
+    }],
+  };
+  assert.equal(hasDueEditorialChannelQueue(state, now), true);
+  state.editorial_channel_queue[0].platforms.bale.status = "sent";
+  assert.equal(hasDueEditorialChannelQueue(state, now), false);
+  state.editorial_channel_queue[0].platforms.rubika.next_attempt_at = new Date(now - 1).toISOString();
+  assert.equal(hasDueEditorialChannelQueue(state, now), true);
+});
+
+test("editorial photo recovery never competes with pending first delivery or the primary publisher", () => {
+  const now = Date.now();
+  const initial = {
+    editorial_channel_queue: [{
+      content_id: "editorial:first-delivery",
+      status: "partial",
+      scheduled_at: new Date(now - 60_000).toISOString(),
+      platforms: { telegram: { status: "pending", attempts: 0 } },
+    }],
+  };
+  assert.equal(hasDueEditorialChannelQueue(initial, now), false);
+  assert.equal(
+    editorialChannelQueueDispatchDeferReason(initial, false, now),
+    "no_due_editorial_channel_recovery"
+  );
+
+  const failed = {
+    editorial_channel_queue: [{
+      content_id: "editorial:retry",
+      status: "partial",
+      scheduled_at: new Date(now - 60_000).toISOString(),
+      platforms: { telegram: { status: "retry", next_attempt_at: new Date(now - 1).toISOString() } },
+    }],
+  };
+  assert.equal(hasDueEditorialChannelQueue(failed, now), true);
+  assert.equal(
+    editorialChannelQueueDispatchDeferReason(failed, true, now),
+    "publisher_workflow_active_or_dispatched"
+  );
+  assert.equal(editorialChannelQueueDispatchDeferReason(failed, false, now), null);
+});
+
+test("editorial photo channel uncertain sends wait for the send watchdog", () => {
+  const now = Date.now();
+  const state = {
+    editorial_channel_queue: [{
+      content_id: "editorial:guide",
+      status: "partial",
+      scheduled_at: new Date(now - 60_000).toISOString(),
+      platforms: {
+        telegram: { status: "sending", attempt_started_at: new Date(now - 5 * 60_000).toISOString() },
+      },
+    }],
+  };
+  assert.equal(hasDueEditorialChannelQueue(state, now), false);
+  state.editorial_channel_queue[0].platforms.telegram.attempt_started_at =
+    new Date(now - 31 * 60_000).toISOString();
+  assert.equal(hasDueEditorialChannelQueue(state, now), true);
+});
+
+test("editorial video queue dispatches each destination without product records", () => {
+  const now = Date.now();
+  const state = {
+    editorial_video_queue: [{
+      content_id: "editorial:delivery-guide",
+      sequence_number: 42,
+      status: "partial",
+      scheduled_at: new Date(now - 60_000).toISOString(),
+      platforms: {
+        youtube: { status: "pending" },
+        aparat: { status: "pending" },
+        filo: { status: "pending" },
+      },
+    }],
+  };
+  assert.equal(hasPendingVideoQueue(state, now), true);
+  for (const platform of ["youtube", "aparat", "filo"]) {
+    assert.equal(hasDueVideoRecord(state, platform, now), true, platform);
+  }
+});
+
+test("editorial video retry timestamps are destination-local", () => {
+  const now = Date.now();
+  const state = {
+    editorial_video_queue: [{
+      content_id: "editorial:delivery-guide",
+      sequence_number: 42,
+      status: "partial",
+      scheduled_at: new Date(now - 60_000).toISOString(),
+      platforms: {
+        youtube: { status: "retry", next_attempt_at: new Date(now + 60 * 60_000).toISOString() },
+        aparat: { status: "pending" },
+        filo: { status: "manual_review" },
+      },
+    }],
+  };
+  assert.equal(hasPendingVideoQueue(state, now), true);
+  assert.equal(hasDueVideoRecord(state, "youtube", now), false);
+  assert.equal(hasDueVideoRecord(state, "aparat", now), true);
+  assert.equal(hasDueVideoRecord(state, "filo", now), false);
+});
+
+test("editorial video sender rechecks an uncertain send only after the watchdog", () => {
+  const now = Date.now();
+  const state = {
+    editorial_video_queue: [{
+      content_id: "editorial:guide",
+      status: "partial",
+      scheduled_at: new Date(now - 60_000).toISOString(),
+      platforms: {
+        youtube: { status: "sending", attempt_started_at: new Date(now - 5 * 60_000).toISOString() },
+      },
+    }],
+  };
+  assert.equal(hasDueVideoRecord(state, "youtube", now), false);
+  state.editorial_video_queue[0].platforms.youtube.attempt_started_at =
+    new Date(now - 31 * 60_000).toISOString();
+  assert.equal(hasDueVideoRecord(state, "youtube", now), true);
 });
 
 test("terminally skipped video destinations are not redispatched", () => {

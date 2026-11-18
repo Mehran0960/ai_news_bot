@@ -12,7 +12,12 @@ from PIL import Image
 from editorial_publisher import (
     _finalize_if_terminal,
     _handle_channel_destination,
+    _hydrate_confirmed_editorial_receipts,
+    _pending_product_video_exists,
     _record_failure,
+    _selected_channel_destinations,
+    _channel_spacing_guard_applies,
+    _selected_video_destinations,
     _format_message,
     _public_editorial_payload,
     _send_bot_photo,
@@ -60,6 +65,76 @@ def add_confirmed_product_posts(state, count=6, *, published_at=None):
 
 
 class EditorialPublisherTests(unittest.TestCase):
+    def test_photo_worker_can_select_exactly_one_destination(self):
+        for destination in ("telegram", "bale", "rubika", "eitaa"):
+            with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_CHANNEL_DESTINATION": destination}, clear=True):
+                self.assertEqual(_selected_channel_destinations(), (destination,))
+        with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_CHANNEL_DESTINATION": "youtube"}, clear=True):
+            with self.assertRaisesRegex(ValueError, "unsupported_editorial_channel_destination"):
+                _selected_channel_destinations()
+
+    def test_existing_editorial_delivery_bypasses_new_post_spacing_guard(self):
+        state = {
+            "editorial_delivery_queue": {
+                "editorial:retry": {
+                    "content_id": "editorial:retry",
+                    "sequence_number": 12,
+                    "status": "partial",
+                    "platforms": {"telegram": {"status": "sent"}, "bale": {"status": "retry"}},
+                }
+            }
+        }
+        self.assertFalse(_channel_spacing_guard_applies(state))
+        self.assertTrue(_channel_spacing_guard_applies({"editorial_delivery_queue": {}}))
+
+    def test_video_worker_can_select_exactly_one_destination(self):
+        for destination in ("youtube", "aparat", "filo"):
+            with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_VIDEO_DESTINATION": destination}, clear=True):
+                self.assertEqual(_selected_video_destinations(), (destination,))
+        with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_VIDEO_DESTINATION": "telegram"}, clear=True):
+            with self.assertRaisesRegex(ValueError, "unsupported_editorial_video_destination"):
+                _selected_video_destinations()
+
+    def test_product_video_fifo_is_scoped_to_selected_destination(self):
+        state = {
+            "published": {
+                "dkp-1": {
+                    "video_generation_status": "generated",
+                    "youtube_upload_status": "retry",
+                    "aparat_upload_status": "uploaded",
+                    "filo_upload_status": "published",
+                }
+            }
+        }
+        self.assertTrue(_pending_product_video_exists(state, {"youtube"}))
+        self.assertFalse(_pending_product_video_exists(state, {"aparat"}))
+        self.assertFalse(_pending_product_video_exists(state, {"filo"}))
+
+    def test_confirmed_receipts_are_restored_before_a_stale_queue_can_resend(self):
+        item = editorial_item("delivery-guide", "delivery")
+        from editorial_content import editorial_content_fingerprint
+        state = {
+            "editorial_delivery_history": [{
+                "editorial_id": "delivery-guide",
+                "content_fingerprint": editorial_content_fingerprint(item),
+                "destinations": {
+                    "telegram": {"status": "sent", "message_id": "tg-101"},
+                    "bale": {"status": "sent", "message_id": "ba-101"},
+                    "filo": {"status": "manual_review", "last_error": "awaiting_approval"},
+                },
+            }]
+        }
+        entry = {"content_id": "editorial:delivery-guide", "payload": item, "platforms": {
+            "telegram": {"status": "pending"}, "bale": {"status": "pending"},
+            "filo": {"status": "pending"}, "youtube": {"status": "pending"},
+        }}
+        restored = _hydrate_confirmed_editorial_receipts(state, entry)
+        self.assertEqual(restored, 3)
+        self.assertEqual(entry["platforms"]["telegram"]["message_id"], "tg-101")
+        self.assertEqual(entry["platforms"]["bale"]["message_id"], "ba-101")
+        self.assertEqual(entry["platforms"]["filo"]["status"], "manual_review")
+        self.assertEqual(entry["platforms"]["youtube"]["status"], "pending")
+
     def test_load_bank_merges_manually_approved_source_items(self):
         base = editorial_item(editorial_id="base-guide", topic="purchase-planning")
         approved = editorial_item(editorial_id="digikala-delivery", topic="delivery")

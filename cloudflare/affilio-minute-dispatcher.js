@@ -14,6 +14,8 @@ const APARAT_VIDEO_WORKFLOW = "aparat-video-upload.yml";
 const APARAT_VIDEO_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${APARAT_VIDEO_WORKFLOW}`;
 const OFFERCHIN_FILO_VIDEO_WORKFLOW = "filo-video-upload.yml";
 const OFFERCHIN_FILO_VIDEO_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${OFFERCHIN_FILO_VIDEO_WORKFLOW}`;
+const EDITORIAL_CHANNEL_WORKFLOW = "offerchin-editorial-channel-upload.yml";
+const EDITORIAL_CHANNEL_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${EDITORIAL_CHANNEL_WORKFLOW}`;
 const RUNS_API = `https://api.github.com/repos/${OWNER}/${REPO}/actions/runs`;
 const FILO_REPO = "Goushibaaz";
 const FILO_WORKFLOW = "filo-native-republish.yml";
@@ -338,12 +340,12 @@ async function dispatchPublisherWhenDue(env, tick, state) {
   );
   if (active) {
     console.log("OFFERCHIN_PUBLISHER_NOT_DISPATCHED reason=active_workflow_" + active.status);
-    return;
+    return true;
   }
 
   if (!state) {
     console.warn("OFFERCHIN_PUBLISHER_NOT_DISPATCHED reason=publication_state_unavailable");
-    return;
+    return false;
   }
 
   const now = tick.getTime();
@@ -362,7 +364,7 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     await dispatchWorkflowIfIdle(
       PUBLISHER_API, env.GITHUB_TOKEN, PUBLISHER_WORKFLOW, 28, 28
     );
-    return;
+    return true;
   }
 
   const [latestAttempt, catalogStatus] = await Promise.all([
@@ -398,7 +400,7 @@ async function dispatchPublisherWhenDue(env, tick, state) {
         " latest_attempt_status=" + String(catalogStatus && catalogStatus.last_cycle_status || "unknown") +
         " last_clean_cycle_at=" + String(catalogStatus && catalogStatus.last_clean_cycle_completed_at || "unknown")
       );
-      return;
+      return false;
     }
   } else {
     // Reuse the last immutable clean snapshot while the next full scan runs.
@@ -436,7 +438,7 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     console.log("OFFERCHIN_PUBLISHER_NOT_DUE seconds_remaining=" +
       Math.ceil((nextDueAt - now) / 1000) +
       " next_content_due_at=" + new Date(nextDueAt).toISOString());
-    return;
+    return false;
   }
   if (queueNeedsReplenishment && nextDueAt !== null && now < nextDueAt) {
     console.log(
@@ -452,12 +454,13 @@ async function dispatchPublisherWhenDue(env, tick, state) {
       Number.isFinite(attemptAt) && now - attemptAt < PUBLISHER_DISCOVERY_RETRY_MS) {
     console.log("OFFERCHIN_DISCOVERY_RETRY_WINDOW seconds_remaining=" +
       Math.ceil((PUBLISHER_DISCOVERY_RETRY_MS - (now - attemptAt)) / 1000));
-    return;
+    return false;
   }
 
   await dispatchWorkflowIfIdle(
     PUBLISHER_API, env.GITHUB_TOKEN, PUBLISHER_WORKFLOW, 28, 28
   );
+  return true;
 }
 
 const VIDEO_PENDING_STATUSES = new Set([
@@ -569,6 +572,44 @@ export function isFiloLoginVerified(state, now) {
   );
 }
 
+function editorialVideoRecordDue(record, platform, now) {
+  if (!record || typeof record !== "object") return false;
+  if (["completed", "cancelled", "failed"].includes(String(record.status || "").trim().toLowerCase())) {
+    return false;
+  }
+  const target = record.platforms && typeof record.platforms === "object"
+    ? record.platforms[platform] : null;
+  if (!target || typeof target !== "object") return false;
+  const status = String(target.status || "pending").trim().toLowerCase();
+  const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
+  let dueAt = dateValue(target.next_attempt_at) ?? dateValue(record.scheduled_at);
+  if (status === "sending") {
+    const attemptAt = dateValue(target.attempt_started_at);
+    dueAt = attemptAt === null ? timestamp : attemptAt + 30 * 60 * 1000;
+  } else if (status === "skipped_limit") {
+    if (platform !== "youtube") return false;
+    // The global YouTube quota pause is checked by hasDueVideoRecord().
+  } else if (!["pending", "pending_credentials", "failed", "retry"].includes(status)) {
+    return false;
+  }
+  return dueAt === null || dueAt <= timestamp;
+}
+
+function editorialVideoRecordPending(record) {
+  if (!record || typeof record !== "object") return false;
+  if (["completed", "cancelled", "failed"].includes(String(record.status || "").trim().toLowerCase())) {
+    return false;
+  }
+  const platforms = record.platforms && typeof record.platforms === "object" ? record.platforms : {};
+  return ["youtube", "aparat", "filo"].some((platform) => {
+    const target = platforms[platform];
+    if (!target || typeof target !== "object") return false;
+    const status = String(target.status || "").trim().toLowerCase();
+    return ["pending", "pending_credentials", "failed", "retry", "sending"].includes(status) ||
+      (platform === "youtube" && status === "skipped_limit");
+  });
+}
+
 export function hasDueVideoRecord(state, platform, now = Date.now()) {
   if (platform === "youtube") {
     const pauseUntil = dateValue(state && state.youtube_uploads_paused_until);
@@ -576,9 +617,12 @@ export function hasDueVideoRecord(state, platform, now = Date.now()) {
   }
   const published = state && state.published && typeof state.published === "object"
     ? state.published : {};
-  // The compact dispatcher sidecar already caps this at the 250 most recent
-  // selected-product records. Do not inspect only the newest six.
-  return Object.values(published).some(record => videoRecordDue(record, platform, now));
+  // Product and editorial queues are independent; either may wake this destination.
+  const productDue = Object.values(published).some(record => videoRecordDue(record, platform, now));
+  if (productDue) return true;
+  const editorialQueue = Array.isArray(state && state.editorial_video_queue)
+    ? state.editorial_video_queue : [];
+  return editorialQueue.some(record => editorialVideoRecordDue(record, platform, now));
 }
 
 async function readLatestWorkflowAttempt(api, token) {
@@ -597,11 +641,10 @@ async function readLatestWorkflowAttempt(api, token) {
 // workflow serializes YouTube, Aparat and Filo over the same FIFO, then records each
 // platform's own success, rejection, retry exhaustion or uncertain outcome.
 export function hasPendingVideoQueue(state, now = Date.now()) {
-  if (!state || typeof state !== "object" || !state.published || typeof state.published !== "object") {
-    return false;
-  }
+  if (!state || typeof state !== "object") return false;
   const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
-  return Object.values(state.published).some((record) => {
+  const published = state.published && typeof state.published === "object" ? state.published : {};
+  const pendingProduct = Object.values(published).some((record) => {
     if (!hasVideoDispatchEligibility(record)) return false;
     const created = Number(record.ts || 0) * 1000;
     if (!Number.isFinite(created) || created <= 0) return false;
@@ -615,8 +658,6 @@ export function hasPendingVideoQueue(state, now = Date.now()) {
     return ["youtube", "aparat", "filo"].some((platform) => {
       const status = String(record[platform + "_upload_status"] || "").trim().toLowerCase();
       if (generation === "pending" || generation === "generated") {
-        // Dispatch even when a platform-specific preflight will skip it; Python
-        // records that terminal result and still advances the other destinations.
         return VIDEO_PENDING_STATUSES.has(status);
       }
       if (generation === "skipped_expiring_soon") {
@@ -629,6 +670,8 @@ export function hasPendingVideoQueue(state, now = Date.now()) {
       );
     });
   });
+  const editorialQueue = Array.isArray(state.editorial_video_queue) ? state.editorial_video_queue : [];
+  return pendingProduct || editorialQueue.some(editorialVideoRecordPending);
 }
 
 // Destination dispatch is independent: no channel slot, editorial slot,
@@ -664,6 +707,63 @@ async function dispatchVideoUploadsWhenDue(env, tick, state) {
     }
   }
 }
+export function hasDueEditorialChannelQueue(state, now = Date.now()) {
+  const queue = Array.isArray(state && state.editorial_channel_queue)
+    ? state.editorial_channel_queue : [];
+  const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
+  return queue.some((record) => {
+    if (!record || typeof record !== "object") return false;
+    if (["completed", "cancelled", "failed"].includes(String(record.status || "").trim().toLowerCase())) {
+      return false;
+    }
+    const platforms = record.platforms && typeof record.platforms === "object" ? record.platforms : {};
+    return ["telegram", "bale", "rubika", "eitaa"].some((platform) => {
+      const target = platforms[platform];
+      if (!target || typeof target !== "object") return false;
+      const status = String(target.status || "").trim().toLowerCase();
+      if (status === "sending") {
+        const attemptAt = dateValue(target.attempt_started_at);
+        return attemptAt === null || attemptAt + 30 * 60 * 1000 <= timestamp;
+      }
+      if (!["failed", "retry"].includes(status)) return false;
+      const dueAt = dateValue(target.next_attempt_at) ?? dateValue(record.scheduled_at);
+      return dueAt === null || dueAt <= timestamp;
+    });
+  });
+}
+
+export function editorialChannelQueueDispatchDeferReason(state, publisherActiveOrDispatched, now = Date.now()) {
+  if (publisherActiveOrDispatched) return "publisher_workflow_active_or_dispatched";
+  return hasDueEditorialChannelQueue(state, now) ? null : "no_due_editorial_channel_recovery";
+}
+
+async function dispatchEditorialChannelUploadsWhenDue(env, tick, state, publisherProtected = false) {
+  if (!state || !env.GITHUB_TOKEN) return;
+  const deferReason = editorialChannelQueueDispatchDeferReason(
+    state, publisherProtected, tick.getTime()
+  );
+  if (deferReason) {
+    if (deferReason === "publisher_workflow_active_or_dispatched") {
+      console.log("OFFERCHIN_EDITORIAL_CHANNEL_RECOVERY_DEFERRED reason=" + deferReason);
+    }
+    return;
+  }
+  // Recheck GitHub after the same-tick publisher decision: the regular publisher
+  // owns first delivery, while this workflow is recovery-only for failed receipts.
+  const activePublisher = await findActiveWorkflow(PUBLISHER_API, env.GITHUB_TOKEN);
+  if (activePublisher) {
+    console.log("OFFERCHIN_EDITORIAL_CHANNEL_RECOVERY_DEFERRED reason=publisher_workflow_" + activePublisher.status);
+    return;
+  }
+  await dispatchWorkflowIfIdle(
+    EDITORIAL_CHANNEL_API,
+    env.GITHUB_TOKEN,
+    "offerchin-editorial-channel-upload",
+    18,
+    8
+  );
+}
+
 async function runScheduledCheck(env, scheduledTime) {
   const hasOfferChinToken = Boolean(env.GITHUB_TOKEN);
   const hasFiloToken = Boolean(env.FILO_GITHUB_TOKEN);
@@ -727,14 +827,24 @@ async function runScheduledCheck(env, scheduledTime) {
     }
   }
 
+  let publisherProtected = false;
   try {
-    await dispatchPublisherWhenDue(env, tick, state);
+    publisherProtected = await dispatchPublisherWhenDue(env, tick, state) === true;
   } catch (error) {
+    // On an uncertain dispatch result, prefer waiting for the next poll over
+    // racing the primary publisher with a second sender.
+    publisherProtected = true;
     console.error("OFFERCHIN_PUBLISHER_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 
   // Every video destination has its own due check, workflow and failure boundary.
   // No channel/editorial schedule or sibling media workflow can block it.
+  try {
+    await dispatchEditorialChannelUploadsWhenDue(env, tick, state, publisherProtected);
+  } catch (error) {
+    console.error("OFFERCHIN_EDITORIAL_CHANNEL_DISPATCH_FAILED", String(error).slice(0, 900));
+  }
+
   try {
     await dispatchVideoUploadsWhenDue(env, tick, state);
   } catch (error) {

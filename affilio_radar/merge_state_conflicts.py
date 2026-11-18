@@ -38,6 +38,47 @@ def three_way_merge(base: Any, ours: Any, theirs: Any, path: str = "") -> Any:
             result[key] = three_way_merge(b, o, t, child)
         return result
     if isinstance(ours, list) and isinstance(theirs, list):
+        if path in {"editorial_delivery_history", "editorial_content_ledger"}:
+            def keyed(rows):
+                result = {}
+                order = []
+                for index, row in enumerate(rows):
+                    if not isinstance(row, dict):
+                        key = f"row:{index}:{json.dumps(row, ensure_ascii=False, sort_keys=True)}"
+                    elif path == "editorial_delivery_history":
+                        event_id = str(row.get("delivery_event_id") or "").strip()
+                        content_id = str(row.get("content_id") or "").strip()
+                        sequence = str(row.get("sequence_number") or "").strip()
+                        key = event_id or (f"{content_id}:sequence:{sequence}" if content_id and sequence else f"{content_id}:legacy")
+                    else:
+                        key = str(row.get("content_fingerprint") or "").strip()
+                        if not key:
+                            key = f"row:{index}:{json.dumps(row, ensure_ascii=False, sort_keys=True)}"
+                    if key not in result:
+                        result[key] = row
+                        order.append(key)
+                    else:
+                        result[key] = three_way_merge(None, result[key], row, f"{path}.{key}")
+                return result, order
+
+            base_map, _ = keyed(base if isinstance(base, list) else [])
+            ours_map, ours_order = keyed(ours)
+            theirs_map, theirs_order = keyed(theirs)
+            merged = []
+            ordered_keys = ours_order + [key for key in theirs_order if key not in ours_map]
+            for key in ordered_keys:
+                in_ours = key in ours_map
+                in_theirs = key in theirs_map
+                if in_ours and in_theirs:
+                    merged.append(three_way_merge(
+                        base_map.get(key), ours_map[key], theirs_map[key], f"{path}.{key}"
+                    ))
+                elif in_ours:
+                    merged.append(ours_map[key])
+                elif in_theirs:
+                    merged.append(theirs_map[key])
+            limit = 200 if path == "editorial_delivery_history" else 500
+            return merged[-limit:]
         return ours + [value for value in theirs if value not in ours]
     if path.endswith(("_at", "_timestamp", "_time")) or path in {
         "generated_at", "last_channel_published_at", "last_product_channel_published_at"
