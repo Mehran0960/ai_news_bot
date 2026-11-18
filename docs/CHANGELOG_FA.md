@@ -3057,3 +3057,23 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** پس از مصرف بانک تأییدشده، محتوای تحریریه موقتاً منتشر نمی‌شود تا مطلب تازه تأیید شود؛ این رفتار عمداً از اسپم جلوگیری می‌کند و صف محصول را متوقف نمی‌کند. rollback با revert PR ممکن است، اما سیاست قدیمیِ تکرار ۲۴ساعته را بازمی‌گرداند. هیچ state زنده‌ای پاک یا reset نشده است.
 
 **وضعیت:** تغییر و آزمون قراردادی روی PR #238 ثبت شده؛ ادغام نشده و گیت مستندات پس از افزودن این ورودی در انتظار اجرای مجدد است.
+
+
+## ۲۰۲۶-۱۱-۱۸ — اصلاح تحویل مستقل ویدئوی تحریریه به همهٔ مقصدها
+
+**هدف:** رفع گیرکردن صف تحریریه در هر هفت رسانه و جلوگیری از وابستگی مقصدها به یکدیگر؛ حفظ رسیدها و حذف ریسک ارسال مجدد هنگام اجرای موازی.
+
+**تغییر/اقدام:** دو صف مستقل editorial_channel_queue و editorial_video_queue به projection زمان‌بند اضافه شدند. Cloudflare فقط receiptهای failed/retry یا ارسال‌های sending منقضی‌شدهٔ Telegram، Bale، Rubika و Eitaa را از طریق یک Workflow matrix با job و concurrency جداگانه بازیابی می‌کند؛ وضعیت pending اولیه در اختیار ناشر اصلی می‌ماند و مسیر جبرانی هنگام فعال‌بودن ناشر اصلی dispatch نمی‌شود؛ YouTube، Aparat و Filo نیز سه Workflow ویدئویی مستقل خودشان را دارند. هر worker فقط مقصد خودش را پردازش می‌کند و FIFO صف محصول نیز برای همان مقصد اعمال می‌شود. ناشر پیش از تلاش مجدد، receiptهای sent/manual_review را از تاریخچه بازیابی می‌کند. merge_state_conflicts.py تاریخچه تحریریه را با delivery_event_id و ledger را با content_fingerprint ادغام می‌کند تا receiptهای هم‌زمان در یک رویداد جمع شوند، نه اینکه history تکثیر شود. خطای quota روزانهٔ YouTube با retry زمان‌دار ثبت می‌شود و فقط YouTube را تا پایان pause متوقف می‌کند.
+
+**فایل‌ها/سامانه‌ها:** affilio_radar/affilio_radar.py، affilio_radar/editorial_publisher.py، affilio_radar/merge_state_conflicts.py، سه فایل آزمون Python شامل test_editorial_publisher.py، test_shared_selection_media_routing.py و test_merge_state_conflicts.py، cloudflare/affilio-minute-dispatcher.js، cloudflare/affilio-minute-dispatcher.test.mjs، .github/workflows/offerchin-editorial-channel-upload.yml، .github/workflows/offerchin-editorial-contract.yml، سه Workflow ویدئویی YouTube/Aparat/Filo و docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md.
+
+**آزمون و نتیجه:** آزمون‌های projection مستقل صف تصویری و ویدئویی، due/retry مقصدی، watchdog ارسال نامطمئن، انتخاب مقصد، بازیابی receipt و merge هم‌زمان event/ledger اضافه شده‌اند. اجرای اولیهٔ CI گیت مستندات را به‌علت قالب ناقص changelog رد کرد؛ قالب اصلاح شد. اجرای CI روی آخرین commit پس از تکمیل workerهای تصویری باید نتیجهٔ نهایی را تأیید کند؛ تا آن زمان قبولی نهایی ادعا نمی‌شود.
+
+**شواهد/شناسه:** PR #239؛ شاخه fix/offerchin-editorial-video-destinations-20261118. مسیرهای عمومی فقط پس از receipt همان پلتفرم موفق تلقی می‌شوند؛ workflow success به‌تنهایی اثبات انتشار عمومی نیست.
+
+**ریسک/بازگشت:** چهار job تصویری ممکن است هم‌زمان state بنویسند؛ ادغام سه‌طرفه اکنون receiptهای یک delivery_event_id را در یک ردیف ادغام می‌کند. Filo فقط پس از احراز ورود تلاش می‌کند و manual_review یا انتظار تأیید، انتشار عمومی نیست. هیچ پیام قدیمی حذف و هیچ state زنده reset نشده است. بازگشت با revert همین PR ممکن است؛ در آن صورت بازیابی مستقل صف‌های تحریریه غیرفعال می‌شود.
+
+**وضعیت:** PR #239 باز است و ادغام/استقرار نشده؛ منتظر CI نهایی و بررسی آخرین رسیدهاست.
+
+
+**اصلاح تکمیلی در همان شاخه:** مسیر جبرانی تصویری به receiptهای ناموفق/قابل retry و تلاش‌های sending منقضی‌شده محدود شد؛ ارسال pending اولیه فقط توسط ناشر اصلی انجام می‌شود. زمان‌بند قبل از شروع بازیابی، dispatch/فعال‌بودن ناشر اصلی را کنترل می‌کند. علاوه بر آن، ناشر اصلی، ناشر اضطراری و Workflow جبرانی کانال‌ها قفل سراسری مشترک `offerchin-channel-publisher` دارند؛ چهار job مقصدی همچنان داخل همان اجرای matrix می‌توانند موازی باشند. فاصلهٔ زمانی کانال فقط برای رزرو محتوای تحریریهٔ جدید اعمال می‌شود؛ رویداد فعال باید بتواند مقصدهای باقی‌مانده را مستقل تکمیل کند. تست قرارداد، گروه قفل هر سه مسیر را بررسی می‌کند و انتظار قدیمی نام قفل اصلاح شده است.

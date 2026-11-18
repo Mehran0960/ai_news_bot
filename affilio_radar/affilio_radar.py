@@ -5234,6 +5234,97 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
                 item[key] = value
         compact_published[product_id_value] = item
 
+    # Editorial photo and video deliveries have no product SKU row; project
+    # their destination receipts separately for independent recovery workers.
+    editorial_channel_queue = []
+    raw_editorial_queue = state.get("editorial_delivery_queue") if isinstance(state, dict) else {}
+    raw_editorial_queue = raw_editorial_queue if isinstance(raw_editorial_queue, dict) else {}
+    terminal_editorial_statuses = {"completed", "cancelled", "failed"}
+    pending_channel_statuses = {"pending", "failed", "retry", "sending"}
+    for content_id, entry in raw_editorial_queue.items():
+        if not isinstance(entry, dict):
+            continue
+        editorial_status = str(entry.get("status") or "").strip().lower()
+        if editorial_status in terminal_editorial_statuses:
+            continue
+        platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+        selected_platforms = {}
+        for destination in ("telegram", "bale", "rubika", "eitaa"):
+            target = platforms.get(destination)
+            if not isinstance(target, dict):
+                continue
+            target_status = str(target.get("status") or "pending").strip().lower()
+            if target_status not in pending_channel_statuses:
+                continue
+            selected_platforms[destination] = {
+                "status": target_status,
+                "next_attempt_at": target.get("next_attempt_at"),
+                "attempt_started_at": target.get("attempt_started_at"),
+            }
+        if not selected_platforms:
+            continue
+        try:
+            sequence = int(entry.get("sequence_number") or 0)
+        except (TypeError, ValueError, OverflowError):
+            sequence = 0
+        editorial_channel_queue.append({
+            "content_id": str(content_id),
+            "sequence_number": sequence,
+            "status": editorial_status or "partial",
+            "scheduled_at": entry.get("scheduled_at"),
+            "platforms": selected_platforms,
+        })
+    editorial_channel_queue.sort(
+        key=lambda row: (int(row.get("sequence_number") or 0), str(row.get("content_id") or ""))
+    )
+    editorial_channel_queue = editorial_channel_queue[:200]
+
+    # Editorial video deliveries have no product SKU row; project their own receipts.
+    editorial_video_queue = []
+    raw_editorial_queue = state.get("editorial_delivery_queue") if isinstance(state, dict) else {}
+    raw_editorial_queue = raw_editorial_queue if isinstance(raw_editorial_queue, dict) else {}
+    terminal_editorial_statuses = {"completed", "cancelled", "failed"}
+    pending_video_statuses = {"pending", "pending_credentials", "failed", "retry", "sending"}
+    for content_id, entry in raw_editorial_queue.items():
+        if not isinstance(entry, dict):
+            continue
+        editorial_status = str(entry.get("status") or "").strip().lower()
+        if editorial_status in terminal_editorial_statuses:
+            continue
+        platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+        selected_platforms = {}
+        for destination in ("youtube", "aparat", "filo"):
+            target = platforms.get(destination)
+            if not isinstance(target, dict):
+                continue
+            target_status = str(target.get("status") or "pending").strip().lower()
+            if target_status not in pending_video_statuses and not (
+                destination == "youtube" and target_status == "skipped_limit"
+            ):
+                continue
+            selected_platforms[destination] = {
+                "status": target_status,
+                "next_attempt_at": target.get("next_attempt_at"),
+                "attempt_started_at": target.get("attempt_started_at"),
+            }
+        if not selected_platforms:
+            continue
+        try:
+            sequence = int(entry.get("sequence_number") or 0)
+        except (TypeError, ValueError, OverflowError):
+            sequence = 0
+        editorial_video_queue.append({
+            "content_id": str(content_id),
+            "sequence_number": sequence,
+            "status": editorial_status or "partial",
+            "scheduled_at": entry.get("scheduled_at"),
+            "platforms": selected_platforms,
+        })
+    editorial_video_queue.sort(
+        key=lambda row: (int(row.get("sequence_number") or 0), str(row.get("content_id") or ""))
+    )
+    editorial_video_queue = editorial_video_queue[:200]
+
     def value(key):
         raw = state.get(key) if isinstance(state, dict) else None
         return raw if isinstance(raw, (str, int, float, bool)) or raw is None else None
@@ -5427,6 +5518,8 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         "filo_upload_interval_policy_version": value("filo_upload_interval_policy_version"),
         "filo_login_verified_at": value("filo_login_verified_at"),
         "filo_login_verification_status": value("filo_login_verification_status"),
+        "editorial_channel_queue": editorial_channel_queue,
+        "editorial_video_queue": editorial_video_queue,
         "published": compact_published,
     }
 

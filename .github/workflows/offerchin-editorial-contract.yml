@@ -17,6 +17,8 @@ on:
       - "affilio_radar/test_content_delivery.py"
       - "affilio_radar/test_editorial_content.py"
       - "affilio_radar/test_editorial_publisher.py"
+      - "affilio_radar/merge_state_conflicts.py"
+      - "affilio_radar/test_merge_state_conflicts.py"
       - ".github/workflows/offerchin-editorial-shadow.yml"
       - ".github/workflows/offerchin-editorial-contract.yml"
   push:
@@ -61,6 +63,7 @@ jobs:
             affilio_radar/publication_policy.py \
             affilio_radar/content_delivery.py \
             affilio_radar/publisher.py \
+            affilio_radar/merge_state_conflicts.py \
             affilio_radar/expiration_monitor.py
       - name: Validate the reviewed evergreen content bank
         working-directory: affilio_radar
@@ -163,7 +166,8 @@ jobs:
           python -m unittest -v \
             test_editorial_content.py \
             test_editorial_publisher.py \
-            test_content_delivery.py
+            test_content_delivery.py \
+            test_merge_state_conflicts.py
 
       - name: Verify 48-hour retention with mocked platform deletions
         working-directory: affilio_radar

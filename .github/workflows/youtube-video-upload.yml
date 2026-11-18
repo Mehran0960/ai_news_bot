@@ -70,6 +70,16 @@ jobs:
           cd affilio_radar
           python -m unittest -v test_shared_selection_media_routing.py test_merge_state_conflicts.py
 
+      - name: Process only the YouTube editorial video queue
+        env:
+          OFFERCHIN_EDITORIAL_VIDEO_DESTINATION: "youtube"
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          YOUTUBE_PRIVACY_STATUS: "public"
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/editorial_publisher.py --videos-only --publish
+
       - name: Process only the YouTube video queue
         env:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
