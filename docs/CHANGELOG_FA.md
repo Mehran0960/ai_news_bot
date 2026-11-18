@@ -3057,3 +3057,16 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** پس از مصرف بانک تأییدشده، محتوای تحریریه موقتاً منتشر نمی‌شود تا مطلب تازه تأیید شود؛ این رفتار عمداً از اسپم جلوگیری می‌کند و صف محصول را متوقف نمی‌کند. rollback با revert PR ممکن است، اما سیاست قدیمیِ تکرار ۲۴ساعته را بازمی‌گرداند. هیچ state زنده‌ای پاک یا reset نشده است.
 
 **وضعیت:** تغییر و آزمون قراردادی روی PR #238 ثبت شده؛ ادغام نشده و گیت مستندات پس از افزودن این ورودی در انتظار اجرای مجدد است.
+
+
+## ۲۰۲۶-۱۱-۱۸ — اصلاح تحویل مستقل ویدئوی تحریریه به همهٔ مقصدها
+
+**مسئله:** صف ویدئویی تحریریه در sidecar زمان‌بند Cloudflare منعکس نمی‌شد؛ Worker فقط رکوردهای محصول را می‌دید. در نتیجه ممکن بود Telegram/Bale/Rubika یک مطلب را دریافت کنند، ولی YouTube/Aparat/Filo برای همان مطلب در حالت pending بمانند. افزون بر آن، بررسی FIFO همهٔ ویدئوهای محصول به‌صورت مشترک انجام می‌شد و یک backlog یا pause می‌توانست مقصدهای دیگر را بی‌جهت معطل کند.
+
+**اقدام:** فهرست editorial_video_queue به projection زمان‌بند اضافه شد؛ Worker اکنون وضعیت و due time هر مقصد را جداگانه بررسی می‌کند. سه Workflow فعلی YouTube، Aparat و Filo اکنون پیش از صف محصول، فقط صف ویدئوی تحریریهٔ خودشان را اجرا می‌کنند. متغیر OFFERCHIN_EDITORIAL_VIDEO_DESTINATION محدودهٔ ارسال را تعیین می‌کند و FIFO محصول نیز به همان مقصد محدود شده است. در ناشر، رسیدهای sent/manual_review از تاریخچهٔ قبلی بازیابی می‌شوند تا state ناقص به ارسال تکراری منجر نشود. خطای quota روزانهٔ YouTube به retry زمان‌دار تبدیل شده تا پس از پایان pause دوباره تلاش شود.
+
+**آزمون‌ها:** آزمون projection صف ویدئویی تحریریه، جداسازی due/retry بین مقصدها، watchdog ارسال نامطمئن، انتخاب مقصد مستقل و بازیابی receipt اضافه شده‌اند. نتیجهٔ نهایی CI و وضعیت انتشار Worker پس از اجرای PR ثبت خواهد شد.
+
+**فایل‌های تغییرکرده:** affilio_radar/affilio_radar.py، affilio_radar/editorial_publisher.py، affilio_radar/test_shared_selection_media_routing.py، affilio_radar/test_editorial_publisher.py، cloudflare/affilio-minute-dispatcher.js، cloudflare/affilio-minute-dispatcher.test.mjs، .github/workflows/youtube-video-upload.yml، .github/workflows/aparat-video-upload.yml، .github/workflows/filo-video-upload.yml و docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md.
+
+**مرز اجرا:** هیچ انتشار عمومی دستی برای تست اجرا نشده است؛ هیچ پیام قدیمی حذف و هیچ state زنده reset نشده است. تکمیل Workflow فقط اجرای کد را تأیید می‌کند؛ موفقیت عمومی هر مقصد باید با receipt همان پلتفرم ثبت شود. PR: در انتظار CI.
