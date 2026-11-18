@@ -254,52 +254,14 @@ def fetch_mcp_offer_expiries():
 
 
 def fetch_direct_api_offer_expiries():
-    """Read the first-party DigiKala live-deals REST endpoint using redirect-safe HTTP."""
-    results = {}
-    session = requests.Session()
-    headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 OfferChin/1.0",
-        "Accept": "application/json",
-        "Accept-Language": "fa-IR,fa;q=0.9,en;q=0.7",
-        "Referer": "https://www.digikala.com/",
-    }
-    for page in range(1, DEAL_LIST_PAGES + 1):
-        try:
-            response = session.get(
-                FEED_URL, params={"page": page, "q": ""}, headers=headers,
-                timeout=HTTP_TIMEOUT, allow_redirects=True,
-            )
-            response.raise_for_status()
-            if len(response.content) > 8_000_000:
-                raise RuntimeError("Digikala feed response exceeded 8 MB")
-            payload = response.json()
-            page_observed_at = datetime.now(timezone.utc)
-        except Exception as exc:
-            print(f"EXPIRY_FEED_FAILED page={page} error={type(exc).__name__} detail={str(exc)[:140]!r}")
-            break
-        page_found = 0
-        candidate_nodes = {}
-        for node in walk_dicts(payload):
-            pid = _product_id(node)
-            title = node.get("title_fa") or node.get("product_title") or node.get("title")
-            if not pid or not title:
-                continue
-            raw_url = node.get("url") or node.get("product_url") or node.get("web_url")
-            if isinstance(raw_url, dict):
-                raw_url = raw_url.get("uri") or raw_url.get("url") or ""
-            url_match = re.search(r"/product/(dkp-\d+)", str(raw_url or ""), re.I)
-            if not url_match or url_match.group(1).lower() != pid.lower():
-                continue
-            old = candidate_nodes.get(pid)
-            if old is None or len(node) > len(old):
-                candidate_nodes[pid] = dict(node)
-        for pid, card in candidate_nodes.items():
-            expiry = extract_expiry(card, now=page_observed_at)
-            if expiry:
-                results[pid] = expiry
-                page_found += 1
-        print(f"EXPIRY_FEED_PAGE page={page} products_with_deadlines={page_found}")
-    return results
+    """Return no data for DigiKala's retired legacy live-deals REST route.
+
+    The former /v1/incredible-offers/products/ endpoint currently returns 404.
+    Do not repeatedly spend request time on a known-dead route; exact, current
+    campaign countdowns are supplemented from product-matched MCP offer cards.
+    """
+    print("EXPIRY_LEGACY_FEED_SKIPPED reason=retired_endpoint use=mcp_offer_cards")
+    return {}
 
 
 def fetch_offer_deadlines(required_product_ids=None):
