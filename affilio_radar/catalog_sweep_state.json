@@ -6128,15 +6128,15 @@
   "last_cycle_unqueryable_category_ids": [],
   "last_error": "",
   "last_error_at": "2026-11-15T05:00:24.184952+00:00",
-  "last_successful_category_id": "10116",
-  "last_successful_category_name": "برچسب پوششی گوشی موبایل",
-  "last_successful_page": 49,
-  "last_successful_page_at": "2026-11-18T16:51:19.410902+00:00",
+  "last_successful_category_id": "11539",
+  "last_successful_category_name": "کابل اتصال باتری به باتری خودرو",
+  "last_successful_page": 18,
+  "last_successful_page_at": "2026-11-18T16:52:35.688487+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 15,
+  "page": 18,
   "parallel_api_route_policy_version": "digikala_discovery_api_v1_trusted_category_taxonomy_v4",
-  "parallel_category_mismatch_rows_rejected": 2968434,
+  "parallel_category_mismatch_rows_rejected": 2968590,
   "parallel_cycle_completed_category_ids": [
     "11",
     "13",
@@ -6148,6 +6148,7 @@
     "48",
     "64",
     "70",
+    "76",
     "77",
     "79",
     "81",
@@ -6178,6 +6179,7 @@
     "5790",
     "5804",
     "5848",
+    "5857",
     "5859",
     "5865",
     "5867",
@@ -6493,8 +6495,10 @@
     "10064",
     "10067",
     "10068",
+    "10072",
     "10073",
     "10082",
+    "10116",
     "10122",
     "10123",
     "10124",
@@ -6641,6 +6645,7 @@
     "11355",
     "11356",
     "11357",
+    "11358",
     "11359",
     "11360",
     "11373",
@@ -6683,8 +6688,8 @@
     "11792",
     "11793"
   ],
-  "parallel_cycle_pages_success": 11971,
-  "parallel_cycle_product_rows_success": 234821,
+  "parallel_cycle_pages_success": 12007,
+  "parallel_cycle_product_rows_success": 235505,
   "parallel_cycle_started_at": "2026-11-18T16:23:41.446016+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -7251,29 +7256,29 @@
     "11792",
     "11793"
   ],
-  "parallel_last_batch_at": "2026-11-18T16:51:19.735741+00:00",
-  "parallel_last_batch_candidate_file_bytes": 7381868,
-  "parallel_last_batch_candidate_write_seconds": 0.126,
+  "parallel_last_batch_at": "2026-11-18T16:52:36.053367+00:00",
+  "parallel_last_batch_candidate_file_bytes": 7381604,
+  "parallel_last_batch_candidate_write_seconds": 0.157,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 1.314,
+  "parallel_last_batch_fetch_seconds": 1.066,
   "parallel_last_batch_http_5xx_retries": 0,
-  "parallel_last_batch_nonempty_product_pages": 19,
-  "parallel_last_batch_pages": 19,
-  "parallel_last_batch_pages_per_second": 14.46,
-  "parallel_last_batch_processing_seconds": 0.217,
-  "parallel_last_batch_product_rows": 330,
+  "parallel_last_batch_nonempty_product_pages": 10,
+  "parallel_last_batch_pages": 10,
+  "parallel_last_batch_pages_per_second": 9.38,
+  "parallel_last_batch_processing_seconds": 0.219,
+  "parallel_last_batch_product_rows": 200,
   "parallel_last_batch_rate_limited": 0,
-  "parallel_last_batch_request_count": 19,
-  "parallel_last_batch_request_max_seconds": 0.892,
-  "parallel_last_batch_request_p50_seconds": 0.438,
-  "parallel_last_batch_request_p95_seconds": 0.892,
+  "parallel_last_batch_request_count": 10,
+  "parallel_last_batch_request_max_seconds": 1.058,
+  "parallel_last_batch_request_p50_seconds": 0.863,
+  "parallel_last_batch_request_p95_seconds": 1.058,
   "parallel_last_batch_retries": 0,
-  "parallel_last_batch_rows_per_second": 199.08,
-  "parallel_last_batch_successes": 19,
+  "parallel_last_batch_rows_per_second": 138.72,
+  "parallel_last_batch_successes": 10,
   "parallel_last_batch_terminals": 0,
   "parallel_last_batch_timeout_retries": 0,
-  "parallel_last_batch_worker_limit_before": 10,
-  "parallel_last_batch_worker_limit_next": 12,
+  "parallel_last_batch_worker_limit_before": 16,
+  "parallel_last_batch_worker_limit_next": 16,
   "parallel_leaf_category_count": 559,
   "parallel_pending_pages": [
     {
@@ -7281,124 +7286,89 @@
       "category_id": "1272",
       "category_name": "پاوربانک (شارژر همراه)",
       "category_query": "گوشی",
-      "page": 15
+      "page": 18
     },
     {
       "attempts": 0,
       "category_id": "6149",
       "category_name": "مته و سری",
       "category_query": "ابزار",
-      "page": 15
+      "page": 18
     },
     {
       "attempts": 0,
       "category_id": "6584",
       "category_name": "لوازم طراحی ناخن",
       "category_query": "زیبایی",
-      "page": 15
+      "page": 18
     },
     {
       "attempts": 0,
       "category_id": "8909",
       "category_name": "تافی و آبنبات",
       "category_query": "مواد غذایی",
-      "page": 15
+      "page": 18
     },
     {
       "attempts": 0,
       "category_id": "10926",
       "category_name": "شانه مو",
       "category_query": "آرایشی",
-      "page": 15
+      "page": 18
     },
     {
       "attempts": 0,
       "category_id": "6654",
       "category_name": "سرم پوست",
       "category_query": "مواد غذایی",
-      "page": 16
+      "page": 19
     },
     {
       "attempts": 0,
       "category_id": "6920",
       "category_name": "شوینده ظروف",
       "category_query": "مواد غذایی",
-      "page": 16
+      "page": 19
     },
     {
       "attempts": 0,
       "category_id": "9358",
       "category_name": "تاپ و نیم تنه ورزشی زنانه",
       "category_query": "ورزش",
-      "page": 16
+      "page": 19
     },
     {
       "attempts": 0,
       "category_id": "9459",
       "category_name": "شلوار ورزشی مردانه",
       "category_query": "ورزش",
-      "page": 16
+      "page": 19
     },
     {
       "attempts": 0,
       "category_id": "11539",
       "category_name": "کابل اتصال باتری به باتری خودرو",
       "category_query": "خودرو",
-      "page": 16
-    },
-    {
-      "attempts": 0,
-      "category_id": "5857",
-      "category_name": "سایر لوازم خودرو",
-      "category_query": "ابزار",
-      "page": 48
-    },
-    {
-      "attempts": 0,
-      "category_id": "10072",
-      "category_name": "محافظ لنز گوشی موبایل",
-      "category_query": "گوشی",
-      "page": 48
-    },
-    {
-      "attempts": 0,
-      "category_id": "11358",
-      "category_name": "قاب، زه و ضربه‌گیر خودرو",
-      "category_query": "خودرو",
-      "page": 48
-    },
-    {
-      "attempts": 0,
-      "category_id": "76",
-      "category_name": "محافظ صفحه نمایش گوشی",
-      "category_query": "گوشی",
-      "page": 50
-    },
-    {
-      "attempts": 0,
-      "category_id": "10116",
-      "category_name": "برچسب پوششی گوشی موبایل",
-      "category_query": "گوشی",
-      "page": 50
+      "page": 19
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "parallel_worker_limit": 12,
+  "parallel_worker_limit": 16,
   "parallel_worker_ramp_policy_version": "explicit_12_14_16_v1",
   "parallel_workers_used": 10,
-  "pending_page_count": 15,
+  "pending_page_count": 10,
   "schema_version": 1,
   "stats": {
     "api_failures_total": 89979,
-    "catalog_candidate_cards_found_total": 63246692,
+    "catalog_candidate_cards_found_total": 63247220,
     "completed_cycles": 130,
     "cycles_with_gaps_total": 354,
-    "discounted_candidates_found_total": 13381973,
+    "discounted_candidates_found_total": 13382065,
     "empty_product_pages_total": 1776069,
-    "nonempty_product_pages_total": 3353541,
-    "pages_scanned_total": 3390091,
-    "product_rows_scanned_total": 66215166,
+    "nonempty_product_pages_total": 3353577,
+    "pages_scanned_total": 3390127,
+    "product_rows_scanned_total": 66215850,
     "unqueryable_categories_total": 1740482
   },
   "unacknowledged_candidate_count": 3000
