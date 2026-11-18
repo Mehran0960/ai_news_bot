@@ -19,8 +19,10 @@ def _newer_iso(left: Any, right: Any) -> Any:
 
 def three_way_merge(base: Any, ours: Any, theirs: Any, path: str = "") -> Any:
     if ours == theirs: return ours
-    if ours == base: return theirs
-    if theirs == base: return ours
+    # Always inspect the root object so active editorial queue keys can be
+    # protected from a stale concurrent writer that omitted the whole queue.
+    if path != "" and ours == base: return theirs
+    if path != "" and theirs == base: return ours
     if isinstance(ours, dict) and isinstance(theirs, dict):
         base_map = base if isinstance(base, dict) else {}
         result = {}
@@ -36,6 +38,65 @@ def three_way_merge(base: Any, ours: Any, theirs: Any, path: str = "") -> Any:
                 if not bp or o != b: result[key] = o
                 continue
             result[key] = three_way_merge(b, o, t, child)
+
+        if path == "":
+            # A worker can read an older state before another worker reserves or
+            # updates an editorial event. If that stale worker later writes a state
+            # without the queue key, deletion must not silently strand destinations
+            # whose confirmed receipts remain in history.
+            attempts = result.get("editorial_delivery_attempts")
+            attempts = attempts if isinstance(attempts, list) else []
+            terminal_keys = {
+                (
+                    str(row.get("content_id") or "").strip(),
+                    str(row.get("sequence_number") or "").strip(),
+                )
+                for row in attempts
+                if isinstance(row, dict)
+                and str(row.get("status") or "").strip().lower()
+                in {"completed", "failed", "cancelled"}
+            }
+
+            merged_queue = result.get("editorial_delivery_queue")
+            if not isinstance(merged_queue, dict):
+                merged_queue = {}
+                result["editorial_delivery_queue"] = merged_queue
+            candidates = []
+            for snapshot in (base, ours, theirs):
+                queue = snapshot.get("editorial_delivery_queue") if isinstance(snapshot, dict) else None
+                if isinstance(queue, dict):
+                    candidates.append(queue)
+            for content_id in set().union(*(set(queue) for queue in candidates)):
+                if content_id in merged_queue:
+                    continue
+                rows = [
+                    queue[content_id] for queue in candidates
+                    if isinstance(queue.get(content_id), dict)
+                ]
+                active = [
+                    row for row in rows
+                    if str(row.get("status") or "").strip().lower()
+                    not in {"completed", "failed", "cancelled"}
+                ]
+                if not active:
+                    continue
+                identity = active[-1]
+                event_content_id = str(identity.get("content_id") or content_id).strip()
+                sequence = str(identity.get("sequence_number") or "").strip()
+                if (event_content_id, sequence) in terminal_keys:
+                    continue
+                # Preserve the latest active snapshot. The queue remains resumable;
+                # destination receipt history is merged independently below.
+                chosen = active[0]
+                for candidate in active[1:]:
+                    chosen_at = _newer_iso(
+                        chosen.get("updated_at") or chosen.get("last_delivery_update_at"),
+                        candidate.get("updated_at") or candidate.get("last_delivery_update_at"),
+                    )
+                    candidate_at = candidate.get("updated_at") or candidate.get("last_delivery_update_at")
+                    if chosen_at == candidate_at and candidate_at:
+                        chosen = candidate
+                merged_queue[content_id] = chosen
         return result
     if isinstance(ours, list) and isinstance(theirs, list):
         if path in {"editorial_delivery_history", "editorial_content_ledger"}:
