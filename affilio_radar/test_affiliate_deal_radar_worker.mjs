@@ -160,7 +160,7 @@ test("Affilio postback stores pending and approved events idempotently and attri
     aff_sub: "oc1_telegram_dkp-123456",
     payout: null,
     amount: 2_000_000,
-    items: [{ quantity: 1, unit_price: 2_000_000 }],
+    items: [{ quantity: 1, price: 2_000_000 }],
   };
   const send = (payload) => worker.fetch(
     new Request("https://worker.example/affilio/postback", {
@@ -180,6 +180,11 @@ test("Affilio postback stores pending and approved events idempotently and attri
   assert.equal(duplicate.status, 200);
   assert.equal((await duplicate.json()).duplicate_or_older_event, true);
   assert.equal(DB.rows.size, 1);
+  assert.equal(
+    JSON.parse(DB.rows.get("conv-2026-001:pending").items_json)[0].unit_price,
+    2_000_000,
+    "Affilio's documented items[].price must be normalized and stored as a unit price"
+  );
 
   const approved = {
     ...pending,
@@ -196,6 +201,20 @@ test("Affilio postback stores pending and approved events idempotently and attri
   assert.equal(lateRetry.status, 200);
   assert.equal((await lateRetry.json()).duplicate_or_older_event, true);
 
+  const snappShopSale = {
+    ...pending,
+    conversion_id: "conv-2026-002",
+    status: "approved",
+    timestamp: "2026-11-13T12:00:00.000Z",
+    aff_sub: "oc1_bale_snp-123456",
+    payout: 12_000,
+    amount: 350_000,
+    items: [{ quantity: 1, price: 350_000 }],
+  };
+  const snappShopResult = await send(snappShopSale);
+  assert.equal(snappShopResult.status, 200);
+  assert.equal((await snappShopResult.json()).stored, true);
+
   const reportResponse = await worker.fetch(
     new Request("https://worker.example/affilio/report?days=30", {
       headers: { authorization: "Bearer report-secret" },
@@ -205,14 +224,17 @@ test("Affilio postback stores pending and approved events idempotently and attri
   assert.equal(reportResponse.status, 200);
   const report = await reportResponse.json();
   assert.equal(report.ok, true);
-  assert.equal(report.totals.conversions, 1);
+  assert.equal(report.totals.conversions, 2);
   assert.equal(report.totals.sales_pending, 0);
-  assert.equal(report.totals.sales_approved, 1);
-  assert.equal(report.totals.sales_amount_approved_toman, 2_000_000);
-  assert.equal(report.totals.commission_approved_toman, 80_000);
+  assert.equal(report.totals.sales_approved, 2);
+  assert.equal(report.totals.sales_amount_approved_toman, 2_350_000);
+  assert.equal(report.totals.commission_approved_toman, 92_000);
   assert.equal(report.by_source.telegram.sales_approved, 1);
+  assert.equal(report.by_source.bale.sales_approved, 1);
   assert.equal(report.by_product["dkp-123456"].commission_approved_toman, 80_000);
+  assert.equal(report.by_product["snp-123456"].commission_approved_toman, 12_000);
   assert.equal(report.by_aff_sub["oc1_telegram_dkp-123456"].sales_approved, 1);
+  assert.equal(report.by_aff_sub["oc1_bale_snp-123456"].sales_approved, 1);
 });
 
 test("Affilio postback rejects invalid credentials, malformed payloads and unsupported statuses", async () => {
