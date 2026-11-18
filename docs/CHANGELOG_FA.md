@@ -3165,3 +3165,20 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** اگر endpoint جدید یا helper مشترک در محیط عملیاتی پاسخ معتبر ندهد، نتیجه باید inconclusive بماند و حذف پست انجام نشود؛ HTML fallback محدود باقی می‌ماند. rollback با revert کردن commitهای این PR ممکن است؛ state و receiptهای انتشار نباید reset شوند.
 
 **وضعیت:** اصلاح کد و مستندات در شاخه انجام شده؛ CI نهایی، بررسی زندهٔ read-only، merge و استقرار در انتظار هستند.
+
+
+## ۲۰۲۶-۱۱-۱۸ — اصلاح انتساب کلیک CTA و تکمیل هفت منبع رسانه‌ای
+
+**هدف:** جلوگیری از معرفی نادرستِ قابلیت ردیاب یا تخصیص A/B به‌عنوان انتساب واقعی کلیک دکمهٔ خرید و آماده‌کردن schema ردیاب برای همهٔ رسانه‌ها، بدون به‌خطرانداختن مسیر مستقیم خرید.
+
+**تغییر/اقدام:** `build_performance_report` اکنون مسیر جاری CTA را `direct_affilio_link`، ردیابی دکمهٔ خرید و انتساب منبع زنده را غیرفعال اعلام می‌کند و وضعیت A/B را `blocked_live_cta_bypasses_click_tracker` می‌گذارد؛ تخصیص variant از انتساب واقعی جدا شده است. دکمهٔ خرید همچنان Aflo مستقیم را باز می‌کند. Worker و سازندهٔ لینک ردیابی، sourceهای Telegram، Bale، Rubika، Eitaa، YouTube، Aparat و Filo را می‌شناسند و cache آمار با تغییر schema به v5 ارتقا یافت. تست همهٔ هفت منبع و تست گزارش غیرگمراه‌کننده اضافه/به‌روزرسانی شد. راهنمای رشد افیلیت بر اساس الگوهای مستند HotUKDeals، Wirecutter و impact.com اضافه شد و راهنمای دسترسی افیلیو محدودیت واقعی CTA مستقیم را توضیح می‌دهد.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `affilio_radar/affiliate-deal-radar-worker.js`، `affilio_radar/test_affilio.py`، `affilio_radar/test_affiliate_deal_radar_worker.mjs`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/OFFERCHIN_AFFILIATE_GROWTH_PLAYBOOK_FA.md`.
+
+**آزمون و نتیجه:** تست‌های regression مرتبط پس از این تغییرات باید در CI جدید اجرا شوند. تست‌های قبلی PR #244 شامل ۵۹۷ تست Python موفق، تست قرارداد تحریریه، گیت مستندات و اعتبارسنجی ویدئو بودند؛ آن نتایج پیش از این commit جدید هستند و جایگزین CI جدید نیستند.
+
+**شواهد/شناسه:** PR #244؛ شاخهٔ `codex/offerchin-optimization-2026-11-18`; تغییر گزارش `4981c0fa94af1ba1e7394d0154dba7ed4d17bc37`; Worker `df5d2250066c9c0ae754e6907f2ba6631a68310c` و `51fb04bfca3ab5df18149982c385cf9a17ac324d`; تست Worker `4761af0aa803666f1fa9663f89b46bba2e243bf8`; تست Python `531e29c265fa011d70878c48deb44b33b1d8c135`; playbook `0fc5fef2d7fcef5ea725630065f423f492affc0d`; راهنمای گزارش `c8495f6cf2b064f69932b54d418babe9c2de099d`.
+
+**ریسک/بازگشت:** مسیر واسطه‌ای کلیک برای CTA فعال نشده و نباید فعال شود مگر آنکه سلامت شبکه‌ای، تطبیق سفارش و مجازبودن پارامترها اثبات شود. بازگشت کد با revert تغییرات report/Worker ممکن است؛ مستقیم‌بودن لینک Aflo باید حفظ شود. هیچ دادهٔ state یا receipt انتشار reset نشده است.
+
+**وضعیت:** کد، تست‌ها و مستندات در شاخهٔ PR ثبت شده‌اند؛ CI جدید این commit و بررسی نهایی هنوز در انتظار است. دریافت SubID/گزارش رسمی افیلیو و سنجش فروش به همکاری بیرونی نیاز دارد.
