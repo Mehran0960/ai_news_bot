@@ -1,10 +1,6 @@
 {
   "aparat_next_upload_at": null,
-  "youtube_uploads_paused_until": null,
-  "product_publication_cadence_cycle_id": "2026-11-18T20:04:29.950230+00:00",
-  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
-  "youtube_upload_pause_reason": null,
-  "product_publication_interval_seconds": 3420.0,
+  "editorial_channel_queue": [],
   "editorial_video_queue": [
     {
       "content_id": "editorial:measure-room-size",
@@ -25,17 +21,23 @@
       "status": "partial"
     }
   ],
-  "youtube_next_upload_at": null,
-  "filo_upload_interval_policy_version": 3,
-  "emergency_continuity_expires_at": null,
-  "pending_product_queue_count": 6,
-  "last_product_channel_published_at": "2026-11-18T20:51:01.029018+00:00",
-  "filo_next_upload_at": null,
-  "editorial_channel_queue": [],
   "emergency_continuity_active": false,
-  "schema_version": 2,
+  "emergency_continuity_baseline_completed_at": null,
+  "emergency_continuity_expires_at": null,
+  "emergency_continuity_snapshot_sha256": null,
+  "filo_login_verification_status": "verified",
   "filo_login_verified_at": "2026-11-18T20:58:44.930719+00:00",
-  "generated_at": "2026-11-18T21:14:49.607603+00:00",
+  "filo_next_upload_at": null,
+  "filo_upload_interval_policy_version": 3,
+  "generated_at": "2026-11-18T21:15:46.781182+00:00",
+  "last_channel_published_at": "2026-11-18T20:51:01.029018+00:00",
+  "last_product_channel_published_at": "2026-11-18T20:51:01.029018+00:00",
+  "next_channel_content_due_at": "2026-11-18T21:25:01.029018+00:00",
+  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
+  "pending_product_queue_count": 6,
+  "product_publication_cadence_cycle_id": "2026-11-18T20:04:29.950230+00:00",
+  "product_publication_interval_seconds": 3420.0,
+  "product_publication_plan_cycle_id": "2026-11-18T20:04:29.950230+00:00",
   "published": {
     "dkp-10002173": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -3780,11 +3782,8 @@
       "youtube_upload_status": "uploaded"
     }
   },
-  "next_channel_content_due_at": "2026-11-18T21:25:01.029018+00:00",
-  "product_publication_plan_cycle_id": "2026-11-18T20:04:29.950230+00:00",
-  "emergency_continuity_baseline_completed_at": null,
-  "filo_login_verification_status": "verified",
-  "last_channel_published_at": "2026-11-18T20:51:01.029018+00:00",
-  "emergency_continuity_snapshot_sha256": null,
-  "editorial_delivery_queue": {}
+  "schema_version": 2,
+  "youtube_next_upload_at": null,
+  "youtube_upload_pause_reason": null,
+  "youtube_uploads_paused_until": null
 }
