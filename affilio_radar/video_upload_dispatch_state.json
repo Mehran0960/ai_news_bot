@@ -29,7 +29,7 @@
   "filo_login_verified_at": "2026-11-18T16:23:22.974376+00:00",
   "filo_next_upload_at": null,
   "filo_upload_interval_policy_version": 3,
-  "generated_at": "2026-11-18T18:17:40.086169+00:00",
+  "generated_at": "2026-11-18T18:18:41.066480+00:00",
   "last_channel_published_at": "2026-11-18T16:16:47.312258+00:00",
   "last_product_channel_published_at": "2026-11-18T16:16:47.312258+00:00",
   "next_channel_content_due_at": null,
@@ -1635,25 +1635,6 @@
       "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
       "youtube_upload_status": "skipped_unavailable"
     },
-    "dkp-21701406": {
-      "aparat_upload_status": "skipped_unverified_deadline",
-      "bale_message_id": 1692,
-      "delivery_status": {
-        "bale": "sent",
-        "telegram": "sent"
-      },
-      "distribution_queue_id": "dkp-21701406:2026-11-06T19:19:56.177758+00:00",
-      "expiry_deadline_verified_directly": false,
-      "expiry_deadline_verified_from_site_card": false,
-      "expiry_estimated": false,
-      "expiry_source": "unavailable",
-      "filo_upload_status": "submitted_pending_approval",
-      "telegram_message_id": 1297,
-      "ts": 1793992797.234535,
-      "video_dispatch_eligible": true,
-      "video_generation_status": "generated",
-      "youtube_upload_status": "uploaded"
-    },
     "dkp-21758030": {
       "aparat_upload_status": "skipped_unverified_deadline",
       "bale_message_id": 1790,
@@ -2676,31 +2657,6 @@
       "video_generation_status": "generated",
       "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
       "youtube_upload_status": "retry"
-    },
-    "dkp-3319356": {
-      "aparat_upload_status": "pending",
-      "bale_message_id": 2038,
-      "content_id": "dkp-3319356",
-      "content_type": "product",
-      "delivery_status": {
-        "bale": "sent",
-        "eitaa": "not_connected",
-        "rubika": "sent",
-        "telegram": "sent"
-      },
-      "distribution_queue_id": "dkp-3319356:2026-11-16T09:59:19.246338+00:00",
-      "expiry_deadline_verified_directly": false,
-      "expiry_deadline_verified_from_site_card": false,
-      "expiry_estimated": false,
-      "expiry_source": "unavailable",
-      "filo_upload_status": "submitted_pending_approval",
-      "sequence_number": 1285,
-      "telegram_message_id": 1534,
-      "ts": 1794825397.731433,
-      "video_dispatch_eligible": true,
-      "video_generation_status": "generated",
-      "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
-      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-3396705": {
       "aparat_upload_status": "skipped_unverified_deadline",
