@@ -5278,7 +5278,7 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
     editorial_video_queue.sort(
         key=lambda row: (int(row.get("sequence_number") or 0), str(row.get("content_id") or ""))
     )
-    editorial_video_queue = editorial_video_queue[-200:]
+    editorial_video_queue = editorial_video_queue[:200]
 
     def value(key):
         raw = state.get(key) if isinstance(state, dict) else None
