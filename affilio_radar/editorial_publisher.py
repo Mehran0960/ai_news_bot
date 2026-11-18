@@ -6,17 +6,20 @@ product pipeline. Live network actions require the explicit --publish flag.
 from __future__ import annotations
 
 import argparse
+import copy
 import html
 import json
 import os
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 import requests
 
 import affilio_radar as radar
+from merge_state_conflicts import three_way_merge
 from content_delivery import (
     allocate_publication_sequence,
     channel_publication_wait_seconds,
@@ -508,8 +511,8 @@ def queue_editorial_if_due(
                 and _editorial_photo_delivery_started(queued_editorial)
                 and _has_pending_editorial_destinations(queued_editorial)
             ):
-                # The photo slot is already consumed. Remaining destinations are
-                # independent and must not be cancelled by a later product deadline.
+                # The photo slot has already been consumed. Resume only destinations
+                # still pending; do not cancel because the linked product slot passed.
                 valid_active.append(queued_editorial)
                 continue
             product_payload = (
@@ -1043,21 +1046,25 @@ def _record_success(state: dict, entry: dict, destination: str, receipt: dict, n
         state["last_channel_published_at"] = now.isoformat()
         state["last_published_at"] = now.isoformat()
     state["last_editorial_confirmed_at"] = now.isoformat()
-    payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
+    payload = dict(entry.get("payload")) if isinstance(entry.get("payload"), dict) else {}
+    # Use the reserved delivery identity, not a worker-local timestamp, so all
+    # parallel destination receipts are merged into one editorial event.
+    content_id = str(entry.get("content_id") or payload.get("content_id") or "").strip()
+    if content_id:
+        payload["content_id"] = content_id
+    sequence_number = entry.get("sequence_number")
+    if sequence_number not in (None, ""):
+        payload["sequence_number"] = sequence_number
     try:
+        # Record only this worker's receipt. Sibling destinations are merged
+        # from their own workers by destination key; copying the entire local
+        # platform map here would let pending siblings overwrite sent receipts.
         record_editorial_delivery(
             state, payload, published_at=now,
-            destinations=entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {},
+            destinations={destination: dict(target)},
         )
     except ValueError:
         pass
-    history = state.get("editorial_delivery_history")
-    if isinstance(history, list):
-        for row in reversed(history):
-            if isinstance(row, dict) and row.get("content_id") == entry.get("content_id"):
-                row["destinations"] = entry.get("platforms", {})
-                row["sequence_number"] = entry.get("sequence_number")
-                break
     if destination in CHANNEL_DESTINATIONS:
         reflow_product_queue_after_delivery(state, now=now)
 
@@ -1102,7 +1109,8 @@ def _record_failure(entry: dict, destination: str, exc: Exception, now: datetime
 
 
 def _handle_channel_destination(
-    state: dict, entry: dict, destination: str, image_bytes: bytes, message: str, now: datetime
+    state: dict, entry: dict, destination: str, image_bytes: bytes, message: str, now: datetime,
+    *, persist: bool = True,
 ) -> None:
     target = _target(entry, destination)
     ready, unavailable_reason = _destination_ready(destination, state, now)
@@ -1114,7 +1122,8 @@ def _handle_channel_destination(
             target["status"] = _terminal_skip_reason(destination, unavailable_reason)
             target["last_error"] = unavailable_reason
             target["updated_at"] = now.isoformat()
-            _save(state)
+            if persist:
+                _save(state)
         return
     if target.get("status") in TERMINAL:
         return
@@ -1122,7 +1131,8 @@ def _handle_channel_destination(
         target["status"] = "manual_review"
         target["last_error"] = "interrupted_during_send_outcome_unknown"
         target["updated_at"] = now.isoformat()
-        _save(state)
+        if persist:
+            _save(state)
         return
     retry_at = _utc(target.get("next_attempt_at"))
     if target.get("status") == "failed" and retry_at and retry_at > now:
@@ -1132,7 +1142,8 @@ def _handle_channel_destination(
     target["attempt_started_at"] = now.isoformat()
     target["attempts"] = int(target.get("attempts") or 0) + 1
     entry["status"] = "publishing"
-    _save(state)
+    if persist:
+        _save(state)
     try:
         if destination in {"telegram", "bale"}:
             editorial_payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
@@ -1149,7 +1160,8 @@ def _handle_channel_destination(
             target["status"] = "manual_review"
             target["last_error"] = "api_accepted_without_public_message_id_unverified"
             target["updated_at"] = _now().isoformat()
-            _save(state)
+            if persist:
+                _save(state)
             print(
                 f"EDITORIAL_DESTINATION_UNVERIFIED content_id={entry['content_id']} "
                 f"platform={destination} reason=api_accepted_without_public_message_id"
@@ -1158,15 +1170,108 @@ def _handle_channel_destination(
         if not confirmed:
             raise RuntimeError("destination_receipt_missing")
         _record_success(state, entry, destination, receipt, _now())
-        _save(state)
+        if persist:
+            _save(state)
         print(f"EDITORIAL_DESTINATION_SENT content_id={entry['content_id']} platform={destination}")
     except Exception as exc:
         _record_failure(entry, destination, exc, _now())
-        _save(state)
+        if persist:
+            _save(state)
         print(
             f"EDITORIAL_DESTINATION_FAILED content_id={entry['content_id']} "
             f"platform={destination} error={type(exc).__name__} detail={_safe_error(exc)}"
         )
+
+
+def _deliver_channel_destination_isolated(
+    base_state: dict,
+    content_id: str,
+    destination: str,
+    image_bytes: bytes,
+    message: str,
+    now: datetime,
+) -> dict:
+    """Send one editorial photo destination against a private, non-persisting state copy."""
+    local_state = copy.deepcopy(base_state)
+    queue = local_state.get("editorial_delivery_queue")
+    if not isinstance(queue, dict) or not isinstance(queue.get(content_id), dict):
+        raise KeyError(f"editorial_delivery_queue_entry_missing:{content_id}")
+    local_entry = queue[content_id]
+    _handle_channel_destination(
+        local_state,
+        local_entry,
+        destination,
+        image_bytes,
+        message,
+        now,
+        persist=False,
+    )
+    return local_state
+
+
+def _deliver_channels_concurrently(
+    state: dict,
+    entry: dict,
+    image_bytes: bytes,
+    destinations: tuple[str, ...],
+    now: datetime,
+) -> dict:
+    """Fan out editorial photo delivery independently and merge destination receipts safely."""
+    selected = tuple(dict.fromkeys(str(name).strip().lower() for name in destinations if str(name).strip()))
+    if not selected:
+        return entry
+
+    content_id = str(entry.get("content_id") or "").strip()
+    if not content_id:
+        raise ValueError("editorial_content_id_missing")
+
+    base_state = copy.deepcopy(state)
+    merged_state = copy.deepcopy(state)
+    payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
+
+    with ThreadPoolExecutor(max_workers=len(selected)) as executor:
+        futures = {
+            executor.submit(
+                _deliver_channel_destination_isolated,
+                base_state,
+                content_id,
+                destination,
+                image_bytes,
+                _format_message(
+                    payload,
+                    html_mode=destination in {"telegram", "bale"},
+                    platform=destination,
+                ),
+                now,
+            ): destination
+            for destination in selected
+        }
+        for future in as_completed(futures):
+            destination = futures[future]
+            try:
+                local_state = future.result()
+            except Exception as exc:
+                # An adapter exception is local to this destination; preserve its
+                # retry/manual-review outcome without discarding sibling receipts.
+                local_state = copy.deepcopy(base_state)
+                local_queue = local_state.get("editorial_delivery_queue")
+                local_entry = local_queue.get(content_id) if isinstance(local_queue, dict) else None
+                if not isinstance(local_entry, dict):
+                    raise
+                _record_failure(local_entry, destination, exc, _now())
+                print(
+                    f"EDITORIAL_DESTINATION_FAILED content_id={content_id} "
+                    f"platform={destination} error={type(exc).__name__} detail={_safe_error(exc)}"
+                )
+            merged_state = three_way_merge(base_state, merged_state, local_state)
+
+    state.clear()
+    state.update(merged_state)
+    queue = state.get("editorial_delivery_queue")
+    updated_entry = queue.get(content_id) if isinstance(queue, dict) else None
+    if not isinstance(updated_entry, dict):
+        raise KeyError(f"editorial_delivery_queue_entry_missing_after_merge:{content_id}")
+    return updated_entry
 
 
 def _video_description(item: dict) -> str:
@@ -1582,13 +1687,13 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         except Exception as exc:
             print(f"EDITORIAL_POSTER_RENDER_FAILED error={type(exc).__name__}")
             return 1
-        for destination in channel_destinations:
-            message = _format_message(
-                payload,
-                html_mode=destination in {"telegram", "bale"},
-                platform=destination,
-            )
-            _handle_channel_destination(state, entry, destination, image_bytes, message, _now())
+        entry = _deliver_channels_concurrently(
+            state,
+            entry,
+            image_bytes,
+            channel_destinations,
+            _now(),
+        )
     else:
         # Each video workflow follows its own destination FIFO. A quota pause or
         # retry on YouTube must not hold Aparat or Filo (and vice versa).
