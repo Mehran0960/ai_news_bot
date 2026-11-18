@@ -99,7 +99,7 @@ jobs:
           cd affilio_radar
           python -m unittest -v test_expiration_monitor.py
 
-      - name: Enforce 48-hour retention for product offer posts on Telegram and Bale
+      - name: Enforce 7-day retention for channel photo posts on Telegram and Bale
         if: ${{ github.event_name == 'schedule' }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -108,7 +108,7 @@ jobs:
           AFFILIO_TELEGRAM_CHAT_ID: "@OfferChin"
           BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           BALE_CHANNEL_ID: ${{ secrets.BALE_CHANNEL_ID }}
-          AFFILIO_CHANNEL_POST_RETENTION_DAYS: "2"
+          AFFILIO_CHANNEL_POST_RETENTION_DAYS: "7"
           AFFILIO_CHANNEL_POST_RETENTION_BUFFER_MINUTES: "0"
           AFFILIO_CHANNEL_RETENTION_MAX_DELETES: "120"
           PYTHONUNBUFFERED: "1"
