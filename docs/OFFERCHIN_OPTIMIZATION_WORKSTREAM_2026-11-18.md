@@ -24,8 +24,8 @@ This work is staged on `codex/offerchin-optimization-2026-11-18-refresh2`, creat
 - No public posts are deleted by this branch. Seven-day retention only becomes active after merge/deploy; confirm Telegram MTProto secrets before relying on days 3–7 cleanup.
 
 ## Verification
-- The previous stale PR head `2231337e83d90b5ff0ef350b7edfb053df8f0dfb` passed its eight PR test workflows, but this does not validate the refreshed branch.
-- Refresh2 commits and relevant CI results must be checked before merge consideration.
+- PR #246 code snapshot `3742a1e4d43aaf6cfc704f6dc3f63f6e62d5ec83` passed all 10 pull-request checks.
+- Product Radar run #44324690868 passed 601 Python tests (2 skipped) and all 4 Node worker tests.
 - Live marketplace-wide demand and completed purchase attribution remain unverified and are not simulated.
 - No merge, deploy, live publish, secret change, or external network activation has been performed.
 
