@@ -11,6 +11,8 @@ on:
       - "affilio_radar/test_catalog_sweep.py"
       - "affilio_radar/product_quality.py"
       - "affilio_radar/affiliate-deal-radar-worker.js"
+      - "affilio_radar/test_affiliate_deal_radar_worker.mjs"
+      - "affilio_radar/migrations/**"
       - "cloudflare/affilio-minute-dispatcher.js"
       - "affilio_radar/affiliate-deal-radar-worker.js"
       - "affilio_radar/short_video.py"
@@ -198,6 +200,11 @@ jobs:
               f"count={len(referenced)}"
           )
           PY
+
+      - name: Test Affilio click and conversion-postback contracts
+        if: ${{ github.event_name == 'push' && !contains(github.event.head_commit.message, '[scan-now]') && !contains(github.event.head_commit.message, '[publish-now]') && !contains(github.event.head_commit.message, '[repair-all-captions]') && !contains(github.event.head_commit.message, '[repair-bale-caption]') && !contains(github.event.head_commit.message, '[growth-tracking-only]') }}
+        working-directory: affilio_radar
+        run: node --test test_affiliate_deal_radar_worker.mjs
 
       - name: Smoke-test the deployed click tracker (diagnostic only)
         if: ${{ github.event_name == 'push' }}
