@@ -4,6 +4,7 @@ import re
 from unittest.mock import patch
 import os
 import tempfile
+import threading
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
@@ -12,6 +13,7 @@ from PIL import Image
 from editorial_publisher import (
     _finalize_if_terminal,
     _handle_channel_destination,
+    _deliver_channels_concurrently,
     _hydrate_confirmed_editorial_receipts,
     _pending_product_video_exists,
     _record_failure,
@@ -65,6 +67,61 @@ def add_confirmed_product_posts(state, count=6, *, published_at=None):
 
 
 class EditorialPublisherTests(unittest.TestCase):
+    def test_editorial_photo_destinations_send_concurrently_and_merge_receipts(self):
+        content_id = "editorial:parallel-photo-test"
+        item = editorial_item("parallel-photo-test", "delivery")
+        platforms = {
+            name: {"status": "pending", "attempts": 0}
+            for name in ("telegram", "bale", "rubika", "eitaa")
+        }
+        entry = {
+            "content_id": content_id,
+            "sequence_number": 42,
+            "status": "queued",
+            "scheduled_at": NOW.isoformat(),
+            "delivery_started_at": NOW.isoformat(),
+            "payload": item,
+            "platforms": platforms,
+        }
+        state = {
+            "editorial_delivery_queue": {content_id: entry},
+            "editorial_delivery_history": [],
+            "editorial_content_ledger": [],
+            "content_delivery_queue": {},
+            "last_channel_published_at": (NOW - timedelta(hours=1)).isoformat(),
+        }
+        barrier = threading.Barrier(4)
+
+        def receipt(destination, *args, **kwargs):
+            barrier.wait(timeout=4)
+            return {"message_id": f"{destination}-receipt"}
+
+        with patch("editorial_publisher._destination_ready", return_value=(True, "")), \
+             patch("editorial_publisher._send_bot_photo", side_effect=lambda destination, *a, **kw: receipt(destination)), \
+             patch("editorial_publisher._send_rubika_image", side_effect=lambda *a, **kw: receipt("rubika")), \
+             patch("editorial_publisher._send_eitaa_image", side_effect=lambda *a, **kw: receipt("eitaa")), \
+             patch("editorial_publisher.reflow_product_queue_after_delivery"), \
+             patch("editorial_publisher._save") as save:
+            updated = _deliver_channels_concurrently(
+                state,
+                entry,
+                b"poster-bytes",
+                ("telegram", "bale", "rubika", "eitaa"),
+                NOW,
+            )
+
+        save.assert_not_called()
+        for destination in ("telegram", "bale", "rubika", "eitaa"):
+            self.assertEqual(updated["platforms"][destination]["status"], "sent")
+            self.assertEqual(
+                updated["platforms"][destination]["message_id"],
+                f"{destination}-receipt",
+            )
+        history = state.get("editorial_delivery_history") or []
+        self.assertEqual(len(history), 1)
+        for destination in ("telegram", "bale", "rubika", "eitaa"):
+            self.assertEqual(history[0]["destinations"][destination]["status"], "sent")
+
     def test_photo_worker_can_select_exactly_one_destination(self):
         for destination in ("telegram", "bale", "rubika", "eitaa"):
             with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_CHANNEL_DESTINATION": destination}, clear=True):
