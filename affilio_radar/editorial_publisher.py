@@ -863,19 +863,15 @@ def _record_success(state: dict, entry: dict, destination: str, receipt: dict, n
     if sequence_number not in (None, ""):
         payload["sequence_number"] = sequence_number
     try:
+        # Record only this worker's receipt. Sibling destinations are merged
+        # from their own workers by destination key; copying the entire local
+        # platform map here would let pending siblings overwrite sent receipts.
         record_editorial_delivery(
             state, payload, published_at=now,
-            destinations=entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {},
+            destinations={destination: dict(target)},
         )
     except ValueError:
         pass
-    history = state.get("editorial_delivery_history")
-    if isinstance(history, list):
-        for row in reversed(history):
-            if isinstance(row, dict) and row.get("content_id") == entry.get("content_id"):
-                row["destinations"] = entry.get("platforms", {})
-                row["sequence_number"] = entry.get("sequence_number")
-                break
     if destination in CHANNEL_DESTINATIONS:
         reflow_product_queue_after_delivery(state, now=now)
 
