@@ -5916,188 +5916,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-532451",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "next_attempt_at": "2026-11-16T09:20:50.293578+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-532451%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "10987",
-        "catalog_best_selling_category_name": "چاقو",
-        "catalog_best_selling_rank": 2,
-        "catalog_best_selling_ranks_by_category": {
-          "10987": {
-            "category_name": "چاقو",
-            "observed_at": "2026-11-16T08:20:54.323171+00:00",
-            "rank": 2,
-            "rank_history": [
-              {
-                "category_name": "چاقو",
-                "observed_at": "2026-11-16T08:20:54.323171+00:00",
-                "rank": 2
-              }
-            ]
-          }
-        },
-        "catalog_category_ids": [
-          "5967",
-          "6226",
-          "6227",
-          "10987"
-        ],
-        "catalog_category_name": "خانه و آشپزخانه",
-        "catalog_cycle_completed_at": "2026-11-16T08:55:27.129773+00:00",
-        "catalog_cycle_snapshot_rank": 146,
-        "catalog_rank_observed_at": "2026-11-16T08:20:54.323171+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "home",
-        "checked_at": "2026-11-16T09:16:41.045374+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-532451",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 225000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 45.64,
-        "discount_percent": 25,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T09:17:10.429754+00:00",
-        "history_days": 5,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 225000,
-        "history_low_toman": 225000,
-        "history_median_toman": 225000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 225000,
-        "history_start_day": "2026-11-10",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/bd1da87a709988d08e998ceb2fb02d6a2b9d0fdc_1782135732.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "affordability": 96.71,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 75.18,
-          "discount_attractiveness": 45.64,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 92.0,
-          "generality_group": "kitchen_food",
-          "live_demand": 99.14,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "10987",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T09:17:10.432191+00:00",
-          "weakest_factor_score": 45.64
-        },
-        "original_price": 300000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-532451",
-        "product_url": "https://www.digikala.com/product/dkp-532451/",
-        "promo_score": 18,
-        "publication_policy": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-        "qualifies_as_deal": true,
-        "rating": 4.01,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 343,
-        "savings_toman": 75000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 2,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "affordability": 96.71,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 75.18,
-          "discount_attractiveness": 45.64,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 92.0,
-          "generality_group": "kitchen_food",
-          "live_demand": 99.14,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "10987",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T09:17:10.432191+00:00",
-          "weakest_factor_score": 45.64
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1263,
-        "title": "چاقو آشپزخانه مدل CHR001 بسته 4 عددی",
-        "variant_label": "چند رنگ"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-532451",
-      "product_plan_cycle_id": "2026-11-16T08:55:27.129773+00:00",
-      "scheduled_at": "2026-11-16T09:20:50.293578+00:00",
-      "selected_at": "2026-11-16T09:17:17.049838+00:00",
-      "sequence_number": 1263,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T09:31:36.019207+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-8994322",
       "content_type": "product",
       "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
@@ -42228,6 +42046,188 @@
       "sequence_number": 1559,
       "status": "published",
       "updated_at": "2026-11-18T22:37:49.281871+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-12325607",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-18T23:24:35.775742+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-18T23:23:49.280802+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-12325607%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "نبض آوا",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "A",
+        "catalog_best_selling_category_id": "10966",
+        "catalog_best_selling_category_name": "تجهیزات معاینه پزشکی",
+        "catalog_best_selling_rank": 4,
+        "catalog_best_selling_ranks_by_category": {
+          "10966": {
+            "category_name": "تجهیزات معاینه پزشکی",
+            "observed_at": "2026-11-18T19:36:35.017799+00:00",
+            "rank": 4,
+            "rank_history": [
+              {
+                "category_name": "تجهیزات معاینه پزشکی",
+                "observed_at": "2026-11-18T19:36:35.017799+00:00",
+                "rank": 4
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-18T20:04:29.950230+00:00",
+        "catalog_cycle_snapshot_rank": 203,
+        "catalog_rank_observed_at": "2026-11-18T19:36:35.017799+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "other",
+        "checked_at": "2026-11-18T20:13:40.982859+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-12325607",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 54000000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 57.57,
+        "discount_percent": 25,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-18T20:14:06.801781+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-18",
+        "history_high_toman": 54000000,
+        "history_low_toman": 54000000,
+        "history_median_toman": 54000000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-18",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/5f4f2cf88a97dd4347d5f6d90b26e704e85098f9_1691586951.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 68.87,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 57.57,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 62.0,
+          "generality_group": "health_wellness",
+          "live_demand": 99.42,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-18T20:14:17.230951+00:00",
+          "weakest_factor_score": 57.57
+        },
+        "original_price": 72000000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-12325607",
+        "product_url": "https://www.digikala.com/product/dkp-12325607/",
+        "promo_score": 32,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.5,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "savings_toman": 18000000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 4,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 68.87,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 57.57,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 62.0,
+          "generality_group": "health_wellness",
+          "live_demand": 99.42,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-18T20:14:17.230951+00:00",
+          "weakest_factor_score": 57.57
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1560,
+        "title": "گوشی پزشکی نبض آوا مدل +NS1 SE"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-18T23:24:35.775742+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-18T23:24:42.179080+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-18T23:24:35.775742+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-18T23:24:35.775742+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-18T23:24:45.305675+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-18T23:24:35.775742+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-18T23:24:41.774764+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-12325607",
+      "product_plan_cycle_id": "2026-11-18T20:04:29.950230+00:00",
+      "scheduled_at": "2026-11-18T23:23:49.280802+00:00",
+      "selected_at": "2026-11-18T20:14:21.839368+00:00",
+      "sequence_number": 1560,
+      "status": "published",
+      "updated_at": "2026-11-18T23:24:45.516501+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -42242,7 +42242,7 @@
       "attempt_count": 0,
       "content_id": "dkp-10962945",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T23:56:49.280802+00:00",
+      "next_attempt_at": "2026-11-18T23:57:45.515558+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-10962945%2F",
         "availability": "in_stock",
@@ -42405,187 +42405,16 @@
       },
       "product_id": "dkp-10962945",
       "product_plan_cycle_id": "2026-11-18T20:04:29.950230+00:00",
-      "scheduled_at": "2026-11-18T23:56:49.280802+00:00",
+      "scheduled_at": "2026-11-18T23:57:45.515558+00:00",
       "selected_at": "2026-11-18T20:14:21.839368+00:00",
       "sequence_number": 1561,
-      "status": "queued"
-    },
-    "dkp-12325607": {
-      "attempt_count": 0,
-      "content_id": "dkp-12325607",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-18T23:23:49.280802+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-12325607%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "نبض آوا",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "10966",
-        "catalog_best_selling_category_name": "تجهیزات معاینه پزشکی",
-        "catalog_best_selling_rank": 4,
-        "catalog_best_selling_ranks_by_category": {
-          "10966": {
-            "category_name": "تجهیزات معاینه پزشکی",
-            "observed_at": "2026-11-18T19:36:35.017799+00:00",
-            "rank": 4,
-            "rank_history": [
-              {
-                "category_name": "تجهیزات معاینه پزشکی",
-                "observed_at": "2026-11-18T19:36:35.017799+00:00",
-                "rank": 4
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-18T20:04:29.950230+00:00",
-        "catalog_cycle_snapshot_rank": 203,
-        "catalog_rank_observed_at": "2026-11-18T19:36:35.017799+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-18T20:13:40.982859+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-12325607",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 54000000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 57.57,
-        "discount_percent": 25,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-18T20:14:06.801781+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-18",
-        "history_high_toman": 54000000,
-        "history_low_toman": 54000000,
-        "history_median_toman": 54000000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-18",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/5f4f2cf88a97dd4347d5f6d90b26e704e85098f9_1691586951.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 68.87,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 57.57,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 62.0,
-          "generality_group": "health_wellness",
-          "live_demand": 99.42,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-18T20:14:17.230951+00:00",
-          "weakest_factor_score": 57.57
-        },
-        "original_price": 72000000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-12325607",
-        "product_url": "https://www.digikala.com/product/dkp-12325607/",
-        "promo_score": 32,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.5,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "savings_toman": 18000000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 4,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 68.87,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 57.57,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 62.0,
-          "generality_group": "health_wellness",
-          "live_demand": 99.42,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-18T20:14:17.230951+00:00",
-          "weakest_factor_score": 57.57
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1560,
-        "title": "گوشی پزشکی نبض آوا مدل +NS1 SE"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-12325607",
-      "product_plan_cycle_id": "2026-11-18T20:04:29.950230+00:00",
-      "scheduled_at": "2026-11-18T23:23:49.280802+00:00",
-      "selected_at": "2026-11-18T20:14:21.839368+00:00",
-      "sequence_number": 1560,
       "status": "queued"
     },
     "dkp-20728272": {
       "attempt_count": 0,
       "content_id": "dkp-20728272",
       "content_type": "product",
-      "next_attempt_at": "2026-11-19T00:42:49.280802+00:00",
+      "next_attempt_at": "2026-11-19T00:43:45.515558+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-20728272%2F",
         "availability": "in_stock",
@@ -42748,7 +42577,7 @@
       },
       "product_id": "dkp-20728272",
       "product_plan_cycle_id": "2026-11-18T20:04:29.950230+00:00",
-      "scheduled_at": "2026-11-19T00:42:49.280802+00:00",
+      "scheduled_at": "2026-11-19T00:43:45.515558+00:00",
       "selected_at": "2026-11-18T20:14:21.839368+00:00",
       "sequence_number": 1562,
       "status": "queued"
@@ -102442,7 +102271,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.4,
+      "delivery_duration_seconds": 1.1,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -102505,8 +102334,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.4,
-      "delivery_started_at": "2026-11-18T23:23:49.154275+00:00",
+      "delivery_duration_seconds": 1.1,
+      "delivery_started_at": "2026-11-18T23:24:46.294258+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -102918,13 +102747,13 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-18T22:37:49.280802+00:00",
+  "last_channel_published_at": "2026-11-18T23:24:45.515558+00:00",
   "last_content_selection_at": "2026-11-18T20:14:21.839368+00:00",
   "last_editorial_attempt_at": "2026-11-18T02:10:38.177140+00:00",
   "last_editorial_confirmed_at": "2026-11-18T02:10:49.933296+00:00",
   "last_editorial_empty_bank_check_at": "2026-11-18T01:24:46.585898+00:00",
-  "last_product_channel_published_at": "2026-11-18T22:37:49.280802+00:00",
-  "last_published_at": "2026-11-18T22:37:49.280802+00:00",
+  "last_product_channel_published_at": "2026-11-18T23:24:45.515558+00:00",
+  "last_published_at": "2026-11-18T23:24:45.515558+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -111571,23 +111400,6 @@
       "publish_failure_count": 0,
       "savings_toman": 3085000,
       "title": "گیمبال و لرزشگیر دوربین مدل Video Making AY-49U",
-      "urgent": false
-    },
-    "dkp-12325607": {
-      "current_price": 54000000,
-      "deal_expires_at": "",
-      "discount_percent": 25,
-      "first_seen_at": "2026-11-18T20:14:17.230951+00:00",
-      "last_publish_failure": "",
-      "last_publish_failure_at": "",
-      "next_publish_attempt_at": "",
-      "original_price": 72000000,
-      "product_id": "dkp-12325607",
-      "product_url": "https://www.digikala.com/product/dkp-12325607/",
-      "promo_score": 32,
-      "publish_failure_count": 0,
-      "savings_toman": 18000000,
-      "title": "گوشی پزشکی نبض آوا مدل +NS1 SE",
       "urgent": false
     },
     "dkp-20728272": {
@@ -152605,8 +152417,8 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-18T22:37:49.280809+00:00",
-    "candidate_count": 3,
+    "calculated_at": "2026-11-18T23:24:45.515567+00:00",
+    "candidate_count": 2,
     "catalog_cycle_id": "2026-11-18T20:04:29.950230+00:00",
     "current_cycle_started_at": "2026-11-18T20:04:30.342096+00:00",
     "daily_post_limit": 72,
@@ -152618,20 +152430,20 @@
     "interval_seconds": 3420.0,
     "last_clean_cycle_completed_at": "2026-11-18T20:04:29.950230+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-18T22:37:49.280802+00:00",
+    "plan_anchor_at": "2026-11-18T23:24:45.515558+00:00",
     "plan_anchor_kind": "last_channel_provisional",
-    "planned_product_slots": 3,
-    "planned_window_end_at": "2026-11-19T01:28:49.280802+00:00",
+    "planned_product_slots": 2,
+    "planned_window_end_at": "2026-11-19T01:18:45.515558+00:00",
     "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
     "scan_eta_is_provisional": true,
     "scan_eta_source": "provisional_max_interval_after_overdue_or_missing_scan_eta",
     "scheduled_product_count": 8,
-    "seconds_from_plan_anchor_to_next_scan": 10260,
+    "seconds_from_plan_anchor_to_next_scan": 6840,
     "seconds_until_estimated_next_clean_scan": 0.0
   },
   "product_publication_interval_seconds": 3420.0,
   "product_publication_plan": {
-    "anchor_at": "2026-11-18T22:37:49.280802+00:00",
+    "anchor_at": "2026-11-18T23:24:45.515558+00:00",
     "anchor_kind": "last_channel_provisional",
     "catalog_cycle_id": "2026-11-18T20:04:29.950230+00:00",
     "first_slot_due_now": false,
@@ -152639,16 +152451,15 @@
     "interval_seconds": 3420.0,
     "maximum_product_interval_seconds": 3420,
     "next_clean_scan_at": "",
-    "pending_product_count": 3,
+    "pending_product_count": 2,
     "product_ids": [
-      "dkp-12325607",
       "dkp-10962945",
       "dkp-20728272"
     ],
-    "scheduled_product_count": 3,
-    "updated_at": "2026-11-18T22:37:49.280809+00:00"
+    "scheduled_product_count": 2,
+    "updated_at": "2026-11-18T23:24:45.515567+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-18T22:37:49.280802+00:00",
+  "product_publication_plan_anchor_at": "2026-11-18T23:24:45.515558+00:00",
   "product_publication_plan_anchor_kind": "last_channel_provisional",
   "product_publication_plan_cycle_id": "2026-11-18T20:04:29.950230+00:00",
   "publication_diversity_fallback_count": 5307,
@@ -204625,6 +204436,134 @@
       "youtube_skip_reason": "selection_outside_freshness_window",
       "youtube_skip_recorded_at": "2026-11-18T21:30:04.118953+00:00",
       "youtube_upload_status": "skipped_stale_after_freshness_window"
+    },
+    "dkp-12325607": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2307,
+      "bale_posted_at": "2026-11-18T23:24:42.179080+00:00",
+      "brand": "نبض آوا",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "A",
+      "catalog_best_selling_category_id": "10966",
+      "catalog_best_selling_category_name": "تجهیزات معاینه پزشکی",
+      "catalog_best_selling_rank": 4,
+      "catalog_best_selling_ranks_by_category": {
+        "10966": {
+          "category_name": "تجهیزات معاینه پزشکی",
+          "observed_at": "2026-11-18T19:36:35.017799+00:00",
+          "rank": 4,
+          "rank_history": [
+            {
+              "category_name": "تجهیزات معاینه پزشکی",
+              "observed_at": "2026-11-18T19:36:35.017799+00:00",
+              "rank": 4
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-18T20:04:29.950230+00:00",
+      "catalog_cycle_snapshot_rank": 203,
+      "catalog_rank_observed_at": "2026-11-18T19:36:35.017799+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-12325607",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "B",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-18T23:24:45.305696+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 0,
+      "distribution_queue_id": "dkp-12325607:2026-11-18T20:14:21.839368+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-18T20:14:06.801781+00:00",
+      "history_days": 1,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/5f4f2cf88a97dd4347d5f6d90b26e704e85098f9_1691586951.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "not_checked",
+      "platform_message_ids": {
+        "rubika": "1976333739001588651"
+      },
+      "posted_current_price": 54000000,
+      "posted_discount_percent": 25,
+      "posted_original_price": 72000000,
+      "product_url": "https://www.digikala.com/product/dkp-12325607/",
+      "promo_score": 32,
+      "publication_category": "other",
+      "publication_family": "digikala_category:10966",
+      "publication_use_case": "health_wellness",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 0.0,
+      "rubika_posted_at": "2026-11-18T23:24:45.305675+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 4,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 68.87,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 57.57,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 62.0,
+        "generality_group": "health_wellness",
+        "live_demand": 99.42,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-18T20:14:17.230951+00:00",
+        "weakest_factor_score": 57.57
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1560,
+      "telegram_message_id": 1716,
+      "telegram_posted_at": "2026-11-18T23:24:41.774764+00:00",
+      "title": "گوشی پزشکی نبض آوا مدل +NS1 SE",
+      "ts": 1795044275.775742,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
     },
     "dkp-12375611": {
       "aparat_skip_reason": "selection_outside_freshness_window",
