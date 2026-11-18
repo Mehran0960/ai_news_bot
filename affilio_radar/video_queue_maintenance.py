@@ -23,6 +23,8 @@ ACTIVE_STATUSES = {
     "retry",
     "failed",
     "skipped_unverified_deadline",
+    "skipped_expiring_soon",
+    "skipped_platform_limit",
 }
 
 
@@ -138,7 +140,7 @@ def maintain_video_queue_state(
         # have occurred even when public visibility has not yet been confirmed.
         if status in {"uploaded", "published", "submitted_pending_approval", "submitted_unconfirmed",
                       "rejected_by_filo", "manual_review", "not_connected", "skipped_after_retries",
-                      "skipped_generation_failed", "skipped_expiring_soon", "skipped_offer_expired",
+                      "skipped_generation_failed", "skipped_offer_expired",
                       "skipped_stale_after_freshness_window"}:
             untouched += 1
             continue
