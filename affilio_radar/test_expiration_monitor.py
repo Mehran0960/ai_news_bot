@@ -104,36 +104,38 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertIs(snapshot["in_stock"], True)
         self.assertEqual(snapshot["price_source"], "digikala_product_page")
 
-    def test_expiry_cleanup_prefers_direct_feed_and_fills_only_missing_ids_from_live_offer_cards(self):
-        direct = {
-            "dkp-1": "2026-10-20T20:00:00+00:00",
-            "dkp-2": "2026-10-20T21:00:00+00:00",
-        }
+    def test_expiry_cleanup_uses_only_required_product_matched_mcp_deadlines(self):
         mcp = {
             "dkp-1": "2026-10-20T22:30:00+00:00",
             "dkp-3": "2026-10-20T23:00:00+00:00",
             "dkp-not-required": "2026-10-24T23:00:00+00:00",
         }
         with (
-            patch.object(monitor, "fetch_direct_api_offer_expiries", return_value=direct),
-            patch.object(monitor, "fetch_mcp_offer_candidates", return_value=(mcp, [])) as fallback,
+            patch.object(monitor, "fetch_direct_api_offer_expiries") as retired_feed,
+            patch.object(monitor, "fetch_mcp_offer_candidates", return_value=(mcp, [])) as mcp_lookup,
         ):
-            deadlines, sources = monitor.fetch_offer_deadlines(required_product_ids=["dkp-1", "dkp-2", "dkp-3"])
-        self.assertEqual(deadlines["dkp-1"], direct["dkp-1"])
-        self.assertEqual(deadlines["dkp-2"], direct["dkp-2"])
-        self.assertEqual(deadlines["dkp-3"], mcp["dkp-3"])
-        self.assertEqual(sources["dkp-1"], "digikala_live_deals_feed")
-        self.assertEqual(sources["dkp-3"], "digikala_mcp_offer_card")
+            deadlines, sources = monitor.fetch_offer_deadlines(
+                required_product_ids=["dkp-1", "dkp-2", "dkp-3"]
+            )
+        retired_feed.assert_not_called()
+        mcp_lookup.assert_called_once_with(page_numbers=[1])
+        self.assertEqual(deadlines, {
+            "dkp-1": mcp["dkp-1"],
+            "dkp-3": mcp["dkp-3"],
+        })
+        self.assertEqual(sources, {
+            "dkp-1": "digikala_mcp_offer_card",
+            "dkp-3": "digikala_mcp_offer_card",
+        })
+        self.assertNotIn("dkp-2", deadlines)
         self.assertNotIn("dkp-not-required", deadlines)
-        fallback.assert_called_once_with(page_numbers=[1])
 
-        with (
-            patch.object(monitor, "fetch_direct_api_offer_expiries", return_value={}),
-            patch.object(monitor, "fetch_mcp_offer_candidates", return_value=({"dkp-1": "2026-10-20T23:00:00+00:00"}, [])),
-        ):
-            deadlines, sources = monitor.fetch_offer_deadlines(required_product_ids=["dkp-1"])
-        self.assertIn("dkp-1", deadlines)
-        self.assertEqual(sources["dkp-1"], "digikala_mcp_offer_card")
+    def test_retired_direct_expiry_feed_is_a_no_network_compatibility_shim(self):
+        with patch.object(monitor.requests, "Session") as session:
+            result = monitor.fetch_direct_api_offer_expiries()
+        self.assertEqual(result, {})
+        session.assert_not_called()
+
     def test_live_deadline_sync_corrects_stale_deadline_before_cleanup(self):
         now = datetime(2026, 10, 20, 17, 40, tzinfo=timezone.utc)
         published = {
