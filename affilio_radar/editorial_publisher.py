@@ -37,6 +37,7 @@ from publication_policy import (
     products_published_since_last_editorial,
 )
 from editorial_content import (
+    editorial_content_fingerprint,
     editorial_topics_for_product,
     record_editorial_delivery,
     select_editorial_fallback,
@@ -127,14 +128,76 @@ def _active_editorial_entries(state: dict) -> list[dict]:
     return sorted(rows, key=lambda row: int(row.get("sequence_number") or 0))
 
 
-def _pending_product_video_exists(state: dict) -> bool:
+def _selected_video_destinations() -> tuple[str, ...]:
+    """Select one video destination for isolated workers; default to all for legacy runs."""
+    selected = str(os.getenv("OFFERCHIN_EDITORIAL_VIDEO_DESTINATION") or "").strip().lower()
+    if not selected:
+        return VIDEO_DESTINATIONS
+    if selected not in VIDEO_DESTINATIONS:
+        raise ValueError("unsupported_editorial_video_destination")
+    return (selected,)
+
+
+def _pending_product_video_exists(
+    state: dict, destinations: set[str] | None = None
+) -> bool:
     published = state.get("published")
     if not isinstance(published, dict):
         return False
     checker = getattr(radar, "_has_pending_video_destination", None)
     if not callable(checker):
         return False
-    return any(checker(row) for row in published.values() if isinstance(row, dict))
+    return any(
+        checker(row, destinations)
+        for row in published.values() if isinstance(row, dict)
+    )
+
+
+def _hydrate_confirmed_editorial_receipts(state: dict, entry: dict) -> int:
+    """Restore known receipts from history before attempting an ambiguous queue snapshot."""
+    history = state.get("editorial_delivery_history")
+    if not isinstance(history, list):
+        return 0
+    payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
+    editorial_id = str(payload.get("editorial_id") or "").strip()
+    fingerprint = editorial_content_fingerprint(payload)
+    matches = []
+    for row in history:
+        if not isinstance(row, dict):
+            continue
+        same_id = editorial_id and str(row.get("editorial_id") or "").strip() == editorial_id
+        same_fingerprint = fingerprint and str(row.get("content_fingerprint") or "").strip() == fingerprint
+        if same_id or same_fingerprint:
+            matches.append(row)
+    restored = 0
+    platforms = entry.setdefault("platforms", {})
+    if not isinstance(platforms, dict):
+        platforms = {}
+        entry["platforms"] = platforms
+    for row in reversed(matches):
+        receipts = row.get("destinations") if isinstance(row.get("destinations"), dict) else {}
+        for destination, receipt in receipts.items():
+            if destination not in (*CHANNEL_DESTINATIONS, *VIDEO_DESTINATIONS) or not isinstance(receipt, dict):
+                continue
+            receipt_status = str(receipt.get("status") or "").strip().lower()
+            if receipt_status not in {"sent", "manual_review"}:
+                continue
+            target = platforms.setdefault(destination, {})
+            if not isinstance(target, dict):
+                target = {}
+                platforms[destination] = target
+            current_status = str(target.get("status") or "").strip().lower()
+            if current_status in {"sent", "manual_review"}:
+                continue
+            target.update(receipt)
+            target["restored_from_delivery_history"] = True
+            restored += 1
+    if restored:
+        print(
+            f"EDITORIAL_RECEIPTS_RESTORED content_id={entry.get('content_id')} "
+            f"destinations={restored} source=confirmed_history"
+        )
+    return restored
 
 
 def _recent_attempt_anchor(state: dict) -> datetime | None:
@@ -1000,9 +1063,11 @@ def _handle_video_destination(
         if destination == "youtube" and any(token in detail for token in (
             "uploadlimitexceeded", "video uploads per day", "daily video upload limit"
         )):
-            target["status"] = "skipped_limit"
+            retry_at = radar._next_youtube_daily_upload_retry_at(_now())
+            target["status"] = "retry"
+            target["next_attempt_at"] = retry_at.isoformat()
             target["last_error"] = "youtube_daily_quota_exceeded"
-            state["youtube_uploads_paused_until"] = radar._next_youtube_daily_upload_retry_at(_now()).isoformat()
+            state["youtube_uploads_paused_until"] = retry_at.isoformat()
             state["youtube_upload_pause_reason"] = "daily_upload_limit"
             target["updated_at"] = _now().isoformat()
         else:
@@ -1287,6 +1352,9 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         _refresh_dispatch_projection(state)
         return 0
 
+    if _hydrate_confirmed_editorial_receipts(state, entry):
+        _save(state)
+
     if mode == "channels":
         entry["delivery_started_at"] = _now().isoformat()
         _save(state)
@@ -1304,9 +1372,14 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
             )
             _handle_channel_destination(state, entry, destination, image_bytes, message, _now())
     else:
-        # Keep all older product videos ahead of a newer editorial video.
-        if _pending_product_video_exists(state):
-            print("EDITORIAL_VIDEO_WAIT reason=older_product_video_fifo_pending")
+        # Each video workflow follows its own destination FIFO. A quota pause or
+        # retry on YouTube must not hold Aparat or Filo (and vice versa).
+        video_destinations = _selected_video_destinations()
+        if _pending_product_video_exists(state, set(video_destinations)):
+            print(
+                "EDITORIAL_VIDEO_WAIT reason=older_product_video_fifo_pending "
+                f"destinations={','.join(video_destinations)}"
+            )
             _save(state)
             _refresh_dispatch_projection(state)
             return 0
@@ -1319,18 +1392,18 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
             from editorial_video import render_editorial_video
             if any(
                 _target(entry, name).get("status") not in TERMINAL
-                for name in VIDEO_DESTINATIONS
+                for name in video_destinations
             ):
                 render_editorial_video(_public_editorial_payload(payload), output_path)
         except Exception as exc:
-            for destination in VIDEO_DESTINATIONS:
+            for destination in video_destinations:
                 target = _target(entry, destination)
                 if target.get("status") not in TERMINAL:
                     target["status"] = "manual_review"
                     target["last_error"] = f"editorial_video_render_failed:{type(exc).__name__}"
             _save(state)
             return 1
-        for destination in VIDEO_DESTINATIONS:
+        for destination in video_destinations:
             _handle_video_destination(state, entry, destination, output_path, _now())
 
     now_after = _now()
