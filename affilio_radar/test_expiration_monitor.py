@@ -1874,37 +1874,37 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertNotIn("aparat_expiry_status", record)
 
 
-    def test_48_hour_retention_deletes_product_posts_but_preserves_editorial_and_videos(self):
+    def test_7_day_retention_deletes_product_posts_but_preserves_editorial_and_videos(self):
         now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-tg-oldest": {
                 "content_type": "product",
                 "title": "پست تلگرام قدیمی‌تر",
-                "ts": (now - timedelta(days=4)).timestamp(),
+                "ts": (now - timedelta(days=10)).timestamp(),
                 "telegram_message_id": 101,
             },
             "dkp-tg-next": {
                 "content_type": "product",
                 "title": "پست تلگرام بعدی",
-                "ts": (now - timedelta(days=3)).timestamp(),
+                "ts": (now - timedelta(days=8)).timestamp(),
                 "telegram_message_id": 102,
             },
             "dkp-tg-new": {
                 "content_type": "product",
                 "title": "پست تلگرام جدید",
-                "ts": (now - timedelta(days=1)).timestamp(),
+                "ts": (now - timedelta(days=6)).timestamp(),
                 "telegram_message_id": 103,
             },
             "dkp-bale-oldest": {
                 "content_type": "product",
                 "title": "پست بله قدیمی‌تر",
-                "ts": (now - timedelta(days=3.5)).timestamp(),
+                "ts": (now - timedelta(days=10)).timestamp(),
                 "bale_message_id": 201,
             },
             "dkp-bale-next": {
                 "content_type": "product",
                 "title": "پست بله بعدی",
-                "ts": (now - timedelta(days=2.5)).timestamp(),
+                "ts": (now - timedelta(days=8)).timestamp(),
                 "bale_message_id": 202,
             },
             "editorial-evergreen": {
@@ -1926,7 +1926,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         env = {
             "TELEGRAM_API_ID": "12345",
             "TELEGRAM_API_HASH": "a" * 32,
-            "AFFILIO_CHANNEL_POST_RETENTION_DAYS": "2",
+            "AFFILIO_CHANNEL_POST_RETENTION_DAYS": "7",
             "AFFILIO_CHANNEL_POST_RETENTION_BUFFER_MINUTES": "0",
             "AFFILIO_CHANNEL_RETENTION_MAX_DELETES": "120",
         }
