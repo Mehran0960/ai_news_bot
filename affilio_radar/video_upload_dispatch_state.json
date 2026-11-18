@@ -1,23 +1,6 @@
 {
-  "filo_login_verification_status": "verified",
-  "filo_upload_interval_policy_version": 3,
-  "youtube_upload_pause_reason": "daily_upload_limit",
-  "last_channel_published_at": "2026-11-18T01:30:31.549611+00:00",
-  "emergency_continuity_baseline_completed_at": null,
-  "last_product_channel_published_at": "2026-11-18T01:30:31.549611+00:00",
-  "next_channel_content_due_at": "2026-11-18T02:15:31.549611+00:00",
-  "next_editorial_planning_at": "2026-11-18T02:14:31.549611+00:00",
-  "filo_login_verified_at": "2026-11-17T18:14:11.649894+00:00",
-  "filo_next_upload_at": null,
-  "emergency_continuity_expires_at": null,
-  "emergency_continuity_snapshot_sha256": null,
-  "youtube_uploads_paused_until": "2026-11-18T18:39:32.096553+00:00",
   "schema_version": 2,
-  "product_publication_interval_seconds": 1860.0,
-  "emergency_continuity_active": false,
-  "pending_product_queue_count": 24,
-  "youtube_next_upload_at": null,
-  "product_publication_plan_cycle_id": "2026-11-18T01:22:43.652408+00:00",
+  "youtube_uploads_paused_until": "2026-11-18T18:39:32.096553+00:00",
   "published": {
     "dkp-10002173": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -5753,7 +5736,24 @@
       "youtube_upload_status": "skipped_unavailable"
     }
   },
-  "product_publication_cadence_cycle_id": "2026-11-18T01:22:43.652408+00:00",
+  "last_channel_published_at": "2026-11-18T01:30:31.549611+00:00",
+  "next_editorial_planning_at": "2026-11-18T02:14:31.549611+00:00",
   "aparat_next_upload_at": null,
-  "generated_at": "2026-11-18T01:56:10.242153+00:00"
+  "filo_login_verification_status": "verified",
+  "emergency_continuity_active": false,
+  "filo_upload_interval_policy_version": 3,
+  "product_publication_plan_cycle_id": "2026-11-18T01:22:43.652408+00:00",
+  "last_product_channel_published_at": "2026-11-18T01:30:31.549611+00:00",
+  "generated_at": "2026-11-18T01:58:54.425049+00:00",
+  "filo_next_upload_at": null,
+  "next_channel_content_due_at": "2026-11-18T02:15:31.549611+00:00",
+  "product_publication_cadence_cycle_id": "2026-11-18T01:22:43.652408+00:00",
+  "youtube_upload_pause_reason": "daily_upload_limit",
+  "emergency_continuity_expires_at": null,
+  "filo_login_verified_at": "2026-11-17T18:14:11.649894+00:00",
+  "product_publication_interval_seconds": 1860.0,
+  "emergency_continuity_snapshot_sha256": null,
+  "pending_product_queue_count": 24,
+  "emergency_continuity_baseline_completed_at": null,
+  "youtube_next_upload_at": null
 }
