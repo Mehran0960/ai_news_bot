@@ -1,43 +1,13 @@
 {
-  "aparat_next_upload_at": null,
-  "editorial_channel_queue": [],
-  "editorial_video_queue": [
-    {
-      "content_id": "editorial:measure-room-size",
-      "platforms": {
-        "aparat": {
-          "attempt_started_at": null,
-          "next_attempt_at": null,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempt_started_at": null,
-          "next_attempt_at": null,
-          "status": "pending"
-        }
-      },
-      "scheduled_at": "2026-11-18T03:07:19.173867+00:00",
-      "sequence_number": 1554,
-      "status": "partial"
-    }
-  ],
-  "emergency_continuity_active": false,
   "emergency_continuity_baseline_completed_at": null,
-  "emergency_continuity_expires_at": null,
-  "emergency_continuity_snapshot_sha256": null,
-  "filo_login_verification_status": "verified",
-  "filo_login_verified_at": "2026-11-18T05:41:21.546586+00:00",
-  "filo_next_upload_at": null,
-  "filo_upload_interval_policy_version": 3,
-  "generated_at": "2026-11-18T06:21:35.087730+00:00",
-  "last_channel_published_at": "2026-11-18T06:20:33.647406+00:00",
+  "aparat_next_upload_at": null,
   "last_product_channel_published_at": "2026-11-18T06:20:33.647406+00:00",
-  "next_channel_content_due_at": "2026-11-18T06:51:33.647406+00:00",
-  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
-  "pending_product_queue_count": 16,
-  "product_publication_cadence_cycle_id": "2026-11-18T02:57:36.425446+00:00",
-  "product_publication_interval_seconds": 3420.0,
+  "filo_next_upload_at": null,
   "product_publication_plan_cycle_id": "2026-11-18T02:57:36.425446+00:00",
+  "youtube_upload_pause_reason": "daily_upload_limit",
+  "pending_product_queue_count": 16,
+  "filo_login_verification_status": "verified",
+  "generated_at": "2026-11-18T06:21:46.593723+00:00",
   "published": {
     "dkp-10002173": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -2695,7 +2665,7 @@
       "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22004922": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "uploaded",
       "bale_message_id": 2274,
       "content_id": "dkp-22004922",
       "content_type": "product",
@@ -2715,8 +2685,9 @@
       "telegram_message_id": 1697,
       "ts": 1794982774.105394,
       "video_dispatch_eligible": true,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "generated",
+      "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22065511": {
       "aparat_upload_status": "pending",
@@ -5147,8 +5118,39 @@
       "youtube_upload_status": "uploaded"
     }
   },
-  "schema_version": 2,
+  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
+  "editorial_video_queue": [
+    {
+      "content_id": "editorial:measure-room-size",
+      "platforms": {
+        "aparat": {
+          "attempt_started_at": null,
+          "next_attempt_at": null,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempt_started_at": null,
+          "next_attempt_at": null,
+          "status": "pending"
+        }
+      },
+      "scheduled_at": "2026-11-18T03:07:19.173867+00:00",
+      "sequence_number": 1554,
+      "status": "partial"
+    }
+  ],
   "youtube_next_upload_at": null,
-  "youtube_upload_pause_reason": "daily_upload_limit",
-  "youtube_uploads_paused_until": "2026-11-18T18:39:32.096553+00:00"
+  "schema_version": 2,
+  "product_publication_cadence_cycle_id": "2026-11-18T02:57:36.425446+00:00",
+  "emergency_continuity_active": false,
+  "emergency_continuity_snapshot_sha256": null,
+  "filo_upload_interval_policy_version": 3,
+  "filo_login_verified_at": "2026-11-18T05:41:21.546586+00:00",
+  "emergency_continuity_expires_at": null,
+  "editorial_channel_queue": [],
+  "youtube_uploads_paused_until": "2026-11-18T18:39:32.096553+00:00",
+  "next_channel_content_due_at": "2026-11-18T06:51:33.647406+00:00",
+  "last_channel_published_at": "2026-11-18T06:20:33.647406+00:00",
+  "product_publication_interval_seconds": 3420.0,
+  "editorial_delivery_queue": {}
 }
