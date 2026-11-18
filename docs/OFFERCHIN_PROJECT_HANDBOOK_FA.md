@@ -3015,3 +3015,17 @@ Workflow رادار برای هر اجرا اکنون تست Python استقلا
 لینک عمومی ارائه‌شده با مقصد صفحهٔ اصلی خانومی redirect شد و پارامترهای `clickid` و `affiliate=deema` در مقصد مشاهده شدند. این فقط اثبات redirect/صدور شناسهٔ کلیک است؛ شمارندهٔ پنل، سفارش و کمیسیون تأیید نشده‌اند. deep-link محصول هنوز آزمون نشده است. ردیف‌های پنل ارائه‌شده media «پیندو» را نشان می‌دهند؛ تا تأیید media مستقل OfferChin نباید از همان پایه‌لینک در کانال‌های پروژه استفاده شود. مستند API عمومی قابل اتکایی برای گزارش سفارش پیدا نشد. دیما در مرحلهٔ نامزد پایلوت است و هیچ CTA/لینک افیلیو، secret یا انتشار زنده تغییر نمی‌کند.
 
 **محدودیت rollout:** این اصلاحات تا ادغام PR #249 در main فعال نیستند. پس از ادغام، تغییر Worker از مسیر workflow استقرار Cloudflare منتشر می‌شود؛ سپس باید لاگ‌های dispatch، زمان discovery، صف محصول و رسیدهای واقعی Telegram/Bale/Rubika و سایر مقصدها بررسی شوند.
+
+
+### نگهداری امن صف ویدئو و جلوگیری از انسداد FIFO — ۱۹ نوامبر ۲۰۲۶
+
+سه workflow مستقل YouTube، Aparat و Filo پیش از ورود به صف ویدئوی تحریریه، اسکریپت `video_queue_maintenance.py` را فقط برای مقصد خود اجرا می‌کنند. این اسکریپت دو وضعیت را مدیریت می‌کند:
+
+1. رکوردهای دارای وضعیت pending/retry که timestamp معتبر ندارند یا از پنجرهٔ تازگی ۲۴ساعته عبور کرده‌اند، به وضعیت terminal مقصد `skipped_stale_after_freshness_window` منتقل می‌شوند. رکورد محصول، شناسهٔ صف، لینک‌ها و رسیدهای قبلی حذف نمی‌شوند؛ فقط از projection صف فعال خارج می‌شوند تا محصول قدیمی، ویدئوی تحریریهٔ جدید را مسدود نکند.
+2. رکورد تازه‌ای که قبلاً به دلیل نبود اعتبارنامه `skipped_unavailable` شده، فقط در صورت حاضر بودن credential همان مقصد و عبور دوباره از helper موجود `_has_pending_video_destination` به `pending` برمی‌گردد. بنابراین تمدید صف، گیت expiry و eligibility را دور نمی‌زند.
+
+وضعیت‌های terminal یا دارای اقدام خارجی، از جمله YouTube/Aparat با وضعیت `uploaded` و Filo با `submitted_pending_approval`، `submitted_unconfirmed` یا `rejected_by_filo` تغییر نمی‌کنند. به‌ویژه submit فیلو بدون اثبات visibility عمومی، به‌طور خودکار دوباره ارسال نمی‌شود.
+
+اسکریپت پس از هر تغییر، هم `state.json` و هم `video_upload_dispatch_state.json` را بازسازی/ذخیره می‌کند تا dispatcher و ناشر تحریریه snapshot یکسانی ببینند. این نگهداری فقط روی مقصد workflow جاری اعمال می‌شود؛ هیچ lock سراسری جدیدی بین YouTube، Aparat، Filo، Telegram یا Bale اضافه نشده است.
+
+Regressionها رفتار stale terminalization، requeue مقصدپسند پس از بازگشت credential، حفظ وضعیت بدون credential، timestamp مفقود، skip deadline آپارات و عدم retry ارسال pending فیلو را بررسی می‌کنند. اجرای عمومی و فروش واقعی فقط پس از merge و اجرای workflowهای عادی قابل راستی‌آزمایی است.

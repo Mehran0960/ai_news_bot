@@ -8,6 +8,8 @@ on:
       - "affilio_radar/short_video.py"
       - "affilio_radar/aparat_uploader.py"
       - "affilio_radar/filo_uploader.py"
+      - "affilio_radar/video_queue_maintenance.py"
+      - "affilio_radar/test_video_queue_maintenance.py"
       - "affilio_radar/publisher.py"
       - "affilio_radar/merge_state_conflicts.py"
       - "affilio_radar/test_merge_state_conflicts.py"
@@ -67,6 +69,7 @@ jobs:
             affilio_radar/offerchin_visuals.py \
             affilio_radar/aparat_uploader.py \
             affilio_radar/filo_uploader.py \
+            affilio_radar/video_queue_maintenance.py \
             affilio_radar/offerchin_four_factor.py
 
       - name: Run unified FIFO, retry, platform and four-factor regressions
@@ -77,6 +80,7 @@ jobs:
             test_aparat_upload_schedule.py \
             test_filo_upload_schedule.py \
             test_filo_uploader.py \
+            test_video_queue_maintenance.py \
             test_short_video.py \
             test_offerchin_four_factor.py
 

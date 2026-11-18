@@ -79,7 +79,7 @@ jobs:
             affilio_radar/filo_uploader.py \
             affilio_radar/short_video.py
           cd affilio_radar
-          python -m unittest -v test_filo_uploader.py test_filo_upload_schedule.py test_shared_selection_media_routing.py test_merge_state_conflicts.py
+          python -m unittest -v test_filo_uploader.py test_filo_upload_schedule.py test_shared_selection_media_routing.py test_merge_state_conflicts.py test_video_queue_maintenance.py
 
       - name: Verify Filo login without publishing
         id: filo_login
@@ -90,6 +90,14 @@ jobs:
           FILO_PASS: ${{ secrets.FILO_PASS }}
           PYTHONUNBUFFERED: "1"
         run: python affilio_radar/affilio_radar.py --filo-login-check-only
+
+      - name: Reconcile stale and credential-recovered Filo queue entries
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode != 'verify-login' && steps.filo_login.outcome == 'success' }}
+        env:
+          FILO_USER: ${{ secrets.FILO_USER }}
+          FILO_PASS: ${{ secrets.FILO_PASS }}
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/video_queue_maintenance.py --destination filo --max-age-hours 24
 
       - name: Process only the Filo editorial video queue
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode != 'verify-login' && steps.filo_login.outcome == 'success' }}
