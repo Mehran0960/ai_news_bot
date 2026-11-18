@@ -1,6 +1,15 @@
 {
-  "aparat_next_upload_at": null,
+  "product_publication_plan_cycle_id": "2026-11-18T20:04:29.950230+00:00",
+  "last_product_channel_published_at": "2026-11-18T21:25:53.482353+00:00",
+  "filo_next_upload_at": null,
+  "pending_product_queue_count": 5,
   "editorial_channel_queue": [],
+  "last_channel_published_at": "2026-11-18T21:25:53.482353+00:00",
+  "youtube_next_upload_at": null,
+  "youtube_upload_pause_reason": "daily_upload_limit",
+  "filo_login_verified_at": "2026-11-18T21:35:17.230083+00:00",
+  "schema_version": 2,
+  "filo_upload_interval_policy_version": 3,
   "editorial_video_queue": [
     {
       "content_id": "editorial:measure-room-size",
@@ -16,23 +25,13 @@
       "status": "partial"
     }
   ],
-  "emergency_continuity_active": false,
   "emergency_continuity_baseline_completed_at": null,
-  "emergency_continuity_expires_at": null,
-  "emergency_continuity_snapshot_sha256": null,
-  "filo_login_verification_status": "verified",
-  "filo_login_verified_at": "2026-11-18T21:35:17.230083+00:00",
-  "filo_next_upload_at": null,
-  "filo_upload_interval_policy_version": 3,
-  "generated_at": "2026-11-18T21:51:57.613490+00:00",
-  "last_channel_published_at": "2026-11-18T21:25:53.482353+00:00",
-  "last_product_channel_published_at": "2026-11-18T21:25:53.482353+00:00",
-  "next_channel_content_due_at": "2026-11-18T22:02:53.482353+00:00",
   "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
-  "pending_product_queue_count": 5,
+  "generated_at": "2026-11-18T21:52:27.299723+00:00",
+  "emergency_continuity_expires_at": null,
+  "filo_login_verification_status": "verified",
   "product_publication_cadence_cycle_id": "2026-11-18T20:04:29.950230+00:00",
-  "product_publication_interval_seconds": 3420.0,
-  "product_publication_plan_cycle_id": "2026-11-18T20:04:29.950230+00:00",
+  "aparat_next_upload_at": null,
   "published": {
     "dkp-13258649": {
       "aparat_upload_status": "uploaded",
@@ -61,7 +60,8 @@
       "ts": 1795037139.451718,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-17612057": {
       "aparat_upload_status": "uploaded",
@@ -87,7 +87,8 @@
       "ts": 1794989252.728251,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-17642142": {
       "aparat_upload_status": "uploaded",
@@ -113,7 +114,8 @@
       "ts": 1795005937.395377,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-20589939": {
       "aparat_upload_status": "uploaded",
@@ -139,7 +141,8 @@
       "ts": 1795012474.087095,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-21103222": {
       "aparat_upload_status": "uploaded",
@@ -165,7 +168,8 @@
       "ts": 1794998974.109418,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-21131845": {
       "aparat_upload_status": "uploaded",
@@ -191,7 +195,8 @@
       "ts": 1794996873.91837,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-21409421": {
       "aparat_upload_status": "uploaded",
@@ -217,7 +222,8 @@
       "ts": 1795014575.532895,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-22036587": {
       "aparat_upload_status": "uploaded",
@@ -243,7 +249,8 @@
       "ts": 1795016571.649505,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-22066439": {
       "aparat_upload_status": "uploaded",
@@ -269,7 +276,8 @@
       "ts": 1795032862.615867,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-22431305": {
       "aparat_upload_status": "uploaded",
@@ -295,7 +303,8 @@
       "ts": 1794994900.784857,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-3967728": {
       "aparat_upload_status": "uploaded",
@@ -321,7 +330,8 @@
       "ts": 1795010200.260822,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-6742147": {
       "aparat_upload_status": "uploaded",
@@ -350,7 +360,8 @@
       "ts": 1795035050.977986,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-6901981": {
       "aparat_upload_status": "uploaded",
@@ -376,11 +387,14 @@
       "ts": 1794992028.699607,
       "video_dispatch_eligible": true,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_upload_status": "retry"
     }
   },
-  "schema_version": 2,
-  "youtube_next_upload_at": null,
-  "youtube_upload_pause_reason": null,
-  "youtube_uploads_paused_until": null
+  "youtube_uploads_paused_until": "2026-11-19T22:07:26.442174+00:00",
+  "emergency_continuity_active": false,
+  "emergency_continuity_snapshot_sha256": null,
+  "product_publication_interval_seconds": 3420.0,
+  "next_channel_content_due_at": "2026-11-18T22:02:53.482353+00:00",
+  "editorial_delivery_queue": {}
 }
