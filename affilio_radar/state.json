@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-18T14:35:46.472907+00:00",
-  "aparat_last_upload_success_at": "2026-11-18T14:35:49.874416+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-18T15:10:49.092674+00:00",
+  "aparat_last_upload_success_at": "2026-11-18T15:10:52.971111+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-18T02:58:38.072896+00:00",
@@ -308547,7 +308547,13 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-21409421": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-18T15:10:49.092674+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-18T15:10:52.971111+00:00",
+      "aparat_video_hash": "ono4649",
+      "aparat_video_record_id": "74282084",
+      "aparat_video_url": "https://www.aparat.com/v/ono4649",
+      "aparat_visibility": "public",
       "bale_message_id": 2295,
       "bale_posted_at": "2026-11-18T15:09:43.166642+00:00",
       "brand": "لیماک جنرال اینترنشنال",
@@ -308671,8 +308677,17 @@
       "telegram_posted_at": "2026-11-18T15:09:42.291274+00:00",
       "title": "تلویزیون 55 اینچ ال ای دی هوشمند لیماک جنرال اینترنشنال مدل LGI-5520TDU",
       "ts": 1795014575.532895,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-21409421.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-21409421.mp4"
+      },
+      "video_generated_at": "2026-11-18T15:10:43.700001+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-21419942": {
       "aparat_skip_reason": "verified_expiry_required",
