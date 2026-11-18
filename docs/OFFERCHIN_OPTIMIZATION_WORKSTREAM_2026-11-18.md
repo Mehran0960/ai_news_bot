@@ -25,7 +25,7 @@ This work is staged on `codex/offerchin-optimization-2026-11-18-refresh4`, creat
 
 ## Verification
 - The predecessor PR #246 code snapshot `3742a1e4d43aaf6cfc704f6dc3f63f6e62d5ec83` passed 601 Python tests (2 skipped), 4 Node worker tests and 10 PR checks; its latest documentation-only head had 9/9 PR workflows successful.
-- These are historical predecessor-branch results. The fresh `refresh3` branch must pass its own CI before merge consideration.
+- PR #248 current head c4775fbb227243d65736d9c4f0137bc096bc3fde passed all 9/9 dedicated PR workflows on 18 November 2026: Editorial Contract, Fallback, Top-100/DigiPay, Catalog Sweep, Four-Factor Ranking, Unified Video Fan-out, Platform Logo, Messenger Adapter and Documentation Gate.
 - Live marketplace-wide demand and completed purchase attribution remain unverified and are not simulated.
 - No merge, deploy, live publish, secret change, or external network activation has been performed.
 
@@ -33,4 +33,4 @@ This work is staged on `codex/offerchin-optimization-2026-11-18-refresh4`, creat
 
 Photo delivery for Telegram, Bale, Rubika and Eitaa is now routed through `_deliver_photo_destinations_independently`. Each adapter receives a private copy; its future result is merged independently. A failure on one adapter is recorded for that destination and does not cancel sibling futures. A new test simulates Eitaa failure while requiring Telegram/Bale/Rubika to succeed. The regression workflow now includes this Python suite and Node worker attribution tests.
 
-Limit: the four photo adapters still share one Actions runner; a runner crash/timeout can affect all four. Video platform workflows are separate. The successful tests and CI listed above belong to the predecessor branch snapshot; this refreshed branch must pass its own CI before merge.
+Limit: the four photo adapters still share one Actions runner; a runner crash/timeout can affect all four. Video platform workflows are separate. PR #248 is still Draft and has not been merged; passing CI is code verification, not evidence of live publication or sales.
