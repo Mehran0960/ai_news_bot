@@ -37,7 +37,6 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 BALE_BOT_TOKEN = os.getenv("BALE_BOT_TOKEN", "").strip()
 BALE_CHANNEL_ID = os.getenv("BALE_CHANNEL_ID", "").strip()
 DEAL_LIST_PAGES = max(1, min(5, int(os.getenv("AFFILIO_DEAL_LIST_PAGES", "3"))))
-FEED_URL = "https://api.digikala.com/v1/incredible-offers/products/"
 HTTP_TIMEOUT = 18
 # Keep per-product source checks bounded; slow retailer endpoints must not consume the
 # entire audit job timeout. The value is independently configurable for operations.
@@ -254,49 +253,30 @@ def fetch_mcp_offer_expiries():
 
 
 def fetch_direct_api_offer_expiries():
-    """Return no data for DigiKala's retired legacy live-deals REST route.
-
-    The former /v1/incredible-offers/products/ endpoint currently returns 404.
-    Do not repeatedly spend request time on a known-dead route; exact, current
-    campaign countdowns are supplemented from product-matched MCP offer cards.
-    """
+    """Compatibility shim for callers/tests; the retired REST feed is never requested."""
     print("EXPIRY_LEGACY_FEED_SKIPPED reason=retired_endpoint use=mcp_offer_cards")
     return {}
 
 
 def fetch_offer_deadlines(required_product_ids=None):
-    """Fetch current exact DigiKala card deadlines, preferring first-party REST data.
+    """Fetch exact campaign deadlines from product-matched current MCP offer cards.
 
-    The REST endpoint is authoritative when it exposes a timer. On products where
-    the list endpoint omits timer fields, the same product-matched live offer card
-    returned by the DigiKala MCP adapter can supplement the gap. Estimated/cache-only
-    timestamps never enter this map.
+    The old list REST endpoint is retired. This function does not call it. Exact
+    product-detail API checks run separately in the rotating product-status monitor
+    and at expiry confirmation; estimated/cache-only timestamps never enter this map.
     """
     required = {str(pid) for pid in (required_product_ids or []) if str(pid)}
-    direct = {}
-    try:
-        payload = fetch_direct_api_offer_expiries()
-        if isinstance(payload, dict):
-            direct = {
-                str(pid): expiry
-                for pid, expiry in payload.items()
-                if str(pid) and parse_expiry(expiry)
-            }
-    except Exception as exc:
-        print(f"EXPIRY_DIRECT_FEED_LOOKUP_FAILED error={type(exc).__name__} detail={str(exc)[:140]!r}")
-
-    combined = dict(direct)
-    sources = {pid: "digikala_live_deals_feed" for pid in direct}
-    missing_required = required.difference(direct)
+    combined = {}
+    sources = {}
     mcp_added = 0
-    if missing_required:
+    if required:
         try:
-            # Page 1 contains the freshest timed cards; unresolved records fall back
-            # to a bounded, rotating batch of first-party product-detail checks.
+            # Page 1 contains the freshest timed cards. Product-detail checks for
+            # unresolved items are deliberately delegated to the rotating monitor.
             mcp, _cards = fetch_mcp_offer_candidates(page_numbers=[1])
             for raw_pid, raw_expiry in mcp.items():
                 pid = str(raw_pid)
-                if pid in direct or (required and pid not in missing_required):
+                if pid not in required:
                     continue
                 expiry = parse_expiry(raw_expiry)
                 if not expiry:
@@ -309,10 +289,10 @@ def fetch_offer_deadlines(required_product_ids=None):
 
     unresolved_count = len(required.difference(combined))
     print(
-        f"EXPIRY_SOURCE_PRIORITY direct_site={len(direct)} mcp_page1_added={mcp_added} "
+        f"EXPIRY_SOURCE_PRIORITY legacy_rest_feed=retired mcp_page1_added={mcp_added} "
         f"required={len(required)} unresolved_required={unresolved_count} "
-        "direct_site_wins=true cached_deadlines_preserved_without_live_evidence=true "
-        "product_detail_probes_deferred_to_rotating_monitor=true"
+        "product_detail_probes_deferred_to_rotating_monitor=true "
+        "cached_deadlines_preserved_without_live_evidence=true"
     )
     return combined, sources
 
