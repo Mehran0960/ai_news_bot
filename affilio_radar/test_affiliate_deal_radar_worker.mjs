@@ -46,6 +46,10 @@ test("health advertises experiment attribution support", async () => {
   assert.equal(body.clickStoreReady, true);
   assert.equal(body.experimentAttribution, true);
   assert.equal(body.captionExperimentAttribution, true);
+  assert.match(
+    body.routes.join(" "),
+    /telegram\|bale\|rubika\|eitaa\|youtube\|aparat\|filo/,
+  );
 });
 
 test("product redirects store source and A/B attribution and expose it in stats", async () => {
@@ -87,6 +91,38 @@ test("product redirects store source and A/B attribution and expose it in stats"
   assert.equal(stats.visualExperimentVariants["creative-test-1:B"], 1);
   assert.equal(stats.captionExperimentVariants["caption-test-1:A"], 1);
   assert.equal(stats.productCaptionExperimentVariants[productId]["caption-test-1:A"], 1);
+});
+
+test("all seven OfferChin media retain distinct click-source attribution", async () => {
+  const CLICKS = mockKV();
+  const productId = "dkp-123456";
+  const productUrl = "https://www.digikala.com/product/dkp-123456/";
+  const affiliateUrl = "https://aflo.ir/QekEYTRg?p=" + encodeURIComponent(productUrl);
+  const channels = ["telegram", "bale", "rubika", "eitaa", "youtube", "aparat", "filo"];
+
+  for (const channel of channels) {
+    const response = await worker.fetch(
+      new Request(
+        "https://worker.example/p/" + productId +
+          "?u=" + encodeURIComponent(affiliateUrl) + "&src=" + channel,
+        { headers: { "user-agent": "Mozilla/5.0 test browser" } },
+      ),
+      { CLICKS },
+    );
+    assert.equal(response.status, 302, channel);
+    assert.equal(response.headers.get("location"), affiliateUrl, channel);
+  }
+
+  const statsResponse = await worker.fetch(
+    new Request("https://worker.example/stats"),
+    { CLICKS },
+  );
+  const stats = await statsResponse.json();
+  assert.equal(stats.totalClicks, channels.length);
+  for (const channel of channels) {
+    assert.equal(stats.sources[channel], 1, channel);
+    assert.equal(stats.productSources[productId][channel], 1, channel);
+  }
 });
 
 test("HEAD validation does not create a click event", async () => {
