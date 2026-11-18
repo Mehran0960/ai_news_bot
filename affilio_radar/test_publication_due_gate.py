@@ -11,14 +11,20 @@ class PublicationDueGateTests(unittest.TestCase):
     def test_due_product_slot_skips_repeated_discovery(self):
         due = (self.now - timedelta(seconds=1)).isoformat()
         self.assertEqual(
-            due_publication_slot({"next_channel_content_due_at": due}, now=self.now),
+            due_publication_slot({
+                "pending_product_queue_count": 1,
+                "next_channel_content_due_at": due,
+            }, now=self.now),
             (True, "channel_content_due"),
         )
 
     def test_due_editorial_midpoint_skips_repeated_discovery(self):
         due = (self.now - timedelta(seconds=1)).isoformat()
         self.assertEqual(
-            due_publication_slot({"next_editorial_planning_at": due}, now=self.now),
+            due_publication_slot({
+                "pending_product_queue_count": 1,
+                "next_editorial_planning_at": due,
+            }, now=self.now),
             (True, "editorial_midpoint_due"),
         )
 
@@ -26,6 +32,7 @@ class PublicationDueGateTests(unittest.TestCase):
         future = (self.now + timedelta(seconds=30)).isoformat()
         self.assertEqual(
             due_publication_slot({
+                "pending_product_queue_count": 1,
                 "next_channel_content_due_at": future,
                 "next_editorial_planning_at": future,
             }, now=self.now),
@@ -36,10 +43,34 @@ class PublicationDueGateTests(unittest.TestCase):
         due = (self.now - timedelta(seconds=1)).isoformat()
         self.assertEqual(
             due_publication_slot({
+                "pending_product_queue_count": 1,
                 "next_channel_content_due_at": due,
                 "next_editorial_planning_at": due,
             }, now=self.now),
             (True, "channel_content_due"),
+        )
+
+    def test_stale_due_timestamps_do_not_block_discovery_when_queues_are_empty(self):
+        stale = (self.now - timedelta(hours=1)).isoformat()
+        self.assertEqual(
+            due_publication_slot({
+                "pending_product_queue_count": 0,
+                "editorial_channel_queue": [],
+                "next_channel_content_due_at": stale,
+                "next_editorial_planning_at": stale,
+            }, now=self.now),
+            (False, "no_active_publication_queue"),
+        )
+
+    def test_editorial_recovery_queue_keeps_a_due_editorial_slot_valid(self):
+        due = (self.now - timedelta(seconds=1)).isoformat()
+        self.assertEqual(
+            due_publication_slot({
+                "pending_product_queue_count": 0,
+                "editorial_channel_queue": [{"content_id": "editorial:retry"}],
+                "next_editorial_planning_at": due,
+            }, now=self.now),
+            (True, "editorial_midpoint_due"),
         )
 
     def test_missing_or_invalid_projection_fails_open(self):
@@ -48,14 +79,20 @@ class PublicationDueGateTests(unittest.TestCase):
             (False, "dispatch_sidecar_unavailable_fail_open"),
         )
         self.assertEqual(
-            due_publication_slot({"next_channel_content_due_at": "not-a-date"}, now=self.now),
+            due_publication_slot({
+                "pending_product_queue_count": 1,
+                "next_channel_content_due_at": "not-a-date",
+            }, now=self.now),
             (False, "no_publication_slot_due"),
         )
 
     def test_naive_timestamps_are_interpreted_as_utc(self):
         due = (self.now - timedelta(seconds=1)).replace(tzinfo=None).isoformat()
         self.assertEqual(
-            due_publication_slot({"next_channel_content_due_at": due}, now=self.now),
+            due_publication_slot({
+                "pending_product_queue_count": 1,
+                "next_channel_content_due_at": due,
+            }, now=self.now),
             (True, "channel_content_due"),
         )
 
