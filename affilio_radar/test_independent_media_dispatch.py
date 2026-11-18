@@ -70,7 +70,8 @@ class IndependentPhotoDeliveryTests(unittest.TestCase):
             self.assertEqual(self.entry["platforms"][destination]["status"], "sent")
             self.assertEqual(self.record["delivery_status"][destination], "sent")
         self.assertEqual(self.record["delivery_status"]["eitaa"], "failed")
-        self.assertEqual(self.entry["platforms"]["eitaa"]["status"], "pending")
+        self.assertEqual(self.entry["platforms"]["eitaa"]["status"], "failed")
+        self.assertEqual(self.entry["platforms"]["eitaa"]["attempts"], 1)
 
     def test_isolated_sender_does_not_write_shared_state(self):
         with patch.object(publisher, "_target_ready", return_value=True), \
