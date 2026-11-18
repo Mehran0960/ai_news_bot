@@ -293,3 +293,28 @@ test("HEAD validation does not create a click event", async () => {
   assert.equal(response.status, 302);
   assert.equal(CLICKS.values.size, 0);
 });
+
+
+test("Affilio postback rejects non-contract unit_price-only sale items", async () => {
+  const DB = mockD1();
+  const response = await worker.fetch(
+    new Request("https://worker.example/affilio/postback", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "X-Affilio-Token": "postback-secret",
+      },
+      body: JSON.stringify({
+        conversion_id: "conv-wrong-item-field",
+        type: "sale",
+        status: "pending",
+        timestamp: "2026-11-18T03:00:00.000Z",
+        amount: 125_000,
+        items: [{ quantity: 1, unit_price: 125_000 }],
+      }),
+    }),
+    { DB, AFFILIO_POSTBACK_TOKEN: "postback-secret" },
+  );
+  assert.equal(response.status, 400);
+  assert.equal(DB.rows.size, 0);
+});
