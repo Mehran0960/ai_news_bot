@@ -199,6 +199,40 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
         }}})
         self.assertIn("item", sidecar["published"])
 
+    def test_dispatch_sidecar_exposes_pending_editorial_video_destinations_independently(self):
+        now = datetime(2026, 11, 18, 5, 0, tzinfo=timezone.utc)
+        state = {
+            "editorial_delivery_queue": {
+                "editorial:delivery-guide": {
+                    "content_id": "editorial:delivery-guide",
+                    "sequence_number": 42,
+                    "status": "partial",
+                    "scheduled_at": (now - timedelta(minutes=2)).isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "sent", "message_id": "tg-42"},
+                        "bale": {"status": "sent", "message_id": "ba-42"},
+                        "youtube": {"status": "retry", "next_attempt_at": (now + timedelta(hours=3)).isoformat()},
+                        "aparat": {"status": "pending"},
+                        "filo": {"status": "manual_review"},
+                    },
+                },
+                "editorial:complete": {
+                    "content_id": "editorial:complete",
+                    "sequence_number": 41,
+                    "status": "completed",
+                    "platforms": {"youtube": {"status": "pending"}},
+                },
+            }
+        }
+        sidecar = radar.build_video_upload_dispatch_state(state, now=now)
+        self.assertEqual(len(sidecar["editorial_video_queue"]), 1)
+        item = sidecar["editorial_video_queue"][0]
+        self.assertEqual(item["content_id"], "editorial:delivery-guide")
+        self.assertEqual(item["sequence_number"], 42)
+        self.assertEqual(set(item["platforms"]), {"youtube", "aparat"})
+        self.assertEqual(item["platforms"]["youtube"]["status"], "retry")
+        self.assertNotIn("telegram", item["platforms"])
+
     def test_dispatch_sidecar_keeps_oldest_pending_canonical_products_and_drops_terminal_ones(self):
         state = {
             "published": {
