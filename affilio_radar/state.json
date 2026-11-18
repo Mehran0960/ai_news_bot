@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-17T23:45:02.653095+00:00",
-  "aparat_last_upload_success_at": "2026-11-17T23:45:08.152535+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-18T00:17:49.872424+00:00",
+  "aparat_last_upload_success_at": "2026-11-18T00:17:55.055481+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-17T23:54:02.442683+00:00",
@@ -326332,7 +326332,13 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-22404391": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-18T00:17:49.872424+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-18T00:17:55.055481+00:00",
+      "aparat_video_hash": "uql8f8b",
+      "aparat_video_record_id": "74272467",
+      "aparat_video_url": "https://www.aparat.com/v/uql8f8b",
+      "aparat_visibility": "public",
       "bale_message_id": 2259,
       "bale_posted_at": "2026-11-18T00:12:41.649580+00:00",
       "brand": "",
@@ -326456,8 +326462,17 @@
       "telegram_posted_at": "2026-11-18T00:12:40.902768+00:00",
       "title": "شلوارک راحتی مردانه مدل Sunday",
       "ts": 1794960754.894284,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22404391.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22404391.mp4"
+      },
+      "video_generated_at": "2026-11-18T00:17:43.423392+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22404875": {
       "aparat_upload_status": "skipped_unverified_deadline",
