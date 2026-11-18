@@ -1,43 +1,4 @@
 {
-  "aparat_next_upload_at": null,
-  "editorial_channel_queue": [],
-  "editorial_video_queue": [
-    {
-      "content_id": "editorial:measure-room-size",
-      "platforms": {
-        "aparat": {
-          "attempt_started_at": null,
-          "next_attempt_at": null,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempt_started_at": null,
-          "next_attempt_at": null,
-          "status": "pending"
-        }
-      },
-      "scheduled_at": "2026-11-18T03:07:19.173867+00:00",
-      "sequence_number": 1554,
-      "status": "partial"
-    }
-  ],
-  "emergency_continuity_active": false,
-  "emergency_continuity_baseline_completed_at": null,
-  "emergency_continuity_expires_at": null,
-  "emergency_continuity_snapshot_sha256": null,
-  "filo_login_verification_status": "verified",
-  "filo_login_verified_at": "2026-11-18T04:48:16.765781+00:00",
-  "filo_next_upload_at": null,
-  "filo_upload_interval_policy_version": 3,
-  "generated_at": "2026-11-18T05:04:37.973105+00:00",
-  "last_channel_published_at": "2026-11-18T05:04:03.166920+00:00",
-  "last_product_channel_published_at": "2026-11-18T05:04:03.166920+00:00",
-  "next_channel_content_due_at": "2026-11-18T05:38:03.166920+00:00",
-  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
-  "pending_product_queue_count": 18,
-  "product_publication_cadence_cycle_id": "2026-11-18T02:57:36.425446+00:00",
-  "product_publication_interval_seconds": 3420.0,
-  "product_publication_plan_cycle_id": "2026-11-18T02:57:36.425446+00:00",
   "published": {
     "dkp-10002173": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -3459,7 +3420,7 @@
       "youtube_upload_status": "retry"
     },
     "dkp-22750608": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_status": "uploaded",
       "bale_message_id": 2269,
       "content_id": "dkp-22750608",
       "content_type": "product",
@@ -3479,8 +3440,9 @@
       "telegram_message_id": 1695,
       "ts": 1794978214.310579,
       "video_dispatch_eligible": true,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_generation_status": "generated",
+      "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22766795": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -5148,7 +5110,47 @@
     }
   },
   "schema_version": 2,
+  "product_publication_cadence_cycle_id": "2026-11-18T02:57:36.425446+00:00",
+  "filo_next_upload_at": null,
+  "next_channel_content_due_at": "2026-11-18T05:38:03.166920+00:00",
+  "pending_product_queue_count": 18,
+  "product_publication_interval_seconds": 3420.0,
+  "last_channel_published_at": "2026-11-18T05:04:03.166920+00:00",
+  "filo_login_verified_at": "2026-11-18T04:48:16.765781+00:00",
+  "product_publication_plan_cycle_id": "2026-11-18T02:57:36.425446+00:00",
+  "emergency_continuity_active": false,
   "youtube_next_upload_at": null,
+  "emergency_continuity_snapshot_sha256": null,
   "youtube_upload_pause_reason": "daily_upload_limit",
-  "youtube_uploads_paused_until": "2026-11-18T18:39:32.096553+00:00"
+  "editorial_video_queue": [
+    {
+      "content_id": "editorial:measure-room-size",
+      "platforms": {
+        "aparat": {
+          "attempt_started_at": null,
+          "next_attempt_at": null,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempt_started_at": null,
+          "next_attempt_at": null,
+          "status": "pending"
+        }
+      },
+      "scheduled_at": "2026-11-18T03:07:19.173867+00:00",
+      "sequence_number": 1554,
+      "status": "partial"
+    }
+  ],
+  "filo_login_verification_status": "verified",
+  "filo_upload_interval_policy_version": 3,
+  "emergency_continuity_expires_at": null,
+  "youtube_uploads_paused_until": "2026-11-18T18:39:32.096553+00:00",
+  "generated_at": "2026-11-18T05:05:04.909667+00:00",
+  "last_product_channel_published_at": "2026-11-18T05:04:03.166920+00:00",
+  "editorial_channel_queue": [],
+  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
+  "aparat_next_upload_at": null,
+  "emergency_continuity_baseline_completed_at": null,
+  "editorial_delivery_queue": {}
 }
