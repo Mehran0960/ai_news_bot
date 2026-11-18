@@ -65,11 +65,13 @@ class ExpirationMonitorTests(unittest.TestCase):
         response.status_code = 200
         response.content = json.dumps(payload).encode("utf-8")
         response.json.return_value = payload
-        response.url = "https://api.digikala.com/v2/product/123/"
-        with patch.object(monitor.requests, "get", return_value=response) as request:
+        response.url = "https://api.digikala.com/product/v1/products/123/"
+        with patch.object(monitor, "_digikala_get", return_value=response) as request:
             result = monitor.fetch_live_product_status("dkp-123")
-        request.assert_called_once()
-        self.assertEqual(request.call_args.kwargs["timeout"], (5, monitor.PRODUCT_STATUS_TIMEOUT_SECONDS))
+        request.assert_called_once_with(
+            "https://api.digikala.com/product/v1/products/123/",
+            timeout=(5, monitor.PRODUCT_STATUS_TIMEOUT_SECONDS),
+        )
         self.assertEqual(result["deal_expires_at"], "2026-10-23T18:00:00+00:00")
         self.assertTrue(result["expiry_verified_directly"])
         self.assertEqual(result["current_price"], 100_000)
@@ -77,8 +79,6 @@ class ExpirationMonitorTests(unittest.TestCase):
 
 
     def test_fetch_live_product_status_does_not_repeat_failed_api_calls_in_html_fallback(self):
-        failed_v2 = MagicMock(status_code=404, content=b"", url="https://api.digikala.com/v2/product/123/")
-        failed_v1 = MagicMock(status_code=404, content=b"", url="https://api.digikala.com/v1/product/123/")
         page = MagicMock(
             status_code=200,
             content=b"<html>product</html>",
@@ -93,11 +93,13 @@ class ExpirationMonitorTests(unittest.TestCase):
             "expiry_deadline_verified_directly": False,
         }
         with (
-            patch.object(monitor.requests, "get", side_effect=[failed_v2, failed_v1, page]) as request,
+            patch.object(monitor, "_digikala_get", side_effect=RuntimeError("API unavailable")) as api_request,
+            patch.object(monitor.requests, "get", return_value=page) as request,
             patch.object(monitor, "parse_product_page", return_value=parsed_page),
         ):
             snapshot = monitor.fetch_live_product_status("dkp-123")
-        self.assertEqual(request.call_count, 3)
+        api_request.assert_called_once()
+        self.assertEqual(request.call_count, 1)
         self.assertEqual(snapshot["current_price"], 120_000)
         self.assertIs(snapshot["in_stock"], True)
         self.assertEqual(snapshot["price_source"], "digikala_product_page")
