@@ -128,6 +128,15 @@ def _active_editorial_entries(state: dict) -> list[dict]:
     return sorted(rows, key=lambda row: int(row.get("sequence_number") or 0))
 
 
+def _channel_spacing_guard_applies(state: dict) -> bool:
+    """Apply global channel spacing only before reserving a new editorial event.
+
+    A previously reserved event must be allowed to finish on each independent
+    destination even when another destination has already advanced the channel clock.
+    """
+    return not bool(_active_editorial_entries(state))
+
+
 def _selected_channel_destinations() -> tuple[str, ...]:
     """Select one photo channel for isolated repair workers; default to all channels."""
     selected = str(os.getenv("OFFERCHIN_EDITORIAL_CHANNEL_DESTINATION") or "").strip().lower()
@@ -1305,7 +1314,7 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         raise ValueError("mode_must_be_channels_or_videos")
     current = now or _now()
     state = radar.load_state(apply_integrity_ledger=False)
-    if publish and mode == "channels":
+    if publish and mode == "channels" and _channel_spacing_guard_applies(state):
         spacing_wait = channel_publication_wait_seconds(state, now=current)
         if spacing_wait > 0:
             next_slot = next_channel_publication_at(state)
