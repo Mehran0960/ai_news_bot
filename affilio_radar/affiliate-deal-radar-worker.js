@@ -68,13 +68,18 @@ function jsonResponse(body, status = 200) {
   });
 }
 
-function constantTimeEqual(leftValue, rightValue) {
-  const left = new TextEncoder().encode(String(leftValue || ""));
-  const right = new TextEncoder().encode(String(rightValue || ""));
-  const length = Math.max(left.length, right.length);
-  let difference = left.length ^ right.length;
-  for (let index = 0; index < length; index++) {
-    difference |= (left[index] || 0) ^ (right[index] || 0);
+async function constantTimeEqual(leftValue, rightValue) {
+  const encoder = new TextEncoder();
+  const [leftDigest, rightDigest] = await Promise.all([
+    crypto.subtle.digest("SHA-256", encoder.encode(String(leftValue || ""))),
+    crypto.subtle.digest("SHA-256", encoder.encode(String(rightValue || "")))
+  ]);
+  const left = new Uint8Array(leftDigest);
+  const right = new Uint8Array(rightDigest);
+  let difference = 0;
+  // Both digests are fixed at 32 bytes, so the comparison time does not reveal input length.
+  for (let index = 0; index < 32; index++) {
+    difference |= left[index] ^ right[index];
   }
   return difference === 0;
 }
@@ -106,7 +111,7 @@ function parseAffilioPostback(payload) {
   for (const item of itemsRaw) {
     if (!item || typeof item !== "object" || Array.isArray(item)) return null;
     const quantity = Number(item.quantity);
-    const unitPrice = Number(item.unit_price);
+    const unitPrice = Number(item.price);
     if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > 10000) return null;
     if (!Number.isSafeInteger(unitPrice) || unitPrice < 0) return null;
     items.push({ quantity, unit_price: unitPrice });
@@ -126,7 +131,7 @@ function parseAffilioPostback(payload) {
 
 function parseOfferChinAffSub(value) {
   const match = String(value || "").match(
-    /^oc1_(telegram|bale|youtube|aparat)_((?:dkp-\d{1,12})|(?:snp-\\d{1,20}))(?:_([A-Za-z0-9_-]{1,120}))?$/
+    /^oc1_(telegram|bale|youtube|aparat)_((?:dkp-\d{1,12})|(?:snp-\d{1,20}))(?:_([A-Za-z0-9_-]{1,120}))?$/
   );
   if (!match) return { source: "unknown", product_id: "unknown", campaign: "" };
   return { source: match[1], product_id: match[2], campaign: match[3] || "" };
@@ -139,7 +144,7 @@ async function receiveAffilioPostback(request, env) {
   if (!env.AFFILIO_POSTBACK_TOKEN) {
     return jsonResponse({ ok: false, error: "postback_not_configured" }, 503);
   }
-  if (!constantTimeEqual(request.headers.get("X-Affilio-Token"), env.AFFILIO_POSTBACK_TOKEN)) {
+  if (!(await constantTimeEqual(request.headers.get("X-Affilio-Token"), env.AFFILIO_POSTBACK_TOKEN))) {
     return jsonResponse({ ok: false, error: "unauthorized" }, 401);
   }
   if (!env.DB) return jsonResponse({ ok: false, error: "conversion_database_unavailable" }, 503);
@@ -208,7 +213,7 @@ async function readAffilioConversionReport(request, env) {
     return jsonResponse({ ok: false, error: "conversion_reporting_not_configured" }, 503);
   }
   const authorization = request.headers.get("authorization") || "";
-  if (!constantTimeEqual(authorization, "Bearer " + env.AFFILIO_REPORT_TOKEN)) {
+  if (!(await constantTimeEqual(authorization, "Bearer " + env.AFFILIO_REPORT_TOKEN))) {
     return jsonResponse({ ok: false, error: "unauthorized" }, 401);
   }
   if (!env.DB) return jsonResponse({ ok: false, error: "conversion_database_unavailable" }, 503);
