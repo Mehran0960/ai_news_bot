@@ -3233,3 +3233,20 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** نرخ‌ها، شرکای فروشگاهی و شرایط برنامه‌ها تغییرپذیرند؛ اطلاعات بازاریابی یا مقاله‌های قدیمی به‌تنهایی مبنای integration نیست. هر شریک جدید باید جداگانه از نظر API، شروط کمیسیون و صحت گزارش بررسی شود. حذف سند یا revert آن، منطق انتشار فعلی را تغییر نمی‌دهد.
 
 **وضعیت:** بررسی مستند نامزدها انجام شد؛ هیچ اتصال شبکهٔ جدید فعال نشده و پایلوت عملیاتی در انتظار دسترسی/تأیید رسمی است.
+
+
+## ۲۰۲۶-۱۱-۱۸ — حذف فراخوانی فید بازنشسته از مسیر نگاشت deadline
+
+**هدف:** حذف منطق و تست گمراه‌کننده‌ای که یک endpoint فید 404شده را به‌عنوان منبع REST معتبر برای deadline معرفی می‌کرد.
+
+**تغییر/اقدام:** `fetch_offer_deadlines` اکنون صریحاً فقط کارت‌های MCP را که شناسه‌شان در فهرست محصول‌های لازم است وارد map می‌کند. هیچ REST feed lookup انجام نمی‌شود؛ بررسی محصول از endpoint جزئیات زنده در rotating monitor/expiry confirmation جداگانه اجرا می‌شود. تابع قدیمی فقط به‌عنوان compatibility shim بدون شبکه باقی ماند و constant فید بازنشسته حذف شد. تست‌های قدیمیِ direct-feed priority با تست‌های MCP-only و بدون درخواست شبکه جایگزین شدند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/expiration_monitor.py`، `affilio_radar/test_expiration_monitor.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/OFFERCHIN_OPTIMIZATION_WORKSTREAM_2026-11-18.md`.
+
+**آزمون و نتیجه:** تست جدید ثابت می‌کند compatibility shim هیچ HTTP session نمی‌سازد و deadline map فقط محصول‌های لازم را با source برابر `digikala_mcp_offer_card` می‌پذیرد؛ اجرای CI روی head بعدی در انتظار است.
+
+**شواهد/شناسه:** PR #244؛ کد `78b488805ed1fc2744e74d237ca16f96553369ed`؛ تست `445f8c7e709aa8a2b4ebf6647ed15e4b75c54b10`.
+
+**ریسک/بازگشت:** پوشش deadlineهای فید REST بازنشسته دیگر گزارش نمی‌شود؛ fallback کارت MCP برای deadlineهای موجود و API جزئیات محصول برای بررسی موردی باقی می‌مانند. در نبود evidence، حذف پست انجام نمی‌شود. rollback با revert این دو commit ممکن است، اما نباید فراخوانی endpoint 404شده دوباره فعال شود.
+
+**وضعیت:** اصلاح در شاخه ثبت شد؛ CI جدید در انتظار است؛ merge و deploy انجام نشده‌اند.
