@@ -55,7 +55,7 @@ class VideoQueueMaintenanceTests(unittest.TestCase):
         self.assertEqual(record["youtube_upload_status"], "skipped_unavailable")
 
     def test_missing_timestamp_pending_record_is_terminalized(self):
-        record = self.record(age_hours=0, status="pending")
+        record = self.record(age_hours=0, status="pending", destination="aparat")
         record.pop("ts")
         state = {"published": {"dkp-no-time": record}}
 
