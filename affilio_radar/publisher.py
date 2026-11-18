@@ -686,6 +686,51 @@ def _merge_photo_destination_result(
         if incoming and (current is None or incoming > current):
             record["delivery_last_attempt_at"] = local_record["delivery_last_attempt_at"]
 
+def _deliver_photo_destinations_independently(
+    entry: dict,
+    record: dict,
+    item: dict,
+    image_bytes: bytes,
+    now: datetime,
+) -> dict[str, str]:
+    """Attempt every photo destination independently and merge only its own receipt."""
+    results: dict[str, str] = {}
+    # Keep platform adapters concurrent and isolated. An exception from one adapter
+    # is handled per future; it must not cancel, skip, or overwrite sibling results.
+    with ThreadPoolExecutor(max_workers=max(1, len(PHOTO_PLATFORMS))) as executor:
+        futures = {
+            executor.submit(
+                _deliver_photo_destination_isolated,
+                entry, record, item, image_bytes, destination, now,
+            ): destination
+            for destination in PHOTO_PLATFORMS
+        }
+        for future in as_completed(futures):
+            destination = futures[future]
+            try:
+                result_destination, local_entry, local_record = future.result()
+                _merge_photo_destination_result(
+                    entry, record, result_destination, local_entry, local_record
+                )
+                results[destination] = str(
+                    _target(entry, destination).get("status") or "pending"
+                )
+            except Exception as exc:
+                safe_detail = _safe_delivery_error(exc)
+                _target_retry(
+                    entry, destination, _now(),
+                    f"{type(exc).__name__}: {safe_detail}"[:180],
+                )
+                record.setdefault("delivery_status", {})[destination] = "failed"
+                results[destination] = "failed"
+                print(
+                    f"PLATFORM_DELIVERY_FAILED product_id={entry.get('product_id')} "
+                    f"platform={destination} error={type(exc).__name__} "
+                    f"detail={safe_detail}"
+                )
+    return results
+
+
 def _process_video_destinations(state: dict, entry: dict, record: dict, now: datetime) -> None:
     product_id = str(entry.get("product_id") or "")
     for target_name in VIDEO_PLATFORMS:
@@ -1113,32 +1158,10 @@ def publish_due_queue(_fallback_depth: int = 0) -> int:
             name: str(_target(entry, name).get("status") or "pending")
             for name in PHOTO_PLATFORMS
         }
-        # Start every photo destination independently. Each adapter receives a
-        # private state copy; its network delay/failure cannot serialize or mutate
-        # another destination's delivery state.
-        with ThreadPoolExecutor(max_workers=max(1, len(PHOTO_PLATFORMS))) as executor:
-            futures = {
-                executor.submit(
-                    _deliver_photo_destination_isolated,
-                    entry, record, fresh, image_bytes, destination, now,
-                ): destination
-                for destination in PHOTO_PLATFORMS
-            }
-            for future in as_completed(futures):
-                destination = futures[future]
-                try:
-                    result_destination, local_entry, local_record = future.result()
-                    _merge_photo_destination_result(
-                        entry, record, result_destination, local_entry, local_record
-                    )
-                except Exception as exc:
-                    safe_detail = _safe_delivery_error(exc)
-                    _target_retry(entry, destination, _now(), f"{type(exc).__name__}: {safe_detail}"[:180])
-                    record.setdefault("delivery_status", {})[destination] = "failed"
-                    print(
-                        f"PLATFORM_DELIVERY_FAILED product_id={product_id} platform={destination} "
-                        f"error={type(exc).__name__} detail={safe_detail}"
-                    )
+        # Each photo adapter has an isolated state copy and independent exception boundary.
+        _deliver_photo_destinations_independently(
+            entry, record, fresh, image_bytes, now
+        )
         # The canonical selected-product record already exists in state.json.
         # The video dispatcher consumes that same record independently: no photo
         # destination needs to report "sent" before YouTube/Aparat/Filo can start.
