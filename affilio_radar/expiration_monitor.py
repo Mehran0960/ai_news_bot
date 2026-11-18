@@ -424,7 +424,7 @@ def fetch_live_product_status(product_id, expected_price=None, expected_original
         "Referer": "https://www.digikala.com/",
     }
 
-    if re.fullmatch(r"snp-\\d+", normalized_id):
+    if re.fullmatch(r"snp-\d+", normalized_id):
         url = f"https://snappshop.ir/product/{normalized_id}"
         try:
             parsed = fetch_product_record(url)
@@ -466,7 +466,7 @@ def fetch_live_product_status(product_id, expected_price=None, expected_original
             "title": str(parsed.get("title") or ""),
         }
 
-    match = re.fullmatch(r"dkp-(\\d+)", normalized_id)
+    match = re.fullmatch(r"dkp-(\d+)", normalized_id)
     if not match:
         return {}
     numeric_id = match.group(1)
