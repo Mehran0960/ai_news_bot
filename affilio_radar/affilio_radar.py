@@ -4928,6 +4928,7 @@ def build_performance_report(
             "caption_variant": caption_variant,
             "selection_demand_evidence": record.get("selection_demand_evidence"),
             "selection_demand_quality": record.get("selection_demand_quality"),
+            "demand_evidence_scope": record.get("selection_demand_scope", "legacy_unknown"),
             "bestseller_rank": record.get("selection_bestseller_rank"),
             "bestseller_category_count": safe_count(record.get("selection_bestseller_category_count")),
             "discount_percent": safe_count(record.get("posted_discount_percent")),
@@ -9734,6 +9735,7 @@ def select_discount_fallback_candidates(
         if selected.get("selection_continuity_mode") == "temporary_three_factor_demand_relaxation":
             selected["selection_demand_evidence"] = "not_verified_emergency_continuity_override"
             selected["selection_demand_quality"] = "demand_not_verified_three_factor_proxy_only"
+            selected["selection_demand_scope"] = "not_verified"
         else:
             selected["selection_demand_evidence"] = (
                 "digikala_native_bestseller_rank" if bestseller_evidence
@@ -9746,6 +9748,11 @@ def select_discount_fallback_candidates(
                 bestseller_evidence.get("evidence_quality") if bestseller_evidence
                 else "indirect_review_growth_proxy_not_sales" if has_current_demand_signal(product, now=current)
                 else "historical_quality_context_only"
+            )
+            selected["selection_demand_scope"] = (
+                "digikala_store_only"
+                if bestseller_evidence or has_current_demand_signal(product, now=current)
+                else "no_current_store_demand_evidence"
             )
         selected["selection_bestseller_rank"] = bestseller_evidence.get("best_rank_across_categories")
         selected["selection_bestseller_category_count"] = bestseller_evidence.get("fresh_category_count", 0)
@@ -9822,7 +9829,7 @@ def restore_selection_discount_tiers(
         tier = {"selection_discount_floor": floor}
         for field in (
             "selection_discount_band", "publication_policy",
-            "selection_demand_evidence", "selection_demand_quality",
+            "selection_demand_evidence", "selection_demand_quality", "selection_demand_scope",
             "selection_bestseller_rank", "selection_bestseller_category_count",
             "selection_bestseller_rank_improvement",
             "selection_review_growth_evidence", "selection_value_evidence",
