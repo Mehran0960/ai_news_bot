@@ -3172,3 +3172,14 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** گزارش انتساب محافظه‌کارانه‌تر می‌شود؛ دادهٔ Worker قدیمی حذف نمی‌شود اما به‌عنوان کلیک CTA زنده تفسیر نمی‌شود. در صورت اختلال endpoint جدید، fallback محدود انجام می‌شود و در صورت نامعلوم‌ماندن داده، پست حذف نمی‌شود. سیاست ۷روزه پس از rollout می‌تواند پست‌های تصویری قدیمی‌تر از ۷ روز را پاک کند؛ پیش از فعال‌سازی باید وجود MTProto Secrets تأیید شود. rollback با revert تغییرهای workflow و کد مربوط ممکن است.
 
 **وضعیت:** شاخه‌ای؛ هیچ merge، deployment، تغییر secret یا حذف پست عمومی انجام نشده است.
+
+
+### تکمیل آزمون استقلال مقصدهای رسانه
+- اجرای ارسال چهار مقصد تصویری به تابع مستقل منتقل شد؛ exception هر future فقط همان مقصد را fail/retry می‌کند.
+- تست شکست کنترل‌شدهٔ Eitaa و موفقیت Telegram/Bale/Rubika اضافه شد.
+- تست‌های Node برای هفت source ردیاب کلیک به workflow رگرسیون اضافه شد.
+- محدودیت اجرایی ثبت شد: چهار مقصد تصویری یک runner مشترک دارند؛ ویدئوها workflowهای جدا دارند.
+
+**فایل‌ها:** `affilio_radar/publisher.py`، `affilio_radar/test_independent_media_dispatch.py`، `affilio_radar/test_affiliate_deal_radar_worker.mjs`، `.github/workflows/affilio-radar.yml`.
+
+**نتیجه:** اجرای CI commit جدید در انتظار؛ پیش از مشاهدهٔ خروجی کامل، موفقیت نهایی ادعا نمی‌شود.
