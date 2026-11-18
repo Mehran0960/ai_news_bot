@@ -28,6 +28,8 @@ on:
       - "affilio_radar/state.json"
       - "affilio_radar/test_affilio.py"
       - "affilio_radar/test_expiration_monitor.py"
+      - "affilio_radar/test_independent_media_dispatch.py"
+      - "affilio_radar/test_affiliate_deal_radar_worker.mjs"
       - "affilio_radar/test_short_video.py"
       - "affilio_radar/test_aparat_uploader.py"
       - "affilio_radar/expiration_monitor.py"
