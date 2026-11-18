@@ -3148,3 +3148,27 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** retry بیشتر ممکن است زمان پایان job را در رقابت شدید افزایش دهد، اما انتشار موازی را متوقف نمی‌کند. سقف ۱۰ تلاش و backoff jittered محدود است؛ rollback با revert همین PR ممکن است.
 
 **وضعیت:** تغییرات شاخه‌ای ثبت شد؛ CI و ادغام در main در انتظار.
+
+
+## 2026-11-18 — صداقت انتساب و رشد افیلیت
+
+**هدف:** جلوگیری از برداشت اشتباه از آمار کلیک/آزمایش، توسعهٔ ممیزی سالم قیمت/موجودی، حفظ سیاست نگهداری ۷روزه و ثبت الگوهای قابل‌انتقال رشد افیلیت.
+
+**تغییرات:**
+- ممیزی قیمت دیجی‌کالا به endpoint جزئیات محصول فعلی منتقل شد؛ مسیرهای قدیمی v1/v2 از مسیر قیمت حذف شدند و فقط یک HTML fallback محدود باقی ماند.
+- deadlineهای آفر از کارت MCP با تطبیق دقیق شناسهٔ محصول گرفته می‌شوند؛ فید REST بازنشسته دیگر فراخوانی نمی‌شود.
+- گزارش عملکرد بین رویدادهای Worker و CTA مستقیم Aflo تمایز می‌گذارد؛ کلیک زنده/انتساب رسانه و فروش تا زمان SubID یا گزارش رسمی افیلیو unavailable ثبت می‌شود.
+- هفت منبع رسانه‌ای در Worker و helper ساخت لینک آزمایشی شناخته می‌شوند.
+- نگهداری پست‌های محصول/آفر تلگرام و بله در workflow به ۷ روز تغییر می‌کند؛ Telegram برای پیام‌های بیش از ۴۸ ساعت به MTProto و اعتبارنامه‌های موجود در Secrets نیاز دارد. محتوای evergreen و ویدئوها خارج از این سیاست‌اند.
+- دامنهٔ شواهد تقاضا در کد به `digikala_store_only` برچسب می‌خورد؛ ترب فقط مقایسهٔ قیمت است و MeMarket نیز به‌عنوان feed آفر مستقل شناخته می‌شود، نه تقاضای کل بازار.
+- راهنمای رشد HotUKDeals/Wirecutter/Impact و due diligence شبکه‌های افیلیت ایران اضافه شد؛ هیچ شبکهٔ جدیدی به production متصل نشد.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/affilio-expiration-cleanup.yml`، `affilio_radar/expiration_monitor.py`، `affilio_radar/test_expiration_monitor.py`، `affilio_radar/affiliate-deal-radar-worker.js`، `affilio_radar/test_affiliate_deal_radar_worker.mjs`، `affilio_radar/affilio_radar.py`، `affilio_radar/test_affilio.py`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، `docs/OFFERCHIN_AFFILIATE_GROWTH_PLAYBOOK_FA.md`، `docs/OFFERCHIN_AFFILIATE_NETWORKS_REVIEW_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
+
+**آزمون و نتیجه:** تست‌های واحد برای endpoint فعلی، fallback محدود، عدم فراخوانی فید بازنشسته، پشتیبانی هفت رسانه و تمایز انتساب CTA در شاخه به‌روزرسانی شدند. نتیجهٔ CI شاخهٔ refresh2 هنوز در انتظار است؛ تست سبز نیز به‌تنهایی اثبات انتشار عمومی یا فروش نیست.
+
+**شواهد/شناسه:** شاخهٔ `codex/offerchin-optimization-2026-11-18-refresh2`، مبنای بازبنیان‌گذاری `3b5272f71b9be6ed57d0bd8cad28a4310551c155`. PR قبلی #245 به‌دلیل عقب‌ماندگی شدید نسبت به main مبنای ادغام نیست و این شاخه جایگزین بازبینی‌شدهٔ آن است.
+
+**ریسک/بازگشت:** گزارش انتساب محافظه‌کارانه‌تر می‌شود؛ دادهٔ Worker قدیمی حذف نمی‌شود اما به‌عنوان کلیک CTA زنده تفسیر نمی‌شود. در صورت اختلال endpoint جدید، fallback محدود انجام می‌شود و در صورت نامعلوم‌ماندن داده، پست حذف نمی‌شود. سیاست ۷روزه پس از rollout می‌تواند پست‌های تصویری قدیمی‌تر از ۷ روز را پاک کند؛ پیش از فعال‌سازی باید وجود MTProto Secrets تأیید شود. rollback با revert تغییرهای workflow و کد مربوط ممکن است.
+
+**وضعیت:** شاخه‌ای؛ هیچ merge، deployment، تغییر secret یا حذف پست عمومی انجام نشده است.
