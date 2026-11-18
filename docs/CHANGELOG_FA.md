@@ -3182,3 +3182,20 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** مسیر واسطه‌ای کلیک برای CTA فعال نشده و نباید فعال شود مگر آنکه سلامت شبکه‌ای، تطبیق سفارش و مجازبودن پارامترها اثبات شود. بازگشت کد با revert تغییرات report/Worker ممکن است؛ مستقیم‌بودن لینک Aflo باید حفظ شود. هیچ دادهٔ state یا receipt انتشار reset نشده است.
 
 **وضعیت:** کد، تست‌ها و مستندات در شاخهٔ PR ثبت شده‌اند؛ CI جدید این commit و بررسی نهایی هنوز در انتظار است. دریافت SubID/گزارش رسمی افیلیو و سنجش فروش به همکاری بیرونی نیاز دارد.
+
+
+## ۲۰۲۶-۱۱-۱۸ — بازگرداندن نگهداری هفت‌روزهٔ پست‌های محصول در Telegram و Bale
+
+**هدف:** هم‌راستا کردن چرخهٔ حذف پست‌های محصول/آفر با سیاست نگهداری هفت‌روزه، بدون حذف محتوای evergreen تحریریه یا ویدئوهای بلندمدت.
+
+**تغییر/اقدام:** مقدار `AFFILIO_CHANNEL_POST_RETENTION_DAYS` در workflow پاک‌سازی از ۲ به ۷ تغییر کرد و مقدار پیش‌فرض monitor نیز ۷ روز شد. دامنهٔ حذف همان پست‌های `product` و `deal` باقی ماند؛ evergreen editorial، ویدئوهای YouTube/Aparat و Filo حذف نمی‌شوند. تست یکپارچه به ۷ روز تغییر کرد و تأیید می‌کند محصول ۶روزه حفظ، محصولات قدیمی‌تر حذف و محتوای editorial و ویدئوها نگهداری شوند. پاک‌سازی زمان‌بندی‌شده هر ۱۵ دقیقه و سقف ۱۲۰ پیام در هر اجرا حفظ شده است. در Telegram، حذف پس از ۴۸ ساعت فقط با MTProto و Secrets معتبر ممکن است؛ در نبود آن، Telegram مسدود و Bale مستقل پاک‌سازی می‌شود.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/affilio-expiration-cleanup.yml`، `affilio_radar/expiration_monitor.py`، `affilio_radar/test_expiration_monitor.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
+
+**آزمون و نتیجه:** تست `test_7_day_retention_deletes_product_posts_but_preserves_editorial_and_videos` برای cutoff هفت‌روزه و ترتیب حذف قدیمی‌ترین پست اول افزوده شد؛ نتیجهٔ CI روی آخرین head پس از تغییر در انتظار است. هیچ پست عمومی و هیچ state عملیاتی تغییر نکرده است.
+
+**شواهد/شناسه:** PR #244؛ شاخهٔ `codex/offerchin-optimization-2026-11-18`؛ workflow commit `bda1d1677cd66daa77ec375849956641439f743b`؛ monitor commit `1ce8140aa81040a2a78544e0d5bd7a058f3b9858`؛ test commits `49b2dccc28080292492dabb30b8d0f0f2a34b3b6` و `88addb535ffdcc77de0d6621fcf2a78d712f9243`.
+
+**ریسک/بازگشت:** بازهٔ هفت‌روزه پس از ادغام در main و اجرای زمان‌بندی‌شده اعمال می‌شود؛ این تغییر هیچ پست قدیمی را در شاخه حذف نمی‌کند. اگر Telegram API_ID/API_HASH تنظیم نشده یا MTProto پاسخ ندهد، وضعیت blocked/failure ثبت می‌شود و پاک‌سازی Bale مستقل باقی می‌ماند. rollback با بازگرداندن عدد retention به ۲ و revert کردن فیلتر/تست‌ها ممکن است.
+
+**وضعیت:** تغییرات در شاخهٔ PR ثبت شده؛ CI نهایی، merge و استقرار هنوز انجام نشده‌اند.
