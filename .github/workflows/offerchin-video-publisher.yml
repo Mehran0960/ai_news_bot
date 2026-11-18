@@ -180,14 +180,14 @@ jobs:
               git add affilio_radar/video_upload_dispatch_state.json
             fi
             git commit -m "chore: persist unified OfferChin video outcomes [skip ci]"
-            for attempt in 1 2 3; do
+            for attempt in 1 2 3 4 5 6 7 8 9 10; do
               if (git pull --rebase origin main || python affilio_radar/merge_state_conflicts.py --paths affilio_radar/state.json affilio_radar/video_upload_dispatch_state.json) && git push; then
                 echo "UNIFIED_VIDEO_STATE_PERSISTED attempt=$attempt"
                 exit 0
               fi
               git rebase --abort 2>/dev/null || true
               echo "Video state persistence attempt $attempt failed; retrying."
-              sleep $((attempt * 2))
+              sleep $((attempt * 3 + RANDOM % 4))
             done
             echo "UNIFIED_VIDEO_STATE_PERSIST_FAILED; the next minute-dispatcher run will reconcile pending outcomes."
             exit 1
