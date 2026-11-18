@@ -1,5 +1,13 @@
 {
+  "pending_product_queue_count": 25,
+  "next_editorial_planning_at": "2026-11-18T01:24:04.313933+00:00",
   "emergency_continuity_baseline_completed_at": null,
+  "emergency_continuity_expires_at": null,
+  "filo_login_verified_at": "2026-11-17T18:14:11.649894+00:00",
+  "filo_next_upload_at": null,
+  "last_product_channel_published_at": "2026-11-18T00:48:04.313933+00:00",
+  "filo_upload_interval_policy_version": 3,
+  "next_channel_content_due_at": "2026-11-18T01:30:04.313933+00:00",
   "published": {
     "dkp-10002173": {
       "aparat_upload_status": "skipped_unverified_deadline",
@@ -2396,31 +2404,6 @@
       "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
       "youtube_upload_status": "retry"
     },
-    "dkp-21172326": {
-      "aparat_upload_status": "uploaded",
-      "bale_message_id": 2162,
-      "content_id": "dkp-21172326",
-      "content_type": "product",
-      "delivery_status": {
-        "bale": "sent",
-        "eitaa": "not_connected",
-        "rubika": "sent",
-        "telegram": "sent"
-      },
-      "distribution_queue_id": "dkp-21172326:2026-11-16T21:27:17.571169+00:00",
-      "expiry_deadline_verified_directly": false,
-      "expiry_deadline_verified_from_site_card": false,
-      "expiry_estimated": false,
-      "expiry_source": "unavailable",
-      "filo_upload_status": "pending",
-      "sequence_number": 1404,
-      "telegram_message_id": 1620,
-      "ts": 1794865230.348499,
-      "video_dispatch_eligible": true,
-      "video_generation_status": "generated",
-      "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
-      "youtube_upload_status": "skipped_unavailable"
-    },
     "dkp-21185905": {
       "aparat_upload_status": "skipped_unverified_deadline",
       "bale_message_id": 1996,
@@ -4693,6 +4676,31 @@
       "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
       "youtube_upload_status": "retry"
     },
+    "dkp-4998206": {
+      "aparat_upload_status": "uploaded",
+      "bale_message_id": 2211,
+      "content_id": "dkp-4998206",
+      "content_type": "product",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "distribution_queue_id": "dkp-4998206:2026-11-17T00:31:58.203486+00:00",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "sequence_number": 1465,
+      "telegram_message_id": 1656,
+      "ts": 1794875745.774645,
+      "video_dispatch_eligible": true,
+      "video_generation_status": "generated",
+      "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
+      "youtube_upload_status": "skipped_unavailable"
+    },
     "dkp-5007089": {
       "aparat_upload_status": "skipped_unverified_deadline",
       "bale_message_id": 1414,
@@ -5735,25 +5743,17 @@
       "youtube_upload_status": "skipped_unavailable"
     }
   },
-  "filo_upload_interval_policy_version": 3,
-  "product_publication_interval_seconds": 1860.0,
-  "filo_next_upload_at": null,
-  "filo_login_verified_at": "2026-11-17T18:14:11.649894+00:00",
-  "youtube_upload_pause_reason": "daily_upload_limit",
-  "emergency_continuity_snapshot_sha256": null,
-  "next_channel_content_due_at": "2026-11-18T01:30:04.313933+00:00",
-  "youtube_uploads_paused_until": "2026-11-18T18:39:32.096553+00:00",
-  "generated_at": "2026-11-18T01:01:26.657889+00:00",
-  "aparat_next_upload_at": null,
-  "last_channel_published_at": "2026-11-18T00:48:04.313933+00:00",
-  "next_editorial_planning_at": "2026-11-18T01:24:04.313933+00:00",
+  "generated_at": "2026-11-18T01:03:50.501735+00:00",
   "product_publication_cadence_cycle_id": "2026-11-18T00:49:39.879744+00:00",
-  "last_product_channel_published_at": "2026-11-18T00:48:04.313933+00:00",
-  "filo_login_verification_status": "verified",
-  "youtube_next_upload_at": null,
-  "pending_product_queue_count": 25,
-  "product_publication_plan_cycle_id": "2026-11-18T00:49:39.879744+00:00",
-  "schema_version": 2,
   "emergency_continuity_active": false,
-  "emergency_continuity_expires_at": null
+  "emergency_continuity_snapshot_sha256": null,
+  "youtube_next_upload_at": null,
+  "product_publication_interval_seconds": 1860.0,
+  "aparat_next_upload_at": null,
+  "schema_version": 2,
+  "youtube_upload_pause_reason": "daily_upload_limit",
+  "product_publication_plan_cycle_id": "2026-11-18T00:49:39.879744+00:00",
+  "last_channel_published_at": "2026-11-18T00:48:04.313933+00:00",
+  "youtube_uploads_paused_until": "2026-11-18T18:39:32.096553+00:00",
+  "filo_login_verification_status": "verified"
 }
