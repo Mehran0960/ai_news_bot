@@ -3061,16 +3061,16 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 
 ## ۲۰۲۶-۱۱-۱۸ — اصلاح تحویل مستقل ویدئوی تحریریه به همهٔ مقصدها
 
-**هدف:** رفع گیرکردن صف تحریریه در رسانه‌های ویدئویی و جلوگیری از وابستگی YouTube، Aparat و Filo به یکدیگر یا به صف محصولات سایر پلتفرم‌ها.
+**هدف:** رفع گیرکردن صف تحریریه در هر هفت رسانه و جلوگیری از وابستگی مقصدها به یکدیگر؛ حفظ رسیدها و حذف ریسک ارسال مجدد هنگام اجرای موازی.
 
-**تغییر/اقدام:** فهرست editorial_video_queue به projection زمان‌بند اضافه شد؛ Worker اکنون وضعیت و due time هر مقصد را جداگانه بررسی می‌کند. سه Workflow فعلی YouTube، Aparat و Filo پیش از صف محصول، فقط صف ویدئوی تحریریهٔ خودشان را اجرا می‌کنند. متغیر OFFERCHIN_EDITORIAL_VIDEO_DESTINATION محدودهٔ ارسال را تعیین می‌کند و FIFO محصول نیز به همان مقصد محدود شده است. ناشر رسیدهای sent/manual_review را پیش از تلاش مجدد از تاریخچه بازیابی می‌کند. خطای quota روزانهٔ YouTube به retry زمان‌دار تبدیل شده تا پس از پایان pause دوباره تلاش شود.
+**تغییر/اقدام:** دو صف مستقل editorial_channel_queue و editorial_video_queue به projection زمان‌بند اضافه شدند. Cloudflare اکنون ارسال‌های pending/retry کانال‌های Telegram، Bale، Rubika و Eitaa را از طریق یک Workflow matrix با job و concurrency جداگانه برای هر کانال بازیابی می‌کند؛ YouTube، Aparat و Filo نیز سه Workflow ویدئویی مستقل خودشان را دارند. هر worker فقط مقصد خودش را پردازش می‌کند و FIFO صف محصول نیز برای همان مقصد اعمال می‌شود. ناشر پیش از تلاش مجدد، receiptهای sent/manual_review را از تاریخچه بازیابی می‌کند. merge_state_conflicts.py تاریخچه تحریریه را با delivery_event_id و ledger را با content_fingerprint ادغام می‌کند تا receiptهای هم‌زمان در یک رویداد جمع شوند، نه اینکه history تکثیر شود. خطای quota روزانهٔ YouTube با retry زمان‌دار ثبت می‌شود و فقط YouTube را تا پایان pause متوقف می‌کند.
 
-**فایل‌ها/سامانه‌ها:** affilio_radar/affilio_radar.py، affilio_radar/editorial_publisher.py، affilio_radar/test_shared_selection_media_routing.py، affilio_radar/test_editorial_publisher.py، cloudflare/affilio-minute-dispatcher.js، cloudflare/affilio-minute-dispatcher.test.mjs، سه Workflow ویدئویی و docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md.
+**فایل‌ها/سامانه‌ها:** affilio_radar/affilio_radar.py، affilio_radar/editorial_publisher.py، affilio_radar/merge_state_conflicts.py، سه فایل آزمون Python شامل test_editorial_publisher.py، test_shared_selection_media_routing.py و test_merge_state_conflicts.py، cloudflare/affilio-minute-dispatcher.js، cloudflare/affilio-minute-dispatcher.test.mjs، .github/workflows/offerchin-editorial-channel-upload.yml، .github/workflows/offerchin-editorial-contract.yml، سه Workflow ویدئویی YouTube/Aparat/Filo و docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md.
 
-**آزمون و نتیجه:** آزمون‌های projection صف تحریریه، جداسازی due/retry مقصدها، watchdog ارسال نامطمئن، انتخاب مقصد مستقل و بازیابی receipt اضافه شده‌اند. اجرای اولیهٔ CI گیت مستندات را به‌علت نبودن برچسب‌های ساختاری این ورودی رد کرد؛ قالب این بخش اصلاح شده و CI مجدداً بررسی می‌شود. سایر نتیجه‌ها تا پایان اجرا تأییدنشده‌اند.
+**آزمون و نتیجه:** آزمون‌های projection مستقل صف تصویری و ویدئویی، due/retry مقصدی، watchdog ارسال نامطمئن، انتخاب مقصد، بازیابی receipt و merge هم‌زمان event/ledger اضافه شده‌اند. اجرای اولیهٔ CI گیت مستندات را به‌علت قالب ناقص changelog رد کرد؛ قالب اصلاح شد. اجرای CI روی آخرین commit پس از تکمیل workerهای تصویری باید نتیجهٔ نهایی را تأیید کند؛ تا آن زمان قبولی نهایی ادعا نمی‌شود.
 
-**شواهد/شناسه:** PR #239؛ شاخه fix/offerchin-editorial-video-destinations-20261118؛ head اولیه f19b38695ef94db4b70bc41e5937cb529e94dcf0. تغییرات شامل اصلاح sidecar، Worker و سه Workflow مستقل است.
+**شواهد/شناسه:** PR #239؛ شاخه fix/offerchin-editorial-video-destinations-20261118. مسیرهای عمومی فقط پس از receipt همان پلتفرم موفق تلقی می‌شوند؛ workflow success به‌تنهایی اثبات انتشار عمومی نیست.
 
-**ریسک/بازگشت:** ویدئوهای تحریریه پیش از ویدئوهای محصول در همان مقصد FIFO می‌شوند؛ یک صف قدیمی محصول در YouTube فقط YouTube را معطل می‌کند. Filo فقط پس از احراز ورود تلاش می‌کند و ارسال منتظر تأیید عمومی محسوب نمی‌شود. هیچ پیام قدیمی حذف و هیچ state زنده reset نشده است. بازگشت با revert همین PR ممکن است؛ در آن صورت تحویل ویدئویی تحریریه از زمان‌بند مستقل خارج می‌شود.
+**ریسک/بازگشت:** چهار job تصویری ممکن است هم‌زمان state بنویسند؛ ادغام سه‌طرفه اکنون receiptهای یک delivery_event_id را در یک ردیف ادغام می‌کند. Filo فقط پس از احراز ورود تلاش می‌کند و manual_review یا انتظار تأیید، انتشار عمومی نیست. هیچ پیام قدیمی حذف و هیچ state زنده reset نشده است. بازگشت با revert همین PR ممکن است؛ در آن صورت بازیابی مستقل صف‌های تحریریه غیرفعال می‌شود.
 
-**وضعیت:** PR #239 باز است و ادغام/استقرار نشده؛ تا عبور همهٔ آزمون‌های مرتبط و بررسی وضعیت Cloudflare، تغییر عملیاتی تلقی نمی‌شود.
+**وضعیت:** PR #239 باز است و ادغام/استقرار نشده؛ منتظر CI نهایی و بررسی آخرین رسیدهاست.
