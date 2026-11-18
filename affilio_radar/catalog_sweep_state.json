@@ -6130,13 +6130,13 @@
   "last_error_at": "2026-11-15T05:00:24.184952+00:00",
   "last_successful_category_id": "11539",
   "last_successful_category_name": "کابل اتصال باتری به باتری خودرو",
-  "last_successful_page": 21,
-  "last_successful_page_at": "2026-11-18T16:53:39.800247+00:00",
+  "last_successful_page": 24,
+  "last_successful_page_at": "2026-11-18T16:54:44.720229+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 21,
+  "page": 24,
   "parallel_api_route_policy_version": "digikala_discovery_api_v1_trusted_category_taxonomy_v4",
-  "parallel_category_mismatch_rows_rejected": 2968710,
+  "parallel_category_mismatch_rows_rejected": 2968830,
   "parallel_cycle_completed_category_ids": [
     "11",
     "13",
@@ -6689,8 +6689,8 @@
     "11792",
     "11793"
   ],
-  "parallel_cycle_pages_success": 12035,
-  "parallel_cycle_product_rows_success": 236046,
+  "parallel_cycle_pages_success": 12062,
+  "parallel_cycle_product_rows_success": 236586,
   "parallel_cycle_started_at": "2026-11-18T16:23:41.446016+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -7257,24 +7257,24 @@
     "11792",
     "11793"
   ],
-  "parallel_last_batch_at": "2026-11-18T16:53:40.217906+00:00",
-  "parallel_last_batch_candidate_file_bytes": 7381095,
-  "parallel_last_batch_candidate_write_seconds": 0.165,
+  "parallel_last_batch_at": "2026-11-18T16:54:45.084939+00:00",
+  "parallel_last_batch_candidate_file_bytes": 7381488,
+  "parallel_last_batch_candidate_write_seconds": 0.155,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 1.54,
+  "parallel_last_batch_fetch_seconds": 0.924,
   "parallel_last_batch_http_5xx_retries": 0,
   "parallel_last_batch_nonempty_product_pages": 9,
   "parallel_last_batch_pages": 9,
-  "parallel_last_batch_pages_per_second": 5.84,
-  "parallel_last_batch_processing_seconds": 0.267,
+  "parallel_last_batch_pages_per_second": 9.74,
+  "parallel_last_batch_processing_seconds": 0.22,
   "parallel_last_batch_product_rows": 180,
   "parallel_last_batch_rate_limited": 0,
   "parallel_last_batch_request_count": 9,
-  "parallel_last_batch_request_max_seconds": 1.527,
-  "parallel_last_batch_request_p50_seconds": 1.264,
-  "parallel_last_batch_request_p95_seconds": 1.527,
+  "parallel_last_batch_request_max_seconds": 0.912,
+  "parallel_last_batch_request_p50_seconds": 0.751,
+  "parallel_last_batch_request_p95_seconds": 0.912,
   "parallel_last_batch_retries": 0,
-  "parallel_last_batch_rows_per_second": 91.27,
+  "parallel_last_batch_rows_per_second": 138.55,
   "parallel_last_batch_successes": 9,
   "parallel_last_batch_terminals": 0,
   "parallel_last_batch_timeout_retries": 0,
@@ -7287,63 +7287,63 @@
       "category_id": "1272",
       "category_name": "پاوربانک (شارژر همراه)",
       "category_query": "گوشی",
-      "page": 21
+      "page": 24
     },
     {
       "attempts": 0,
       "category_id": "6149",
       "category_name": "مته و سری",
       "category_query": "ابزار",
-      "page": 21
+      "page": 24
     },
     {
       "attempts": 0,
       "category_id": "6584",
       "category_name": "لوازم طراحی ناخن",
       "category_query": "زیبایی",
-      "page": 21
+      "page": 24
     },
     {
       "attempts": 0,
       "category_id": "8909",
       "category_name": "تافی و آبنبات",
       "category_query": "مواد غذایی",
-      "page": 21
+      "page": 24
     },
     {
       "attempts": 0,
       "category_id": "10926",
       "category_name": "شانه مو",
       "category_query": "آرایشی",
-      "page": 21
+      "page": 24
     },
     {
       "attempts": 0,
       "category_id": "6654",
       "category_name": "سرم پوست",
       "category_query": "مواد غذایی",
-      "page": 22
+      "page": 25
     },
     {
       "attempts": 0,
       "category_id": "6920",
       "category_name": "شوینده ظروف",
       "category_query": "مواد غذایی",
-      "page": 22
+      "page": 25
     },
     {
       "attempts": 0,
       "category_id": "9358",
       "category_name": "تاپ و نیم تنه ورزشی زنانه",
       "category_query": "ورزش",
-      "page": 22
+      "page": 25
     },
     {
       "attempts": 0,
       "category_id": "11539",
       "category_name": "کابل اتصال باتری به باتری خودرو",
       "category_query": "خودرو",
-      "page": 22
+      "page": 25
     }
   ],
   "parallel_queue_initialized": true,
@@ -7355,14 +7355,14 @@
   "schema_version": 1,
   "stats": {
     "api_failures_total": 89979,
-    "catalog_candidate_cards_found_total": 63247641,
+    "catalog_candidate_cards_found_total": 63248061,
     "completed_cycles": 130,
     "cycles_with_gaps_total": 354,
-    "discounted_candidates_found_total": 13382117,
+    "discounted_candidates_found_total": 13382173,
     "empty_product_pages_total": 1776069,
-    "nonempty_product_pages_total": 3353605,
-    "pages_scanned_total": 3390155,
-    "product_rows_scanned_total": 66216391,
+    "nonempty_product_pages_total": 3353632,
+    "pages_scanned_total": 3390182,
+    "product_rows_scanned_total": 66216931,
     "unqueryable_categories_total": 1740482
   },
   "unacknowledged_candidate_count": 3000
