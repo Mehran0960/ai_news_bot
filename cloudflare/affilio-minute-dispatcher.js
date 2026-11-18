@@ -569,6 +569,44 @@ export function isFiloLoginVerified(state, now) {
   );
 }
 
+function editorialVideoRecordDue(record, platform, now) {
+  if (!record || typeof record !== "object") return false;
+  if (["completed", "cancelled", "failed"].includes(String(record.status || "").trim().toLowerCase())) {
+    return false;
+  }
+  const target = record.platforms && typeof record.platforms === "object"
+    ? record.platforms[platform] : null;
+  if (!target || typeof target !== "object") return false;
+  const status = String(target.status || "pending").trim().toLowerCase();
+  const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
+  let dueAt = dateValue(target.next_attempt_at) ?? dateValue(record.scheduled_at);
+  if (status === "sending") {
+    const attemptAt = dateValue(target.attempt_started_at);
+    dueAt = attemptAt === null ? timestamp : attemptAt + 30 * 60 * 1000;
+  } else if (status === "skipped_limit") {
+    if (platform !== "youtube") return false;
+    // The global YouTube quota pause is checked by hasDueVideoRecord().
+  } else if (!["pending", "pending_credentials", "failed", "retry"].includes(status)) {
+    return false;
+  }
+  return dueAt === null || dueAt <= timestamp;
+}
+
+function editorialVideoRecordPending(record) {
+  if (!record || typeof record !== "object") return false;
+  if (["completed", "cancelled", "failed"].includes(String(record.status || "").trim().toLowerCase())) {
+    return false;
+  }
+  const platforms = record.platforms && typeof record.platforms === "object" ? record.platforms : {};
+  return ["youtube", "aparat", "filo"].some((platform) => {
+    const target = platforms[platform];
+    if (!target || typeof target !== "object") return false;
+    const status = String(target.status || "").trim().toLowerCase();
+    return ["pending", "pending_credentials", "failed", "retry", "sending"].includes(status) ||
+      (platform === "youtube" && status === "skipped_limit");
+  });
+}
+
 export function hasDueVideoRecord(state, platform, now = Date.now()) {
   if (platform === "youtube") {
     const pauseUntil = dateValue(state && state.youtube_uploads_paused_until);
@@ -576,9 +614,12 @@ export function hasDueVideoRecord(state, platform, now = Date.now()) {
   }
   const published = state && state.published && typeof state.published === "object"
     ? state.published : {};
-  // The compact dispatcher sidecar already caps this at the 250 most recent
-  // selected-product records. Do not inspect only the newest six.
-  return Object.values(published).some(record => videoRecordDue(record, platform, now));
+  // Product and editorial queues are independent; either may wake this destination.
+  const productDue = Object.values(published).some(record => videoRecordDue(record, platform, now));
+  if (productDue) return true;
+  const editorialQueue = Array.isArray(state && state.editorial_video_queue)
+    ? state.editorial_video_queue : [];
+  return editorialQueue.some(record => editorialVideoRecordDue(record, platform, now));
 }
 
 async function readLatestWorkflowAttempt(api, token) {
@@ -597,11 +638,10 @@ async function readLatestWorkflowAttempt(api, token) {
 // workflow serializes YouTube, Aparat and Filo over the same FIFO, then records each
 // platform's own success, rejection, retry exhaustion or uncertain outcome.
 export function hasPendingVideoQueue(state, now = Date.now()) {
-  if (!state || typeof state !== "object" || !state.published || typeof state.published !== "object") {
-    return false;
-  }
+  if (!state || typeof state !== "object") return false;
   const timestamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
-  return Object.values(state.published).some((record) => {
+  const published = state.published && typeof state.published === "object" ? state.published : {};
+  const pendingProduct = Object.values(published).some((record) => {
     if (!hasVideoDispatchEligibility(record)) return false;
     const created = Number(record.ts || 0) * 1000;
     if (!Number.isFinite(created) || created <= 0) return false;
@@ -615,8 +655,6 @@ export function hasPendingVideoQueue(state, now = Date.now()) {
     return ["youtube", "aparat", "filo"].some((platform) => {
       const status = String(record[platform + "_upload_status"] || "").trim().toLowerCase();
       if (generation === "pending" || generation === "generated") {
-        // Dispatch even when a platform-specific preflight will skip it; Python
-        // records that terminal result and still advances the other destinations.
         return VIDEO_PENDING_STATUSES.has(status);
       }
       if (generation === "skipped_expiring_soon") {
@@ -629,6 +667,8 @@ export function hasPendingVideoQueue(state, now = Date.now()) {
       );
     });
   });
+  const editorialQueue = Array.isArray(state.editorial_video_queue) ? state.editorial_video_queue : [];
+  return pendingProduct || editorialQueue.some(editorialVideoRecordPending);
 }
 
 // Destination dispatch is independent: no channel slot, editorial slot,
