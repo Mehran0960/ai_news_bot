@@ -7,6 +7,7 @@ import {
   hasDueVideoRecord,
   hasPendingVideoQueue,
   hasDueEditorialChannelQueue,
+  editorialChannelQueueDispatchDeferReason,
   videoQueueDispatchDeferReason,
   videoRecordDue,
   isFiloLoginVerified,
@@ -648,7 +649,7 @@ test("editorial photo channel recovery queue is due per destination", () => {
       scheduled_at: new Date(now - 60_000).toISOString(),
       platforms: {
         telegram: { status: "sent" },
-        bale: { status: "pending" },
+        bale: { status: "failed", attempts: 1, next_attempt_at: new Date(now - 1).toISOString() },
         rubika: { status: "retry", next_attempt_at: new Date(now + 60 * 60_000).toISOString() },
         eitaa: { status: "manual_review" },
       },
@@ -659,6 +660,38 @@ test("editorial photo channel recovery queue is due per destination", () => {
   assert.equal(hasDueEditorialChannelQueue(state, now), false);
   state.editorial_channel_queue[0].platforms.rubika.next_attempt_at = new Date(now - 1).toISOString();
   assert.equal(hasDueEditorialChannelQueue(state, now), true);
+});
+
+test("editorial photo recovery never competes with pending first delivery or the primary publisher", () => {
+  const now = Date.now();
+  const initial = {
+    editorial_channel_queue: [{
+      content_id: "editorial:first-delivery",
+      status: "partial",
+      scheduled_at: new Date(now - 60_000).toISOString(),
+      platforms: { telegram: { status: "pending", attempts: 0 } },
+    }],
+  };
+  assert.equal(hasDueEditorialChannelQueue(initial, now), false);
+  assert.equal(
+    editorialChannelQueueDispatchDeferReason(initial, false, now),
+    "no_due_editorial_channel_recovery"
+  );
+
+  const failed = {
+    editorial_channel_queue: [{
+      content_id: "editorial:retry",
+      status: "partial",
+      scheduled_at: new Date(now - 60_000).toISOString(),
+      platforms: { telegram: { status: "retry", next_attempt_at: new Date(now - 1).toISOString() } },
+    }],
+  };
+  assert.equal(hasDueEditorialChannelQueue(failed, now), true);
+  assert.equal(
+    editorialChannelQueueDispatchDeferReason(failed, true, now),
+    "publisher_workflow_active_or_dispatched"
+  );
+  assert.equal(editorialChannelQueueDispatchDeferReason(failed, false, now), null);
 });
 
 test("editorial photo channel uncertain sends wait for the send watchdog", () => {
