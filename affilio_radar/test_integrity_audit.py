@@ -272,7 +272,7 @@ class IntegrityAuditStateTests(unittest.TestCase):
         self.assertIn('max_delete_attempts=channel_delete_budget', audit_code)
         self.assertIn('max_delete_attempts=video_delete_budget', audit_code)
         self.assertIn("group: offerchin-integrity-audit", audit_workflow)
-        self.assertIn("group: offerchin-content-publisher", publisher_workflow)
+        self.assertIn("group: offerchin-channel-publisher", publisher_workflow)
         self.assertNotIn("offerchin-integrity-audit", publisher_workflow)
 
     def test_audit_entry_for_unknown_post_id_is_ignored(self):
