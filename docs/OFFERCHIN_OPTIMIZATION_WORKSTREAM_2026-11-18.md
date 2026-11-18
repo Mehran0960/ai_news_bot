@@ -1,7 +1,7 @@
 # OfferChin optimization workstream — 2026-11-18
 
 ## Scope and safety
-This work is staged on `codex/offerchin-optimization-2026-11-18-refresh3`, created from main commit `3b5272f71b9be6ed57d0bd8cad28a4310551c155`. The preceding PR #245 was 433 commits behind main and is not a safe merge base. This branch starts from a fresh main snapshot; only narrowly scoped, reviewed changes are reapplied. No changes are made to main, production secrets, Cloudflare deployment, or live publishing credentials. Merge and deployment remain separate approval steps.
+This work is staged on `codex/offerchin-optimization-2026-11-18-refresh4`, created from main commit `3b5272f71b9be6ed57d0bd8cad28a4310551c155`. The preceding PR #245 was 433 commits behind main and is not a safe merge base. This branch starts from a fresh main snapshot; only narrowly scoped, reviewed changes are reapplied. No changes are made to main, production secrets, Cloudflare deployment, or live publishing credentials. Merge and deployment remain separate approval steps.
 
 ## Technical changes staged
 1. Move DigiKala live price/availability audit off retired v1/v2 routes to the current product-detail endpoint using `_digikala_get`; preserve exact product ID validation, one bounded HTML fallback, and no deletion on inconclusive evidence.
