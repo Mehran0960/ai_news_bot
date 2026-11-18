@@ -292,14 +292,14 @@ jobs:
             git reset --hard HEAD
             # The independent trust auditor commits a different sidecar file. Retry a transient
             # concurrent push/rebase so a successful public send's message IDs are not lost.
-            for attempt in 1 2 3; do
+            for attempt in 1 2 3 4 5 6 7 8 9 10; do
               if (git pull --rebase origin main || python affilio_radar/merge_state_conflicts.py --paths affilio_radar/state.json affilio_radar/video_upload_dispatch_state.json affilio_radar/diversity_report.json affilio_radar/performance_report.json) && git push; then
                 echo "PUBLISHER_STATE_PERSISTED attempt=$attempt"
                 exit 0
               fi
               git rebase --abort 2>/dev/null || true
               echo "Publisher state persistence attempt $attempt failed; retrying."
-              sleep $((attempt * 2))
+              sleep $((attempt * 3 + RANDOM % 4))
             done
             echo "PUBLISHER_STATE_PERSIST_FAILED; public sends already attempted, next run will reconcile status."
             exit 1
