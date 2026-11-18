@@ -1932,3 +1932,20 @@
 **ریسک/بازگشت:** binding فعلی Worker فقط CLICKS است؛ D1 و secrets باید صریحاً پیکربندی شوند. پشتیبانی باید endpoint را ثبت و توکن را صادر کند؛ cookie duration، overwrite attribution و media_uidها هنوز تأیید نشده‌اند. تا آن زمان هیچ endpoint جدیدی deploy نمی‌شود و هیچ خریدی از روی کلیک تخمین زده نمی‌شود.
 
 **وضعیت:** پیاده‌سازی روی شاخه؛ CI، تأیید افیلیو، migration، binding، secrets و end-to-end test در انتظار.
+
+
+## ۲۰۲۶-۱۱-۱۸ — اصلاح قرارداد payload و امنیت توکن در Postback افیلیو
+
+**هدف:** جلوگیری از ردشدن فروش واقعی و شکستن انتساب محصولات اسنپ‌شاپ در قابلیت Conversion Postback.
+
+**تغییر/اقدام:** در شاخهٔ موجود PR #173، فیلد ورودی اقلام از `items[].unit_price` به فیلد مستند رسمی `items[].price` اصلاح و به فیلد داخلی قیمت واحد normalize شد. الگوی SKU اسنپ‌شاپ از escape مضاعف خارج شد. مقایسهٔ توکن Postback و گزارش پس از SHA-256 با مقایسهٔ ثابت‌طول انجام می‌شود. مسیر مستقیم دکمهٔ خرید و رفتار انتشار جاری تغییر نکرد.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affiliate-deal-radar-worker.js`، `affilio_radar/test_affiliate_deal_radar_worker.mjs`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، `docs/CHANGELOG_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
+
+**آزمون و نتیجه:** fixture تست به قرارداد رسمی `price` تغییر کرد؛ فروش نمونهٔ `snp-123456` با `aff_sub` رسانهٔ بله به آزمون گزارش اضافه شد. نتیجهٔ CI پس از push در انتظار اجراست.
+
+**شواهد/شناسه:** PR #173، شاخهٔ `feat/affilio-conversion-postback-d1-attribution-20261113`. commitهای اصلاحی: پس از ثبت تغییرات تکمیل می‌شوند.
+
+**ریسک/بازگشت:** تغییرات در شاخهٔ آزمایشی‌اند و هنوز روی Worker عملیاتی deploy نشده‌اند. rollout تا ثبت endpoint، دریافت secret، افزودن D1 binding و تأیید سازگاری `aff_sub` با قالب لینک فعلی متوقف می‌ماند. بازگشت با revert commitهای همین شاخه ممکن است.
+
+**وضعیت:** اصلاح کد و تست انجام‌شده؛ CI، پیکربندی production و تأیید افیلیو در انتظار.
