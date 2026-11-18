@@ -144,7 +144,11 @@ def _editorial_photo_delivery_started(entry: dict) -> bool:
         status = str(target.get("status") or "").strip().lower()
         if status in {"sent", "manual_review"}:
             return True
-        if int(target.get("attempts") or 0) > 0 or target.get("attempt_started_at"):
+        try:
+            attempts = int(target.get("attempts") or 0)
+        except (TypeError, ValueError, OverflowError):
+            attempts = 0
+        if attempts > 0 or target.get("attempt_started_at"):
             return True
     return False
 
@@ -350,7 +354,11 @@ def _rehydrate_orphaned_editorial_entries(
             if isinstance(receipt, dict):
                 platforms[destination] = dict(receipt)
             else:
-                platforms[destination] = {"status": "pending", "attempts": 0}
+                platforms[destination] = {
+                    "status": "not_connected",
+                    "attempts": 0,
+                    "last_error": "destination_receipt_missing_in_history",
+                }
         entry = {
             "content_id": content_id,
             "content_type": "editorial",
