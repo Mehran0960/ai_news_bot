@@ -3061,12 +3061,16 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 
 ## ۲۰۲۶-۱۱-۱۸ — اصلاح تحویل مستقل ویدئوی تحریریه به همهٔ مقصدها
 
-**مسئله:** صف ویدئویی تحریریه در sidecar زمان‌بند Cloudflare منعکس نمی‌شد؛ Worker فقط رکوردهای محصول را می‌دید. در نتیجه ممکن بود Telegram/Bale/Rubika یک مطلب را دریافت کنند، ولی YouTube/Aparat/Filo برای همان مطلب در حالت pending بمانند. افزون بر آن، بررسی FIFO همهٔ ویدئوهای محصول به‌صورت مشترک انجام می‌شد و یک backlog یا pause می‌توانست مقصدهای دیگر را بی‌جهت معطل کند.
+**هدف:** رفع گیرکردن صف تحریریه در رسانه‌های ویدئویی و جلوگیری از وابستگی YouTube، Aparat و Filo به یکدیگر یا به صف محصولات سایر پلتفرم‌ها.
 
-**اقدام:** فهرست editorial_video_queue به projection زمان‌بند اضافه شد؛ Worker اکنون وضعیت و due time هر مقصد را جداگانه بررسی می‌کند. سه Workflow فعلی YouTube، Aparat و Filo اکنون پیش از صف محصول، فقط صف ویدئوی تحریریهٔ خودشان را اجرا می‌کنند. متغیر OFFERCHIN_EDITORIAL_VIDEO_DESTINATION محدودهٔ ارسال را تعیین می‌کند و FIFO محصول نیز به همان مقصد محدود شده است. در ناشر، رسیدهای sent/manual_review از تاریخچهٔ قبلی بازیابی می‌شوند تا state ناقص به ارسال تکراری منجر نشود. خطای quota روزانهٔ YouTube به retry زمان‌دار تبدیل شده تا پس از پایان pause دوباره تلاش شود.
+**تغییر/اقدام:** فهرست editorial_video_queue به projection زمان‌بند اضافه شد؛ Worker اکنون وضعیت و due time هر مقصد را جداگانه بررسی می‌کند. سه Workflow فعلی YouTube، Aparat و Filo پیش از صف محصول، فقط صف ویدئوی تحریریهٔ خودشان را اجرا می‌کنند. متغیر OFFERCHIN_EDITORIAL_VIDEO_DESTINATION محدودهٔ ارسال را تعیین می‌کند و FIFO محصول نیز به همان مقصد محدود شده است. ناشر رسیدهای sent/manual_review را پیش از تلاش مجدد از تاریخچه بازیابی می‌کند. خطای quota روزانهٔ YouTube به retry زمان‌دار تبدیل شده تا پس از پایان pause دوباره تلاش شود.
 
-**آزمون‌ها:** آزمون projection صف ویدئویی تحریریه، جداسازی due/retry بین مقصدها، watchdog ارسال نامطمئن، انتخاب مقصد مستقل و بازیابی receipt اضافه شده‌اند. نتیجهٔ نهایی CI و وضعیت انتشار Worker پس از اجرای PR ثبت خواهد شد.
+**فایل‌ها/سامانه‌ها:** affilio_radar/affilio_radar.py، affilio_radar/editorial_publisher.py، affilio_radar/test_shared_selection_media_routing.py، affilio_radar/test_editorial_publisher.py، cloudflare/affilio-minute-dispatcher.js، cloudflare/affilio-minute-dispatcher.test.mjs، سه Workflow ویدئویی و docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md.
 
-**فایل‌های تغییرکرده:** affilio_radar/affilio_radar.py، affilio_radar/editorial_publisher.py، affilio_radar/test_shared_selection_media_routing.py، affilio_radar/test_editorial_publisher.py، cloudflare/affilio-minute-dispatcher.js، cloudflare/affilio-minute-dispatcher.test.mjs، .github/workflows/youtube-video-upload.yml، .github/workflows/aparat-video-upload.yml، .github/workflows/filo-video-upload.yml و docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md.
+**آزمون و نتیجه:** آزمون‌های projection صف تحریریه، جداسازی due/retry مقصدها، watchdog ارسال نامطمئن، انتخاب مقصد مستقل و بازیابی receipt اضافه شده‌اند. اجرای اولیهٔ CI گیت مستندات را به‌علت نبودن برچسب‌های ساختاری این ورودی رد کرد؛ قالب این بخش اصلاح شده و CI مجدداً بررسی می‌شود. سایر نتیجه‌ها تا پایان اجرا تأییدنشده‌اند.
 
-**مرز اجرا:** هیچ انتشار عمومی دستی برای تست اجرا نشده است؛ هیچ پیام قدیمی حذف و هیچ state زنده reset نشده است. تکمیل Workflow فقط اجرای کد را تأیید می‌کند؛ موفقیت عمومی هر مقصد باید با receipt همان پلتفرم ثبت شود. PR: در انتظار CI.
+**شواهد/شناسه:** PR #239؛ شاخه fix/offerchin-editorial-video-destinations-20261118؛ head اولیه f19b38695ef94db4b70bc41e5937cb529e94dcf0. تغییرات شامل اصلاح sidecar، Worker و سه Workflow مستقل است.
+
+**ریسک/بازگشت:** ویدئوهای تحریریه پیش از ویدئوهای محصول در همان مقصد FIFO می‌شوند؛ یک صف قدیمی محصول در YouTube فقط YouTube را معطل می‌کند. Filo فقط پس از احراز ورود تلاش می‌کند و ارسال منتظر تأیید عمومی محسوب نمی‌شود. هیچ پیام قدیمی حذف و هیچ state زنده reset نشده است. بازگشت با revert همین PR ممکن است؛ در آن صورت تحویل ویدئویی تحریریه از زمان‌بند مستقل خارج می‌شود.
+
+**وضعیت:** PR #239 باز است و ادغام/استقرار نشده؛ تا عبور همهٔ آزمون‌های مرتبط و بررسی وضعیت Cloudflare، تغییر عملیاتی تلقی نمی‌شود.
