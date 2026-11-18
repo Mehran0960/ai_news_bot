@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-18T08:55:51.877845+00:00",
-  "aparat_last_upload_success_at": "2026-11-18T08:56:05.503877+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-18T09:42:54.524340+00:00",
+  "aparat_last_upload_success_at": "2026-11-18T09:42:58.645001+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-18T02:58:38.072896+00:00",
@@ -326359,7 +326359,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-22431305": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-18T09:42:54.524340+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-18T09:42:58.645001+00:00",
+      "aparat_video_hash": "utjg5ts",
+      "aparat_video_record_id": "74277241",
+      "aparat_video_url": "https://www.aparat.com/v/utjg5ts",
+      "aparat_visibility": "public",
       "bale_message_id": 2282,
       "bale_posted_at": "2026-11-18T09:41:49.799338+00:00",
       "brand": "",
@@ -326483,8 +326489,17 @@
       "telegram_posted_at": "2026-11-18T09:41:49.137158+00:00",
       "title": "لباس سگ و گربه مدل A02 کد MH1455 سایز XL",
       "ts": 1794994900.784857,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22431305.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22431305.mp4"
+      },
+      "video_generated_at": "2026-11-18T09:42:45.910067+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22435640": {
       "aparat_upload_status": "skipped_unverified_deadline",
