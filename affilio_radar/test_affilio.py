@@ -877,10 +877,9 @@ class AffilioRadarTests(unittest.TestCase):
     def test_click_tracker_supports_channel_attribution_and_rejects_unknown_source_names(self):
         product = "https://www.digikala.com/product/dkp-15970075/"
         affiliate = build_affilio_tracking_link(product)
-        telegram = build_click_tracking_link(product, affiliate, "https://tracker.example", source="telegram")
-        bale = build_click_tracking_link(product, affiliate, "https://tracker.example", source="bale")
-        self.assertEqual(parse_qs(urlsplit(telegram).query).get("src"), ["telegram"])
-        self.assertEqual(parse_qs(urlsplit(bale).query).get("src"), ["bale"])
+        for source in ("telegram", "bale", "rubika", "eitaa", "youtube", "aparat", "filo"):
+            tracked = build_click_tracking_link(product, affiliate, "https://tracker.example", source=source)
+            self.assertEqual(parse_qs(urlsplit(tracked).query).get("src"), [source])
         unsafe = build_click_tracking_link(product, affiliate, "https://tracker.example", source="unknown-user-input")
         self.assertEqual(parse_qs(urlsplit(unsafe).query).get("src"), ["unknown"])
 
@@ -7192,6 +7191,7 @@ class AffilioRadarTests(unittest.TestCase):
                 "dkp-123": {
                     "creative_experiment_id": "creative-test-1",
                     "creative_variant": "A",
+                    "selection_demand_scope": "digikala_store_only",
                     "caption_experiment_id": "caption-test-1",
                     "caption_variant": "A",
                     "telegram_message_id": 123,
@@ -7230,6 +7230,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(report["tracked_clicks_by_product_source"]["dkp-123"], {"telegram": 8})
         self.assertEqual(report["tracked_clicks_by_product_variant"]["dkp-123"], {"creative-test-1:A": 8})
         self.assertEqual(report["published_posts_by_product"]["dkp-123"]["selection_demand_evidence"], None)
+        self.assertEqual(report["published_posts_by_product"]["dkp-123"]["demand_evidence_scope"], "digikala_store_only")
         self.assertEqual(report["tracked_clicks_by_experiment_variant"], {
             "creative-test-1:A": 8, "creative-test-1:B": 4
         })
