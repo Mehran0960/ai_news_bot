@@ -72,6 +72,53 @@ class ThreeWayMergeTests(unittest.TestCase):
         self.assertEqual(len(ledger), 1)
         self.assertEqual(set(ledger[0]["delivery_event_ids"]), {"event-a", "event-b"})
 
+    def test_active_editorial_queue_survives_stale_concurrent_deletion(self):
+        entry = {
+            "content_id": "editorial:guide",
+            "sequence_number": 42,
+            "status": "partial",
+            "platforms": {
+                "telegram": {"status": "sent", "message_id": "tg-42"},
+                "youtube": {"status": "pending"},
+            },
+        }
+        base = {
+            "editorial_delivery_queue": {"editorial:guide": entry},
+            "editorial_delivery_attempts": [],
+        }
+        stale = {
+            "editorial_delivery_queue": {},
+            "editorial_delivery_attempts": [],
+        }
+        merged = three_way_merge(base, stale, base)
+        self.assertIn("editorial:guide", merged["editorial_delivery_queue"])
+        self.assertEqual(
+            merged["editorial_delivery_queue"]["editorial:guide"]["platforms"]["telegram"]["message_id"],
+            "tg-42",
+        )
+
+    def test_terminal_editorial_attempt_allows_queue_removal(self):
+        entry = {
+            "content_id": "editorial:guide",
+            "sequence_number": 42,
+            "status": "partial",
+            "platforms": {"telegram": {"status": "sent"}},
+        }
+        base = {
+            "editorial_delivery_queue": {"editorial:guide": entry},
+            "editorial_delivery_attempts": [],
+        }
+        finalized = {
+            "editorial_delivery_queue": {},
+            "editorial_delivery_attempts": [{
+                "content_id": "editorial:guide",
+                "sequence_number": 42,
+                "status": "completed",
+            }],
+        }
+        merged = three_way_merge(base, finalized, base)
+        self.assertNotIn("editorial:guide", merged["editorial_delivery_queue"])
+
     def test_latest_channel_timestamp_wins(self):
         base={"last_channel_published_at":"2026-11-17T10:00:00+00:00"}
         ours={"last_channel_published_at":"2026-11-17T10:05:00+00:00"}
