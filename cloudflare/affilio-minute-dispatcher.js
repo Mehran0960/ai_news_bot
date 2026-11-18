@@ -340,12 +340,12 @@ async function dispatchPublisherWhenDue(env, tick, state) {
   );
   if (active) {
     console.log("OFFERCHIN_PUBLISHER_NOT_DISPATCHED reason=active_workflow_" + active.status);
-    return;
+    return true;
   }
 
   if (!state) {
     console.warn("OFFERCHIN_PUBLISHER_NOT_DISPATCHED reason=publication_state_unavailable");
-    return;
+    return false;
   }
 
   const now = tick.getTime();
@@ -364,7 +364,7 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     await dispatchWorkflowIfIdle(
       PUBLISHER_API, env.GITHUB_TOKEN, PUBLISHER_WORKFLOW, 28, 28
     );
-    return;
+    return true;
   }
 
   const [latestAttempt, catalogStatus] = await Promise.all([
@@ -400,7 +400,7 @@ async function dispatchPublisherWhenDue(env, tick, state) {
         " latest_attempt_status=" + String(catalogStatus && catalogStatus.last_cycle_status || "unknown") +
         " last_clean_cycle_at=" + String(catalogStatus && catalogStatus.last_clean_cycle_completed_at || "unknown")
       );
-      return;
+      return false;
     }
   } else {
     // Reuse the last immutable clean snapshot while the next full scan runs.
@@ -438,7 +438,7 @@ async function dispatchPublisherWhenDue(env, tick, state) {
     console.log("OFFERCHIN_PUBLISHER_NOT_DUE seconds_remaining=" +
       Math.ceil((nextDueAt - now) / 1000) +
       " next_content_due_at=" + new Date(nextDueAt).toISOString());
-    return;
+    return false;
   }
   if (queueNeedsReplenishment && nextDueAt !== null && now < nextDueAt) {
     console.log(
@@ -454,12 +454,13 @@ async function dispatchPublisherWhenDue(env, tick, state) {
       Number.isFinite(attemptAt) && now - attemptAt < PUBLISHER_DISCOVERY_RETRY_MS) {
     console.log("OFFERCHIN_DISCOVERY_RETRY_WINDOW seconds_remaining=" +
       Math.ceil((PUBLISHER_DISCOVERY_RETRY_MS - (now - attemptAt)) / 1000));
-    return;
+    return false;
   }
 
   await dispatchWorkflowIfIdle(
     PUBLISHER_API, env.GITHUB_TOKEN, PUBLISHER_WORKFLOW, 28, 28
   );
+  return true;
 }
 
 const VIDEO_PENDING_STATUSES = new Set([
@@ -724,15 +725,36 @@ export function hasDueEditorialChannelQueue(state, now = Date.now()) {
         const attemptAt = dateValue(target.attempt_started_at);
         return attemptAt === null || attemptAt + 30 * 60 * 1000 <= timestamp;
       }
-      if (!["pending", "failed", "retry"].includes(status)) return false;
+      if (!["failed", "retry"].includes(status)) return false;
       const dueAt = dateValue(target.next_attempt_at) ?? dateValue(record.scheduled_at);
       return dueAt === null || dueAt <= timestamp;
     });
   });
 }
 
-async function dispatchEditorialChannelUploadsWhenDue(env, tick, state) {
-  if (!state || !env.GITHUB_TOKEN || !hasDueEditorialChannelQueue(state, tick.getTime())) return;
+export function editorialChannelQueueDispatchDeferReason(state, publisherActiveOrDispatched, now = Date.now()) {
+  if (publisherActiveOrDispatched) return "publisher_workflow_active_or_dispatched";
+  return hasDueEditorialChannelQueue(state, now) ? null : "no_due_editorial_channel_recovery";
+}
+
+async function dispatchEditorialChannelUploadsWhenDue(env, tick, state, publisherProtected = false) {
+  if (!state || !env.GITHUB_TOKEN) return;
+  const deferReason = editorialChannelQueueDispatchDeferReason(
+    state, publisherProtected, tick.getTime()
+  );
+  if (deferReason) {
+    if (deferReason === "publisher_workflow_active_or_dispatched") {
+      console.log("OFFERCHIN_EDITORIAL_CHANNEL_RECOVERY_DEFERRED reason=" + deferReason);
+    }
+    return;
+  }
+  // Recheck GitHub after the same-tick publisher decision: the regular publisher
+  // owns first delivery, while this workflow is recovery-only for failed receipts.
+  const activePublisher = await findActiveWorkflow(PUBLISHER_API, env.GITHUB_TOKEN);
+  if (activePublisher) {
+    console.log("OFFERCHIN_EDITORIAL_CHANNEL_RECOVERY_DEFERRED reason=publisher_workflow_" + activePublisher.status);
+    return;
+  }
   await dispatchWorkflowIfIdle(
     EDITORIAL_CHANNEL_API,
     env.GITHUB_TOKEN,
@@ -805,16 +827,20 @@ async function runScheduledCheck(env, scheduledTime) {
     }
   }
 
+  let publisherProtected = false;
   try {
-    await dispatchPublisherWhenDue(env, tick, state);
+    publisherProtected = await dispatchPublisherWhenDue(env, tick, state) === true;
   } catch (error) {
+    // On an uncertain dispatch result, prefer waiting for the next poll over
+    // racing the primary publisher with a second sender.
+    publisherProtected = true;
     console.error("OFFERCHIN_PUBLISHER_DISPATCH_FAILED", String(error).slice(0, 900));
   }
 
   // Every video destination has its own due check, workflow and failure boundary.
   // No channel/editorial schedule or sibling media workflow can block it.
   try {
-    await dispatchEditorialChannelUploadsWhenDue(env, tick, state);
+    await dispatchEditorialChannelUploadsWhenDue(env, tick, state, publisherProtected);
   } catch (error) {
     console.error("OFFERCHIN_EDITORIAL_CHANNEL_DISPATCH_FAILED", String(error).slice(0, 900));
   }
