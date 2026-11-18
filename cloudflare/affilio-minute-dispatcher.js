@@ -244,7 +244,19 @@ export function isEmergencyContinuityAvailable(state, now = Date.now()) {
   );
 }
 
+export function hasActiveChannelPublicationWork(state) {
+  if (!state || typeof state !== "object") return false;
+  const pendingProducts = Number(state.pending_product_queue_count);
+  if (Number.isFinite(pendingProducts) && pendingProducts > 0) return true;
+  const editorialQueue = Array.isArray(state.editorial_channel_queue)
+    ? state.editorial_channel_queue : [];
+  return editorialQueue.length > 0;
+}
+
 export function nextPublisherDueAt(state) {
+  // The dispatch sidecar can outlive the queue snapshot that produced it. Ignore
+  // orphaned timestamps when the canonical projection says there is no work.
+  if (!hasActiveChannelPublicationWork(state)) return null;
   const scheduledAt = Date.parse(String(state && state.next_channel_content_due_at || ""));
   const editorialPlanningAt = Date.parse(String(state && state.next_editorial_planning_at || ""));
   const plannedTimes = [scheduledAt, editorialPlanningAt].filter(Number.isFinite);
@@ -350,8 +362,7 @@ async function dispatchPublisherWhenDue(env, tick, state) {
 
   const now = tick.getTime();
   const nextDueAt = nextPublisherDueAt(state);
-  const hasScheduledContent = Number.isFinite(Date.parse(String(state.next_channel_content_due_at || ""))) ||
-    Number.isFinite(Date.parse(String(state.next_editorial_planning_at || "")));
+  const hasScheduledContent = nextDueAt !== null;
 
   if (hasDueScheduledPublication(state, now)) {
     // Previously selected content must not wait for a new clean catalog snapshot.
