@@ -7259,7 +7259,10 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(report["unassigned_published_posts"], 1)
         self.assertEqual(report["experiment_assignment_coverage_percent"], 66.67)
         self.assertEqual(report["experiment_publication_status"], "partially_assigned")
-        self.assertEqual(report["experiment_measurement_status"], "clicks_observed")
+        self.assertEqual(
+            report["experiment_measurement_status"],
+            "blocked_live_cta_bypasses_click_tracker",
+        )
         self.assertTrue(report["experiment_attribution_supported_by_worker"])
         self.assertTrue(report["experiment_assignment_active"])
         self.assertFalse(report["experiment_attribution_active"])
