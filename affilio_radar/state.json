@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-18T06:21:41.560043+00:00",
-  "aparat_last_upload_success_at": "2026-11-18T06:21:45.571450+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-18T06:53:53.239796+00:00",
+  "aparat_last_upload_success_at": "2026-11-18T06:53:57.232692+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-18T02:58:38.072896+00:00",
@@ -290381,7 +290381,13 @@
       "youtube_upload_status": "skipped_expiring_soon"
     },
     "dkp-18294816": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-18T06:53:53.239796+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-18T06:53:57.232692+00:00",
+      "aparat_video_hash": "ltx093y",
+      "aparat_video_record_id": "74274724",
+      "aparat_video_url": "https://www.aparat.com/v/ltx093y",
+      "aparat_visibility": "public",
       "bale_message_id": 2276,
       "bale_posted_at": "2026-11-18T06:52:46.330196+00:00",
       "brand": "مکران",
@@ -290505,8 +290511,17 @@
       "telegram_posted_at": "2026-11-18T06:52:46.899687+00:00",
       "title": "ست تی‌شرت آستین بلند و شلوارک ورزشی مردانه مکران مدل دروازبانی",
       "ts": 1794984761.048286,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-18294816.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-18294816.mp4"
+      },
+      "video_generated_at": "2026-11-18T06:53:46.861225+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-18358700": {
       "aparat_upload_status": "skipped_expiring_soon",
