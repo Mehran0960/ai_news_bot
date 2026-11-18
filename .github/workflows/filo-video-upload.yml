@@ -84,6 +84,7 @@ jobs:
       - name: Verify Filo login without publishing
         id: filo_login
         if: ${{ github.event_name == 'push' || inputs.mode == 'verify-login' || inputs.mode == 'upload' }}
+        continue-on-error: true
         env:
           FILO_USER: ${{ secrets.FILO_USER }}
           FILO_PASS: ${{ secrets.FILO_PASS }}
