@@ -128,6 +128,16 @@ def _active_editorial_entries(state: dict) -> list[dict]:
     return sorted(rows, key=lambda row: int(row.get("sequence_number") or 0))
 
 
+def _selected_channel_destinations() -> tuple[str, ...]:
+    """Select one photo channel for isolated repair workers; default to all channels."""
+    selected = str(os.getenv("OFFERCHIN_EDITORIAL_CHANNEL_DESTINATION") or "").strip().lower()
+    if not selected:
+        return CHANNEL_DESTINATIONS
+    if selected not in CHANNEL_DESTINATIONS:
+        raise ValueError("unsupported_editorial_channel_destination")
+    return (selected,)
+
+
 def _selected_video_destinations() -> tuple[str, ...]:
     """Select one video destination for isolated workers; default to all for legacy runs."""
     selected = str(os.getenv("OFFERCHIN_EDITORIAL_VIDEO_DESTINATION") or "").strip().lower()
@@ -1356,6 +1366,7 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         _save(state)
 
     if mode == "channels":
+        channel_destinations = _selected_channel_destinations()
         entry["delivery_started_at"] = _now().isoformat()
         _save(state)
         try:
@@ -1364,7 +1375,7 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         except Exception as exc:
             print(f"EDITORIAL_POSTER_RENDER_FAILED error={type(exc).__name__}")
             return 1
-        for destination in CHANNEL_DESTINATIONS:
+        for destination in channel_destinations:
             message = _format_message(
                 payload,
                 html_mode=destination in {"telegram", "bale"},
