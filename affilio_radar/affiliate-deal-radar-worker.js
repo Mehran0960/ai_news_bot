@@ -133,7 +133,7 @@ export default {
             const keyName = String(key.name || "");
             const dual = keyName.match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20})):((?:telegram|bale|rubika|eitaa|youtube|aparat|filo|unknown)):v:([a-z0-9][a-z0-9_-]{0,31}):([ab]):c:([a-z0-9][a-z0-9_-]{0,31}):([ab]):/);
             const current = keyName.match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20})):((?:telegram|bale|rubika|eitaa|youtube|aparat|filo|unknown)):([a-z0-9][a-z0-9_-]{0,31}):([ab]):/);
-            const legacy = keyName.match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20}))(?::(telegram|bale|youtube|aparat|unknown))?:/);
+            const legacy = keyName.match(/^click:(\d{4}-\d{2}-\d{2}):((?:dkp-\d{1,12})|(?:snp-\d{1,20}))(?::(telegram|bale|rubika|eitaa|youtube|aparat|filo|unknown))?:/);
             if (dual || current || legacy) {
               const productId = dual ? dual[2] : current ? current[2] : legacy[2];
               const source = dual ? dual[3] : current ? current[3] : (legacy[3] || "unknown");
