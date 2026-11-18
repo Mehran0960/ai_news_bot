@@ -145,7 +145,7 @@ def _target_ready(name: str) -> bool:
         )
     if name == "eitaa":
         return bool(
-            os.getenv("EITAA_ENABLE_PUBLISHING", "true").strip().lower() in {"1", "true", "yes", "on"}
+            os.getenv("EITAA_ENABLE_PUBLISHING", "false").strip().lower() in {"1", "true", "yes", "on"}
             and os.getenv("EITAA_BOT_TOKEN", "").strip()
             and os.getenv("EITAA_CHANNEL_ID", "").strip()
         )
