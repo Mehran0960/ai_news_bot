@@ -170821,7 +170821,7 @@
     "unchanged": 9,
     "updated": 0
   },
-  "filo_last_upload_attempt_at": "2026-11-18T00:01:04.487065+00:00",
+  "filo_last_upload_attempt_at": "2026-11-18T00:06:07.689399+00:00",
   "filo_last_upload_success_at": "2026-11-18T00:01:39.739257+00:00",
   "filo_login_verification_attempted_at": "2026-11-17T18:14:11.649894+00:00",
   "filo_login_verification_status": "verified",
@@ -362477,7 +362477,13 @@
       "expiry_estimated": false,
       "expiry_source": "unavailable",
       "expiry_status": "unknown",
-      "filo_upload_status": "pending",
+      "filo_last_error": "filo_publish_not_accepted",
+      "filo_review_required": true,
+      "filo_upload_started_at": "2026-11-18T00:06:07.689399+00:00",
+      "filo_upload_status": "rejected_by_filo",
+      "filo_video_code": "",
+      "filo_video_url": "",
+      "filo_visibility": "unknown",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-16T20:38:10.659628+00:00",
       "history_days": 4,
@@ -362538,14 +362544,16 @@
       "ts": 1794861650.716382,
       "video_file_name": "offerchin-dkp-7696150.mp4",
       "video_file_names": {
-        "aparat": "offerchin-dkp-7696150.mp4"
+        "aparat": "offerchin-dkp-7696150.mp4",
+        "filo": "offerchin-dkp-7696150.mp4"
       },
-      "video_generated_at": "2026-11-17T18:41:56.324007+00:00",
+      "video_generated_at": "2026-11-18T00:05:51.692867+00:00",
       "video_generation_status": "generated",
       "video_style_version": 7,
+      "youtube_last_error": "",
       "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
-      "youtube_skip_reason": "youtube_daily_quota_pause",
-      "youtube_upload_status": "retry"
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-7738933": {
       "aparat_skip_reason": "verified_expiry_required",
