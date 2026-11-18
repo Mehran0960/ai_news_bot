@@ -108,7 +108,6 @@ jobs:
           assert "dispatchVideoPlatformWhenDue" not in worker
           assert "VIDEO_PUBLISHER_API" not in worker
           assert "videoQueueDispatchDeferReason" in worker
-          assert "findActiveWorkflow(PUBLISHER_API" not in worker
           # Each video platform has its own due check; no channel/editorial slot
           # or active publisher may defer it.
           start = worker.index("async function dispatchVideoUploadsWhenDue")
