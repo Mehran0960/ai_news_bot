@@ -2981,7 +2981,7 @@ PR #239 ادغام شده و Cloudflare Worker با موفقیت مستقر شد
 
 مانیتور سلامت و پاک‌سازی پیشنهادها باید از همان endpoint جزئیات محصول استفاده کند که مسیر کشف کاتالوگ استفاده می‌کند: `https://api.digikala.com/product/v1/products/{product_id}/`. مسیرهای قدیمی `/v2/product/{id}/` و `/v1/product/{id}/` بازنشسته‌اند و نباید در هر audit دوباره فراخوانی شوند. درخواست از helper مشترک `_digikala_get` عبور می‌کند تا headerهای مرورگر و redirect/CDN-cookie محدود و امن یکسان بمانند. پاسخ فقط وقتی معتبر است که parser، شناسهٔ دقیق همان محصول را تطبیق دهد و قیمت یا وضعیت موجودی قابل استفاده ارائه کند؛ در غیر این صورت یک HTML fallback محدود مجاز است. دادهٔ مبهم/ناموجود همچنان inconclusive است و به‌تنهایی مجوز حذف پست نیست.
 
-فید قدیمی `/v1/incredible-offers/products/` نیز به‌دلیل پاسخ 404 از مسیرهای دوره‌ای حذف شده است. برای deadline کمپین فقط دادهٔ کارت آفر MCP که دقیقاً با شناسه و URL محصول منطبق باشد می‌تواند مکمل شود؛ timestamp تخمینی یا cache به‌عنوان deadline قطعی پذیرفته نمی‌شود.
+فید قدیمی `/v1/incredible-offers/products/` به‌دلیل پاسخ 404 بازنشسته است و `fetch_offer_deadlines` دیگر حتی به‌صورت شرطی آن را فراخوانی نمی‌کند؛ deadlineهای نقشه فقط از کارت آفر MCP با شناسه و URL دقیق محصول وارد می‌شوند. بررسی جزئیات محصول برای deadline/قیمت/موجودی در مسیر جداگانهٔ rotating product-status monitor و هنگام تأیید انقضا انجام می‌شود. timestamp تخمینی یا cache به‌عنوان deadline قطعی پذیرفته نمی‌شود.
 
 **فایل‌ها:** `affilio_radar/expiration_monitor.py` و `affilio_radar/test_expiration_monitor.py`.
 
