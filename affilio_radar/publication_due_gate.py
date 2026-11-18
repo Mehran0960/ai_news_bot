@@ -21,6 +21,17 @@ def _utc(value: Any) -> datetime | None:
         return None
 
 
+def _has_active_channel_publication_work(state: dict) -> bool:
+    try:
+        pending_products = int(state.get("pending_product_queue_count") or 0)
+    except (TypeError, ValueError, OverflowError):
+        pending_products = 0
+    editorial_queue = state.get("editorial_channel_queue")
+    return pending_products > 0 or (
+        isinstance(editorial_queue, list) and len(editorial_queue) > 0
+    )
+
+
 def due_publication_slot(
     state: dict | None,
     *,
@@ -34,6 +45,8 @@ def due_publication_slot(
 
     if not isinstance(state, dict):
         return False, "dispatch_sidecar_unavailable_fail_open"
+    if not _has_active_channel_publication_work(state):
+        return False, "no_active_publication_queue"
 
     checks = (
         ("next_channel_content_due_at", "channel_content"),
