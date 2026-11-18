@@ -3148,3 +3148,20 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** retry بیشتر ممکن است زمان پایان job را در رقابت شدید افزایش دهد، اما انتشار موازی را متوقف نمی‌کند. سقف ۱۰ تلاش و backoff jittered محدود است؛ rollback با revert همین PR ممکن است.
 
 **وضعیت:** تغییرات شاخه‌ای ثبت شد؛ CI و ادغام در main در انتظار.
+
+
+## ۲۰۲۶-۱۱-۱۸ — اصلاح API راستی‌آزمایی زندهٔ قیمت و موجودی
+
+**هدف:** رفع false-unconfirmed شدن ممیزی محصولات به‌دلیل استفاده از مسیرهای قدیمی API دیجی‌کالا و کاهش درخواست‌های بی‌نتیجه به فید بازنشسته.
+
+**تغییر/اقدام:** `fetch_live_product_status` برای دیجی‌کالا به endpoint جزئیات محصول `/product/v1/products/{id}/` و helper مشترک `_digikala_get` مهاجرت کرد؛ تطبیق شناسهٔ دقیق محصول، timeout محدود، parsing قیمت/موجودی، و HTML fallback واحد حفظ شد. مسیر قدیمی `/v1/incredible-offers/products/` از فراخوانی دوره‌ای خارج شد و برای deadlineهای لازم، کارت آفر MCP منطبق با محصول منبع مکمل باقی ماند. تست‌های مرتبط به endpoint جدید و یک fallback محدود به‌روزرسانی شدند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/expiration_monitor.py`، `affilio_radar/test_expiration_monitor.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/OFFERCHIN_OPTIMIZATION_WORKSTREAM_2026-11-18.md`.
+
+**آزمون و نتیجه:** کامپایل Python در workflow محصول در حال اجرا موفق شد؛ تست‌های اختصاصی expiry monitor و CI کامل هنوز باید به‌صورت نهایی تأیید شوند. تست قرارداد تحریریه موفق شد؛ Documentation Gate در اجرای نخست به‌علت الزام به‌روزرسانی handbook و changelog شکست خورد و همین ورودی برای رفع آن افزوده شد.
+
+**شواهد/شناسه:** PR #244؛ شاخهٔ `codex/offerchin-optimization-2026-11-18`؛ commitهای کد `1189e6ad28c3d0a0b284d747554ff47a5be60294` و `12bd85c3fd0077548ca59f7728a7775ea31ddea4`؛ تست‌ها `4f6b01d7a563aa41fa48fc5460f418be0628b492`؛ مستندسازی `cc10e50300cb09276fd9161b644a2a83c2e91d92`.
+
+**ریسک/بازگشت:** اگر endpoint جدید یا helper مشترک در محیط عملیاتی پاسخ معتبر ندهد، نتیجه باید inconclusive بماند و حذف پست انجام نشود؛ HTML fallback محدود باقی می‌ماند. rollback با revert کردن commitهای این PR ممکن است؛ state و receiptهای انتشار نباید reset شوند.
+
+**وضعیت:** اصلاح کد و مستندات در شاخه انجام شده؛ CI نهایی، بررسی زندهٔ read-only، merge و استقرار در انتظار هستند.
