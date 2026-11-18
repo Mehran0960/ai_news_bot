@@ -1871,7 +1871,7 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertNotIn("aparat_expiry_status", record)
 
 
-    def test_7_day_retention_deletes_old_channel_posts_but_preserves_long_form_videos(self):
+    def test_7_day_retention_deletes_product_posts_but_preserves_editorial_and_videos(self):
         now = datetime(2026, 11, 4, 12, 0, tzinfo=timezone.utc)
         published = {
             "dkp-tg-oldest": {
@@ -1907,7 +1907,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             "editorial-evergreen": {
                 "content_type": "editorial",
                 "title": "راهنمای ماندگار خرید",
-                "ts": (now - timedelta(days=7.25)).timestamp(),
+                "ts": (now - timedelta(days=30)).timestamp(),
                 "telegram_message_id": 104,
                 "bale_message_id": 204,
             },
@@ -1931,9 +1931,9 @@ class ExpirationMonitorTests(unittest.TestCase):
             monitor, "BOT_TOKEN", "bot-token"
         ), patch.object(
             monitor, "_telegram_delete_mtproto_many",
-            return_value={101: "deleted", 102: "deleted", 104: "deleted"},
+            return_value={101: "deleted", 102: "deleted"},
         ) as telegram_delete, patch.object(
-            monitor, "_bale_delete", side_effect=["deleted", "deleted", "deleted"]
+            monitor, "_bale_delete", side_effect=["deleted", "deleted"]
         ) as bale_delete:
             changed, summary = monitor._delete_channel_posts_older_than_retention(
                 published, now, max_delete_attempts=120
@@ -1942,17 +1942,17 @@ class ExpirationMonitorTests(unittest.TestCase):
         self.assertTrue(changed)
         self.assertEqual(
             telegram_delete.call_args.args[0],
-            [101, 102, 104],
-            "Telegram must delete all channel posts older than seven days, oldest first",
+            [101, 102],
+            "Telegram must delete eligible product posts oldest first after seven days",
         )
-        self.assertEqual([call.args[0] for call in bale_delete.call_args_list], [201, 202, 204])
-        self.assertEqual(summary["telegram_deleted"], 3)
-        self.assertEqual(summary["bale_deleted"], 3)
+        self.assertEqual([call.args[0] for call in bale_delete.call_args_list], [201, 202])
+        self.assertEqual(summary["telegram_deleted"], 2)
+        self.assertEqual(summary["bale_deleted"], 2)
         self.assertEqual(published["dkp-tg-oldest"]["telegram_retention_status"], "deleted")
         self.assertEqual(published["dkp-bale-oldest"]["bale_retention_status"], "deleted")
         self.assertNotIn("telegram_retention_status", published["dkp-tg-new"])
-        self.assertEqual(published["editorial-evergreen"]["telegram_retention_status"], "deleted")
-        self.assertEqual(published["editorial-evergreen"]["bale_retention_status"], "deleted")
+        self.assertNotIn("telegram_retention_status", published["editorial-evergreen"])
+        self.assertNotIn("bale_retention_status", published["editorial-evergreen"])
         self.assertEqual(published["dkp-video-only"]["youtube_video_id"], "youtube-permanent")
         self.assertEqual(published["dkp-video-only"]["aparat_video_hash"], "aparat-permanent")
 
