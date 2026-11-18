@@ -3199,3 +3199,20 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** بازهٔ هفت‌روزه پس از ادغام در main و اجرای زمان‌بندی‌شده اعمال می‌شود؛ این تغییر هیچ پست قدیمی را در شاخه حذف نمی‌کند. اگر Telegram API_ID/API_HASH تنظیم نشده یا MTProto پاسخ ندهد، وضعیت blocked/failure ثبت می‌شود و پاک‌سازی Bale مستقل باقی می‌ماند. rollback با بازگرداندن عدد retention به ۲ و revert کردن فیلتر/تست‌ها ممکن است.
 
 **وضعیت:** تغییرات در شاخهٔ PR ثبت شده؛ CI نهایی، merge و استقرار هنوز انجام نشده‌اند.
+
+
+## ۲۰۲۶-۱۱-۱۸ — تفکیک دادهٔ کلیک Worker از انتساب واقعی CTA
+
+**هدف:** جلوگیری از نمایش اشتباه «source attribution موجود» در حالی که دکمهٔ خرید زنده عمداً به لینک مستقیم Aflo می‌رود و Worker را دور می‌زند.
+
+**تغییر/اقدام:** فیلد `source_attribution_available` در گزارش عملکرد برای CTA زنده `false` شد؛ فیلد جدید `worker_source_attribution_available` فقط وجود source در eventهای مسیر `/p/{product_id}` را گزارش می‌کند. `click_data_scope` مرز دادهٔ مسیر Worker را مشخص می‌کند. تست regression این قرارداد را بررسی می‌کند. مسیر خرید مستقیم Aflo تغییری نکرده است.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `affilio_radar/test_affilio.py`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
+
+**آزمون و نتیجه:** تست‌های مربوط در CI جدید روی head نهایی باید سبز شوند؛ اجراهای قبلیِ همین PR پیش از این تغییر بودند و نتیجهٔ آن‌ها جایگزین CI فعلی نیست.
+
+**شواهد/شناسه:** PR #244؛ commit گزارش `97b71f922c8cf1625bcd08ec30e596c1668e389f`؛ تست `ae4a9e676ae371204552c17c8ac2e9e1415c5345`؛ راهنمای گزارش `4a7cadbc37f9ad0d8e268bbcec0d563617bf7397`.
+
+**ریسک/بازگشت:** کاهش ادعای انتساب ممکن است گزارش‌های ظاهری را کمتر جذاب کند، اما از تصمیم‌گیری غلط جلوگیری می‌کند. بازگشت با revert همین تغییرات ممکن است؛ CTA مستقیم Aflo حفظ می‌شود.
+
+**وضعیت:** تغییرات در شاخه ثبت شده؛ CI نهایی در انتظار، merge و deploy انجام نشده‌اند.
