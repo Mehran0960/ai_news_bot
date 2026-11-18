@@ -853,7 +853,15 @@ def _record_success(state: dict, entry: dict, destination: str, receipt: dict, n
         state["last_channel_published_at"] = now.isoformat()
         state["last_published_at"] = now.isoformat()
     state["last_editorial_confirmed_at"] = now.isoformat()
-    payload = entry.get("payload") if isinstance(entry.get("payload"), dict) else {}
+    payload = dict(entry.get("payload")) if isinstance(entry.get("payload"), dict) else {}
+    # Use the reserved delivery identity, not a worker-local timestamp, so all
+    # parallel destination receipts are merged into one editorial event.
+    content_id = str(entry.get("content_id") or payload.get("content_id") or "").strip()
+    if content_id:
+        payload["content_id"] = content_id
+    sequence_number = entry.get("sequence_number")
+    if sequence_number not in (None, ""):
+        payload["sequence_number"] = sequence_number
     try:
         record_editorial_delivery(
             state, payload, published_at=now,
