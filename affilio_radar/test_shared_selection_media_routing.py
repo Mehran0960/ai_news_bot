@@ -199,6 +199,33 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
         }}})
         self.assertIn("item", sidecar["published"])
 
+    def test_dispatch_sidecar_exposes_pending_editorial_photo_channels_independently(self):
+        now = datetime(2026, 11, 18, 5, 0, tzinfo=timezone.utc)
+        state = {
+            "editorial_delivery_queue": {
+                "editorial:channel-guide": {
+                    "content_id": "editorial:channel-guide",
+                    "sequence_number": 43,
+                    "status": "partial",
+                    "scheduled_at": (now - timedelta(minutes=2)).isoformat(),
+                    "platforms": {
+                        "telegram": {"status": "sent", "message_id": "tg-43"},
+                        "bale": {"status": "pending"},
+                        "rubika": {"status": "retry", "next_attempt_at": (now + timedelta(minutes=15)).isoformat()},
+                        "eitaa": {"status": "manual_review"},
+                        "youtube": {"status": "pending"},
+                    },
+                },
+            }
+        }
+        sidecar = radar.build_video_upload_dispatch_state(state, now=now)
+        self.assertEqual(len(sidecar["editorial_channel_queue"]), 1)
+        item = sidecar["editorial_channel_queue"][0]
+        self.assertEqual(item["content_id"], "editorial:channel-guide")
+        self.assertEqual(set(item["platforms"]), {"bale", "rubika"})
+        self.assertNotIn("telegram", item["platforms"])
+        self.assertNotIn("youtube", item["platforms"])
+
     def test_dispatch_sidecar_exposes_pending_editorial_video_destinations_independently(self):
         now = datetime(2026, 11, 18, 5, 0, tzinfo=timezone.utc)
         state = {
