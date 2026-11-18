@@ -3126,4 +3126,6 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 
 **ریسک/بازگشت:** اگر بین checkout و persist بیش از ۱۰۰ commit هم‌زمان ایجاد شود، rebase ممکن است به عمق بیشتری نیاز داشته باشد؛ retry/خطا باید آشکار بماند و force-push یا بازنویسی state مجاز نیست. بازگشت با برگرداندن عمق checkout به صفر یا revert تغییر گزارش ممکن است.
 
+**شواهد/شناسه:** PR #242؛ لاگ‌های Filo run `44227173014`، Aparat run `44227169652` و Integrity Audit run `44226947712` در تاریخ ۱۸ نوامبر ۲۰۲۶، که checkout کامل و حدود سه دقیقه دریافت refها را نشان می‌دهند.
+
 **وضعیت:** در شاخهٔ `perf/offerchin-runner-checkout-and-platform-report-20261118`؛ در انتظار CI و ادغام.
