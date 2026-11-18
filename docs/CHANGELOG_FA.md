@@ -3148,3 +3148,105 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** retry بیشتر ممکن است زمان پایان job را در رقابت شدید افزایش دهد، اما انتشار موازی را متوقف نمی‌کند. سقف ۱۰ تلاش و backoff jittered محدود است؛ rollback با revert همین PR ممکن است.
 
 **وضعیت:** تغییرات شاخه‌ای ثبت شد؛ CI و ادغام در main در انتظار.
+
+
+## ۲۰۲۶-۱۱-۱۸ — اصلاح API راستی‌آزمایی زندهٔ قیمت و موجودی
+
+**هدف:** رفع false-unconfirmed شدن ممیزی محصولات به‌دلیل استفاده از مسیرهای قدیمی API دیجی‌کالا و کاهش درخواست‌های بی‌نتیجه به فید بازنشسته.
+
+**تغییر/اقدام:** `fetch_live_product_status` برای دیجی‌کالا به endpoint جزئیات محصول `/product/v1/products/{id}/` و helper مشترک `_digikala_get` مهاجرت کرد؛ تطبیق شناسهٔ دقیق محصول، timeout محدود، parsing قیمت/موجودی، و HTML fallback واحد حفظ شد. مسیر قدیمی `/v1/incredible-offers/products/` از فراخوانی دوره‌ای خارج شد و برای deadlineهای لازم، کارت آفر MCP منطبق با محصول منبع مکمل باقی ماند. تست‌های مرتبط به endpoint جدید و یک fallback محدود به‌روزرسانی شدند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/expiration_monitor.py`، `affilio_radar/test_expiration_monitor.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/OFFERCHIN_OPTIMIZATION_WORKSTREAM_2026-11-18.md`.
+
+**آزمون و نتیجه:** کامپایل Python در workflow محصول در حال اجرا موفق شد؛ تست‌های اختصاصی expiry monitor و CI کامل هنوز باید به‌صورت نهایی تأیید شوند. تست قرارداد تحریریه موفق شد؛ Documentation Gate در اجرای نخست به‌علت الزام به‌روزرسانی handbook و changelog شکست خورد و همین ورودی برای رفع آن افزوده شد.
+
+**شواهد/شناسه:** PR #244؛ شاخهٔ `codex/offerchin-optimization-2026-11-18`؛ commitهای کد `1189e6ad28c3d0a0b284d747554ff47a5be60294` و `12bd85c3fd0077548ca59f7728a7775ea31ddea4`؛ تست‌ها `4f6b01d7a563aa41fa48fc5460f418be0628b492`؛ مستندسازی `cc10e50300cb09276fd9161b644a2a83c2e91d92`.
+
+**ریسک/بازگشت:** اگر endpoint جدید یا helper مشترک در محیط عملیاتی پاسخ معتبر ندهد، نتیجه باید inconclusive بماند و حذف پست انجام نشود؛ HTML fallback محدود باقی می‌ماند. rollback با revert کردن commitهای این PR ممکن است؛ state و receiptهای انتشار نباید reset شوند.
+
+**وضعیت:** اصلاح کد و مستندات در شاخه انجام شده؛ CI نهایی، بررسی زندهٔ read-only، merge و استقرار در انتظار هستند.
+
+
+## ۲۰۲۶-۱۱-۱۸ — اصلاح انتساب کلیک CTA و تکمیل هفت منبع رسانه‌ای
+
+**هدف:** جلوگیری از معرفی نادرستِ قابلیت ردیاب یا تخصیص A/B به‌عنوان انتساب واقعی کلیک دکمهٔ خرید و آماده‌کردن schema ردیاب برای همهٔ رسانه‌ها، بدون به‌خطرانداختن مسیر مستقیم خرید.
+
+**تغییر/اقدام:** `build_performance_report` اکنون مسیر جاری CTA را `direct_affilio_link`، ردیابی دکمهٔ خرید و انتساب منبع زنده را غیرفعال اعلام می‌کند و وضعیت A/B را `blocked_live_cta_bypasses_click_tracker` می‌گذارد؛ تخصیص variant از انتساب واقعی جدا شده است. دکمهٔ خرید همچنان Aflo مستقیم را باز می‌کند. Worker و سازندهٔ لینک ردیابی، sourceهای Telegram، Bale، Rubika، Eitaa، YouTube، Aparat و Filo را می‌شناسند و cache آمار با تغییر schema به v5 ارتقا یافت. تست همهٔ هفت منبع و تست گزارش غیرگمراه‌کننده اضافه/به‌روزرسانی شد. راهنمای رشد افیلیت بر اساس الگوهای مستند HotUKDeals، Wirecutter و impact.com اضافه شد و راهنمای دسترسی افیلیو محدودیت واقعی CTA مستقیم را توضیح می‌دهد.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `affilio_radar/affiliate-deal-radar-worker.js`، `affilio_radar/test_affilio.py`، `affilio_radar/test_affiliate_deal_radar_worker.mjs`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/OFFERCHIN_AFFILIATE_GROWTH_PLAYBOOK_FA.md`.
+
+**آزمون و نتیجه:** تست‌های regression مرتبط پس از این تغییرات باید در CI جدید اجرا شوند. تست‌های قبلی PR #244 شامل ۵۹۷ تست Python موفق، تست قرارداد تحریریه، گیت مستندات و اعتبارسنجی ویدئو بودند؛ آن نتایج پیش از این commit جدید هستند و جایگزین CI جدید نیستند.
+
+**شواهد/شناسه:** PR #244؛ شاخهٔ `codex/offerchin-optimization-2026-11-18`; تغییر گزارش `4981c0fa94af1ba1e7394d0154dba7ed4d17bc37`; Worker `df5d2250066c9c0ae754e6907f2ba6631a68310c` و `51fb04bfca3ab5df18149982c385cf9a17ac324d`; تست Worker `4761af0aa803666f1fa9663f89b46bba2e243bf8`; تست Python `531e29c265fa011d70878c48deb44b33b1d8c135`; playbook `0fc5fef2d7fcef5ea725630065f423f492affc0d`; راهنمای گزارش `c8495f6cf2b064f69932b54d418babe9c2de099d`.
+
+**ریسک/بازگشت:** مسیر واسطه‌ای کلیک برای CTA فعال نشده و نباید فعال شود مگر آنکه سلامت شبکه‌ای، تطبیق سفارش و مجازبودن پارامترها اثبات شود. بازگشت کد با revert تغییرات report/Worker ممکن است؛ مستقیم‌بودن لینک Aflo باید حفظ شود. هیچ دادهٔ state یا receipt انتشار reset نشده است.
+
+**وضعیت:** کد، تست‌ها و مستندات در شاخهٔ PR ثبت شده‌اند؛ CI جدید این commit و بررسی نهایی هنوز در انتظار است. دریافت SubID/گزارش رسمی افیلیو و سنجش فروش به همکاری بیرونی نیاز دارد.
+
+
+## ۲۰۲۶-۱۱-۱۸ — بازگرداندن نگهداری هفت‌روزهٔ پست‌های محصول در Telegram و Bale
+
+**هدف:** هم‌راستا کردن چرخهٔ حذف پست‌های محصول/آفر با سیاست نگهداری هفت‌روزه، بدون حذف محتوای evergreen تحریریه یا ویدئوهای بلندمدت.
+
+**تغییر/اقدام:** مقدار `AFFILIO_CHANNEL_POST_RETENTION_DAYS` در workflow پاک‌سازی از ۲ به ۷ تغییر کرد و مقدار پیش‌فرض monitor نیز ۷ روز شد. دامنهٔ حذف همان پست‌های `product` و `deal` باقی ماند؛ evergreen editorial، ویدئوهای YouTube/Aparat و Filo حذف نمی‌شوند. تست یکپارچه به ۷ روز تغییر کرد و تأیید می‌کند محصول ۶روزه حفظ، محصولات قدیمی‌تر حذف و محتوای editorial و ویدئوها نگهداری شوند. پاک‌سازی زمان‌بندی‌شده هر ۱۵ دقیقه و سقف ۱۲۰ پیام در هر اجرا حفظ شده است. در Telegram، حذف پس از ۴۸ ساعت فقط با MTProto و Secrets معتبر ممکن است؛ در نبود آن، Telegram مسدود و Bale مستقل پاک‌سازی می‌شود.
+
+**فایل‌ها/سامانه‌ها:** `.github/workflows/affilio-expiration-cleanup.yml`، `affilio_radar/expiration_monitor.py`، `affilio_radar/test_expiration_monitor.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
+
+**آزمون و نتیجه:** تست `test_7_day_retention_deletes_product_posts_but_preserves_editorial_and_videos` برای cutoff هفت‌روزه و ترتیب حذف قدیمی‌ترین پست اول افزوده شد؛ نتیجهٔ CI روی آخرین head پس از تغییر در انتظار است. هیچ پست عمومی و هیچ state عملیاتی تغییر نکرده است.
+
+**شواهد/شناسه:** PR #244؛ شاخهٔ `codex/offerchin-optimization-2026-11-18`؛ workflow commit `bda1d1677cd66daa77ec375849956641439f743b`؛ monitor commit `1ce8140aa81040a2a78544e0d5bd7a058f3b9858`؛ test commits `49b2dccc28080292492dabb30b8d0f0f2a34b3b6` و `88addb535ffdcc77de0d6621fcf2a78d712f9243`.
+
+**ریسک/بازگشت:** بازهٔ هفت‌روزه پس از ادغام در main و اجرای زمان‌بندی‌شده اعمال می‌شود؛ این تغییر هیچ پست قدیمی را در شاخه حذف نمی‌کند. اگر Telegram API_ID/API_HASH تنظیم نشده یا MTProto پاسخ ندهد، وضعیت blocked/failure ثبت می‌شود و پاک‌سازی Bale مستقل باقی می‌ماند. rollback با بازگرداندن عدد retention به ۲ و revert کردن فیلتر/تست‌ها ممکن است.
+
+**وضعیت:** تغییرات در شاخهٔ PR ثبت شده؛ CI نهایی، merge و استقرار هنوز انجام نشده‌اند.
+
+
+## ۲۰۲۶-۱۱-۱۸ — تفکیک دادهٔ کلیک Worker از انتساب واقعی CTA
+
+**هدف:** جلوگیری از نمایش اشتباه «source attribution موجود» در حالی که دکمهٔ خرید زنده عمداً به لینک مستقیم Aflo می‌رود و Worker را دور می‌زند.
+
+**تغییر/اقدام:** فیلد `source_attribution_available` در گزارش عملکرد برای CTA زنده `false` شد؛ فیلد جدید `worker_source_attribution_available` فقط وجود source در eventهای مسیر `/p/{product_id}` را گزارش می‌کند. `click_data_scope` مرز دادهٔ مسیر Worker را مشخص می‌کند. تست regression این قرارداد را بررسی می‌کند. مسیر خرید مستقیم Aflo تغییری نکرده است.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `affilio_radar/test_affilio.py`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
+
+**آزمون و نتیجه:** تست‌های مربوط در CI جدید روی head نهایی باید سبز شوند؛ اجراهای قبلیِ همین PR پیش از این تغییر بودند و نتیجهٔ آن‌ها جایگزین CI فعلی نیست.
+
+**شواهد/شناسه:** PR #244؛ commit گزارش `97b71f922c8cf1625bcd08ec30e596c1668e389f`؛ تست `ae4a9e676ae371204552c17c8ac2e9e1415c5345`؛ راهنمای گزارش `4a7cadbc37f9ad0d8e268bbcec0d563617bf7397`.
+
+**ریسک/بازگشت:** کاهش ادعای انتساب ممکن است گزارش‌های ظاهری را کمتر جذاب کند، اما از تصمیم‌گیری غلط جلوگیری می‌کند. بازگشت با revert همین تغییرات ممکن است؛ CTA مستقیم Aflo حفظ می‌شود.
+
+**وضعیت:** تغییرات در شاخه ثبت شده؛ CI نهایی در انتظار، merge و deploy انجام نشده‌اند.
+
+
+## ۲۰۲۶-۱۱-۱۸ — ارزیابی نامزدهای شبکهٔ افیلیت ایران
+
+**هدف:** کاهش وابستگی به یک شبکه و گسترش فروشگاه‌های قابل عرضه، بدون قربانی کردن کیفیت آفر، سلامت لینک یا قابلیت انتساب سفارش.
+
+**تغییر/اقدام:** سند بررسی شبکه‌ها ایجاد شد. دیما افیلیت به‌عنوان نامزد پایلوت اول، دایان افیلیت به‌عنوان گزینهٔ بررسی بعدی و ترب به‌عنوان ابزار مقایسهٔ قیمت/فروشگاه (نه افیلیت فرض‌شده) طبقه‌بندی شدند. چک‌لیست پذیرش شامل مجوز رسانه، deep-link، SubID، feed قیمت/موجودی، گزارش کلیک/سفارش/لغو/کمیسیون، شرایط تسویه، ارسال/مرجوعی و آزمون کنترل‌شده است. هیچ شبکهٔ جدید یا لینک خرید جدیدی در production فعال نشده است.
+
+**فایل‌ها/سامانه‌ها:** `docs/OFFERCHIN_AFFILIATE_NETWORKS_REVIEW_FA.md`، `docs/OFFERCHIN_AFFILIATE_GROWTH_PLAYBOOK_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
+
+**آزمون و نتیجه:** این مرحله مستندات و due diligence است؛ integration code یا درخواست‌های authenticated به پنل‌های شریک انجام نشده‌اند. ورود به آزمون زنده منوط به دسترسی رسمی و تست link/report است.
+
+**شواهد/شناسه:** PR #244؛ سند نامزدها commit `215d60ba88bd3c3cc43a63e18059356eddf8dd7c`؛ منابع اولیه در سند ثبت شده‌اند: کانال عمومی دیما، مصاحبهٔ DMBoard، صفحهٔ شرکتی دایان و راهنمای فروشندگان ترب.
+
+**ریسک/بازگشت:** نرخ‌ها، شرکای فروشگاهی و شرایط برنامه‌ها تغییرپذیرند؛ اطلاعات بازاریابی یا مقاله‌های قدیمی به‌تنهایی مبنای integration نیست. هر شریک جدید باید جداگانه از نظر API، شروط کمیسیون و صحت گزارش بررسی شود. حذف سند یا revert آن، منطق انتشار فعلی را تغییر نمی‌دهد.
+
+**وضعیت:** بررسی مستند نامزدها انجام شد؛ هیچ اتصال شبکهٔ جدید فعال نشده و پایلوت عملیاتی در انتظار دسترسی/تأیید رسمی است.
+
+
+## ۲۰۲۶-۱۱-۱۸ — حذف فراخوانی فید بازنشسته از مسیر نگاشت deadline
+
+**هدف:** حذف منطق و تست گمراه‌کننده‌ای که یک endpoint فید 404شده را به‌عنوان منبع REST معتبر برای deadline معرفی می‌کرد.
+
+**تغییر/اقدام:** `fetch_offer_deadlines` اکنون صریحاً فقط کارت‌های MCP را که شناسه‌شان در فهرست محصول‌های لازم است وارد map می‌کند. هیچ REST feed lookup انجام نمی‌شود؛ بررسی محصول از endpoint جزئیات زنده در rotating monitor/expiry confirmation جداگانه اجرا می‌شود. تابع قدیمی فقط به‌عنوان compatibility shim بدون شبکه باقی ماند و constant فید بازنشسته حذف شد. تست‌های قدیمیِ direct-feed priority با تست‌های MCP-only و بدون درخواست شبکه جایگزین شدند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/expiration_monitor.py`، `affilio_radar/test_expiration_monitor.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/OFFERCHIN_OPTIMIZATION_WORKSTREAM_2026-11-18.md`.
+
+**آزمون و نتیجه:** تست جدید ثابت می‌کند compatibility shim هیچ HTTP session نمی‌سازد و deadline map فقط محصول‌های لازم را با source برابر `digikala_mcp_offer_card` می‌پذیرد؛ اجرای CI روی head بعدی در انتظار است.
+
+**شواهد/شناسه:** PR #244؛ کد `78b488805ed1fc2744e74d237ca16f96553369ed`؛ تست `445f8c7e709aa8a2b4ebf6647ed15e4b75c54b10`.
+
+**ریسک/بازگشت:** پوشش deadlineهای فید REST بازنشسته دیگر گزارش نمی‌شود؛ fallback کارت MCP برای deadlineهای موجود و API جزئیات محصول برای بررسی موردی باقی می‌مانند. در نبود evidence، حذف پست انجام نمی‌شود. rollback با revert این دو commit ممکن است، اما نباید فراخوانی endpoint 404شده دوباره فعال شود.
+
+**وضعیت:** اصلاح در شاخه ثبت شد؛ CI جدید در انتظار است؛ merge و deploy انجام نشده‌اند.
