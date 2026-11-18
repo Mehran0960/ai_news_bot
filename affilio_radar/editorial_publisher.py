@@ -56,6 +56,8 @@ RETRYABLE = {"pending", "failed", "retry"}
 # It never creates a standalone publication slot or delays a product.
 RETRY_BASE_SECONDS = max(60, min(1800, int(os.getenv("OFFERCHIN_EDITORIAL_RETRY_SECONDS", "300"))))
 MAX_ATTEMPTS = max(1, min(5, int(os.getenv("OFFERCHIN_EDITORIAL_MAX_ATTEMPTS", "3"))))
+EDITORIAL_ORPHAN_RECOVERY_MAX_AGE_HOURS = 24
+EDITORIAL_ORPHAN_RECOVERY_LIMIT = 20
 
 
 def _utc(value: Any) -> datetime | None:
@@ -126,6 +128,25 @@ def _active_editorial_entries(state: dict) -> list[dict]:
         if isinstance(row, dict) and row.get("status") not in {"completed", "cancelled", "failed"}
     ]
     return sorted(rows, key=lambda row: int(row.get("sequence_number") or 0))
+
+
+def _editorial_photo_delivery_started(entry: dict) -> bool:
+    """Whether this event has already had a photo-channel attempt or confirmed receipt."""
+    if not isinstance(entry, dict):
+        return False
+    if entry.get("photo_slot_attempted_at"):
+        return True
+    platforms = entry.get("platforms") if isinstance(entry.get("platforms"), dict) else {}
+    for destination in CHANNEL_DESTINATIONS:
+        target = platforms.get(destination)
+        if not isinstance(target, dict):
+            continue
+        status = str(target.get("status") or "").strip().lower()
+        if status in {"sent", "manual_review"}:
+            return True
+        if int(target.get("attempts") or 0) > 0 or target.get("attempt_started_at"):
+            return True
+    return False
 
 
 def _channel_spacing_guard_applies(state: dict) -> bool:
@@ -217,6 +238,145 @@ def _hydrate_confirmed_editorial_receipts(state: dict, entry: dict) -> int:
             f"destinations={restored} source=confirmed_history"
         )
     return restored
+
+
+def _rehydrate_orphaned_editorial_entries(
+    state: dict,
+    bank: list[dict],
+    *,
+    now: datetime | None = None,
+) -> int:
+    """Recover recent history events whose active queue entry was lost by a concurrent state write.
+
+    Only events with a confirmed public photo receipt and at least one unfinished video
+    destination are eligible. Sent/manual-review receipts are copied as-is, so recovery
+    can never replay a channel post that already succeeded. The 24-hour age limit avoids
+    reviving stale editorial assets or expired product context.
+    """
+    if not isinstance(state, dict):
+        return 0
+    current = now or _now()
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+    queue = state.get("editorial_delivery_queue")
+    if not isinstance(queue, dict):
+        queue = {}
+        state["editorial_delivery_queue"] = queue
+    history = state.get("editorial_delivery_history")
+    if not isinstance(history, list):
+        return 0
+    attempts = state.get("editorial_delivery_attempts")
+    attempts = attempts if isinstance(attempts, list) else []
+    terminal_attempts = {
+        (str(row.get("content_id") or ""), str(row.get("sequence_number") or ""))
+        for row in attempts
+        if isinstance(row, dict)
+        and str(row.get("status") or "").lower() in {"completed", "failed", "cancelled"}
+    }
+    bank_by_id = {
+        str(item.get("editorial_id") or "").strip(): item
+        for item in bank if isinstance(item, dict) and str(item.get("editorial_id") or "").strip()
+    }
+    recovered = 0
+    for row in reversed(history):
+        if recovered >= EDITORIAL_ORPHAN_RECOVERY_LIMIT:
+            break
+        if not isinstance(row, dict):
+            continue
+        content_id = str(row.get("content_id") or "").strip()
+        editorial_id = str(row.get("editorial_id") or "").strip()
+        try:
+            sequence = int(row.get("sequence_number") or 0)
+        except (TypeError, ValueError, OverflowError):
+            sequence = 0
+        if not content_id or not editorial_id or sequence <= 0:
+            continue
+        if content_id in queue:
+            continue
+        if (content_id, str(sequence)) in terminal_attempts:
+            continue
+        published_at = _utc(row.get("published_at"))
+        if published_at is None:
+            continue
+        age = current - published_at
+        if age < timedelta(0) or age > timedelta(hours=EDITORIAL_ORPHAN_RECOVERY_MAX_AGE_HOURS):
+            continue
+        receipts = row.get("destinations") if isinstance(row.get("destinations"), dict) else {}
+        if not any(
+            isinstance(receipts.get(name), dict)
+            and str(receipts[name].get("status") or "").strip().lower() == "sent"
+            for name in CHANNEL_DESTINATIONS
+        ):
+            continue
+        pending_videos = {
+            name: receipts.get(name)
+            for name in VIDEO_DESTINATIONS
+            if isinstance(receipts.get(name), dict)
+            and (
+                str(receipts[name].get("status") or "").strip().lower()
+                in {"pending", "pending_credentials", "failed", "retry", "sending"}
+                or (
+                    name == "youtube"
+                    and str(receipts[name].get("status") or "").strip().lower() == "skipped_limit"
+                )
+            )
+        }
+        if not pending_videos:
+            continue
+        item = bank_by_id.get(editorial_id)
+        valid, reason = validate_editorial_item(item, now=current) if item else (
+            False, "editorial_id_not_in_current_reviewed_bank"
+        )
+        if not valid:
+            print(
+                "EDITORIAL_ORPHAN_RECOVERY_SKIPPED "
+                f"content_id={content_id} reason={reason}"
+            )
+            continue
+        fingerprint = str(row.get("content_fingerprint") or "").strip()
+        if fingerprint and fingerprint != editorial_content_fingerprint(item):
+            print(f"EDITORIAL_ORPHAN_RECOVERY_SKIPPED content_id={content_id} reason=fingerprint_mismatch")
+            continue
+        payload = dict(item)
+        payload.update({
+            "content_id": content_id,
+            "sequence_number": sequence,
+            "related_product_id": str(row.get("related_product_id") or "").strip(),
+        })
+        platforms = {}
+        for destination in (*CHANNEL_DESTINATIONS, *VIDEO_DESTINATIONS):
+            receipt = receipts.get(destination)
+            if isinstance(receipt, dict):
+                platforms[destination] = dict(receipt)
+            else:
+                platforms[destination] = {"status": "pending", "attempts": 0}
+        entry = {
+            "content_id": content_id,
+            "content_type": "editorial",
+            "sequence_number": sequence,
+            "selected_at": published_at.isoformat(),
+            "scheduled_at": current.isoformat(),
+            "next_attempt_at": current.isoformat(),
+            "window_closes_at": None,
+            "photo_slot_attempted_at": published_at.isoformat(),
+            "delivery_started_at": published_at.isoformat(),
+            "status": "partial",
+            "attempt_count": 0,
+            "payload": payload,
+            "related_product_id": payload["related_product_id"],
+            "platforms": platforms,
+            "recovered_from_delivery_history_at": current.isoformat(),
+            "recovery_reason": "recent_orphaned_editorial_with_pending_video",
+        }
+        queue[content_id] = entry
+        recovered += 1
+        print(
+            "EDITORIAL_ORPHAN_RECOVERED "
+            f"content_id={content_id} sequence={sequence} "
+            f"pending_videos={','.join(sorted(pending_videos))}"
+        )
+    return recovered
 
 
 def _recent_attempt_anchor(state: dict) -> datetime | None:
@@ -319,6 +479,15 @@ def queue_editorial_if_due(
                 queued_payload.get(field) == reviewed_item.get(field)
                 for field in payload_fields
             )
+            if (
+                valid_item
+                and payload_matches_reviewed
+                and _editorial_photo_delivery_started(queued_editorial)
+            ):
+                # The photo slot is already consumed. Remaining destinations are
+                # independent and must not be cancelled by a later product deadline.
+                valid_active.append(queued_editorial)
+                continue
             product_payload = (
                 product_entry.get("payload")
                 if isinstance(product_entry, dict) and isinstance(product_entry.get("payload"), dict)
@@ -1314,6 +1483,12 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
         raise ValueError("mode_must_be_channels_or_videos")
     current = now or _now()
     state = radar.load_state(apply_integrity_ledger=False)
+    bank = _load_bank()
+    if publish:
+        recovered = _rehydrate_orphaned_editorial_entries(state, bank, now=current)
+        if recovered:
+            _save(state)
+            _refresh_dispatch_projection(state)
     if publish and mode == "channels" and _channel_spacing_guard_applies(state):
         spacing_wait = channel_publication_wait_seconds(state, now=current)
         if spacing_wait > 0:
@@ -1326,7 +1501,6 @@ def run_editorial_publisher(*, mode: str, publish: bool, now: datetime | None = 
             )
             _refresh_dispatch_projection(state)
             return 0
-    bank = _load_bank()
     entry = queue_editorial_if_due(state, bank, now=current)
     if publish:
         # Persist the canonical id and allocated sequence before rendering or any
