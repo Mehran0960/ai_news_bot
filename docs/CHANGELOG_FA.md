@@ -3204,3 +3204,26 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** گیت جدید عمداً فقط timestamp یتیم را نادیده می‌گیرد؛ اگر sidecar اشتباهاً صف فعال را صفر گزارش کند، discovery به‌جای delivery-only اجرا می‌شود و همچنان قیمت/موجودی/لینک را در مرحلهٔ آخر دوباره اعتبارسنجی می‌کند. بازگشت با revert PR #249 ممکن است. تغییر پیش‌فرض ایتا ممکن است انتشار آن را تا ثبت opt-in معتبر متوقف نگه دارد؛ این وضعیت با قطع ارتباط واقعی فعلی سازگار است. Filo cadence، صف تأیید، یوتیوب/آپارات، لینک مستقیم خرید و secretها در این PR تغییر نکرده‌اند.
 
 **وضعیت:** PR #249 باز است و هنوز merge یا production deployment انجام نشده است. پس از عبور همهٔ checkها، ادغام و استقرار Worker به‌صورت جداگانه تأیید می‌شود؛ تا آن زمان این اصلاحات روی main/live فعال نیستند.
+
+
+## 2026-11-19 — تعمیر صف ویدئو و آزادسازی FIFO تحریریه
+
+**هدف:** جلوگیری از مسدود شدن صف ویدئو و محتوای تحریریه توسط رکوردهای محصولی که از پنجرهٔ تازگی ۲۴ساعته عبور کرده‌اند، بدون دور زدن اعتبارسنجی آفر یا ایجاد ارسال تکراری.
+
+**تغییر/اقدام:**
+- اسکریپت مستقل `video_queue_maintenance.py` برای سه مقصد YouTube، Aparat و Filo افزوده شد.
+- pending/retryهای دارای timestamp نامعتبر یا قدیمی‌تر از ۲۴ ساعت به وضعیت terminal مقصد منتقل می‌شوند؛ رکورد محصول و رسیدهای قبلی حذف نمی‌شوند.
+- `skipped_unavailable` فقط برای رکورد تازه و فقط پس از حاضر شدن اعتبارنامهٔ همان مقصد و عبور مجدد از گیت eligibility به `pending` برمی‌گردد.
+- workflowهای مستقل سه پلتفرم پیش از صف تحریریه maintenance مقصد خود را اجرا می‌کنند؛ مسیر Filo فقط پس از login verification موفق این مرحله را انجام می‌دهد.
+- وضعیت‌های آپلودشده و submitهای فیلو در انتظار تأیید یا دارای نتیجهٔ نامشخص هرگز retry کورکورانه نمی‌شوند.
+- regression testهای مستقل به CI مربوط به video fan-out افزوده شدند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/video_queue_maintenance.py`، `affilio_radar/test_video_queue_maintenance.py`، `.github/workflows/youtube-video-upload.yml`، `.github/workflows/aparat-video-upload.yml`، `.github/workflows/filo-video-upload.yml`، `.github/workflows/offerchin-video-fanout-validation.yml`، Handbook و Changelog.
+
+**آزمون و نتیجه:** compile ماژول جدید در اجرای PR #250 موفق شد. تست‌های مستقل صف و regressionهای FIFO در Workflow مربوط به Video Fan-out در حال اجرا هستند؛ نتیجهٔ نهایی تا پایان همان CI ادعا نمی‌شود. Documentation Gate اولیه به‌درستی به‌دلیل فقدان این Handbook/Changelog entry شکست خورد؛ این ورودی برای عبور از گیت افزوده شده است.
+
+**شواهد/شناسه:** PR #250؛ اجرای اولیهٔ Video Fan-out Validation #44399662126؛ Documentation Gate اولیه #44399662130.
+
+**ریسک/بازگشت:** ویدئوی محصول قدیمی عمداً از صف فعال خارج می‌شود و به‌صورت خودکار بارگذاری مجدد نمی‌شود؛ فقط انتخاب تازه و اعتبارسنجی مجدد می‌تواند آن را دوباره وارد چرخه کند. rollback با revert همین PR ممکن است؛ در آن صورت stale pendingها ممکن است دوباره FIFO تحریریه را مسدود کنند. هیچ credential، secret، Worker زنده، CTA افیلیو یا انتشار عمومی در این PR تغییر نکرده است.
+
+**وضعیت:** تغییرات فقط در شاخهٔ PR #250 قرار دارند؛ هنوز merge یا production deployment نشده‌اند. پس از CI و merge، خروجی اجرای واقعی هر مقصد جداگانه بررسی خواهد شد.
