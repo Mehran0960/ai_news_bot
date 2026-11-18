@@ -16,6 +16,7 @@ from editorial_publisher import (
     _pending_product_video_exists,
     _record_failure,
     _selected_channel_destinations,
+    _channel_spacing_guard_applies,
     _selected_video_destinations,
     _format_message,
     _public_editorial_payload,
@@ -71,6 +72,20 @@ class EditorialPublisherTests(unittest.TestCase):
         with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_CHANNEL_DESTINATION": "youtube"}, clear=True):
             with self.assertRaisesRegex(ValueError, "unsupported_editorial_channel_destination"):
                 _selected_channel_destinations()
+
+    def test_existing_editorial_delivery_bypasses_new_post_spacing_guard(self):
+        state = {
+            "editorial_delivery_queue": {
+                "editorial:retry": {
+                    "content_id": "editorial:retry",
+                    "sequence_number": 12,
+                    "status": "partial",
+                    "platforms": {"telegram": {"status": "sent"}, "bale": {"status": "retry"}},
+                }
+            }
+        }
+        self.assertFalse(_channel_spacing_guard_applies(state))
+        self.assertTrue(_channel_spacing_guard_applies({"editorial_delivery_queue": {}}))
 
     def test_video_worker_can_select_exactly_one_destination(self):
         for destination in ("youtube", "aparat", "filo"):
