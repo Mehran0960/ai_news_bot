@@ -252,6 +252,8 @@ class IntegrityAuditStateTests(unittest.TestCase):
         root = __import__("pathlib").Path(__file__).resolve().parent.parent
         audit_workflow = (root / ".github" / "workflows" / "offerchin-integrity-audit.yml").read_text(encoding="utf-8")
         publisher_workflow = (root / ".github" / "workflows" / "offerchin-publisher.yml").read_text(encoding="utf-8")
+        emergency_publisher_workflow = (root / ".github" / "workflows" / "affilio-publisher.yml").read_text(encoding="utf-8")
+        editorial_recovery_workflow = (root / ".github" / "workflows" / "offerchin-editorial-channel-upload.yml").read_text(encoding="utf-8")
 
         # Cloudflare dispatches the audit on an off-slot minute; a second GitHub
         # cron would duplicate the work and compete with fresh product validation.
@@ -273,6 +275,8 @@ class IntegrityAuditStateTests(unittest.TestCase):
         self.assertIn('max_delete_attempts=video_delete_budget', audit_code)
         self.assertIn("group: offerchin-integrity-audit", audit_workflow)
         self.assertIn("group: offerchin-channel-publisher", publisher_workflow)
+        self.assertIn("group: offerchin-channel-publisher", emergency_publisher_workflow)
+        self.assertIn("group: offerchin-channel-publisher", editorial_recovery_workflow)
         self.assertNotIn("offerchin-integrity-audit", publisher_workflow)
 
     def test_audit_entry_for_unknown_post_id_is_ignored(self):
