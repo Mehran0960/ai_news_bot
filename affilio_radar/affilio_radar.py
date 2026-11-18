@@ -92,6 +92,10 @@ from offerchin_copy import (
     normalize_brand_display_name,
 )
 from integrity_audit_state import apply_integrity_audit_ledger
+try:
+    from .platform_registry import PLATFORM_NAMES
+except ImportError:
+    from platform_registry import PLATFORM_NAMES
 import arabic_reshaper
 from bidi.algorithm import get_display
 
@@ -4910,7 +4914,7 @@ def build_performance_report(
             posts_by_caption_variant[caption_key] = posts_by_caption_variant.get(caption_key, 0) + 1
         statuses = record.get("delivery_status")
         statuses = statuses if isinstance(record.get("delivery_status"), dict) else {}
-        for platform in ("telegram", "bale", "youtube", "aparat"):
+        for platform in PLATFORM_NAMES:
             if (
                 record.get(f"{platform}_message_id")
                 or record.get(f"{platform}_video_id")
