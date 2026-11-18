@@ -7,6 +7,12 @@ on:
 permissions:
   contents: write
 
+# Serialize recovery against the primary and emergency photo-channel publishers.
+# The matrix jobs still run concurrently within this one workflow invocation.
+concurrency:
+  group: offerchin-channel-publisher
+  cancel-in-progress: false
+
 jobs:
   deliver-editorial-channel:
     name: Editorial delivery — ${{ matrix.destination }}
