@@ -44,6 +44,35 @@ class IndependentPhotoDeliveryTests(unittest.TestCase):
         self.assertEqual(self.record["delivery_status"]["bale"], "pending")
         self.assertEqual(self.record["telegram_message_id"], 1234)
 
+    def test_one_destination_exception_does_not_skip_other_photo_destinations(self):
+        def fake_sender(entry, record, item, image_bytes, destination, now):
+            if destination == "eitaa":
+                raise RuntimeError("test destination failure")
+            local_entry = copy.deepcopy(entry)
+            local_record = copy.deepcopy(record)
+            local_entry["platforms"][destination]["status"] = "sent"
+            local_record["delivery_status"][destination] = "sent"
+            local_record[f"{destination}_posted_at"] = now.isoformat()
+            return destination, local_entry, local_record
+
+        with patch.object(
+            publisher, "_deliver_photo_destination_isolated", side_effect=fake_sender
+        ) as sender:
+            results = publisher._deliver_photo_destinations_independently(
+                self.entry, self.record, self.item, b"image", self.now
+            )
+
+        self.assertEqual(sender.call_count, len(publisher.PHOTO_PLATFORMS))
+        self.assertEqual(set(results), set(publisher.PHOTO_PLATFORMS))
+        self.assertEqual(results["eitaa"], "failed")
+        for destination in ("telegram", "bale", "rubika"):
+            self.assertEqual(results[destination], "sent")
+            self.assertEqual(self.entry["platforms"][destination]["status"], "sent")
+            self.assertEqual(self.record["delivery_status"][destination], "sent")
+        self.assertEqual(self.record["delivery_status"]["eitaa"], "failed")
+        self.assertEqual(self.entry["platforms"]["eitaa"]["status"], "failed")
+        self.assertEqual(self.entry["platforms"]["eitaa"]["attempts"], 1)
+
     def test_isolated_sender_does_not_write_shared_state(self):
         with patch.object(publisher, "_target_ready", return_value=True), \
              patch.object(publisher.radar, "_send_platform_photo", return_value={"message_id": 77}), \
