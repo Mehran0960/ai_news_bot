@@ -15,6 +15,7 @@ from editorial_publisher import (
     _hydrate_confirmed_editorial_receipts,
     _pending_product_video_exists,
     _record_failure,
+    _selected_channel_destinations,
     _selected_video_destinations,
     _format_message,
     _public_editorial_payload,
@@ -63,6 +64,14 @@ def add_confirmed_product_posts(state, count=6, *, published_at=None):
 
 
 class EditorialPublisherTests(unittest.TestCase):
+    def test_photo_worker_can_select_exactly_one_destination(self):
+        for destination in ("telegram", "bale", "rubika", "eitaa"):
+            with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_CHANNEL_DESTINATION": destination}, clear=True):
+                self.assertEqual(_selected_channel_destinations(), (destination,))
+        with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_CHANNEL_DESTINATION": "youtube"}, clear=True):
+            with self.assertRaisesRegex(ValueError, "unsupported_editorial_channel_destination"):
+                _selected_channel_destinations()
+
     def test_video_worker_can_select_exactly_one_destination(self):
         for destination in ("youtube", "aparat", "filo"):
             with patch.dict(os.environ, {"OFFERCHIN_EDITORIAL_VIDEO_DESTINATION": destination}, clear=True):
