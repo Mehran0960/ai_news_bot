@@ -8684,179 +8684,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-9388176",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-9388176%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "156",
-        "catalog_best_selling_category_name": "ساعت دیواری و ایستاده",
-        "catalog_best_selling_rank": 2,
-        "catalog_best_selling_ranks_by_category": {
-          "156": {
-            "category_name": "ساعت دیواری و ایستاده",
-            "observed_at": "2026-11-16T07:39:55.691172+00:00",
-            "rank": 2,
-            "rank_history": [
-              {
-                "category_name": "ساعت دیواری و ایستاده",
-                "observed_at": "2026-11-16T07:39:55.691172+00:00",
-                "rank": 2
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T08:20:35.205024+00:00",
-        "catalog_cycle_snapshot_rank": 176,
-        "catalog_rank_observed_at": "2026-11-16T07:39:55.691172+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-16T08:50:21.867160+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-9388176",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 2298000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 55.35,
-        "discount_percent": 30,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T08:51:18.240342+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 2298000,
-        "history_low_toman": 2298000,
-        "history_median_toman": 2298000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/30527944dc39e90e14e2fc4d4cb118360148cfc8_1740146391.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "affordability": 71.49,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 40.93,
-          "discount_attractiveness": 55.35,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 98.91,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "156",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T08:51:37.264852+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "original_price": 3280000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-9388176",
-        "product_url": "https://www.digikala.com/product/dkp-9388176/",
-        "promo_score": 26,
-        "publication_policy": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-        "qualifies_as_deal": true,
-        "rating": 4.39,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 248,
-        "savings_toman": 982000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 2,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "affordability": 71.49,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 40.93,
-          "discount_attractiveness": 55.35,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 98.91,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "156",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T08:51:37.264852+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1257,
-        "title": "ساعت دیواری مدل فلزی کد D460",
-        "variant_label": "مشکی مات"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-9388176",
-      "product_plan_cycle_id": "2026-11-16T08:20:35.205024+00:00",
-      "selected_at": "2026-11-16T08:51:46.345697+00:00",
-      "sequence_number": 1257,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T09:04:54.405638+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-974939",
       "content_type": "product",
       "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
@@ -44955,6 +44782,188 @@
       "sequence_number": 1548,
       "status": "published",
       "updated_at": "2026-11-18T13:56:52.216164+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-20589939",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-18T14:34:34.087095+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-18T14:33:52.214970+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-20589939%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "شاهسوند",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "8914",
+        "catalog_best_selling_category_name": "چای سیاه",
+        "catalog_best_selling_rank": 2,
+        "catalog_best_selling_ranks_by_category": {
+          "8914": {
+            "category_name": "چای سیاه",
+            "observed_at": "2026-11-17T23:14:03.538251+00:00",
+            "rank": 2,
+            "rank_history": [
+              {
+                "category_name": "چای سیاه",
+                "observed_at": "2026-11-17T23:14:03.538251+00:00",
+                "rank": 2
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-17T23:46:46.818912+00:00",
+        "catalog_cycle_snapshot_rank": 418,
+        "catalog_rank_observed_at": "2026-11-17T23:14:03.538251+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "grocery_food",
+        "checked_at": "2026-11-17T23:59:53.678459+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-20589939",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 1123500,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 15.7,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 49.47,
+        "discount_percent": 25,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-18T00:00:53.026316+00:00",
+        "history_days": 2,
+        "history_end_day": "2026-11-18",
+        "history_high_toman": 1123500,
+        "history_low_toman": 1123500,
+        "history_median_toman": 1123500,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": 1123500,
+        "history_start_day": "2026-11-17",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/5a4883675bfae905c86868c55c33ef7786eaa047_1759569776.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 73.3,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 49.47,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 94.0,
+          "generality_group": "grocery_food",
+          "live_demand": 99.28,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-18T00:00:53.028914+00:00",
+          "weakest_factor_score": 49.47
+        },
+        "original_price": 1498000,
+        "pct_above_stable_low": 0,
+        "product_id": "dkp-20589939",
+        "product_url": "https://www.digikala.com/product/dkp-20589939/",
+        "promo_score": 21,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.43,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 218,
+        "savings_toman": 374500,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 2,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 73.3,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 49.47,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 94.0,
+          "generality_group": "grocery_food",
+          "live_demand": 99.28,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-18T00:00:53.028914+00:00",
+          "weakest_factor_score": 49.47
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1549,
+        "title": "چای سیاه خارجی معطر ارل گری شاهسوند - 450 گرم"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-18T14:34:34.087095+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-18T14:34:41.101970+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-18T14:34:34.087095+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-18T14:34:34.087095+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-18T14:34:44.576587+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-18T14:34:34.087095+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-18T14:34:40.610471+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-20589939",
+      "product_plan_cycle_id": "2026-11-18T02:57:36.425446+00:00",
+      "scheduled_at": "2026-11-18T14:33:52.214970+00:00",
+      "selected_at": "2026-11-18T00:00:57.192209+00:00",
+      "sequence_number": 1549,
+      "status": "published",
+      "updated_at": "2026-11-18T14:34:44.912289+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -44969,7 +44978,7 @@
       "attempt_count": 0,
       "content_id": "dkp-12606113",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T16:13:52.214970+00:00",
+      "next_attempt_at": "2026-11-18T16:14:44.911153+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-12606113%2F",
         "availability": "in_stock",
@@ -45131,187 +45140,16 @@
       },
       "product_id": "dkp-12606113",
       "product_plan_cycle_id": "2026-11-18T02:57:36.425446+00:00",
-      "scheduled_at": "2026-11-18T16:13:52.214970+00:00",
+      "scheduled_at": "2026-11-18T16:14:44.911153+00:00",
       "selected_at": "2026-11-18T00:00:57.192209+00:00",
       "sequence_number": 1552,
-      "status": "queued"
-    },
-    "dkp-20589939": {
-      "attempt_count": 0,
-      "content_id": "dkp-20589939",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-18T14:33:52.214970+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-20589939%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "شاهسوند",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "8914",
-        "catalog_best_selling_category_name": "چای سیاه",
-        "catalog_best_selling_rank": 2,
-        "catalog_best_selling_ranks_by_category": {
-          "8914": {
-            "category_name": "چای سیاه",
-            "observed_at": "2026-11-17T23:14:03.538251+00:00",
-            "rank": 2,
-            "rank_history": [
-              {
-                "category_name": "چای سیاه",
-                "observed_at": "2026-11-17T23:14:03.538251+00:00",
-                "rank": 2
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-17T23:46:46.818912+00:00",
-        "catalog_cycle_snapshot_rank": 418,
-        "catalog_rank_observed_at": "2026-11-17T23:14:03.538251+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "grocery_food",
-        "checked_at": "2026-11-17T23:59:53.678459+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-20589939",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 1123500,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 15.7,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 49.47,
-        "discount_percent": 25,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-18T00:00:53.026316+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-18",
-        "history_high_toman": 1123500,
-        "history_low_toman": 1123500,
-        "history_median_toman": 1123500,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 1123500,
-        "history_start_day": "2026-11-17",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/5a4883675bfae905c86868c55c33ef7786eaa047_1759569776.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 73.3,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 49.47,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 99.28,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-18T00:00:53.028914+00:00",
-          "weakest_factor_score": 49.47
-        },
-        "original_price": 1498000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-20589939",
-        "product_url": "https://www.digikala.com/product/dkp-20589939/",
-        "promo_score": 21,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.43,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 218,
-        "savings_toman": 374500,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 2,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 73.3,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 49.47,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 99.28,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-18T00:00:53.028914+00:00",
-          "weakest_factor_score": 49.47
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1549,
-        "title": "چای سیاه خارجی معطر ارل گری شاهسوند - 450 گرم"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-20589939",
-      "product_plan_cycle_id": "2026-11-18T02:57:36.425446+00:00",
-      "scheduled_at": "2026-11-18T14:33:52.214970+00:00",
-      "selected_at": "2026-11-18T00:00:57.192209+00:00",
-      "sequence_number": 1549,
       "status": "queued"
     },
     "dkp-21409421": {
       "attempt_count": 0,
       "content_id": "dkp-21409421",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T15:07:52.214970+00:00",
+      "next_attempt_at": "2026-11-18T15:08:44.911153+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21409421%2F",
         "availability": "in_stock",
@@ -45473,7 +45311,7 @@
       },
       "product_id": "dkp-21409421",
       "product_plan_cycle_id": "2026-11-18T02:57:36.425446+00:00",
-      "scheduled_at": "2026-11-18T15:07:52.214970+00:00",
+      "scheduled_at": "2026-11-18T15:08:44.911153+00:00",
       "selected_at": "2026-11-18T00:00:57.192209+00:00",
       "sequence_number": 1550,
       "status": "queued"
@@ -45482,7 +45320,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22036587",
       "content_type": "product",
-      "next_attempt_at": "2026-11-18T15:40:52.214970+00:00",
+      "next_attempt_at": "2026-11-18T15:41:44.911153+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22036587%2F",
         "availability": "in_stock",
@@ -45643,7 +45481,7 @@
       },
       "product_id": "dkp-22036587",
       "product_plan_cycle_id": "2026-11-18T02:57:36.425446+00:00",
-      "scheduled_at": "2026-11-18T15:40:52.214970+00:00",
+      "scheduled_at": "2026-11-18T15:41:44.911153+00:00",
       "selected_at": "2026-11-18T00:00:57.192209+00:00",
       "sequence_number": 1551,
       "status": "queued"
@@ -166437,7 +166275,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.9,
+      "delivery_duration_seconds": 1.6,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -166498,8 +166336,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.9,
-      "delivery_started_at": "2026-11-18T14:33:37.584952+00:00",
+      "delivery_duration_seconds": 1.6,
+      "delivery_started_at": "2026-11-18T14:34:46.052487+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -166909,13 +166747,13 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-18T13:56:52.214970+00:00",
+  "last_channel_published_at": "2026-11-18T14:34:44.911153+00:00",
   "last_content_selection_at": "2026-11-18T00:00:57.192209+00:00",
   "last_editorial_attempt_at": "2026-11-18T02:10:38.177140+00:00",
   "last_editorial_confirmed_at": "2026-11-18T02:10:49.933296+00:00",
   "last_editorial_empty_bank_check_at": "2026-11-18T01:24:46.585898+00:00",
-  "last_product_channel_published_at": "2026-11-18T13:56:52.214970+00:00",
-  "last_published_at": "2026-11-18T13:56:52.214970+00:00",
+  "last_product_channel_published_at": "2026-11-18T14:34:44.911153+00:00",
+  "last_published_at": "2026-11-18T14:34:44.911153+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -216509,8 +216347,8 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-18T13:56:52.214991+00:00",
-    "candidate_count": 4,
+    "calculated_at": "2026-11-18T14:34:44.911161+00:00",
+    "candidate_count": 3,
     "catalog_cycle_id": "2026-11-18T02:57:36.425446+00:00",
     "current_cycle_started_at": "2026-11-18T02:57:36.792695+00:00",
     "daily_post_limit": 72,
@@ -216522,20 +216360,20 @@
     "interval_seconds": 3420.0,
     "last_clean_cycle_completed_at": "2026-11-18T02:57:36.425446+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-18T13:56:52.214970+00:00",
+    "plan_anchor_at": "2026-11-18T14:34:44.911153+00:00",
     "plan_anchor_kind": "last_channel_provisional",
-    "planned_product_slots": 4,
-    "planned_window_end_at": "2026-11-18T17:44:52.214970+00:00",
+    "planned_product_slots": 3,
+    "planned_window_end_at": "2026-11-18T17:25:44.911153+00:00",
     "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
     "scan_eta_is_provisional": true,
     "scan_eta_source": "provisional_max_interval_after_overdue_or_missing_scan_eta",
     "scheduled_product_count": 22,
-    "seconds_from_plan_anchor_to_next_scan": 13680,
+    "seconds_from_plan_anchor_to_next_scan": 10260,
     "seconds_until_estimated_next_clean_scan": 0.0
   },
   "product_publication_interval_seconds": 3420.0,
   "product_publication_plan": {
-    "anchor_at": "2026-11-18T13:56:52.214970+00:00",
+    "anchor_at": "2026-11-18T14:34:44.911153+00:00",
     "anchor_kind": "last_channel_provisional",
     "catalog_cycle_id": "2026-11-18T02:57:36.425446+00:00",
     "first_slot_due_now": false,
@@ -216543,17 +216381,16 @@
     "interval_seconds": 3420.0,
     "maximum_product_interval_seconds": 3420,
     "next_clean_scan_at": "",
-    "pending_product_count": 4,
+    "pending_product_count": 3,
     "product_ids": [
-      "dkp-20589939",
       "dkp-21409421",
       "dkp-22036587",
       "dkp-12606113"
     ],
-    "scheduled_product_count": 4,
-    "updated_at": "2026-11-18T13:56:52.214991+00:00"
+    "scheduled_product_count": 3,
+    "updated_at": "2026-11-18T14:34:44.911161+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-18T13:56:52.214970+00:00",
+  "product_publication_plan_anchor_at": "2026-11-18T14:34:44.911153+00:00",
   "product_publication_plan_anchor_kind": "last_channel_provisional",
   "product_publication_plan_cycle_id": "2026-11-18T02:57:36.425446+00:00",
   "publication_diversity_fallback_count": 5307,
@@ -300173,6 +300010,134 @@
       "youtube_next_attempt_at": "2026-11-18T18:39:32.096553+00:00",
       "youtube_skip_reason": "youtube_daily_quota_pause",
       "youtube_upload_status": "retry"
+    },
+    "dkp-20589939": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2293,
+      "bale_posted_at": "2026-11-18T14:34:41.101970+00:00",
+      "brand": "شاهسوند",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "B",
+      "catalog_best_selling_category_id": "8914",
+      "catalog_best_selling_category_name": "چای سیاه",
+      "catalog_best_selling_rank": 2,
+      "catalog_best_selling_ranks_by_category": {
+        "8914": {
+          "category_name": "چای سیاه",
+          "observed_at": "2026-11-17T23:14:03.538251+00:00",
+          "rank": 2,
+          "rank_history": [
+            {
+              "category_name": "چای سیاه",
+              "observed_at": "2026-11-17T23:14:03.538251+00:00",
+              "rank": 2
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-17T23:46:46.818912+00:00",
+      "catalog_cycle_snapshot_rank": 418,
+      "catalog_rank_observed_at": "2026-11-17T23:14:03.538251+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-20589939",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "B",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-18T14:34:44.576611+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 0,
+      "distribution_queue_id": "dkp-20589939:2026-11-18T00:00:57.192209+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-18T00:00:53.026316+00:00",
+      "history_days": 2,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/5a4883675bfae905c86868c55c33ef7786eaa047_1759569776.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "not_checked",
+      "platform_message_ids": {
+        "rubika": "1975742449850588651"
+      },
+      "posted_current_price": 1123500,
+      "posted_discount_percent": 25,
+      "posted_original_price": 1498000,
+      "product_url": "https://www.digikala.com/product/dkp-20589939/",
+      "promo_score": 21,
+      "publication_category": "grocery_food",
+      "publication_family": "digikala_category:8914",
+      "publication_use_case": "grocery_food",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 15.7,
+      "rubika_posted_at": "2026-11-18T14:34:44.576587+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 2,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 73.3,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 49.47,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 94.0,
+        "generality_group": "grocery_food",
+        "live_demand": 99.28,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-18T00:00:53.028914+00:00",
+        "weakest_factor_score": 49.47
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1549,
+      "telegram_message_id": 1708,
+      "telegram_posted_at": "2026-11-18T14:34:40.610471+00:00",
+      "title": "چای سیاه خارجی معطر ارل گری شاهسوند - 450 گرم",
+      "ts": 1795012474.087095,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
     },
     "dkp-20615355": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
