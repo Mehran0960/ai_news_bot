@@ -1940,6 +1940,7 @@ class ExpirationMonitorTests(unittest.TestCase):
             )
 
         self.assertTrue(changed)
+        self.assertEqual(summary["retention_days"], 7)
         self.assertEqual(
             telegram_delete.call_args.args[0],
             [101, 102],
