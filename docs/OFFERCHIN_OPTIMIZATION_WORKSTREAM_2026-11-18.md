@@ -12,7 +12,7 @@ This work is staged on `codex/offerchin-optimization-2026-11-18` from the observ
 
 ## Changes in this branch
 1. Updated `expiration_monitor.fetch_live_product_status` to use the same current DigiKala product-detail endpoint and safe redirect/CDN helper as discovery. The check remains bounded, validates the requested product through `parse_product_api`, and preserves the conservative rule that missing/ambiguous data cannot trigger deletion.
-2. Removed calls to the retired legacy DigiKala live-deals feed. The monitor logs the skipped retired endpoint and relies on product-matched current MCP offer cards for campaign countdown evidence when required.
+2. Removed calls to the retired legacy DigiKala live-deals feed. The deadline map is explicitly MCP-only and filters cards to required exact product IDs; product-detail API checks are handled separately by the rotating live-status/expiry confirmation monitor.
 3. Updated regression tests for the current product-detail endpoint and for the single bounded HTML fallback after API failure.
 
 ## Explicit non-goals / external dependencies
