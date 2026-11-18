@@ -31,8 +31,16 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         self.now = datetime(2026, 10, 25, 12, 0, tzinfo=timezone.utc)
 
 
-    def test_eitaa_is_enabled_by_default_when_credentials_are_present(self):
+    def test_eitaa_is_disabled_by_default_when_credentials_are_present(self):
         with patch.dict(os.environ, {
+            "EITAA_BOT_TOKEN": "test-token",
+            "EITAA_CHANNEL_ID": "test-channel",
+        }, clear=True):
+            self.assertFalse(_target_ready("eitaa"))
+
+    def test_eitaa_requires_explicit_opt_in_when_credentials_are_present(self):
+        with patch.dict(os.environ, {
+            "EITAA_ENABLE_PUBLISHING": "true",
             "EITAA_BOT_TOKEN": "test-token",
             "EITAA_CHANNEL_ID": "test-channel",
         }, clear=True):

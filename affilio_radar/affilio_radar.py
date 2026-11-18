@@ -5233,7 +5233,10 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         "youtube_upload_status", "aparat_upload_status", "filo_upload_status", "video_generation_status",
         "distribution_queue_id", "content_id", "content_type", "sequence_number",
         "video_generation_next_attempt_at", "youtube_next_attempt_at",
-        "aparat_next_attempt_at", "filo_next_attempt_at", "expires_at", "expiry_source", "expiry_estimated",
+        "aparat_next_attempt_at", "filo_next_attempt_at", "filo_last_error",
+        "filo_upload_attempts", "filo_review_required", "filo_submitted_at",
+        "filo_visibility", "filo_video_url", "filo_video_code",
+        "expires_at", "expiry_source", "expiry_estimated",
         "expiry_deadline_verified_directly", "expiry_deadline_verified_from_site_card",
     )
     compact_published = {}
@@ -11429,6 +11432,7 @@ def process_pending_short_video(
                     record["filo_next_attempt_at"] = datetime.now(timezone.utc).isoformat()
                 print(
                     f"FILO_UPLOAD_FAILED id={pid} error={type(exc).__name__} "
+                    f"error_code={record['filo_last_error'] or 'unknown'} "
                     f"attempts={attempts}/{MAX_VIDEO_UPLOAD_ATTEMPTS} skipped={attempts >= MAX_VIDEO_UPLOAD_ATTEMPTS}"
                 )
         save_json(STATE, state)

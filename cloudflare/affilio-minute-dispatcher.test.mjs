@@ -17,6 +17,7 @@ import {
   isEmergencyContinuityAvailable,
   isPublisherAttemptRun,
   nextPublisherDueAt,
+  hasActiveChannelPublicationWork,
   hasDueScheduledPublication,
   readLastChannelPublicationAt,
 } from "./affilio-minute-dispatcher.mjs";
@@ -195,7 +196,10 @@ test("fails closed on missing, stale-schema, or partial-scan status", () => {
 test("publisher cadence follows the exact scheduled product timestamp regardless of last post", () => {
   const now = Date.now();
   const productAt = now + 10 * 60 * 1000;
-  const state = { next_channel_content_due_at: new Date(productAt).toISOString() };
+  const state = {
+    pending_product_queue_count: 1,
+    next_channel_content_due_at: new Date(productAt).toISOString(),
+  };
   assert.equal(nextPublisherDueAt(state), productAt);
 });
 
@@ -204,6 +208,7 @@ test("publisher chooses the earliest editorial midpoint or product slot", () => 
   const productAt = now + 3 * 60 * 60 * 1000;
   const editorialAt = now + 47 * 60 * 1000;
   const state = {
+    pending_product_queue_count: 1,
     next_channel_content_due_at: new Date(productAt).toISOString(),
     next_editorial_planning_at: new Date(editorialAt).toISOString(),
   };
@@ -213,6 +218,7 @@ test("publisher chooses the earliest editorial midpoint or product slot", () => 
 test("already-due selected content is dispatched independently of catalog snapshot readiness", () => {
   const now = Date.now();
   const due = {
+    pending_product_queue_count: 1,
     next_channel_content_due_at: new Date(now - 1).toISOString(),
     next_editorial_planning_at: null,
   };
@@ -239,16 +245,42 @@ test("publisher replenishes a low product queue before the next scheduled slot",
   assert.equal(shouldReplenishPublisherQueue({}, staleAttempt, now), false);
 });
 
-test("publisher has no standalone editorial schedule when no product slot exists", () => {
-  assert.equal(nextPublisherDueAt({}), null);
+test("stale publication timestamps are ignored when the projected queues are empty", () => {
+  const now = Date.now();
+  const stale = new Date(now - 60 * 60 * 1000).toISOString();
+  const state = {
+    pending_product_queue_count: 0,
+    editorial_channel_queue: [],
+    next_channel_content_due_at: stale,
+    next_editorial_planning_at: stale,
+  };
+  assert.equal(hasActiveChannelPublicationWork(state), false);
+  assert.equal(nextPublisherDueAt(state), null);
+  assert.equal(hasDueScheduledPublication(state, now), false);
   assert.equal(PUBLISHER_DISCOVERY_RETRY_MS, 3 * 60 * 1000,
     "three minutes is only an unscheduled discovery retry throttle");
+});
+
+test("an active editorial channel queue keeps its scheduled midpoint valid", () => {
+  const now = Date.now();
+  const stale = new Date(now - 1).toISOString();
+  const state = {
+    pending_product_queue_count: 0,
+    editorial_channel_queue: [{content_id: "editorial:retry"}],
+    next_editorial_planning_at: stale,
+  };
+  assert.equal(hasActiveChannelPublicationWork(state), true);
+  assert.equal(nextPublisherDueAt(state), Date.parse(stale));
+  assert.equal(hasDueScheduledPublication(state, now), true);
 });
 
 test("emergency discovery never adds a public posting gap", () => {
   const now = Date.now();
   const scheduled = now + 90_000;
-  const state = { next_channel_content_due_at: new Date(scheduled).toISOString() };
+  const state = {
+    pending_product_queue_count: 1,
+    next_channel_content_due_at: new Date(scheduled).toISOString(),
+  };
   assert.equal(nextPublisherDueAt(state), scheduled);
   assert.equal(nextPublisherDueAt({}), null);
 });

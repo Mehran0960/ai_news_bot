@@ -981,7 +981,7 @@ def _destination_ready(name: str, state: dict, now: datetime) -> tuple[bool, str
         ready = enabled and bool(os.getenv("RUBIKA_BOT_TOKEN", "").strip()) and bool(os.getenv("RUBIKA_CHANNEL_ID", "").strip())
         return ready, "rubika_not_enabled_or_credentials_missing"
     if name == "eitaa":
-        enabled = os.getenv("EITAA_ENABLE_PUBLISHING", "true").strip().lower() in {"1", "true", "yes", "on"}
+        enabled = os.getenv("EITAA_ENABLE_PUBLISHING", "false").strip().lower() in {"1", "true", "yes", "on"}
         ready = enabled and bool(os.getenv("EITAA_BOT_TOKEN", "").strip()) and bool(os.getenv("EITAA_CHANNEL_ID", "").strip())
         return ready, "eitaa_not_enabled_or_credentials_missing"
     if name == "youtube":
@@ -1523,7 +1523,7 @@ def build_editorial_shadow_report(*, now: datetime | None = None) -> dict:
         "rubika": bool(os.getenv("RUBIKA_ENABLE_PUBLISHING", "false").strip().lower() in {"1", "true", "yes", "on"}
                        and os.getenv("RUBIKA_BOT_TOKEN", "").strip()
                        and os.getenv("RUBIKA_CHANNEL_ID", "").strip()),
-        "eitaa": bool(os.getenv("EITAA_ENABLE_PUBLISHING", "true").strip().lower() in {"1", "true", "yes", "on"}
+        "eitaa": bool(os.getenv("EITAA_ENABLE_PUBLISHING", "false").strip().lower() in {"1", "true", "yes", "on"}
                       and os.getenv("EITAA_BOT_TOKEN", "").strip()
                       and os.getenv("EITAA_CHANNEL_ID", "").strip()),
     }

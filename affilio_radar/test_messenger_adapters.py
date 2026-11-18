@@ -1,3 +1,4 @@
+import os
 import unittest
 from unittest.mock import patch
 from messenger_adapters import (
@@ -7,6 +8,7 @@ from messenger_adapters import (
     send_eitaa_photo,
     send_rubika_photo,
 )
+from publisher import _target_ready
 from offerchin_copy import (
     BRAND_DISPLAY_NAME,
     MEMBERSHIP_BUTTON_TEXT,
@@ -80,6 +82,22 @@ class MessengerAdapterTests(unittest.TestCase):
             "https://aflo.ir/QekEYTRg?p="
             "https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1%2F"
         )
+
+    def test_eitaa_requires_explicit_opt_in_even_when_credentials_exist(self):
+        with patch.dict(os.environ, {
+            "EITAA_BOT_TOKEN": "test-token",
+            "EITAA_CHANNEL_ID": "@offerchin",
+        }, clear=False):
+            previous = os.environ.pop("EITAA_ENABLE_PUBLISHING", None)
+            try:
+                self.assertFalse(_target_ready("eitaa"))
+                os.environ["EITAA_ENABLE_PUBLISHING"] = "true"
+                self.assertTrue(_target_ready("eitaa"))
+            finally:
+                if previous is None:
+                    os.environ.pop("EITAA_ENABLE_PUBLISHING", None)
+                else:
+                    os.environ["EITAA_ENABLE_PUBLISHING"] = previous
 
     @patch("messenger_adapters.requests.post")
     def test_rubika_uploads_then_sends_photo_and_returns_message_id(self, post):
