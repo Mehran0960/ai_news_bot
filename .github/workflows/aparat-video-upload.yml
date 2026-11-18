@@ -70,7 +70,14 @@ jobs:
           print("APARAT_ONLY_PATH_VALIDATED")
           PY
           cd affilio_radar
-          python -m unittest -v test_shared_selection_media_routing.py test_merge_state_conflicts.py
+          python -m unittest -v test_shared_selection_media_routing.py test_merge_state_conflicts.py test_video_queue_maintenance.py
+
+      - name: Reconcile stale and credential-recovered Aparat queue entries
+        env:
+          APARAT_COOKIE_HEADER: ${{ secrets.APARAT_COOKIE_HEADER }}
+          AFFILIO_APARAT_UPLOAD_ENABLED: "true"
+          PYTHONUNBUFFERED: "1"
+        run: python affilio_radar/video_queue_maintenance.py --destination aparat --max-age-hours 24
 
       - name: Process only the Aparat editorial video queue
         env:
