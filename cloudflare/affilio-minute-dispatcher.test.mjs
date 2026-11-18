@@ -6,6 +6,7 @@ import {
   isDegradedLiveFallbackAvailable,
   hasDueVideoRecord,
   hasPendingVideoQueue,
+  hasDueEditorialChannelQueue,
   videoQueueDispatchDeferReason,
   videoRecordDue,
   isFiloLoginVerified,
@@ -635,6 +636,47 @@ test("YouTube daily quota pause defers only YouTube and automatically resumes", 
     youtube_skip_reason: "youtube_daily_quota_pause",
   };
   assert.equal(videoRecordDue(legacyQuotaSkip, "youtube", now), true);
+});
+
+test("editorial photo channel recovery queue is due per destination", () => {
+  const now = Date.now();
+  const state = {
+    editorial_channel_queue: [{
+      content_id: "editorial:delivery-guide",
+      sequence_number: 42,
+      status: "partial",
+      scheduled_at: new Date(now - 60_000).toISOString(),
+      platforms: {
+        telegram: { status: "sent" },
+        bale: { status: "pending" },
+        rubika: { status: "retry", next_attempt_at: new Date(now + 60 * 60_000).toISOString() },
+        eitaa: { status: "manual_review" },
+      },
+    }],
+  };
+  assert.equal(hasDueEditorialChannelQueue(state, now), true);
+  state.editorial_channel_queue[0].platforms.bale.status = "sent";
+  assert.equal(hasDueEditorialChannelQueue(state, now), false);
+  state.editorial_channel_queue[0].platforms.rubika.next_attempt_at = new Date(now - 1).toISOString();
+  assert.equal(hasDueEditorialChannelQueue(state, now), true);
+});
+
+test("editorial photo channel uncertain sends wait for the send watchdog", () => {
+  const now = Date.now();
+  const state = {
+    editorial_channel_queue: [{
+      content_id: "editorial:guide",
+      status: "partial",
+      scheduled_at: new Date(now - 60_000).toISOString(),
+      platforms: {
+        telegram: { status: "sending", attempt_started_at: new Date(now - 5 * 60_000).toISOString() },
+      },
+    }],
+  };
+  assert.equal(hasDueEditorialChannelQueue(state, now), false);
+  state.editorial_channel_queue[0].platforms.telegram.attempt_started_at =
+    new Date(now - 31 * 60_000).toISOString();
+  assert.equal(hasDueEditorialChannelQueue(state, now), true);
 });
 
 test("editorial video queue dispatches each destination without product records", () => {
