@@ -24,6 +24,7 @@ from bs4 import BeautifulSoup
 from affilio_radar import (
     build_caption, TELEGRAM_CHANNEL_URL, parse_product_api, parse_product_page,
     safe_product_url, is_publishable_product_title, fetch_product_record,
+    _digikala_get, DIGIKALA_PRODUCT_DETAIL_API_URL,
 )
 from offer_expiry import extract_offer_expiry, parse_absolute_deadline
 from urllib.error import HTTPError
@@ -476,12 +477,11 @@ def sync_live_offer_deadlines(published, live_expiries, now, live_sources=None):
 
 
 def fetch_live_product_status(product_id, expected_price=None, expected_original_price=None):
-    """Fetch live price/availability with bounded requests and no duplicate API fallback.
+    """Fetch live price/availability from DigiKala's current product-detail API.
 
     Missing or ambiguous data is inconclusive and must never trigger deletion.
-    DigiKala API v2/v1 are attempted once each; when both fail, parse one bounded
-    product-page request instead of calling verify_live_page_price (which would
-    repeat both APIs before requesting HTML again).
+    The legacy /v2/product and /v1/product routes are retired; use the same
+    redirect/CDN-cookie-aware endpoint as catalog discovery, then one bounded HTML fallback.
     """
     normalized_id = str(product_id or "").strip().lower()
     timeout = (5, PRODUCT_STATUS_TIMEOUT_SECONDS)
@@ -540,28 +540,17 @@ def fetch_live_product_status(product_id, expected_price=None, expected_original
     url = f"https://www.digikala.com/product/{normalized_id}/"
     observed_at = datetime.now(timezone.utc)
 
-    for version in ("v2", "v1"):
-        api_url = f"https://api.digikala.com/{version}/product/{numeric_id}/"
-        try:
-            response = requests.get(
-                api_url,
-                headers=headers,
-                timeout=timeout,
-                allow_redirects=True,
-            )
-            if response.status_code != 200:
-                print(
-                    f"EXPIRY_PRODUCT_CHECK_FAILED product_id={normalized_id} "
-                    f"api={version} status={response.status_code}"
-                )
-                continue
-            raw = response.content
-            if len(raw) > 5_000_000:
-                print(f"EXPIRY_PRODUCT_CHECK_FAILED product_id={normalized_id} api={version} reason=response_too_large")
-                continue
-            parsed = parse_product_api(response.json(), url, now=observed_at)
-            if not isinstance(parsed, dict):
-                continue
+    api_url = DIGIKALA_PRODUCT_DETAIL_API_URL.format(product_id=numeric_id)
+    try:
+        response = _digikala_get(
+            api_url,
+            timeout=timeout,
+        )
+        raw = response.content
+        if len(raw) > 5_000_000:
+            raise RuntimeError("response_too_large")
+        parsed = parse_product_api(response.json(), url, now=observed_at)
+        if isinstance(parsed, dict) and parsed:
             current = parsed.get("current_price")
             try:
                 current = int(current) if current is not None else None
@@ -569,7 +558,14 @@ def fetch_live_product_status(product_id, expected_price=None, expected_original
                     current = None
             except (TypeError, ValueError, OverflowError):
                 current = None
-            stock_value = str(parsed.get("availability") or "unknown")
+            original = parsed.get("original_price")
+            try:
+                original = int(original) if original is not None else None
+                if original is not None and original <= 0:
+                    original = None
+            except (TypeError, ValueError, OverflowError):
+                original = None
+            stock_value = str(parsed.get("availability") or "unknown").strip().lower()
             if stock_value == "out_of_stock":
                 in_stock = False
             elif stock_value == "in_stock":
@@ -580,20 +576,29 @@ def fetch_live_product_status(product_id, expected_price=None, expected_original
             if current is not None or in_stock is False:
                 return {
                     "current_price": current,
-                    "original_price": parsed.get("original_price"),
+                    "original_price": original,
                     "in_stock": in_stock,
-                    "api_version": version,
+                    "api_version": "product_v1",
                     "deal_expires_at": deadline or "",
                     "expiry_verified_directly": bool(
                         deadline and parsed.get("expiry_deadline_verified_directly") is True
                     ),
                     "price_source": "digikala_product_detail_api",
                 }
-        except Exception as exc:
             print(
-                f"EXPIRY_PRODUCT_CHECK_FAILED product_id={normalized_id} "
-                f"api={version} error={type(exc).__name__}"
+                f"EXPIRY_PRODUCT_CHECK_UNCONFIRMED product_id={normalized_id} "
+                "api=product_v1 reason=no_usable_price_or_stock"
             )
+        else:
+            print(
+                f"EXPIRY_PRODUCT_CHECK_UNCONFIRMED product_id={normalized_id} "
+                "api=product_v1 reason=product_identity_or_payload_unmatched"
+            )
+    except Exception as exc:
+        print(
+            f"EXPIRY_PRODUCT_CHECK_FAILED product_id={normalized_id} "
+            f"api=product_v1 error={type(exc).__name__}: {str(exc)[:120]!r}"
+        )
 
     # API fallback is a single bounded HTML request. Do not re-call v2/v1 through
     # verify_live_page_price; transient API errors otherwise multiply network time.
