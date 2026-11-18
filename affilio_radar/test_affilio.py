@@ -7224,6 +7224,12 @@ class AffilioRadarTests(unittest.TestCase):
             }
         }
         report = radar_module.build_performance_report(state, click_snapshot=snapshot)
+        self.assertFalse(report["source_attribution_available"])
+        self.assertTrue(report["worker_source_attribution_available"])
+        self.assertEqual(
+            report["click_data_scope"],
+            "worker_redirect_route_only_not_live_direct_affilio_ctas",
+        )
         self.assertEqual(report["published_posts_by_platform"], {
             "telegram": 2,
             "bale": 1,
