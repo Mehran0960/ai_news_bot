@@ -173,7 +173,8 @@ jobs:
           }
           trap restore_live_files EXIT
           cd affilio_radar
-          python -m unittest -v test_affilio.py test_selection_evidence.py test_catalog_sweep.py test_parallel_catalog_sweep.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py test_aparat_shorts_migration.py test_aparat_upload_schedule.py test_filo_uploader.py test_filo_upload_schedule.py test_content_delivery.py test_integrity_audit.py test_shared_selection_media_routing.py
+          python -m unittest -v test_affilio.py test_selection_evidence.py test_catalog_sweep.py test_parallel_catalog_sweep.py test_expiration_monitor.py test_short_video.py test_aparat_uploader.py test_aparat_shorts_migration.py test_aparat_upload_schedule.py test_filo_uploader.py test_filo_upload_schedule.py test_content_delivery.py test_integrity_audit.py test_shared_selection_media_routing.py test_independent_media_dispatch.py
+          node --test test_affiliate_deal_radar_worker.mjs
           python - <<'PY'
           from pathlib import Path
           import re
