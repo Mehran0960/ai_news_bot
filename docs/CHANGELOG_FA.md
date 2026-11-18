@@ -3094,3 +3094,19 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** اگر API یک مقصد timeout بدهد، همان مقصد طبق سیاست قبلی `manual_review` یا retry می‌شود و نتیجهٔ سه مقصد دیگر حفظ می‌شود. در صورت بروز اختلاف merge، تغییر را می‌توان با revert همین PR بازگرداند؛ هیچ state زنده یا پیام قبلی reset یا حذف نمی‌شود.
 
 **وضعیت:** تغییر در شاخهٔ اصلاحی آمادهٔ CI؛ انتشار عمومی دستی برای آزمون انجام نمی‌شود.
+
+## 2026-11-18 — بازیابی تحریریه‌های یتیم و حفاظت صف مقصدها
+
+**هدف:** جلوگیری از گم‌شدن مقصدهای تکمیل‌نشدهٔ یک تحریریه در اثر حذف صف فعال، و تکمیل مستقل ویدئوها بدون بازنشر عکس‌های موفق.
+
+**تغییر/اقدام:** PR #239 پیش‌تر در همین تاریخ با commit `f1f34e8c70bc7f3614d61f6de5a50d0bd14b73d0` ادغام شد و Cloudflare Worker با اجرای `44225402804` مستقر شد. ممیزی پس از استقرار نشان داد رویداد اخیر `measure-room-size` در history دارای رسید موفق Telegram/Bale/Rubika و وضعیت pending در YouTube/Aparat/Filo است، اما صف فعال متناظر وجود ندارد. در PR #241 بازیابی محدود به ۲۴ ساعت و حداکثر ۲۰ رویداد اضافه شده است؛ بازیابی فقط با receipt تصویری موفق، وجود محتوای معتبر در بانک بازبینی‌شده، fingerprint سازگار، مقصد ویدئویی pending و نبود terminal attempt انجام می‌شود. رسیدها و message IDهای قبلی حفظ می‌شوند؛ هیچ پست تصویری موفق دوباره ارسال نمی‌شود و مقصد فاقد receipt به‌صورت pending فرض نمی‌شود. رویداد تصویریِ ارسال‌شده پس از پایان slot محصول نیز برای تکمیل مقصدهای باقیمانده فعال می‌ماند. merge state صف فعال را حفظ می‌کند مگر terminal attempt همان content_id/sequence ثبت شده باشد.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/editorial_publisher.py`، `affilio_radar/merge_state_conflicts.py`، `affilio_radar/test_editorial_publisher.py`، `affilio_radar/test_merge_state_conflicts.py`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`.
+
+**آزمون و نتیجه:** تست‌های بازیابی رویداد یتیم، جلوگیری از replay مقصد تصویری، projection مستقل صف ویدئو، رد رویداد قدیمی‌تر از ۲۴ ساعت، رد terminal attempt، حفظ صف در ادغام هم‌زمان و اجازهٔ حذف پس از terminal اضافه شده‌اند. نتیجهٔ CI مربوط به PR #241 هنوز در انتظار است و تا سبزشدن کامل، این اصلاح ادغام‌شده محسوب نمی‌شود.
+
+**شواهد/شناسه:** PR #241؛ شاخه `fix/offerchin-orphaned-editorial-recovery-20261118`؛ آخرین وضعیت زندهٔ ممیزی‌شده `measure-room-size` با sequence 1554 و رسیدهای photo موفق / video pending.
+
+**ریسک/بازگشت:** فقط eventهای ۲۴ ساعت اخیر eligible هستند؛ eventهای قدیمی‌تر خودکار replay نمی‌شوند. هیچ پیام قبلی حذف یا ارسال تصویری موفق تکرار نمی‌شود. برگشت با revert PR #241 ممکن است و منطق بازیابی event یتیم و حفاظت صف را غیرفعال می‌کند.
+
+**وضعیت:** PR #239 ادغام و Worker مستقر شده است؛ PR #241 باز است و منتظر CI نهایی می‌باشد.
