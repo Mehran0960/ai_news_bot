@@ -877,10 +877,9 @@ class AffilioRadarTests(unittest.TestCase):
     def test_click_tracker_supports_channel_attribution_and_rejects_unknown_source_names(self):
         product = "https://www.digikala.com/product/dkp-15970075/"
         affiliate = build_affilio_tracking_link(product)
-        telegram = build_click_tracking_link(product, affiliate, "https://tracker.example", source="telegram")
-        bale = build_click_tracking_link(product, affiliate, "https://tracker.example", source="bale")
-        self.assertEqual(parse_qs(urlsplit(telegram).query).get("src"), ["telegram"])
-        self.assertEqual(parse_qs(urlsplit(bale).query).get("src"), ["bale"])
+        for source in ("telegram", "bale", "rubika", "eitaa", "youtube", "aparat", "filo"):
+            tracked = build_click_tracking_link(product, affiliate, "https://tracker.example", source=source)
+            self.assertEqual(parse_qs(urlsplit(tracked).query).get("src"), [source])
         unsafe = build_click_tracking_link(product, affiliate, "https://tracker.example", source="unknown-user-input")
         self.assertEqual(parse_qs(urlsplit(unsafe).query).get("src"), ["unknown"])
 
@@ -7192,6 +7191,7 @@ class AffilioRadarTests(unittest.TestCase):
                 "dkp-123": {
                     "creative_experiment_id": "creative-test-1",
                     "creative_variant": "A",
+                    "selection_demand_scope": "digikala_store_only",
                     "caption_experiment_id": "caption-test-1",
                     "caption_variant": "A",
                     "telegram_message_id": 123,
@@ -7230,6 +7230,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(report["tracked_clicks_by_product_source"]["dkp-123"], {"telegram": 8})
         self.assertEqual(report["tracked_clicks_by_product_variant"]["dkp-123"], {"creative-test-1:A": 8})
         self.assertEqual(report["published_posts_by_product"]["dkp-123"]["selection_demand_evidence"], None)
+        self.assertEqual(report["published_posts_by_product"]["dkp-123"]["demand_evidence_scope"], "digikala_store_only")
         self.assertEqual(report["tracked_clicks_by_experiment_variant"], {
             "creative-test-1:A": 8, "creative-test-1:B": 4
         })
@@ -7242,15 +7243,23 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(report["tracked_clicks_with_caption_experiment_attribution"], 12)
         self.assertEqual(report["tracked_clicks_without_caption_experiment_attribution"], 0)
         self.assertTrue(report["caption_experiment_attribution_supported_by_worker"])
-        self.assertTrue(report["caption_experiment_attribution_active"])
+        self.assertTrue(report["caption_experiment_assignment_active"])
+        self.assertFalse(report["caption_experiment_attribution_active"])
+        self.assertFalse(report["source_attribution_available"])
+        self.assertTrue(report["worker_source_attribution_available"])
+        self.assertEqual(report["click_data_scope"], "worker_redirect_route_only_not_live_direct_affilio_ctas")
+        self.assertFalse(report["live_purchase_click_tracking_enabled"])
+        self.assertFalse(report["live_purchase_source_attribution_available"])
+        self.assertEqual(report["live_purchase_link_mode"], "direct_affilio_link")
         self.assertEqual(report["published_product_count"], 3)
         self.assertEqual(report["published_experiment_posts"], 2)
         self.assertEqual(report["unassigned_published_posts"], 1)
         self.assertEqual(report["experiment_assignment_coverage_percent"], 66.67)
         self.assertEqual(report["experiment_publication_status"], "partially_assigned")
-        self.assertEqual(report["experiment_measurement_status"], "clicks_observed")
+        self.assertEqual(report["experiment_measurement_status"], "blocked_live_cta_bypasses_click_tracker")
         self.assertTrue(report["experiment_attribution_supported_by_worker"])
-        self.assertTrue(report["experiment_attribution_active"])
+        self.assertTrue(report["experiment_assignment_active"])
+        self.assertFalse(report["experiment_attribution_active"])
         self.assertEqual(report["tracked_clicks_total"], 12)
         self.assertEqual(report["tracked_clicks_with_experiment_attribution"], 12)
         self.assertEqual(report["tracked_clicks_without_experiment_attribution"], 0)
@@ -7285,7 +7294,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertTrue(report["experiment_attribution_supported_by_worker"])
         self.assertFalse(report["experiment_attribution_active"])
         self.assertEqual(report["experiment_publication_status"], "awaiting_first_tagged_publication")
-        self.assertEqual(report["experiment_measurement_status"], "awaiting_first_tagged_click")
+        self.assertEqual(report["experiment_measurement_status"], "blocked_live_cta_bypasses_click_tracker")
         self.assertEqual(report["experiment_assignment_coverage_percent"], 0.0)
         self.assertEqual(report["unassigned_published_posts"], 1)
         self.assertEqual(report["tracked_clicks_with_experiment_attribution"], 0)
