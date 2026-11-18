@@ -3165,7 +3165,7 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 
 **فایل‌ها/سامانه‌ها:** `.github/workflows/affilio-expiration-cleanup.yml`، `.github/workflows/affilio-radar.yml`، `affilio_radar/expiration_monitor.py`، `affilio_radar/test_expiration_monitor.py`، `affilio_radar/affiliate-deal-radar-worker.js`، `affilio_radar/test_affiliate_deal_radar_worker.mjs`، `affilio_radar/affilio_radar.py`، `affilio_radar/test_affilio.py`، `affilio_radar/publisher.py`، `affilio_radar/test_independent_media_dispatch.py`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، Handbook، Growth Playbook و Network Review.
 
-**آزمون و نتیجه:** اجرای رگرسیون #44322978001 روی commit `c074933` با موفقیت تمام شد و ۵۹۷ تست را اجرا کرد؛ پس از آن تست جدید شکست مستقل مقصد نیز اضافه شد. اجرای #44323834686 یک assertion نادرست در تست جدید را مشخص کرد؛ assertion به وضعیت واقعی failed/retry اصلاح شد و run تازهٔ commit `7f0ecf4` در حال بررسی است. تست‌های PR شامل مستندات، adapterها، fallback، لوگو، ویدئو و رتبه‌بندی نیز در جریان هستند؛ تا سبزشدن آخرین head موفقیت کامل ادعا نمی‌شود.
+**آزمون و نتیجه:** اجرای نهایی رادار #44324690868 روی کد commit `3742a1e4` موفق شد: ۶۰۱ تست Python با ۲ مورد skip و ۴ تست Node با ۴ موفقیت. تمام ۱۰ check مربوط به PR #246 نیز روی همین snapshot کد موفق شدند؛ شامل Documentation Gate، قرارداد تحریریه، چهارعامل رتبه‌بندی، تست catalog sweep، adapterها، fallback، لوگو، ویدئو و رگرسیون Top-100/DigiPay. این تست‌ها صحت مسیرهای کد و شبیه‌سازی‌ها را نشان می‌دهند، نه ارسال عمومی یا فروش واقعی.
 
 **شواهد/شناسه:** شاخهٔ `codex/offerchin-optimization-2026-11-18-refresh2`؛ PR #246؛ مبنای شاخه commit `3b5272f71b9be6ed57d0bd8cad28a4310551c155`. PR قدیمی #245 مبنای ادغام نیست.
 
