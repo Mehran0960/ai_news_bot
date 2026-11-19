@@ -47,7 +47,7 @@ test("health advertises experiment attribution support", async () => {
   assert.equal(body.experimentAttribution, true);
   assert.equal(body.captionExperimentAttribution, true);
   assert.equal(body.conversionPostbackConfigured, false);
-  assert.match(body.routes.join(" "), /postback\\/affilio/);
+  assert.ok(body.routes.join(" ").includes("/postback/affilio"));
   assert.match(
     body.routes.join(" "),
     /telegram\|bale\|rubika\|eitaa\|youtube\|aparat\|filo/,
