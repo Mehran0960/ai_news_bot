@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-19T02:40:57.185789+00:00",
-  "aparat_last_upload_success_at": "2026-11-19T02:41:00.654813+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-19T03:19:54.026716+00:00",
+  "aparat_last_upload_success_at": "2026-11-19T03:19:57.988933+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-19T00:46:43.777068+00:00",
@@ -286720,7 +286720,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-648195": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-19T03:19:54.026716+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-19T03:19:57.988933+00:00",
+      "aparat_video_hash": "gyqhz46",
+      "aparat_video_record_id": "74288136",
+      "aparat_video_url": "https://www.aparat.com/v/gyqhz46",
+      "aparat_visibility": "public",
       "bale_message_id": 2314,
       "bale_posted_at": "2026-11-19T03:18:44.132225+00:00",
       "brand": "لافارر",
@@ -286844,8 +286850,17 @@
       "telegram_posted_at": "2026-11-19T03:18:43.367919+00:00",
       "title": "میسلار واتر لافارر مدل 01 مناسب برای پوست چرب و معمولی حجم 250 میلی‌لیتر",
       "ts": 1795058316.990965,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-648195.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-648195.mp4"
+      },
+      "video_generated_at": "2026-11-19T03:19:46.719094+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-6500928": {
       "aparat_upload_started_at": "2026-11-17T19:25:31.306471+00:00",
