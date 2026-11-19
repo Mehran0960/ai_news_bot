@@ -258391,6 +258391,7 @@
       "aparat_video_record_id": "74303039",
       "aparat_video_url": "https://www.aparat.com/v/bnt7jo3",
       "aparat_visibility": "public",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2351,
       "bale_posted_at": "2026-11-19T22:13:48.590298+00:00",
       "brand": "",
@@ -258455,6 +258456,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-19T22:16:05.549528+00:00",
@@ -283599,10 +283601,10 @@
       "expiry_deadline_verified_from_site_card": true,
       "expiry_estimated": false,
       "expiry_last_direct_verification_at": "2026-11-01T16:07:30.157857+00:00",
-      "expiry_last_removal_check_at": "2026-11-17T18:56:33.161809+00:00",
-      "expiry_last_removal_check_result": "inconclusive",
+      "expiry_last_removal_check_at": "2026-11-19T22:17:45.103689+00:00",
+      "expiry_last_removal_check_result": "confirmed",
       "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_status": "delete_unavailable",
       "filo_skip_reason": "selection_outside_freshness_window",
       "filo_skip_recorded_at": "2026-11-18T21:35:17.788690+00:00",
       "filo_upload_status": "skipped_stale_after_freshness_window",
@@ -292152,13 +292154,21 @@
       "video_file_name": "offerchin-dkp-3827062.mp4",
       "video_file_names": {
         "aparat": "offerchin-dkp-3827062.mp4",
-        "filo": "offerchin-dkp-3827062.mp4"
+        "filo": "offerchin-dkp-3827062.mp4",
+        "youtube": "offerchin-dkp-3827062.mp4"
       },
-      "video_generated_at": "2026-11-19T03:53:12.876000+00:00",
+      "video_generated_at": "2026-11-19T22:24:51.221429+00:00",
       "video_generation_status": "generated",
       "video_style_version": 7,
-      "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-19T22:24:56.320593+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-19T22:24:58.019569+00:00",
+      "youtube_video_id": "5W2LrXcHYnY",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/5W2LrXcHYnY",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-3847115": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -300557,13 +300567,21 @@
       "video_file_name": "offerchin-dkp-648195.mp4",
       "video_file_names": {
         "aparat": "offerchin-dkp-648195.mp4",
-        "filo": "offerchin-dkp-648195.mp4"
+        "filo": "offerchin-dkp-648195.mp4",
+        "youtube": "offerchin-dkp-648195.mp4"
       },
-      "video_generated_at": "2026-11-19T03:20:20.902628+00:00",
+      "video_generated_at": "2026-11-19T22:24:42.726270+00:00",
       "video_generation_status": "generated",
       "video_style_version": 7,
-      "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-19T22:24:48.907900+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-19T22:24:50.817290+00:00",
+      "youtube_video_id": "60ClhCWh7Go",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/60ClhCWh7Go",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-6500928": {
       "aparat_upload_started_at": "2026-11-17T19:25:31.306471+00:00",
@@ -326628,6 +326646,6 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 22,
   "snappshop_retry_after": "2026-11-20T20:35:41.334792+00:00",
-  "youtube_last_upload_success_at": "2026-11-19T22:20:08.837990+00:00",
+  "youtube_last_upload_success_at": "2026-11-19T22:24:58.019569+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
