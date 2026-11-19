@@ -62,6 +62,32 @@ class PublicationDueGateTests(unittest.TestCase):
             (False, "no_active_publication_queue"),
         )
 
+    def test_stale_editorial_midpoint_before_last_channel_post_does_not_skip_discovery(self):
+        stale_editorial = (self.now - timedelta(days=1)).isoformat()
+        last_channel_post = (self.now - timedelta(minutes=5)).isoformat()
+        future_product = (self.now + timedelta(minutes=25)).isoformat()
+        self.assertEqual(
+            due_publication_slot({
+                "pending_product_queue_count": 1,
+                "last_channel_published_at": last_channel_post,
+                "next_channel_content_due_at": future_product,
+                "next_editorial_planning_at": stale_editorial,
+            }, now=self.now),
+            (False, "no_publication_slot_due"),
+        )
+
+    def test_editorial_midpoint_after_last_channel_post_remains_due(self):
+        last_channel_post = (self.now - timedelta(minutes=20)).isoformat()
+        due_editorial = (self.now - timedelta(seconds=1)).isoformat()
+        self.assertEqual(
+            due_publication_slot({
+                "pending_product_queue_count": 1,
+                "last_channel_published_at": last_channel_post,
+                "next_editorial_planning_at": due_editorial,
+            }, now=self.now),
+            (True, "editorial_midpoint_due"),
+        )
+
     def test_editorial_recovery_queue_keeps_a_due_editorial_slot_valid(self):
         due = (self.now - timedelta(seconds=1)).isoformat()
         self.assertEqual(
