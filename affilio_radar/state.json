@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-19T22:14:46.589931+00:00",
-  "aparat_last_upload_success_at": "2026-11-19T22:14:49.650624+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-19T23:29:53.997431+00:00",
+  "aparat_last_upload_success_at": "2026-11-19T23:30:12.016982+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-19T23:25:51.299284+00:00",
@@ -266328,7 +266328,14 @@
       "youtube_video_url": "https://www.youtube.com/shorts/HqmgvRHNJD8"
     },
     "dkp-22475245": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_attempts": 1,
+      "aparat_upload_started_at": "2026-11-19T23:29:53.997431+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-19T23:30:12.016982+00:00",
+      "aparat_video_hash": "cauykf6",
+      "aparat_video_record_id": "74303393",
+      "aparat_video_url": "https://www.aparat.com/v/cauykf6",
+      "aparat_visibility": "public",
       "bale_message_id": 2352,
       "bale_posted_at": "2026-11-19T23:28:57.961655+00:00",
       "brand": "شیائومی",
@@ -266452,8 +266459,17 @@
       "telegram_posted_at": "2026-11-19T23:28:57.609571+00:00",
       "title": "تبلت 11 اینچ شیائومی مدل Redmi Pad 2 Wi-Fi با ظرفیت 256 گیگابایت و رم 8 گیگابایت به همراه کاور",
       "ts": 1795130932.483341,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22475245.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22475245.mp4"
+      },
+      "video_generated_at": "2026-11-19T23:29:48.417607+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22483905": {
       "aparat_upload_started_at": "2026-11-19T05:18:50.411387+00:00",
