@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-19T03:19:54.026716+00:00",
-  "aparat_last_upload_success_at": "2026-11-19T03:19:57.988933+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-19T03:52:46.472789+00:00",
+  "aparat_last_upload_success_at": "2026-11-19T03:52:49.380145+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-19T00:46:43.777068+00:00",
@@ -278476,7 +278476,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-3827062": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-19T03:52:46.472789+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-19T03:52:49.380145+00:00",
+      "aparat_video_hash": "zfvy8jg",
+      "aparat_video_record_id": "74288244",
+      "aparat_video_url": "https://www.aparat.com/v/zfvy8jg",
+      "aparat_visibility": "public",
       "bale_message_id": 2315,
       "bale_posted_at": "2026-11-19T03:51:43.657237+00:00",
       "brand": "شامینه",
@@ -278600,8 +278606,17 @@
       "telegram_posted_at": "2026-11-19T03:51:42.190990+00:00",
       "title": "کنسرو ذرت شیرین شامینه - ۳۵۰ گرم بسته 24 عددی",
       "ts": 1795060295.744534,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-3827062.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-3827062.mp4"
+      },
+      "video_generated_at": "2026-11-19T03:52:40.232959+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-3847115": {
       "aparat_skip_reason": "selection_outside_freshness_window",
