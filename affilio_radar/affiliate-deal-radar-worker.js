@@ -137,6 +137,9 @@ async function receiveAffilioPostback(request, env) {
   if (!validMoney(payout, true)) {
     return jsonResponse({ ok: false, error: "invalid_payout" }, 400);
   }
+  if ((status === "approved" && payout === null) || (status === "declined" && payout !== 0)) {
+    return jsonResponse({ ok: false, error: "payout_inconsistent_with_status" }, 400);
+  }
   if (type === "sale" && !validMoney(payload.amount)) {
     return jsonResponse({ ok: false, error: "invalid_sale_amount" }, 400);
   }
