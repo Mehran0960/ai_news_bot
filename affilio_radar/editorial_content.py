@@ -312,6 +312,31 @@ def select_editorial_fallback(
     if not valid_items:
         return None
 
+    # Enforce the configured topic cooldown against every confirmed recent
+    # delivery, not only adjacent posts. This may skip an editorial slot, but
+    # it never blocks the independent product queue.
+    topic_cooldown = timedelta(hours=max(0, int(topic_cooldown_hours)))
+    if topic_cooldown.total_seconds() > 0:
+        recent_topic_times: dict[str, datetime] = {}
+        for row in history:
+            if not isinstance(row, dict):
+                continue
+            topic = str(row.get("topic") or "").strip().lower()
+            published_at = _utc(row.get("published_at"))
+            if topic and published_at is not None and published_at <= current:
+                previous = recent_topic_times.get(topic)
+                if previous is None or published_at > previous:
+                    recent_topic_times[topic] = published_at
+        valid_items = [
+            candidate for candidate in valid_items
+            if (
+                str(candidate.get("topic") or "").strip().lower() not in recent_topic_times
+                or current - recent_topic_times[str(candidate.get("topic") or "").strip().lower()] >= topic_cooldown
+            )
+        ]
+    if not valid_items:
+        return None
+
     current_ids = sorted({str(item["editorial_id"]) for item in valid_items})
     cycle = state.setdefault("editorial_cycle", {})
     if not isinstance(cycle, dict):
