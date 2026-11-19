@@ -87,10 +87,10 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "demand_signal_source": "digikala_recent_review_growth",
             "market_status": "verified",
             "market_reference_kind": "seller_median",
-            "market_reference_price_toman": int(round(price * 100 / 94)),
+            "market_reference_price_toman": int(round(price * 100 / 90)),
             "market_available_offer_count": 3,
             "market_match_score": 85,
-            "market_price_advantage_pct": 6,
+            "market_price_advantage_pct": 10,
             "market_price_checked_at": self.now.isoformat(),
             "selection_discount_floor": 50,
             "deal_expires_at": deadline.isoformat() if deadline else "",
@@ -975,7 +975,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             state, [self.item("dkp-99001")], now=self.now, interval_seconds=1200,
         )
         fallback_candidate = {
-            **self.item("dkp-99002", demand=45),
+            **self.item("dkp-99002", price=110_000, demand=45),
             "current_price": 110_000,
             "original_price": 200_000,
             "discount_percent": 45,
