@@ -3090,3 +3090,26 @@ PR #251 با commit ادغام `52ae2e4af60690f090c6db07a6156339c766ffd0` وار
 انتخاب‌گر مطالب تحریریه اکنون فاصلهٔ پیش‌فرض چهار‌ساعته را بر اساس زمان آخرین تحویل تأییدشدهٔ هر موضوع اعمال می‌کند؛ بنابراین دو مقالهٔ متفاوت از یک موضوع نیز صرفاً به‌دلیل تفاوت شناسه یا متن، پشت‌سرهم/در بازهٔ کوتاه منتشر نمی‌شوند. این گیت فقط روی محتوای تحریریه اثر دارد. در صورت نبود موضوع مناسب، نوبت تحریریه رد می‌شود و صف محصول یا تحویل Telegram/Bale و رسانه‌های مستقل متوقف نمی‌شود. پارامتر `topic_cooldown_hours=0` برای خاموش‌کردن صریح گیت وجود دارد.
 
 آزمون‌های رگرسیون، رفتار ساعت سوم/پنجم و خاموش‌کردن cooldown را پوشش می‌دهند. تغییر در شاخهٔ `fix/offerchin-enforce-editorial-topic-cooldown-20261119` ثبت شده و تا موفقیت CI نباید ادغام شود. هیچ history، state یا رسید زنده‌ای تغییر داده نشده است.
+
+
+## 2026-11-19 — آماده‌سازی انتساب تبدیل و کمیسیون افیلیو
+
+**هدف:** فراهم کردن دریافت امنِ وضعیت سفارش و کمیسیون تأییدشده در OfferChin، بدون اشتباه گرفتن کلیک یا بازدید با فروش و بدون تغییر مسیر خرید زنده پیش از تأیید افیلیو.
+
+**تغییر/اقدام:**
+- مستندات رسمی جاری افیلیو بازبینی شد. Public Publisher API برای جست‌وجوی کاتالوگ، لینک افیلیت اختصاصی و قیمت زنده مستند است؛ جست‌وجوی محصول به publisher_uid، media_uid و IP ازپیش‌تأییدشده نیاز دارد. Conversion Postback نیز وضعیت‌های pending، approved و declined، مبلغ کمیسیون به تومان و پارامتر انتساب aff_sub را مستند می‌کند.
+- در Worker موجود affiliate-deal-radar مسیر POST /postback/affilio اضافه شد. تا وقتی secret با نام AFFILIO_POSTBACK_TOKEN وجود نداشته باشد، مسیر با خطای retryable و وضعیت 503 خاموش می‌ماند.
+- پس از فعال‌سازی، header رسمی X-Affilio-Token بررسی می‌شود؛ payload، شناسهٔ تبدیل، نوع، وضعیت، زمان UTC، مقادیر مالی و aff_sub اعتبارسنجی می‌شوند. رویدادها با کلید append-only مبتنی بر conversion_id + status در KV موجود ذخیره می‌شوند و retry تکراری همان وضعیت دوباره شمرده نمی‌شود.
+- pending درآمد قطعی محسوب نمی‌شود؛ approved فقط با payout معتبر پذیرفته می‌شود؛ declined باید payout صفر داشته باشد. رویدادهای وضعیت بعدی، سابقهٔ قبلی را overwrite نمی‌کنند.
+- مسیر API کاتالوگ افیلیو و محدودیت IP در سند دسترسی ثبت شد؛ اتصال خودکار Product Search هنوز فعال نشده، چون publisher/media ID و روش egress مجاز برای معماری بدون VPS تأیید نشده‌اند. دیما نیز تا media مستقل OfferChin و قرارداد رسمی انتساب/گزارش در حالت پایلوت باقی می‌ماند.
+- هیچ لینک Aflo، CTA، صف یا پست زنده تغییر نکرد و Worker تولیدی هنوز deploy نشده است.
+
+**فایل‌ها/سامانه‌ها:** affilio_radar/affiliate-deal-radar-worker.js، affilio_radar/test_affiliate_deal_radar_worker.mjs، affilio_radar/AFFILIO_REPORTING_ACCESS.md، .github/workflows/affilio-postback-tests.yml، docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md، docs/CHANGELOG_FA.md؛ Worker موجود affiliate-deal-radar و KV binding موجود CLICKS.
+
+**آزمون و نتیجه:** تست اختصاصی PR برای syntax ماژول Worker و سناریوهای postback (خاموش‌بودن بدون secret، رد توکن نامعتبر، رد payload/مبلغ ناسازگار، ثبت idempotent pending/approved/declined و retry در صورت خطای KV) روی revision fe36490660d31367038af9ffce07ea1e40b47028 در GitHub Actions run #44577000547 با موفقیت گذشت. پس از ثبت این ورودی‌های handbook/changelog، Documentation Gate باید روی head جدید دوباره اجرا و نتیجهٔ آن ثبت شود.
+
+**شواهد/شناسه:** PR #256؛ شاخهٔ docs/affilio-api-postback-integration؛ تست postback #44577000547؛ آخرین revision کد/تست هنگام ثبت این ورودی fe36490660d31367038af9ffce07ea1e40b47028.
+
+**ریسک/بازگشت:** رویدادهای مالی از همان KV مربوط به کلیک استفاده می‌کنند، اما با prefix مجزا و بدون ورود به شمارندهٔ کلیک؛ retention ذخیرهٔ postback یک سال است و مصرف فضای KV را افزایش می‌دهد. راه‌اندازی واقعی فقط بعد از تحویل token رسمی از افیلیو، ثبت webhook و deploy کنترل‌شده انجام می‌شود. rollback با revert کردن مسیر postback و تست‌ها ممکن است؛ در صورت نیاز به توقف فوری، secret AFFILIO_POSTBACK_TOKEN حذف می‌شود. لینک‌های خرید و پست‌های عمومی نباید برای rollback دستکاری شوند.
+
+**وضعیت:** پیاده‌سازی و تست اختصاصی موفق در PR باز؛ Documentation Gate پس از append در انتظار اجرای نهایی؛ هنوز merge، deploy تولیدی، ثبت webhook، API Product Search یا دریافت کمیسیون واقعی انجام نشده است.
