@@ -48,14 +48,24 @@ def due_publication_slot(
     if not _has_active_channel_publication_work(state):
         return False, "no_active_publication_queue"
 
+    last_channel_published_at = _utc(state.get("last_channel_published_at"))
     checks = (
         ("next_channel_content_due_at", "channel_content"),
         ("next_editorial_planning_at", "editorial_midpoint"),
     )
     for field, label in checks:
         due_at = _utc(state.get(field))
-        if due_at is not None and due_at <= current:
-            return True, f"{label}_due"
+        if due_at is None or due_at > current:
+            continue
+        # A midpoint planned before the latest confirmed channel post is obsolete.
+        # Unsent editorial recovery records are dispatched from their own queue.
+        if (
+            label == "editorial_midpoint"
+            and last_channel_published_at is not None
+            and due_at <= last_channel_published_at
+        ):
+            continue
+        return True, f"{label}_due"
     return False, "no_publication_slot_due"
 
 
