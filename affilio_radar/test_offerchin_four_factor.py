@@ -50,6 +50,18 @@ class OfferChinThreeFactorTests(unittest.TestCase):
         self.assertLess(score, 40)
         self.assertEqual(evidence, "live_retailer_markdown_only")
 
+    def test_even_a_large_retailer_markdown_cannot_pass_without_independent_evidence(self):
+        row = {
+            "current_price": 100_000,
+            "original_price": 1_000_000,
+            "discount_percent": 90,
+            "savings_toman": 900_000,
+        }
+        eligible, score, evidence = discount_publish_gate(row, independently_verified=False)
+        self.assertFalse(eligible)
+        self.assertGreaterEqual(score, 40)
+        self.assertEqual(evidence, "live_retailer_markdown_only")
+
     def test_small_percentage_can_pass_only_when_independently_verified_and_savings_are_real(self):
         row = {
             "current_price": 9_500_000, "original_price": 10_000_000,

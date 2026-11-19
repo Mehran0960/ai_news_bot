@@ -138,13 +138,21 @@ def _with_verified_current_demand(product, now=None, growth=5, window_hours=24):
 
 def _with_verified_market_value(product, now=None, advantage=None):
     observed = now or datetime.now(timezone.utc)
+    # Use a comfortably publishable fixture by default; tests for the exact
+    # threshold must pass an explicit advantage value.
+    checked_advantage = 10 if advantage is None else int(advantage)
+    current_price = int(product.get("current_price") or 0)
+    reference_price = (
+        int(round(current_price * 100 / (100 - checked_advantage)))
+        if current_price > 0 and checked_advantage < 100 else 0
+    )
     product.update({
         "market_status": "verified",
         "market_reference_kind": "seller_median",
-        "market_price_advantage_pct": (
-            radar_module.VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT
-            if advantage is None else advantage
-        ),
+        "market_reference_price_toman": reference_price,
+        "market_available_offer_count": 3,
+        "market_match_score": radar_module.MIN_MARKET_MATCH_SCORE,
+        "market_price_advantage_pct": checked_advantage,
         "market_price_checked_at": observed.isoformat(),
     })
     return product
@@ -3135,14 +3143,22 @@ class AffilioRadarTests(unittest.TestCase):
 
         just_below_floor = score_product({**base, "current_price": 510_000})
         self.assertEqual(just_below_floor["discount_percent"], 49)
+        self.assertFalse(is_discount_publish_eligible(just_below_floor))
+        _with_verified_market_value(just_below_floor, advantage=15)
         self.assertTrue(is_discount_publish_eligible(just_below_floor))
+        self.assertEqual(just_below_floor["verified_discount_percent"], 15)
+        self.assertEqual(just_below_floor["verified_savings_toman"], 90_000)
 
-        strong_discount = _with_verified_current_demand(
-            score_product({**base, "current_price": 500_000})
+        strong_discount = _with_verified_market_value(
+            _with_verified_current_demand(
+                score_product({**base, "current_price": 500_000})
+            ),
+            advantage=15,
         )
-        self.assertEqual(strong_discount["discount_percent"], 50)
-        self.assertGreaterEqual(strong_discount["savings_toman"], 100_000)
+        self.assertEqual(strong_discount["discount_percent"], 50)  # retailer claim retained for audit
         self.assertTrue(is_discount_publish_eligible(strong_discount))
+        self.assertGreaterEqual(strong_discount["verified_savings_toman"], 1)
+        self.assertEqual(strong_discount["verified_discount_percent"], 15)
 
         small_saving = score_product({**base, "current_price": 990_000})
         self.assertEqual(small_saving["discount_percent"], 1)
@@ -3152,6 +3168,60 @@ class AffilioRadarTests(unittest.TestCase):
         missing_stock = dict(strong_discount, availability="unknown")
         self.assertFalse(is_discount_publish_eligible(missing_stock))
 
+
+    def test_public_discount_uses_conservative_verified_reference_not_retailer_rrp(self):
+        now = datetime(2026, 11, 19, 12, 0, tzinfo=timezone.utc)
+        product = score_product({
+            "product_id": "dkp-verified-badge",
+            "title": "پاوربانک مدل آزمایشی",
+            "availability": "in_stock",
+            "current_price": 1_000_000,
+            "original_price": 3_000_000,
+            "rating": 4.6,
+            "review_count": 4000,
+            "image_url": "https://example.com/product.jpg",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fexample.com%2Fproduct",
+        })
+        _with_verified_market_value(product, now, advantage=12)
+        self.assertTrue(is_discount_publish_eligible(product, now=now))
+        self.assertEqual(product["discount_percent"], 67)  # retailer's markdown remains unchanged
+        self.assertEqual(product["verified_discount_percent"], 12)
+        self.assertEqual(
+            product["verified_savings_toman"],
+            product["verified_reference_price_toman"] - product["current_price"],
+        )
+        self.assertEqual(product["verified_discount_source"], "verified_seller_median")
+        self.assertEqual(product["retailer_listed_discount_percent"], 67)
+
+    def test_public_discount_requires_verified_history_or_market_reference(self):
+        now = datetime(2026, 11, 19, 12, 0, tzinfo=timezone.utc)
+        product = score_product({
+            "product_id": "dkp-fake-markdown",
+            "title": "اسپیکر بلوتوث مدل آزمایشی",
+            "availability": "in_stock",
+            "current_price": 100_000,
+            "original_price": 1_000_000,
+            "rating": 4.6,
+            "review_count": 4000,
+            "image_url": "https://example.com/product.jpg",
+            "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fexample.com%2Fproduct",
+        })
+        self.assertEqual(product["discount_percent"], 90)
+        self.assertFalse(is_discount_publish_eligible(product, now=now))
+        self.assertNotIn("verified_discount_percent", product)
+
+        product.update({
+            "history_status": "verified",
+            "history_days": 30,
+            "history_median_toman": 250_000,
+            "history_stable_low_toman": 240_000,
+            "historical_deal_eligible": True,
+            "history_checked_at": now.isoformat(),
+        })
+        self.assertTrue(is_discount_publish_eligible(product, now=now))
+        self.assertEqual(product["verified_discount_percent"], 60)
+        self.assertEqual(product["verified_reference_price_toman"], 250_000)
+        self.assertEqual(product["verified_discount_source"], "history_30d_median")
 
     def test_high_ticket_products_have_no_discount_floor_exception(self):
         high_ticket_11_percent = score_product({
@@ -3166,17 +3236,23 @@ class AffilioRadarTests(unittest.TestCase):
         })
         self.assertEqual(high_ticket_11_percent["discount_percent"], 11)
         self.assertEqual(high_ticket_11_percent["savings_toman"], 2_000_000)
+        self.assertFalse(is_discount_publish_eligible(high_ticket_11_percent))
+        _with_verified_market_value(high_ticket_11_percent, advantage=6)
         self.assertTrue(is_discount_publish_eligible(high_ticket_11_percent))
+        self.assertEqual(high_ticket_11_percent["verified_discount_percent"], 6)
 
-        high_ticket_50_percent = _with_verified_current_demand(
-            score_product({
-                **high_ticket_11_percent,
-                "current_price": 9_000_000,
-                "original_price": 18_000_000,
-            })
+        high_ticket_50_percent = _with_verified_market_value(
+            _with_verified_current_demand(
+                score_product({
+                    **high_ticket_11_percent,
+                    "current_price": 9_000_000,
+                    "original_price": 18_000_000,
+                })
+            ),
+            advantage=15,
         )
         self.assertEqual(high_ticket_50_percent["discount_percent"], 50)
-        self.assertGreaterEqual(high_ticket_50_percent["savings_toman"], 100_000)
+        self.assertGreaterEqual(high_ticket_50_percent["verified_savings_toman"], 1)
         self.assertTrue(is_discount_publish_eligible(high_ticket_50_percent))
 
     def test_all_real_discount_bands_compete_without_a_percentage_or_saving_floor(self):
@@ -3218,8 +3294,11 @@ class AffilioRadarTests(unittest.TestCase):
                 "catalog_best_selling_rank": rank,
                 "catalog_rank_observed_at": now.isoformat(),
             })
-            _with_verified_market_value(candidate, now, advantage=6)
-        # Every discount band is backed by a fresh same-product market comparison.
+            _with_verified_market_value(
+                candidate, now,
+                advantage=4 if candidate["product_id"] == "dkp-95006" else 10,
+            )
+        # The first five candidates have a sufficiently strong market advantage; the 3% case does not.
         selected, floor, quality = radar_module.select_discount_fallback_candidates(
             candidates, {"published": {}}, now
         )
@@ -3553,7 +3632,7 @@ class AffilioRadarTests(unittest.TestCase):
             "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fexample.com%2Fb",
             "has_affiliate_link": True, "deal_expires_at": "",
         }, now)
-        _with_verified_market_value(lower_discount, now, advantage=6)
+        _with_verified_market_value(lower_discount, now, advantage=10)
         small_saving = _with_verified_current_demand({
             **lower_discount,
             "product_id": "dkp-95303",
@@ -3562,21 +3641,28 @@ class AffilioRadarTests(unittest.TestCase):
             "original_price": 83_333,
             "discount_percent": 60,
             "savings_toman": 50_000,
+            "market_status": "not_checked",
+            "market_reference_kind": "",
+            "market_reference_price_toman": None,
+            "market_available_offer_count": 0,
+            "market_match_score": 0,
+            "market_price_advantage_pct": None,
+            "market_price_checked_at": "",
         }, now)
         selected, floor, quality = radar_module.select_discount_fallback_candidates(
             [high_discount, lower_discount, small_saving], {"published": {}}, now
         )
         self.assertEqual(floor, 1)
-        # Fresh verified market evidence shows dkp-95301 is 8% above the
-        # comparable seller median, so it is vetoed. Missing positive evidence
-        # is not a veto; the low-savings but math-consistent 60% offer remains.
+        # The first item is vetoed as uncompetitive. The third item has only
+        # a retailer-declared markdown, so it cannot be published without its
+        # own fresh history or comparable-market reference.
         self.assertEqual(
             {item["product_id"] for item in selected},
-            {"dkp-95302", "dkp-95303"},
+            {"dkp-95302"},
         )
         self.assertEqual(
             {item["product_id"] for item in quality},
-            {"dkp-95302", "dkp-95303"},
+            {"dkp-95302"},
         )
 
     def test_actionable_review_growth_proxy_requires_fresh_observation_and_ignores_bestseller_rank(self):
@@ -4136,6 +4222,7 @@ class AffilioRadarTests(unittest.TestCase):
             "demand_observed_at": now.isoformat(),
             "demand_signal_source": "digikala_recent_review_growth",
         }
+        _with_verified_market_value(item, now, advantage=10)
         with (
             patch("affilio_radar.build_discount_image", return_value=b"rendered") as build_image,
             patch("affilio_radar._send_photo", return_value={"message_id": 1}) as send_photo,
@@ -4145,6 +4232,7 @@ class AffilioRadarTests(unittest.TestCase):
             )
         self.assertEqual(result["message_id"], 1)
         build_image.assert_called_once()
+        self.assertEqual(build_image.call_args.args[1], 10)
         send_photo.assert_called_once()
 
     def test_publish_requires_stock_price_image_and_https_affiliate_link(self):

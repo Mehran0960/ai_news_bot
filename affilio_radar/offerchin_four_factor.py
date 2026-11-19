@@ -120,7 +120,9 @@ def discount_publish_gate(
         floor = _clamp(float(minimum_score))
     except (TypeError, ValueError, OverflowError):
         floor = MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE
-    return score >= floor, score, evidence
+    # A large retailer-declared markdown is not proof of a real bargain.
+    # Independent, fresh price evidence is mandatory regardless of the score.
+    return bool(independently_verified and score >= floor), score, evidence
 
 
 def harmonic_mean(scores: list[float]) -> float:

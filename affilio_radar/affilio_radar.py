@@ -3057,6 +3057,93 @@ def has_attractive_discount_value(
     return False
 
 
+def verified_discount_reference(record: dict, now: datetime | None = None) -> dict | None:
+    """Return a conservative, fresh same-product price benchmark for public discount claims."""
+    if not isinstance(record, dict):
+        return None
+    try:
+        current_price = int(record.get("current_price") or 0)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    if current_price <= 0:
+        return None
+
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+
+    def is_fresh(field: str, max_age_hours: int) -> bool:
+        observed = _parse_utc_datetime(record.get(field))
+        if observed is None:
+            return False
+        age = (current - observed.astimezone(timezone.utc)).total_seconds() / 3600
+        return -0.1 <= age <= max_age_hours
+
+    references: list[dict] = []
+
+    # Historical benchmark: a complete, fresh history snapshot that independently
+    # passed the existing 30-day median/stable-low policy.
+    if (
+        record.get("history_status") == "verified"
+        and record.get("historical_deal_eligible") is True
+        and is_fresh("history_checked_at", PRICE_HISTORY_RECHECK_HOURS)
+    ):
+        try:
+            days = int(record.get("history_days") or 0)
+            reference = int(record.get("history_median_toman") or 0)
+        except (TypeError, ValueError, OverflowError):
+            days, reference = 0, 0
+        if days >= MIN_HISTORICAL_PRICE_DAYS and reference > current_price:
+            savings = reference - current_price
+            percent = round(100 * savings / reference)
+            if percent >= MIN_HISTORICAL_DISCOUNT_PERCENT:
+                references.append({
+                    "reference_price_toman": reference,
+                    "discount_percent": percent,
+                    "savings_toman": savings,
+                    "source": "history_30d_median",
+                    "checked_at": str(record.get("history_checked_at") or ""),
+                })
+
+    # Comparable-market benchmark: at least three available sellers, a strong
+    # same-product match, and fresh Torob data. Never use a single lowest offer.
+    if (
+        record.get("market_status") == "verified"
+        and record.get("market_reference_kind") == "seller_median"
+        and is_fresh("market_price_checked_at", MARKET_PRICE_RECHECK_HOURS)
+    ):
+        try:
+            reference = int(record.get("market_reference_price_toman") or 0)
+            offers = int(record.get("market_available_offer_count") or 0)
+            match_score = int(record.get("market_match_score") or 0)
+        except (TypeError, ValueError, OverflowError):
+            reference, offers, match_score = 0, 0, 0
+        if (
+            reference > current_price
+            and offers >= 3
+            and match_score >= MIN_MARKET_MATCH_SCORE
+        ):
+            savings = reference - current_price
+            percent = round(100 * savings / reference)
+            if percent >= VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT:
+                references.append({
+                    "reference_price_toman": reference,
+                    "discount_percent": percent,
+                    "savings_toman": savings,
+                    "source": "verified_seller_median",
+                    "checked_at": str(record.get("market_price_checked_at") or ""),
+                })
+
+    if not references:
+        return None
+
+    # If both sources exist, choose the smaller verified markdown so the public
+    # badge never overstates the strongest of two independently measured prices.
+    references.sort(key=lambda item: (item["discount_percent"], item["savings_toman"]))
+    return references[0]
+
+
 def update_current_demand_signals(
     state: dict,
     products: list[dict],
@@ -5580,7 +5667,20 @@ def is_discount_publish_eligible(
     minimum_discount_percent: int | None = None,
     now: datetime | None = None,
 ) -> bool:
-    """Require valid stock/price plus a discount score strong enough to stand on its own."""
+    """Require fresh independent price evidence and expose only its conservative discount."""
+    if not isinstance(product, dict):
+        return False
+
+    # Never let a stale result from an earlier eligibility pass leak into a new pass.
+    for key in (
+        "verified_discount_percent",
+        "verified_savings_toman",
+        "verified_reference_price_toman",
+        "verified_discount_source",
+        "verified_discount_checked_at",
+    ):
+        product.pop(key, None)
+
     if not (
         is_publish_eligible(product)
         and not is_prohibited_product_title(product.get("title", ""))
@@ -5588,19 +5688,45 @@ def is_discount_publish_eligible(
         and has_meaningful_discount(product, minimum_discount_percent)
         and is_market_value_publish_eligible(product, now=now)
         and not is_fresh_verified_history_contradiction(product, now=now)
+        and has_attractive_discount_value(product, now=now)
     ):
         return False
 
-    independently_verified = has_attractive_discount_value(product, now=now)
+    reference = verified_discount_reference(product, now=now)
+    if not reference:
+        return False
+
+    # Validate exact arithmetic against the independently measured benchmark,
+    # not the retailer's claimed RRP. Keep original fields untouched for page/API
+    # consistency checks and auditability.
+    verified_row = dict(product)
+    verified_row.update({
+        "original_price": reference["reference_price_toman"],
+        "discount_percent": reference["discount_percent"],
+        "savings_toman": reference["savings_toman"],
+    })
+    if not has_meaningful_discount(verified_row, minimum_discount_percent):
+        return False
+
     discount_ok, discount_score, discount_evidence = _discount_publish_gate(
-        product,
-        independently_verified=independently_verified,
+        verified_row,
+        independently_verified=True,
     )
-    product["discount_attractiveness_score"] = discount_score
-    product["discount_attractiveness_evidence"] = discount_evidence
-    product["discount_attractiveness_minimum_for_publication"] = (
-        MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE
-    )
+    product.setdefault("retailer_listed_discount_percent", product.get("discount_percent"))
+    product.setdefault("retailer_listed_savings_toman", product.get("savings_toman"))
+    product.setdefault("retailer_original_price_toman", product.get("original_price"))
+    product.update({
+        "verified_discount_percent": reference["discount_percent"],
+        "verified_savings_toman": reference["savings_toman"],
+        "verified_reference_price_toman": reference["reference_price_toman"],
+        "verified_discount_source": reference["source"],
+        "verified_discount_checked_at": reference["checked_at"],
+        "discount_attractiveness_score": discount_score,
+        "discount_attractiveness_evidence": discount_evidence,
+        "discount_attractiveness_minimum_for_publication": (
+            MIN_PUBLISHABLE_DISCOUNT_ATTRACTIVENESS_SCORE
+        ),
+    })
     return discount_ok
 
 
@@ -5800,7 +5926,7 @@ def build_caption(
     title = _escape_bale_markdown(raw_title) if is_bale else html.escape(raw_title)
 
     current = p.get("current_price")
-    discount = p.get("discount_percent")
+    discount = p.get("verified_discount_percent", p.get("discount_percent"))
     channel_url = str(channel_label or (BALE_CHANNEL_URL if is_bale else TELEGRAM_CHANNEL_URL)).strip()
     if not urlsplit(channel_url).scheme:
         channel_url = "https://" + channel_url
@@ -6218,7 +6344,7 @@ def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliat
         )
     if platform == "telegram":
         photo = build_discount_image(
-            image_bytes, item.get("discount_percent"),
+            image_bytes, item.get("verified_discount_percent", item.get("discount_percent")),
             watermark="T.me/OfferChin", merchant=item.get("merchant") or "دیجی‌کالا",
             destination_platform="telegram",
             experiment_variant=item.get("creative_variant", "A"),
@@ -6238,7 +6364,7 @@ def _send_platform_photo(platform: str, item: dict, image_bytes: bytes, affiliat
         )
     if platform == "bale":
         photo = build_discount_image(
-            image_bytes, item.get("discount_percent"),
+            image_bytes, item.get("verified_discount_percent", item.get("discount_percent")),
             watermark="ble.ir/OfferChin", merchant=item.get("merchant") or "دیجی‌کالا",
             destination_platform="bale",
             experiment_variant=item.get("creative_variant", "A"),
