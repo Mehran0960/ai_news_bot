@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-19T11:59:52.119173+00:00",
-  "aparat_last_upload_success_at": "2026-11-19T11:59:55.909783+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-19T12:41:45.832617+00:00",
+  "aparat_last_upload_success_at": "2026-11-19T12:41:49.253371+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-19T12:24:08.365290+00:00",
@@ -242744,7 +242744,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22315227": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-19T12:41:45.832617+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-19T12:41:49.253371+00:00",
+      "aparat_video_hash": "dhicf6a",
+      "aparat_video_record_id": "74295780",
+      "aparat_video_url": "https://www.aparat.com/v/dhicf6a",
+      "aparat_visibility": "public",
       "bale_message_id": 2334,
       "bale_posted_at": "2026-11-19T12:40:39.649097+00:00",
       "brand": "یونیک",
@@ -242868,8 +242874,17 @@
       "telegram_posted_at": "2026-11-19T12:40:39.087661+00:00",
       "title": "قلم لمسی یونیک مدل Universal با قابلیت شارژ سازگار با موبایل، تبلت و لپ تاپ به همراه دو عدد سری اضافه",
       "ts": 1795092033.036377,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22315227.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22315227.mp4"
+      },
+      "video_generated_at": "2026-11-19T12:41:38.348630+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22316069": {
       "aparat_skip_reason": "selection_outside_freshness_window",
