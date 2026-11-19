@@ -4270,8 +4270,15 @@ class AffilioRadarTests(unittest.TestCase):
         data = post.call_args.kwargs["data"]
         markup = json.loads(data["reply_markup"])
         self.assertEqual(markup["inline_keyboard"][0][0]["text"], purchase_action_label("دیجی‌کالا"))
-        self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
-        self.assertEqual(urlsplit(markup["inline_keyboard"][0][0]["url"]).netloc, "aflo.ir")
+        button_url = markup["inline_keyboard"][0][0]["url"]
+        button = urlsplit(button_url)
+        params = parse_qs(button.query)
+        self.assertEqual(button.netloc, "aflo.ir")
+        self.assertEqual(button.path, "/QekEYTRg")
+        self.assertEqual(params.get("p"), ["https://www.digikala.com/product/dkp-15970075/"])
+        self.assertEqual(params.get("aff_sub"), ["oc_dkp-15970075_telegram"])
+        self.assertEqual(params.get("utm_source"), ["offerchin"])
+        self.assertEqual(params.get("utm_medium"), ["telegram"])
 
     def test_send_bale_photo_adds_channel_and_purchase_button(self):
         response = unittest.mock.Mock()
@@ -4291,7 +4298,14 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(data["caption"], "bale caption")
         self.assertNotIn("parse_mode", data)
         self.assertEqual(markup["inline_keyboard"][0][0]["text"], purchase_action_label("دیجی‌کالا"))
-        self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
+        button = urlsplit(markup["inline_keyboard"][0][0]["url"])
+        params = parse_qs(button.query)
+        self.assertEqual(button.netloc, "aflo.ir")
+        self.assertEqual(button.path, "/QekEYTRg")
+        self.assertEqual(params.get("p"), ["https://www.digikala.com/product/dkp-15970075/"])
+        self.assertEqual(params.get("aff_sub"), ["oc_dkp-15970075_bale"])
+        self.assertEqual(params.get("utm_source"), ["offerchin"])
+        self.assertEqual(params.get("utm_medium"), ["bale"])
         self.assertEqual(result["message_id"], 88)
 
     def test_snappshop_bale_purchase_button_uses_correct_store_name(self):
@@ -4306,7 +4320,14 @@ class AffilioRadarTests(unittest.TestCase):
             _send_bale_photo(b"photo-bytes", "caption", link)
         markup = json.loads(post.call_args.kwargs["data"]["reply_markup"])
         self.assertEqual(markup["inline_keyboard"][0][0]["text"], purchase_action_label("اسنپ‌شاپ"))
-        self.assertEqual(markup["inline_keyboard"][0][0]["url"], link)
+        button = urlsplit(markup["inline_keyboard"][0][0]["url"])
+        params = parse_qs(button.query)
+        self.assertEqual(button.netloc, "aflo.ir")
+        self.assertEqual(button.path, "/QekEYTRg")
+        self.assertEqual(params.get("p"), ["https://snappshop.ir/product/snp-25751584"])
+        self.assertEqual(params.get("aff_sub"), ["oc_snp-25751584_bale"])
+        self.assertEqual(params.get("utm_source"), ["offerchin"])
+        self.assertEqual(params.get("utm_medium"), ["bale"])
 
     def test_original_price_is_never_shown_in_telegram_or_bale_caption(self):
         product = {"title": "محصول نمونه", "current_price": 123_200, "original_price": 1_108_800, "discount_percent": 89}
@@ -4692,7 +4713,14 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(data["parse_mode"], "HTML")
         markup = json.loads(data["reply_markup"])
         self.assertEqual(markup["inline_keyboard"][0][0]["text"], purchase_action_label("دیجی‌کالا"))
-        self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
+        button = urlsplit(markup["inline_keyboard"][0][0]["url"])
+        params = parse_qs(button.query)
+        self.assertEqual(button.netloc, "aflo.ir")
+        self.assertEqual(button.path, "/QekEYTRg")
+        self.assertEqual(params.get("p"), ["https://www.digikala.com/product/dkp-15970075/"])
+        self.assertEqual(params.get("aff_sub"), ["oc_dkp-15970075_telegram"])
+        self.assertEqual(params.get("utm_source"), ["offerchin"])
+        self.assertEqual(params.get("utm_medium"), ["telegram"])
         self.assertEqual(result["message_id"], 39)
 
     def test_repair_all_published_captions_edits_in_place_on_both_platforms(self):
@@ -4863,7 +4891,14 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(data["caption"], "fixed caption")
         self.assertNotIn("parse_mode", data)
         markup = json.loads(data["reply_markup"])
-        self.assertEqual(markup["inline_keyboard"][0][0]["url"], direct_affiliate_url)
+        button = urlsplit(markup["inline_keyboard"][0][0]["url"])
+        params = parse_qs(button.query)
+        self.assertEqual(button.netloc, "aflo.ir")
+        self.assertEqual(button.path, "/QekEYTRg")
+        self.assertEqual(params.get("p"), ["https://www.digikala.com/product/dkp-15970075/"])
+        self.assertEqual(params.get("aff_sub"), ["oc_dkp-15970075_bale"])
+        self.assertEqual(params.get("utm_source"), ["offerchin"])
+        self.assertEqual(params.get("utm_medium"), ["bale"])
         self.assertEqual(result["message_id"], 2)
 
     def test_failed_bale_delivery_is_retried_without_reposting_to_telegram(self):
