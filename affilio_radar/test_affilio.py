@@ -138,10 +138,9 @@ def _with_verified_current_demand(product, now=None, growth=5, window_hours=24):
 
 def _with_verified_market_value(product, now=None, advantage=None):
     observed = now or datetime.now(timezone.utc)
-    checked_advantage = (
-        radar_module.VERIFIED_MARKET_MIN_ADVANTAGE_PERCENT
-        if advantage is None else int(advantage)
-    )
+    # Use a comfortably publishable fixture by default; tests for the exact
+    # threshold must pass an explicit advantage value.
+    checked_advantage = 10 if advantage is None else int(advantage)
     current_price = int(product.get("current_price") or 0)
     reference_price = (
         int(round(current_price * 100 / (100 - checked_advantage)))
@@ -3297,9 +3296,9 @@ class AffilioRadarTests(unittest.TestCase):
             })
             _with_verified_market_value(
                 candidate, now,
-                advantage=4 if candidate["product_id"] == "dkp-95006" else 6,
+                advantage=4 if candidate["product_id"] == "dkp-95006" else 10,
             )
-        # Every discount band is backed by a fresh same-product market comparison.
+        # The first five candidates have a sufficiently strong market advantage; the 3% case does not.
         selected, floor, quality = radar_module.select_discount_fallback_candidates(
             candidates, {"published": {}}, now
         )
@@ -3633,7 +3632,7 @@ class AffilioRadarTests(unittest.TestCase):
             "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fexample.com%2Fb",
             "has_affiliate_link": True, "deal_expires_at": "",
         }, now)
-        _with_verified_market_value(lower_discount, now, advantage=6)
+        _with_verified_market_value(lower_discount, now, advantage=10)
         small_saving = _with_verified_current_demand({
             **lower_discount,
             "product_id": "dkp-95303",
