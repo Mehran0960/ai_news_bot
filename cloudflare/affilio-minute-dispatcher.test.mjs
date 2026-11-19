@@ -17,6 +17,7 @@ import {
   isEmergencyContinuityAvailable,
   isPublisherAttemptRun,
   nextPublisherDueAt,
+  MIN_CHANNEL_POST_INTERVAL_MS,
   hasActiveChannelPublicationWork,
   hasDueScheduledPublication,
   readLastChannelPublicationAt,
@@ -259,6 +260,22 @@ test("stale publication timestamps are ignored when the projected queues are emp
   assert.equal(hasDueScheduledPublication(state, now), false);
   assert.equal(PUBLISHER_DISCOVERY_RETRY_MS, 3 * 60 * 1000,
     "three minutes is only an unscheduled discovery retry throttle");
+});
+
+test("publisher dispatch waits for the hard shared-channel floor after a confirmed send", () => {
+  const now = Date.parse("2026-11-19T04:03:30Z");
+  const lastPublishedAt = now - 10 * 60 * 1000;
+  const plannedAt = now - 60 * 1000;
+  const state = {
+    pending_product_queue_count: 1,
+    last_channel_published_at: new Date(lastPublishedAt).toISOString(),
+    next_channel_content_due_at: new Date(plannedAt).toISOString(),
+    next_editorial_planning_at: new Date(plannedAt).toISOString(),
+  };
+  const expectedDueAt = lastPublishedAt + MIN_CHANNEL_POST_INTERVAL_MS;
+  assert.equal(nextPublisherDueAt(state), expectedDueAt);
+  assert.equal(hasDueScheduledPublication(state, expectedDueAt - 1), false);
+  assert.equal(hasDueScheduledPublication(state, expectedDueAt), true);
 });
 
 test("an active editorial channel queue keeps its scheduled midpoint valid", () => {
