@@ -188,6 +188,26 @@ test("Affilio postback rejects invalid tokens and malformed conversion data", as
     { CLICKS, AFFILIO_POSTBACK_TOKEN: "correct-secret" },
   );
   assert.equal(malformed.status, 400);
+
+  const invalidApproved = await worker.fetch(
+    new Request("https://worker.example/postback/affilio", {
+      method: "POST",
+      headers: { "content-type": "application/json", "X-Affilio-Token": "correct-secret" },
+      body: JSON.stringify({ ...payload, status: "approved", payout: null })
+    }),
+    { CLICKS, AFFILIO_POSTBACK_TOKEN: "correct-secret" },
+  );
+  assert.equal(invalidApproved.status, 400);
+
+  const invalidDeclined = await worker.fetch(
+    new Request("https://worker.example/postback/affilio", {
+      method: "POST",
+      headers: { "content-type": "application/json", "X-Affilio-Token": "correct-secret" },
+      body: JSON.stringify({ ...payload, status: "declined", payout: 100 })
+    }),
+    { CLICKS, AFFILIO_POSTBACK_TOKEN: "correct-secret" },
+  );
+  assert.equal(invalidDeclined.status, 400);
   assert.equal(CLICKS.values.size, 0);
 });
 
