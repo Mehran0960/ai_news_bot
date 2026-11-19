@@ -3157,9 +3157,9 @@ class AffilioRadarTests(unittest.TestCase):
             advantage=15,
         )
         self.assertEqual(strong_discount["discount_percent"], 50)  # retailer claim retained for audit
+        self.assertTrue(is_discount_publish_eligible(strong_discount))
         self.assertGreaterEqual(strong_discount["verified_savings_toman"], 1)
         self.assertEqual(strong_discount["verified_discount_percent"], 15)
-        self.assertTrue(is_discount_publish_eligible(strong_discount))
 
         small_saving = score_product({**base, "current_price": 990_000})
         self.assertEqual(small_saving["discount_percent"], 1)
@@ -3295,7 +3295,10 @@ class AffilioRadarTests(unittest.TestCase):
                 "catalog_best_selling_rank": rank,
                 "catalog_rank_observed_at": now.isoformat(),
             })
-            _with_verified_market_value(candidate, now, advantage=6)
+            _with_verified_market_value(
+                candidate, now,
+                advantage=4 if candidate["product_id"] == "dkp-95006" else 6,
+            )
         # Every discount band is backed by a fresh same-product market comparison.
         selected, floor, quality = radar_module.select_discount_fallback_candidates(
             candidates, {"published": {}}, now
@@ -3660,7 +3663,7 @@ class AffilioRadarTests(unittest.TestCase):
         )
         self.assertEqual(
             {item["product_id"] for item in quality},
-            {"dkp-95302", "dkp-95303"},
+            {"dkp-95302"},
         )
 
     def test_actionable_review_growth_proxy_requires_fresh_observation_and_ignores_bestseller_rank(self):
@@ -4220,6 +4223,7 @@ class AffilioRadarTests(unittest.TestCase):
             "demand_observed_at": now.isoformat(),
             "demand_signal_source": "digikala_recent_review_growth",
         }
+        _with_verified_market_value(item, now, advantage=10)
         with (
             patch("affilio_radar.build_discount_image", return_value=b"rendered") as build_image,
             patch("affilio_radar._send_photo", return_value={"message_id": 1}) as send_photo,
@@ -4229,6 +4233,7 @@ class AffilioRadarTests(unittest.TestCase):
             )
         self.assertEqual(result["message_id"], 1)
         build_image.assert_called_once()
+        self.assertEqual(build_image.call_args.args[1], 10)
         send_photo.assert_called_once()
 
     def test_publish_requires_stock_price_image_and_https_affiliate_link(self):
