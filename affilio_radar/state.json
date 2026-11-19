@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-19T09:24:45.659986+00:00",
-  "aparat_last_upload_success_at": "2026-11-19T09:24:48.954050+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-19T09:59:01.468795+00:00",
+  "aparat_last_upload_success_at": "2026-11-19T09:59:09.266276+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-19T09:52:54.334746+00:00",
@@ -201076,7 +201076,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-17161677": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-19T09:59:01.468795+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-19T09:59:09.266276+00:00",
+      "aparat_video_hash": "ysmqd34",
+      "aparat_video_record_id": "74293025",
+      "aparat_video_url": "https://www.aparat.com/v/ysmqd34",
+      "aparat_visibility": "public",
       "bale_message_id": 2329,
       "bale_posted_at": "2026-11-19T09:57:53.306156+00:00",
       "brand": "انتشارات آیین محمود",
@@ -201200,8 +201206,17 @@
       "telegram_posted_at": "2026-11-19T09:57:52.854071+00:00",
       "title": "کتاب من لیاقتم خداحافظی بهتری بود اثر آکرا ترجمه پریسا رجوند انتشارات آیین محمود",
       "ts": 1795082265.779794,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-17161677.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-17161677.mp4"
+      },
+      "video_generated_at": "2026-11-19T09:58:53.571749+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-17186694": {
       "aparat_expiry_attempts": 468,
