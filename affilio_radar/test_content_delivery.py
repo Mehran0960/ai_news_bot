@@ -87,6 +87,9 @@ class ContentDeliveryQueueTests(unittest.TestCase):
             "demand_signal_source": "digikala_recent_review_growth",
             "market_status": "verified",
             "market_reference_kind": "seller_median",
+            "market_reference_price_toman": int(round(price * 100 / 94)),
+            "market_available_offer_count": 3,
+            "market_match_score": 85,
             "market_price_advantage_pct": 6,
             "market_price_checked_at": self.now.isoformat(),
             "selection_discount_floor": 50,
@@ -892,7 +895,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         )
 
     def test_fallback_filter_requires_demand_and_normalizes_legacy_discount_tiers(self):
-        low_discount = self.item("dkp-99008", demand=95)
+        low_discount = self.item("dkp-99008", price=110_000, demand=95)
         low_discount.update({
             "current_price": 110_000,
             "original_price": 200_000,
@@ -903,7 +906,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         no_current_demand = self.item("dkp-99009", demand=95)
         no_current_demand["current_demand_verified"] = False
         valid = self.item("dkp-99010", demand=45)
-        unsupported_floor = self.item("dkp-99011", demand=99)
+        unsupported_floor = self.item("dkp-99011", price=132_000, demand=99)
         unsupported_floor.update({
             "current_price": 132_000,
             "original_price": 200_000,
@@ -930,7 +933,7 @@ class ContentDeliveryQueueTests(unittest.TestCase):
         primary = state["content_delivery_queue"]["dkp-99001"]
         primary["fallback_candidates"] = [
             {
-                **self.item("dkp-99002", demand=45),
+                **self.item("dkp-99002", price=110_000, demand=45),
                 "discount_percent": 45,
                 "selection_discount_floor": 45,
                 "selection_discount_band": "45%–49%",
