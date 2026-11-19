@@ -3347,3 +3347,14 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** تعداد آفرهای قابل انتشار ممکن است کاهش یابد، چون محصولاتی که قیمت مستقل‌شان قابل‌تأیید نیست حذف می‌شوند. این کاهش از انتشار تخفیف جعلی بهتر است. rollback با revert PR #258 ممکن است؛ تغییرهای production، CTAهای زنده، state، secrets، انتساب دیما و انتشار دیوار در این PR انجام نشده‌اند.
 
 **وضعیت:** پیاده‌سازی در شاخهٔ Draft PR؛ CI اولیه چند fixture قدیمی را رد کرد و اصلاح تست‌ها ادامه دارد. هنوز merge، انتشار عمومی یا Deploy عملیاتی انجام نشده است.
+
+
+## ۲۰۲۶-۱۱-۱۹ — نتیجهٔ نهایی CI برای گیت تخفیف مستقل
+
+**هدف:** ثبت نتیجهٔ نهایی آزمون‌های تغییر گیت تخفیف واقعی و جلوگیری از اشتباه گرفتن CI سبز شاخه با فعال‌سازی در production.
+
+**نتیجه:** هر ۹ workflow مرتبط با Draft PR #258 روی commit `73d9dab07cbc2d8f2b3cd16756214b7118c8ea8b` موفق شدند: Catalog Sweep، Four-Factor Ranking، Editorial Contract، Messenger Adapter، Video Fan-out، Fallback Regression، Top-100/DigiPay، Documentation Gate و Platform Logo Regression.
+
+**شواهد/شناسه:** PR #258؛ Actions runs #44593803238، #44593803038، #44593802937، #44593802910، #44593802865، #44593802709، #44593802693، #44593802680 و #44593802669.
+
+**وضعیت:** CI شاخه سبز است؛ PR همچنان باز و Draft، merge نشده و روی main/production فعال نیست. هیچ آگهی دیوار یا پست کانالی از این تغییر منتشر نشده است.
