@@ -67,9 +67,137 @@ function jsonResponse(body, status = 200) {
     }
   });
 }
+
+function constantTimeSecretMatch(expected, provided) {
+  const encoder = new TextEncoder();
+  const left = encoder.encode(String(expected || ""));
+  const right = encoder.encode(String(provided || ""));
+  const length = Math.max(left.length, right.length);
+  let difference = left.length ^ right.length;
+  for (let index = 0; index < length; index++) {
+    difference |= (left[index] || 0) ^ (right[index] || 0);
+  }
+  return difference === 0 && left.length > 0;
+}
+
+function validMoney(value, nullable = false) {
+  return (nullable && value === null) ||
+    (Number.isSafeInteger(value) && value >= 0);
+}
+
+async function receiveAffilioPostback(request, env) {
+  if (!env.AFFILIO_POSTBACK_TOKEN) {
+    return jsonResponse({ ok: false, error: "postback_not_configured" }, 503);
+  }
+  if (!env.CLICKS) {
+    return jsonResponse({ ok: false, error: "conversion_store_unavailable" }, 503);
+  }
+  if (!String(request.headers.get("content-type") || "").toLowerCase().includes("application/json")) {
+    return jsonResponse({ ok: false, error: "content_type_must_be_json" }, 415);
+  }
+  const declaredLength = Number(request.headers.get("content-length") || 0);
+  if (Number.isFinite(declaredLength) && declaredLength > 65536) {
+    return jsonResponse({ ok: false, error: "payload_too_large" }, 413);
+  }
+
+  const suppliedToken = request.headers.get("X-Affilio-Token") || "";
+  if (!constantTimeSecretMatch(env.AFFILIO_POSTBACK_TOKEN, suppliedToken)) {
+    return jsonResponse({ ok: false, error: "unauthorized" }, 401);
+  }
+
+  let payload;
+  try {
+    const raw = await request.arrayBuffer();
+    if (raw.byteLength > 65536) {
+      return jsonResponse({ ok: false, error: "payload_too_large" }, 413);
+    }
+    payload = JSON.parse(new TextDecoder().decode(raw));
+  } catch (_) {
+    return jsonResponse({ ok: false, error: "invalid_json" }, 400);
+  }
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return jsonResponse({ ok: false, error: "invalid_payload" }, 400);
+  }
+
+  const conversionId = String(payload.conversion_id || "").trim();
+  const type = String(payload.type || "").trim();
+  const status = String(payload.status || "").trim();
+  const timestamp = String(payload.timestamp || "").trim();
+  const validTypes = new Set(["sale", "lead", "action"]);
+  const validStatuses = new Set(["pending", "approved", "declined"]);
+  if (!/^[A-Za-z0-9._:-]{1,128}$/.test(conversionId) ||
+      !validTypes.has(type) ||
+      !validStatuses.has(status) ||
+      !timestamp.endsWith("Z") ||
+      !Number.isFinite(Date.parse(timestamp))) {
+    return jsonResponse({ ok: false, error: "invalid_conversion_fields" }, 400);
+  }
+
+  const payout = payload.payout;
+  if (!validMoney(payout, true)) {
+    return jsonResponse({ ok: false, error: "invalid_payout" }, 400);
+  }
+  if (type === "sale" && !validMoney(payload.amount)) {
+    return jsonResponse({ ok: false, error: "invalid_sale_amount" }, 400);
+  }
+  const affSub = payload.aff_sub == null ? "" : String(payload.aff_sub);
+  if (affSub && !/^[A-Za-z0-9_-]{1,255}$/.test(affSub)) {
+    return jsonResponse({ ok: false, error: "invalid_aff_sub" }, 400);
+  }
+
+  let items = [];
+  if (type === "sale" && payload.items != null) {
+    if (!Array.isArray(payload.items) || payload.items.length > 100) {
+      return jsonResponse({ ok: false, error: "invalid_sale_items" }, 400);
+    }
+    for (const item of payload.items) {
+      if (!item || !Number.isSafeInteger(item.quantity) || item.quantity < 1 ||
+          !validMoney(item.price)) {
+        return jsonResponse({ ok: false, error: "invalid_sale_item" }, 400);
+      }
+      items.push({ quantity: item.quantity, price: item.price });
+    }
+  }
+
+  // Append-only event keys make repeated callbacks idempotent by conversion_id + status.
+  // A later approved/declined status is a separate event and never overwrites history.
+  const key = "affilio:conversion:v1:" +
+    encodeURIComponent(conversionId) + ":" + status;
+  try {
+    const existing = await env.CLICKS.get(key);
+    if (existing != null) {
+      return jsonResponse({ ok: true, accepted: true, duplicate: true }, 200);
+    }
+    const event = {
+      schema_version: 1,
+      source: "affilio_postback",
+      conversion_id: conversionId,
+      type,
+      status,
+      timestamp,
+      aff_sub: affSub || null,
+      payout,
+      amount: type === "sale" ? payload.amount : null,
+      items,
+      received_at: new Date().toISOString()
+    };
+    await env.CLICKS.put(key, JSON.stringify(event), { expirationTtl: 31536000 });
+  } catch (_) {
+    // Return non-2xx so Affilio retries instead of silently losing a conversion.
+    return jsonResponse({ ok: false, error: "conversion_persistence_failed" }, 503);
+  }
+  return jsonResponse({ ok: true, accepted: true, duplicate: false }, 202);
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/postback/affilio") {
+      if (request.method !== "POST") {
+        return new Response("Method not allowed", { status: 405, headers: { "Allow": "POST" } });
+      }
+      return receiveAffilioPostback(request, env);
+    }
     if (request.method !== "GET" && request.method !== "HEAD") {
       return new Response("Method not allowed", { status: 405, headers: { "Allow": "GET, HEAD" } });
     }
@@ -80,7 +208,8 @@ export default {
         clickStoreReady: !!env.CLICKS,
         experimentAttribution: true,
         captionExperimentAttribution: true,
-        routes: ["/health", "/stats", "/p/<dkp-or-snp-product-id>?u=<verified-aflo-link>&src=<telegram|bale|rubika|eitaa|youtube|aparat|filo>&exp=<visual-experiment>&variant=<a|b>&cexp=<caption-experiment>&cvariant=<a|b>"],
+        routes: ["/health", "/stats", "/postback/affilio (POST; authenticated; disabled until secret is configured)", "/p/<dkp-or-snp-product-id>?u=<verified-aflo-link>&src=<telegram|bale|rubika|eitaa|youtube|aparat|filo>&exp=<visual-experiment>&variant=<a|b>&cexp=<caption-experiment>&cvariant=<a|b>"],
+        conversionPostbackConfigured: Boolean(env.AFFILIO_POSTBACK_TOKEN && env.CLICKS),
         stats: "Aggregated product and source click counts for the last 30 days only"
       });
     }
