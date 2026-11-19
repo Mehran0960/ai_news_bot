@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-18T23:59:38.130338+00:00",
-  "aparat_last_upload_success_at": "2026-11-18T23:59:41.780699+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-19T00:46:47.253355+00:00",
+  "aparat_last_upload_success_at": "2026-11-19T00:46:50.883006+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-18T20:10:41.746590+00:00",
@@ -241099,7 +241099,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-20728272": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-19T00:46:47.253355+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-19T00:46:50.883006+00:00",
+      "aparat_video_hash": "ojlrg8j",
+      "aparat_video_record_id": "74287739",
+      "aparat_video_url": "https://www.aparat.com/v/ojlrg8j",
+      "aparat_visibility": "public",
       "bale_message_id": 2309,
       "bale_posted_at": "2026-11-19T00:45:54.269456+00:00",
       "brand": "سوده",
@@ -241223,8 +241229,17 @@
       "telegram_posted_at": "2026-11-19T00:45:53.794339+00:00",
       "title": "نمک تصفیه شده یددار سوده - 800 گرم بسته 2 عددی",
       "ts": 1795049147.75034,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-20728272.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-20728272.mp4"
+      },
+      "video_generated_at": "2026-11-19T00:46:40.092621+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-20744153": {
       "aparat_skip_reason": "selection_outside_freshness_window",
