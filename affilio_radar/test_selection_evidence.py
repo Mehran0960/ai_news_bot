@@ -457,9 +457,16 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1234567%2F",
             "selection_discount_floor": 1,
             "publication_policy": "digikala_demand_first_bestseller_review_quality_discount_v1",
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_reference_price_toman": 1_000_000,
+            "market_available_offer_count": 3,
+            "market_match_score": radar.MIN_MARKET_MATCH_SCORE,
+            "market_price_advantage_pct": 30,
+            "market_price_checked_at": self.now.isoformat(),
             **self._verified_review_growth(),
         }
-        # A recent review-growth proxy qualifies; external market/history confirmation is optional.
+        # A recent review-growth proxy is the demand gate; an independent same-product price reference is also required.
         self.assertTrue(radar.is_discount_publish_eligible(product, minimum_discount_percent=1, now=self.now))
         self.assertEqual(
             [row["product_id"] for row in _eligible_fallback_candidates([product], self.now)],
@@ -491,6 +498,13 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             "image_url": "https://example.com/product.webp",
             "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1234567%2F",
             "selection_discount_floor": 1,
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_reference_price_toman": 1_000_000,
+            "market_available_offer_count": 3,
+            "market_match_score": radar.MIN_MARKET_MATCH_SCORE,
+            "market_price_advantage_pct": 30,
+            "market_price_checked_at": self.now.isoformat(),
             "catalog_sort_mode": "best_selling",
             "catalog_best_selling_rank": 3,
             "catalog_rank_observed_at": self.now.isoformat(),
@@ -513,6 +527,13 @@ class OfferChinSelectionEvidenceTests(unittest.TestCase):
             "savings_toman": 300_000,
             "image_url": "https://example.com/product.webp",
             "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1234567%2F",
+            "market_status": "verified",
+            "market_reference_kind": "seller_median",
+            "market_reference_price_toman": 1_000_000,
+            "market_available_offer_count": 3,
+            "market_match_score": radar.MIN_MARKET_MATCH_SCORE,
+            "market_price_advantage_pct": 30,
+            "market_price_checked_at": self.now.isoformat(),
         }
         fresh_reject = {
             **base,
