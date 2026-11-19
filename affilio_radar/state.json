@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-19T00:46:47.253355+00:00",
-  "aparat_last_upload_success_at": "2026-11-19T00:46:50.883006+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-19T01:23:51.926047+00:00",
+  "aparat_last_upload_success_at": "2026-11-19T01:23:56.194509+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-19T00:46:43.777068+00:00",
@@ -281173,7 +281173,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-4368715": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-19T01:23:51.926047+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-19T01:23:56.194509+00:00",
+      "aparat_video_hash": "dtc407y",
+      "aparat_video_record_id": "74287834",
+      "aparat_video_url": "https://www.aparat.com/v/dtc407y",
+      "aparat_visibility": "public",
       "bale_message_id": 2310,
       "bale_posted_at": "2026-11-19T01:21:42.886535+00:00",
       "brand": "وچه",
@@ -281297,8 +281303,17 @@
       "telegram_posted_at": "2026-11-19T01:21:42.006340+00:00",
       "title": "محلول تقویت کننده ابرو و مژه وچه مدل 54564 حجم 11 میلی لیتر",
       "ts": 1795051295.366438,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-4368715.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-4368715.mp4"
+      },
+      "video_generated_at": "2026-11-19T01:23:45.831369+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-4445829": {
       "aparat_skip_reason": "selection_outside_freshness_window",
