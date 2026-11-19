@@ -278,6 +278,21 @@ test("publisher dispatch waits for the hard shared-channel floor after a confirm
   assert.equal(hasDueScheduledPublication(state, expectedDueAt), true);
 });
 
+test("stale editorial midpoint before the latest channel receipt is ignored", () => {
+  const lastPublishedAt = Date.parse("2026-11-19T03:51:47.023Z");
+  const staleEditorialAt = Date.parse("2026-11-18T03:07:19.173Z");
+  const nextProductAt = Date.parse("2026-11-19T04:28:47.023Z");
+  const state = {
+    pending_product_queue_count: 10,
+    last_channel_published_at: new Date(lastPublishedAt).toISOString(),
+    next_channel_content_due_at: new Date(nextProductAt).toISOString(),
+    next_editorial_planning_at: new Date(staleEditorialAt).toISOString(),
+  };
+  assert.equal(nextPublisherDueAt(state), nextProductAt);
+  assert.equal(hasDueScheduledPublication(state, Date.parse("2026-11-19T04:25:00Z")), false);
+  assert.equal(hasDueScheduledPublication(state, nextProductAt), true);
+});
+
 test("an active editorial channel queue keeps its scheduled midpoint valid", () => {
   const now = Date.now();
   const stale = new Date(now - 1).toISOString();
