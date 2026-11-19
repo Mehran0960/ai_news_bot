@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-19T19:00:49.430145+00:00",
-  "aparat_last_upload_success_at": "2026-11-19T19:01:04.058889+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-19T19:44:56.791535+00:00",
+  "aparat_last_upload_success_at": "2026-11-19T19:45:00.352493+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-19T19:39:58.388515+00:00",
@@ -243425,7 +243425,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-21151011": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-19T19:44:56.791535+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-19T19:45:00.352493+00:00",
+      "aparat_video_hash": "mgg4097",
+      "aparat_video_record_id": "74301569",
+      "aparat_video_url": "https://www.aparat.com/v/mgg4097",
+      "aparat_visibility": "public",
       "bale_message_id": 2346,
       "bale_posted_at": "2026-11-19T19:43:36.133124+00:00",
       "brand": "",
@@ -243549,8 +243555,17 @@
       "telegram_posted_at": "2026-11-19T19:43:34.908007+00:00",
       "title": "کفش روزمره مردانه پارچه‌ای مدل 224002702 با کفی نرم فوم مموری، پاشنه تقویت شده، زیره پلی اورتان مقاوم، سبک، قابلیت تعویض کفی، بند کشی و تنفس‌پذیری بالا، برای استفاده روزانه و پیاده",
       "ts": 1795117408.591457,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-21151011.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-21151011.mp4"
+      },
+      "video_generated_at": "2026-11-19T19:44:48.764255+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-21151486": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
