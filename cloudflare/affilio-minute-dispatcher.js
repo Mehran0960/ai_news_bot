@@ -253,6 +253,8 @@ export function hasActiveChannelPublicationWork(state) {
   return editorialQueue.length > 0;
 }
 
+export const MIN_CHANNEL_POST_INTERVAL_MS = 31 * 60 * 1000;
+
 export function nextPublisherDueAt(state) {
   // The dispatch sidecar can outlive the queue snapshot that produced it. Ignore
   // orphaned timestamps when the canonical projection says there is no work.
@@ -260,8 +262,20 @@ export function nextPublisherDueAt(state) {
   const scheduledAt = Date.parse(String(state && state.next_channel_content_due_at || ""));
   const editorialPlanningAt = Date.parse(String(state && state.next_editorial_planning_at || ""));
   const plannedTimes = [scheduledAt, editorialPlanningAt].filter(Number.isFinite);
-  // Public posting is event/queue driven. No last-post cooldown is applied here.
-  return plannedTimes.length ? Math.min(...plannedTimes) : null;
+  if (!plannedTimes.length) return null;
+
+  // Mirror the Python publisher's hard shared-channel floor. The planner keeps
+  // the deterministic 31–47 minute slot; this check prevents Cloudflare from
+  // dispatching a publisher run before the last confirmed public channel receipt
+  // has cleared the 31-minute floor. It does not change the planned slot.
+  const plannedDueAt = Math.min(...plannedTimes);
+  const lastPublishedAt = readLastChannelPublicationAt(state);
+  const earliestAllowedAt = lastPublishedAt === null
+    ? null
+    : lastPublishedAt + MIN_CHANNEL_POST_INTERVAL_MS;
+  return earliestAllowedAt === null
+    ? plannedDueAt
+    : Math.max(plannedDueAt, earliestAllowedAt);
 }
 
 export function hasDueScheduledPublication(state, now = Date.now()) {
