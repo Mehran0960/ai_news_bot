@@ -3323,3 +3323,25 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** رویدادهای تبدیل با prefix جدا در KV کلیک ذخیره می‌شوند و retention یک‌ساله دارند. افزایش مصرف KV باید پایش شود. تا زمان دریافت token رسمی و تأیید افیلیو هیچ تبدیل تولیدی دریافت نمی‌شود. توقف اضطراری با حذف secret AFFILIO_POSTBACK_TOKEN یا revert کد ممکن است؛ لینک‌های خرید و تاریخچهٔ انتشار حذف یا بازنویسی نمی‌شوند.
 
 **وضعیت:** کد و تست اختصاصی موفق در PR باز؛ گیت مستندات منتظر اجرای دوباره؛ merge، deploy، ثبت webhook و ثبت فروش/کمیسیون واقعی هنوز انجام نشده‌اند.
+
+
+## 2026-11-19 — انتساب محصول/رسانه روی CTA مستقیم افیلیو
+
+**هدف:** آماده‌سازی ثبت منبع سفارش افیلیو بدون قراردادن Cloudflare یا سرویس واسط در مسیر خرید.
+
+**تغییر/اقدام:**
+- برای لینک دکمهٔ خرید، `aff_sub=oc_<product_id>_<media>`، `utm_source=offerchin` و `utm_medium=<media>` در query بیرونی Aflo افزوده می‌شود.
+- منبع‌های پشتیبانی‌شده: Telegram، Bale، Rubika، Eitaa، YouTube، Aparat و Filo.
+- مقصد `p` و قالب public link افیلیو دست‌نخورده می‌مانند. هیچ Worker redirect در مسیر CTA استفاده نمی‌شود تا دسترسی خرید به Cloudflare وابسته نشود.
+- رسانهٔ ناشناخته یا لینک دارای attribution متناقض، برچسب جدید نمی‌گیرد و به همان لینک مستقیم موجود بازمی‌گردد.
+- هیچ پست یا لینک قدیمی و هیچ انتشار زنده تغییر نکرده است.
+
+**فایل‌ها/سامانه‌ها:** affilio_radar/affilio_radar.py؛ affilio_radar/test_affilio.py؛ affilio_radar/AFFILIO_REPORTING_ACCESS.md؛ docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md.
+
+**آزمون و نتیجه:** تست‌های واحد، حفظ لینک مستقیم، مقصد محصول، پارامترهای UTM و aff_sub جداگانه برای Telegram/Bale را پوشش می‌دهند. اجرای CI و تأیید افیلیو برای دریافت aff_sub روی alias عمومی QekEYTRg هنوز در انتظار است.
+
+**شواهد/شناسه:** شاخه feat/offerchin-affilio-subid-attribution؛ helper commit 9cf208d3200bbd542e9d7f2cffcfea6e025c203f؛ test commit e5ee52cf2e044fc53e488725f82536cc84ce4d35.
+
+**ریسک/بازگشت:** در صورت پشتیبانی‌نشدن aff_sub روی alias عمومی، helper لینک مستقیم بدون برچسب را برمی‌گرداند؛ خرید قطع نمی‌شود اما انتساب سفارش ناقص می‌ماند. rollback با بازگردانی helper ممکن است؛ هیچ post یا history حذف یا بازنویسی نمی‌شود.
+
+**وضعیت:** پیاده‌سازی در شاخهٔ مستقل؛ منتظر CI و تأیید رسمی افیلیو، بدون انتشار یا خرید آزمایشی زنده.
