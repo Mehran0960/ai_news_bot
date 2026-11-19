@@ -193874,7 +193874,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-10594368": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -194769,7 +194771,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-10708866": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -199512,7 +199516,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-12195127": {
       "aparat_upload_started_at": "2026-11-17T18:42:12.968319+00:00",
@@ -207657,13 +207663,18 @@
       "video_file_name": "offerchin-dkp-14528799.mp4",
       "video_file_names": {
         "aparat": "offerchin-dkp-14528799.mp4",
-        "filo": "offerchin-dkp-14528799.mp4"
+        "filo": "offerchin-dkp-14528799.mp4",
+        "youtube": "offerchin-dkp-14528799.mp4"
       },
-      "video_generated_at": "2026-11-19T05:57:27.416253+00:00",
+      "video_generated_at": "2026-11-19T22:33:34.788332+00:00",
       "video_generation_status": "generated",
       "video_style_version": 7,
-      "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_last_error": "HTTPError: YouTube resumable upload initialization HTTP 400 reason=uploadLimitExceeded message=The user has exceeded the number of videos they may upload.",
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_attempts": 1,
+      "youtube_upload_started_at": "2026-11-19T22:33:40.544841+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-14558297": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -218555,7 +218566,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-17186694": {
       "aparat_expiry_attempts": 468,
@@ -224172,7 +224185,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-18388167": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -240699,7 +240714,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-21052234": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -242599,7 +242616,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-21151486": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
@@ -247485,7 +247504,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-21506301": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -249919,7 +249940,9 @@
       "ts": 1795122225.165524,
       "video_file_name": "offerchin-dkp-21678448.mp4",
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-21694455": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -258612,7 +258635,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-22149727": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -262106,7 +262131,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-22316069": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -263453,7 +263480,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-22377299": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -265700,7 +265729,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-22431305": {
       "aparat_upload_started_at": "2026-11-18T09:42:54.524340+00:00",
@@ -271157,7 +271188,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-22631118": {
       "aparat_upload_started_at": "2026-11-17T20:25:55.922944+00:00",
@@ -285001,7 +285034,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-23047059": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -289417,7 +289452,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-3116893": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -298801,7 +298838,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-580801": {
       "aparat_upload_started_at": "2026-11-17T18:54:53.007822+00:00",
@@ -304338,7 +304377,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-7359754": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -311310,7 +311351,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-9613004": {
       "aparat_upload_started_at": "2026-11-19T14:25:55.527436+00:00",
@@ -311461,7 +311504,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-9649334": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -326746,5 +326791,7 @@
   "snappshop_consecutive_failures": 22,
   "snappshop_retry_after": "2026-11-20T20:35:41.334792+00:00",
   "youtube_last_upload_success_at": "2026-11-19T22:29:21.358830+00:00",
-  "youtube_upload_pause_diagnostic_migrated": true
+  "youtube_upload_pause_diagnostic_migrated": true,
+  "youtube_upload_pause_reason": "daily_upload_limit",
+  "youtube_uploads_paused_until": "2026-11-20T22:48:40.998430+00:00"
 }

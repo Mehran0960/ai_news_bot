@@ -1,9 +1,4 @@
 {
-  "emergency_continuity_snapshot_sha256": null,
-  "filo_login_verification_status": "verified",
-  "last_product_channel_published_at": "2026-11-19T22:13:51.037873+00:00",
-  "next_channel_content_due_at": "2026-11-19T23:00:51.037873+00:00",
-  "youtube_uploads_paused_until": null,
   "editorial_video_queue": [
     {
       "content_id": "editorial:measure-room-size",
@@ -19,17 +14,20 @@
       "status": "partial"
     }
   ],
-  "generated_at": "2026-11-19T22:31:06.815939+00:00",
-  "last_channel_published_at": "2026-11-19T22:13:51.037873+00:00",
-  "product_publication_interval_seconds": 1860.0,
-  "emergency_continuity_active": false,
-  "youtube_upload_pause_reason": null,
   "editorial_channel_queue": [],
-  "filo_next_upload_at": null,
-  "filo_login_verified_at": "2026-11-19T22:15:18.139547+00:00",
-  "emergency_continuity_expires_at": null,
-  "filo_upload_interval_policy_version": 3,
+  "emergency_continuity_snapshot_sha256": null,
   "youtube_next_upload_at": null,
+  "last_channel_published_at": "2026-11-19T22:13:51.037873+00:00",
+  "generated_at": "2026-11-19T22:33:41.580055+00:00",
+  "emergency_continuity_active": false,
+  "product_publication_cadence_cycle_id": "2026-11-19T22:25:29.095870+00:00",
+  "youtube_upload_pause_reason": "daily_upload_limit",
+  "pending_product_queue_count": 18,
+  "aparat_next_upload_at": null,
+  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
+  "filo_next_upload_at": null,
+  "filo_upload_interval_policy_version": 3,
+  "next_channel_content_due_at": "2026-11-19T23:00:51.037873+00:00",
   "published": {
     "dkp-10560734": {
       "aparat_upload_status": "uploaded",
@@ -58,7 +56,8 @@
       "ts": 1795072308.099555,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-10698491": {
       "aparat_upload_status": "uploaded",
@@ -87,7 +86,8 @@
       "ts": 1795112437.607467,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-12162469": {
       "aparat_upload_status": "uploaded",
@@ -116,7 +116,8 @@
       "ts": 1795080212.039768,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-14528799": {
       "aparat_upload_status": "uploaded",
@@ -145,7 +146,8 @@
       "ts": 1795067744.401812,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-17161677": {
       "aparat_upload_status": "uploaded",
@@ -174,7 +176,8 @@
       "ts": 1795082265.779794,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-18386345": {
       "aparat_upload_status": "uploaded",
@@ -203,7 +206,8 @@
       "ts": 1795105970.690748,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-21031486": {
       "aparat_upload_status": "uploaded",
@@ -232,7 +236,8 @@
       "ts": 1795069961.940867,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-21151011": {
       "aparat_upload_status": "uploaded",
@@ -259,7 +264,8 @@
       "ts": 1795117408.591457,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-21492107": {
       "aparat_upload_status": "uploaded",
@@ -288,7 +294,8 @@
       "ts": 1795096129.348377,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-21678448": {
       "aparat_upload_status": "uploaded",
@@ -317,7 +324,8 @@
       "ts": 1795122225.165524,
       "video_dispatch_eligible": true,
       "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-22148654": {
       "aparat_upload_status": "uploaded",
@@ -346,7 +354,8 @@
       "ts": 1795126415.719174,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-22315227": {
       "aparat_upload_status": "uploaded",
@@ -373,7 +382,8 @@
       "ts": 1795092033.036377,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-22367542": {
       "aparat_upload_status": "uploaded",
@@ -402,7 +412,8 @@
       "ts": 1795074941.462781,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-22431135": {
       "aparat_upload_status": "uploaded",
@@ -431,7 +442,8 @@
       "ts": 1795087240.467667,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-22625619": {
       "aparat_upload_status": "uploaded",
@@ -460,7 +472,8 @@
       "ts": 1795089522.648998,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-23039449": {
       "aparat_upload_status": "uploaded",
@@ -489,7 +502,8 @@
       "ts": 1795114774.85509,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-3051794": {
       "aparat_upload_status": "uploaded",
@@ -518,7 +532,8 @@
       "ts": 1795110244.634677,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-580581": {
       "aparat_upload_status": "uploaded",
@@ -545,7 +560,8 @@
       "ts": 1795101354.093748,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-7321059": {
       "aparat_upload_status": "uploaded",
@@ -574,7 +590,8 @@
       "ts": 1795119822.471632,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-9597543": {
       "aparat_upload_status": "uploaded",
@@ -603,7 +620,8 @@
       "ts": 1795103980.036957,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-9613004": {
       "aparat_upload_status": "uploaded",
@@ -632,15 +650,18 @@
       "ts": 1795098283.959527,
       "video_dispatch_eligible": true,
       "video_generation_status": "generated",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_upload_status": "retry"
     }
   },
-  "schema_version": 2,
-  "pending_product_queue_count": 18,
   "emergency_continuity_baseline_completed_at": null,
+  "youtube_uploads_paused_until": "2026-11-20T22:48:40.998430+00:00",
+  "schema_version": 2,
+  "filo_login_verified_at": "2026-11-19T22:15:18.139547+00:00",
   "product_publication_plan_cycle_id": "2026-11-19T22:25:29.095870+00:00",
-  "product_publication_cadence_cycle_id": "2026-11-19T22:25:29.095870+00:00",
-  "aparat_next_upload_at": null,
-  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
+  "product_publication_interval_seconds": 1860.0,
+  "filo_login_verification_status": "verified",
+  "emergency_continuity_expires_at": null,
+  "last_product_channel_published_at": "2026-11-19T22:13:51.037873+00:00",
   "editorial_delivery_queue": {}
 }
