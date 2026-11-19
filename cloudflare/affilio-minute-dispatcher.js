@@ -261,7 +261,15 @@ export function nextPublisherDueAt(state) {
   if (!hasActiveChannelPublicationWork(state)) return null;
   const scheduledAt = Date.parse(String(state && state.next_channel_content_due_at || ""));
   const editorialPlanningAt = Date.parse(String(state && state.next_editorial_planning_at || ""));
-  const plannedTimes = [scheduledAt, editorialPlanningAt].filter(Number.isFinite);
+  const lastPublishedAt = readLastChannelPublicationAt(state);
+  // A midpoint reserved before the latest confirmed channel post is stale.
+  // Actual recovery items remain handled by the independent editorial queue.
+  const editorialPlanningIsCurrent = Number.isFinite(editorialPlanningAt) &&
+    (lastPublishedAt === null || editorialPlanningAt > lastPublishedAt);
+  const plannedTimes = [
+    scheduledAt,
+    editorialPlanningIsCurrent ? editorialPlanningAt : Number.NaN,
+  ].filter(Number.isFinite);
   if (!plannedTimes.length) return null;
 
   // Mirror the Python publisher's hard shared-channel floor. The planner keeps
@@ -269,7 +277,6 @@ export function nextPublisherDueAt(state) {
   // dispatching a publisher run before the last confirmed public channel receipt
   // has cleared the 31-minute floor. It does not change the planned slot.
   const plannedDueAt = Math.min(...plannedTimes);
-  const lastPublishedAt = readLastChannelPublicationAt(state);
   const earliestAllowedAt = lastPublishedAt === null
     ? null
     : lastPublishedAt + MIN_CHANNEL_POST_INTERVAL_MS;
