@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-19T07:56:56.773886+00:00",
-  "aparat_last_upload_success_at": "2026-11-19T07:57:00.488119+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-19T08:44:57.685702+00:00",
+  "aparat_last_upload_success_at": "2026-11-19T08:45:01.650065+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-19T08:26:43.242405+00:00",
@@ -235487,7 +235487,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-21952443": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-19T08:44:57.685702+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-19T08:45:01.650065+00:00",
+      "aparat_video_hash": "cpjjhjf",
+      "aparat_video_record_id": "74291640",
+      "aparat_video_url": "https://www.aparat.com/v/cpjjhjf",
+      "aparat_visibility": "public",
       "bale_message_id": 2325,
       "bale_posted_at": "2026-11-19T08:42:59.613431+00:00",
       "brand": "هنرمند",
@@ -235611,8 +235617,17 @@
       "telegram_posted_at": "2026-11-19T08:42:59.117124+00:00",
       "title": "حوله حمام هنرمند مدل لوین سایز 165x100 سانتی‌متر",
       "ts": 1795077771.621155,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-21952443.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-21952443.mp4"
+      },
+      "video_generated_at": "2026-11-19T08:44:51.946033+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-21961802": {
       "aparat_skip_reason": "selection_outside_freshness_window",
