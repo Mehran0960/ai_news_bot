@@ -1,21 +1,38 @@
 {
-  "emergency_continuity_expires_at": null,
-  "editorial_channel_queue": [],
-  "emergency_continuity_active": false,
-  "filo_upload_interval_policy_version": 3,
-  "youtube_next_upload_at": null,
-  "filo_login_verification_status": "verified",
   "aparat_next_upload_at": null,
-  "pending_product_queue_count": 11,
-  "youtube_upload_pause_reason": "daily_upload_limit",
-  "product_publication_cadence_cycle_id": "2026-11-19T00:23:28.389970+00:00",
-  "product_publication_plan_cycle_id": "2026-11-19T00:23:28.389970+00:00",
-  "filo_next_upload_at": null,
-  "youtube_uploads_paused_until": "2026-11-19T22:07:26.442174+00:00",
-  "generated_at": "2026-11-19T03:19:59.067643+00:00",
-  "schema_version": 2,
-  "product_publication_interval_seconds": 3420.0,
+  "editorial_channel_queue": [],
+  "editorial_video_queue": [
+    {
+      "content_id": "editorial:measure-room-size",
+      "platforms": {
+        "youtube": {
+          "attempt_started_at": null,
+          "next_attempt_at": null,
+          "status": "pending"
+        }
+      },
+      "scheduled_at": "2026-11-18T03:07:19.173867+00:00",
+      "sequence_number": 1554,
+      "status": "partial"
+    }
+  ],
+  "emergency_continuity_active": false,
+  "emergency_continuity_baseline_completed_at": null,
+  "emergency_continuity_expires_at": null,
   "emergency_continuity_snapshot_sha256": null,
+  "filo_login_verification_status": "verified",
+  "filo_login_verified_at": "2026-11-19T02:43:15.249991+00:00",
+  "filo_next_upload_at": null,
+  "filo_upload_interval_policy_version": 3,
+  "generated_at": "2026-11-19T03:20:36.000913+00:00",
+  "last_channel_published_at": "2026-11-19T03:18:48.720307+00:00",
+  "last_product_channel_published_at": "2026-11-19T03:18:48.720307+00:00",
+  "next_channel_content_due_at": "2026-11-19T03:50:48.720307+00:00",
+  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
+  "pending_product_queue_count": 11,
+  "product_publication_cadence_cycle_id": "2026-11-19T00:23:28.389970+00:00",
+  "product_publication_interval_seconds": 3420.0,
+  "product_publication_plan_cycle_id": "2026-11-19T00:23:28.389970+00:00",
   "published": {
     "dkp-13258649": {
       "aparat_upload_status": "uploaded",
@@ -400,26 +417,8 @@
       "youtube_upload_status": "retry"
     }
   },
-  "editorial_video_queue": [
-    {
-      "content_id": "editorial:measure-room-size",
-      "platforms": {
-        "youtube": {
-          "attempt_started_at": null,
-          "next_attempt_at": null,
-          "status": "pending"
-        }
-      },
-      "scheduled_at": "2026-11-18T03:07:19.173867+00:00",
-      "sequence_number": 1554,
-      "status": "partial"
-    }
-  ],
-  "emergency_continuity_baseline_completed_at": null,
-  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
-  "last_product_channel_published_at": "2026-11-19T03:18:48.720307+00:00",
-  "next_channel_content_due_at": "2026-11-19T03:50:48.720307+00:00",
-  "filo_login_verified_at": "2026-11-19T02:43:15.249991+00:00",
-  "last_channel_published_at": "2026-11-19T03:18:48.720307+00:00",
-  "editorial_delivery_queue": {}
+  "schema_version": 2,
+  "youtube_next_upload_at": null,
+  "youtube_upload_pause_reason": "daily_upload_limit",
+  "youtube_uploads_paused_until": "2026-11-19T22:07:26.442174+00:00"
 }
