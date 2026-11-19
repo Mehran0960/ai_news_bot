@@ -3302,3 +3302,24 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** اگر بانک محتوای تأییدشده فقط یک موضوع قابل‌استفاده داشته باشد، نوبت تحریریه تا آماده‌شدن موضوع دیگر منتشر نمی‌شود؛ انتشار محصول مستقل می‌ماند. rollback با revert همین تغییر کد انجام می‌شود؛ فایل‌های state و history نباید reset شوند.
 
 **وضعیت:** پیاده‌سازی و آزمون‌های رگرسیون ثبت شدند؛ در انتظار CI و بازبینی PR.
+
+
+## 2026-11-19 — آماده‌سازی انتساب تبدیل و کمیسیون افیلیو
+
+**هدف:** ثبت فروش و کمیسیون تأییدشدهٔ افیلیو در OfferChin به‌صورت قابل اتکا؛ تفکیک کلیک از خرید و ایجاد مسیر امن برای postback.
+
+**تغییر/اقدام:**
+- مستندات رسمی Public Publisher API و Conversion Postback افیلیو بررسی و در راهنمای دسترسی ثبت شد. جست‌وجوی کاتالوگ نیازمند publisher_uid، media_uid و IP مجاز است؛ لینک affiliate_link باید بدون بازسازی پارامترهای امضاشده استفاده شود. aff_sub می‌تواند شناسهٔ رسانه/محصول را در postback بازگرداند.
+- مسیر امن POST /postback/affilio به Worker موجود اضافه شد. دریافت فقط با secret اختصاصی X-Affilio-Token، اعتبارسنجی payload و ذخیرهٔ append-only انجام می‌شود.
+- رویدادهای pending، approved و declined با idempotency بر پایهٔ conversion_id + status نگهداری می‌شوند. pending درآمد نهایی نیست؛ approved نیازمند payout معتبر و declined نیازمند payout صفر است.
+- route تا تنظیم secret غیرفعال می‌ماند؛ هیچ CTA، لینک Aflo یا انتشار زنده تغییر نکرد. Product Search و دیما هنوز به‌دلیل شناسه‌ها/دسترسی‌های تأییدنشده فعال نشده‌اند.
+
+**فایل‌ها/سامانه‌ها:** affilio_radar/affiliate-deal-radar-worker.js؛ affilio_radar/test_affiliate_deal_radar_worker.mjs؛ affilio_radar/AFFILIO_REPORTING_ACCESS.md؛ .github/workflows/affilio-postback-tests.yml؛ docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md؛ Worker affiliate-deal-radar و KV binding CLICKS.
+
+**آزمون و نتیجه:** تست syntax و postback روی PR #256، revision fe36490660d31367038af9ffce07ea1e40b47028، در Actions run #44577000547 موفق شد. اجرای نهایی Documentation Gate پس از ثبت این changelog در انتظار است؛ تا آن زمان عبور کامل CI ادعا نمی‌شود.
+
+**شواهد/شناسه:** PR #256؛ شاخه docs/affilio-api-postback-integration؛ run تست postback #44577000547؛ commit آخر کد/تست fe36490660d31367038af9ffce07ea1e40b47028.
+
+**ریسک/بازگشت:** رویدادهای تبدیل با prefix جدا در KV کلیک ذخیره می‌شوند و retention یک‌ساله دارند. افزایش مصرف KV باید پایش شود. تا زمان دریافت token رسمی و تأیید افیلیو هیچ تبدیل تولیدی دریافت نمی‌شود. توقف اضطراری با حذف secret AFFILIO_POSTBACK_TOKEN یا revert کد ممکن است؛ لینک‌های خرید و تاریخچهٔ انتشار حذف یا بازنویسی نمی‌شوند.
+
+**وضعیت:** کد و تست اختصاصی موفق در PR باز؛ گیت مستندات منتظر اجرای دوباره؛ merge، deploy، ثبت webhook و ثبت فروش/کمیسیون واقعی هنوز انجام نشده‌اند.
