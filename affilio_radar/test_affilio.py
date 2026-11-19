@@ -335,7 +335,15 @@ class AffilioRadarTests(unittest.TestCase):
             patch.object(radar_module, "_click_tracker_is_healthy", return_value=True),
             patch.object(radar_module, "build_click_tracking_link", side_effect=AssertionError("tracker must not be called")),
         ):
-            self.assertEqual(radar_module.tracked_affiliate_button_url(affiliate, "bale"), affiliate)
+            attributed = radar_module.tracked_affiliate_button_url(affiliate, "bale")
+        attributed_parts = urlsplit(attributed)
+        attributed_query = parse_qs(attributed_parts.query)
+        self.assertEqual(attributed_parts.netloc, "aflo.ir")
+        self.assertEqual(attributed_parts.path, "/QekEYTRg")
+        self.assertEqual(attributed_query.get("p"), [canonical])
+        self.assertEqual(attributed_query.get("aff_sub"), ["oc_snp-2097083854_bale"])
+        self.assertEqual(attributed_query.get("utm_source"), ["offerchin"])
+        self.assertEqual(attributed_query.get("utm_medium"), ["bale"])
 
 
     def test_fetch_product_record_uses_snappshop_internal_api_id_mapping(self):
@@ -900,19 +908,33 @@ class AffilioRadarTests(unittest.TestCase):
             radar_module._retain_superseded_youtube_video(record, "dkp-123", now)
         )
 
-    def test_purchase_button_always_opens_direct_affilio_url_without_tracker(self):
+    def test_purchase_button_adds_documented_affilio_subid_but_stays_on_direct_aflo_route(self):
         product = "https://snappshop.ir/product/snp-2097083854"
         affiliate = build_affilio_tracking_link(product)
         with (
             patch("affilio_radar._click_tracker_is_healthy", return_value=True),
             patch("affilio_radar.build_click_tracking_link", side_effect=AssertionError("purchase CTA must bypass tracker")),
         ):
-            self.assertEqual(
-                tracked_affiliate_button_url(
-                    affiliate, "telegram", "creative-test-1", "B", "caption-test-1", "A"
-                ),
-                affiliate,
+            attributed = tracked_affiliate_button_url(
+                affiliate, "telegram", "creative-test-1", "B", "caption-test-1", "A"
             )
+        parsed = urlsplit(attributed)
+        params = parse_qs(parsed.query)
+        self.assertEqual(parsed.scheme, "https")
+        self.assertEqual(parsed.netloc, "aflo.ir")
+        self.assertEqual(parsed.path, "/QekEYTRg")
+        self.assertEqual(params.get("p"), [product])
+        self.assertEqual(params.get("aff_sub"), ["oc_snp-2097083854_telegram"])
+        self.assertEqual(params.get("utm_source"), ["offerchin"])
+        self.assertEqual(params.get("utm_medium"), ["telegram"])
+
+        bale_link = tracked_affiliate_button_url(affiliate, "bale")
+        bale_params = parse_qs(urlsplit(bale_link).query)
+        self.assertEqual(bale_params.get("aff_sub"), ["oc_snp-2097083854_bale"])
+        self.assertNotEqual(bale_params.get("aff_sub"), params.get("aff_sub"))
+
+        # Unknown media remains usable through the direct Aflo URL but is not falsely attributed.
+        self.assertEqual(tracked_affiliate_button_url(affiliate, "unknown"), affiliate)
         self.assertEqual(tracked_affiliate_button_url("https://example.com/not-affiliate", "bale"), "")
 
     def test_click_statistics_include_aggregate_counts_for_both_stores(self):
