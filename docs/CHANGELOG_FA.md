@@ -3262,7 +3262,7 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 
 **آزمون و نتیجه:** تست جدید تأیید می‌کند نوبت محصول/تحریریه پیش از تکمیل ۳۱ دقیقه dispatch نشود و دقیقاً در مرز مجاز دوباره due شود. تست کامل Worker و بررسی Wrangler باید در GitHub Actions روی PR اجرا شود؛ تا دریافت نتیجه، موفقیت CI یا Deploy ادعا نمی‌شود.
 
-**شواهد/شناسه:** شاخهٔ `fix/offerchin-publisher-spacing-dispatch-guard-20261119`؛ اجرای واقعی ناشر #44455625622 در ۱۹ نوامبر، لاگ `PUBLISHER_SHARED_CHANNEL_SPACING_GUARD` با `remaining_seconds=1157` و `minimum_gap_seconds=1860`.
+**شواهد/شناسه:** PR #253؛ شاخهٔ `fix/offerchin-publisher-spacing-dispatch-guard-20261119`؛ اجرای واقعی ناشر #44455625622 در ۱۹ نوامبر، لاگ `PUBLISHER_SHARED_CHANNEL_SPACING_GUARD` با `remaining_seconds=1157` و `minimum_gap_seconds=1860`.
 
 **ریسک/بازگشت:** در صورت ناقص یا قدیمی بودن timestamp آخرین انتشار، dispatch ممکن است به زمان دیرتری موکول شود؛ این محافظه‌کاری از ارسال زودهنگام جلوگیری می‌کند. rollback با revert همین تغییر Worker و تست انجام می‌شود؛ state، صف و رسیدهای عمومی نباید reset شوند.
 
