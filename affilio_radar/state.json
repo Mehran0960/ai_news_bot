@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-19T07:12:44.779170+00:00",
-  "aparat_last_upload_success_at": "2026-11-19T07:12:47.969848+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-19T07:56:56.773886+00:00",
+  "aparat_last_upload_success_at": "2026-11-19T07:57:00.488119+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-19T07:32:50.389487+00:00",
@@ -248685,7 +248685,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22367542": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-19T07:56:56.773886+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-19T07:57:00.488119+00:00",
+      "aparat_video_hash": "vhc9849",
+      "aparat_video_record_id": "74290730",
+      "aparat_video_url": "https://www.aparat.com/v/vhc9849",
+      "aparat_visibility": "public",
       "bale_message_id": 2324,
       "bale_posted_at": "2026-11-19T07:55:47.921234+00:00",
       "brand": "فیزیکی",
@@ -248809,8 +248815,17 @@
       "telegram_posted_at": "2026-11-19T07:55:47.706617+00:00",
       "title": "مجموعه فیلم سینمایی ارباب حلقه ها و هابیت اثر پیتر جکسون نشر فیزیکی",
       "ts": 1795074941.462781,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22367542.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22367542.mp4"
+      },
+      "video_generated_at": "2026-11-19T07:56:48.229894+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22377299": {
       "aparat_skip_reason": "selection_outside_freshness_window",
