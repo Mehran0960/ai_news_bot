@@ -3268,3 +3268,20 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 
 **وضعیت:** تغییر در شاخهٔ مستقل آماده شده است؛ PR، CI و Deploy تولیدی هنوز تأیید نشده‌اند.
 
+## ۲۰۲۶-۱۱-۱۹ — بی‌اعتبارسازی زمان تحریریهٔ منقضی در زمان‌بند
+
+**هدف:** جلوگیری از dispatch تکراری ناشر به‌علت midpoint تحریریه‌ای که پیش از آخرین انتشار قطعی کانال برنامه‌ریزی شده و دیگر slot فعالی نیست.
+
+**مشاهده:** پس از اصلاح فاصلهٔ مشترک، Worker هنوز در هر tick قدیمی‌ترین مقدار `next_editorial_planning_at` را انتخاب می‌کرد. در snapshot زندهٔ `2026-11-19T04:24:34Z`، این مقدار به `2026-11-18T03:07:19Z` تعلق داشت؛ درحالی‌که آخرین ارسال عمومی `2026-11-19T03:51:47Z` و slot بعدی محصول `2026-11-19T04:28:47Z` بود.
+
+**تغییر/اقدام:** Worker midpoint را فقط در صورتی در محاسبهٔ next due می‌آورد که از آخرین ارسال قطعی کانال جدیدتر باشد. گیت Python نیز midpoint قدیمی‌تر/هم‌زمان با آخرین انتشار را نادیده می‌گیرد. صف بازیابی واقعی تحریریه مستقل باقی می‌ماند و از این فیلتر حذف نمی‌شود.
+
+**فایل‌ها/سامانه‌ها:** `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، `affilio_radar/publication_due_gate.py`، `affilio_radar/test_publication_due_gate.py`، handbook و changelog.
+
+**آزمون و نتیجه:** تست Node سناریوی midpoint روز قبل را در برابر آخرین انتشار روز جاری و slot محصول آینده بازسازی می‌کند. تست Python نیز هم stale midpoint و هم midpoint معتبر پس از آخرین ارسال را می‌سنجد. نتیجهٔ CI و Deploy پس از PR ثبت خواهد شد؛ هنوز موفقیت آن‌ها ادعا نمی‌شود.
+
+**شواهد/شناسه:** شاخهٔ `fix/offerchin-stale-editorial-dispatch-timestamp-20261119`؛ sidecar زندهٔ `2026-11-19T04:24:34Z`؛ اجراهای ناشر #44457962647 و #44458078954.
+
+**ریسک/بازگشت:** فقط midpointی که قبل از آخرین رسید کانال بوده از محاسبهٔ dispatch اصلی کنار می‌رود. مطلب تحریریهٔ واقعاً معوق باید در صف recovery مستقل ثبت شده باشد. rollback با revert تغییرات همین PR ممکن است؛ state/queue/receipt reset یا حذف نمی‌شود.
+
+**وضعیت:** تغییر در شاخهٔ جداگانه قرار دارد؛ PR/CI/Deploy هنوز انجام نشده است.
