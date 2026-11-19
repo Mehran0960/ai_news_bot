@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-19T08:44:57.685702+00:00",
-  "aparat_last_upload_success_at": "2026-11-19T08:45:01.650065+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-19T09:24:45.659986+00:00",
+  "aparat_last_upload_success_at": "2026-11-19T09:24:48.954050+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-19T09:21:46.014758+00:00",
@@ -182122,7 +182122,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-12162469": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-19T09:24:45.659986+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-19T09:24:48.954050+00:00",
+      "aparat_video_hash": "eca2u4k",
+      "aparat_video_record_id": "74292393",
+      "aparat_video_url": "https://www.aparat.com/v/eca2u4k",
+      "aparat_visibility": "public",
       "bale_message_id": 2327,
       "bale_posted_at": "2026-11-19T09:23:38.508539+00:00",
       "brand": "چرم مشهد",
@@ -182246,8 +182252,17 @@
       "telegram_posted_at": "2026-11-19T09:23:37.974321+00:00",
       "title": "کفش زنانه چرم مشهد مدل J2628",
       "ts": 1795080212.039768,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-12162469.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-12162469.mp4"
+      },
+      "video_generated_at": "2026-11-19T09:24:38.019716+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-12195127": {
       "aparat_upload_started_at": "2026-11-17T18:42:12.968319+00:00",
