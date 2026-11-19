@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-19T16:34:09.788249+00:00",
-  "aparat_last_upload_success_at": "2026-11-19T16:34:13.709998+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-19T17:46:03.800750+00:00",
+  "aparat_last_upload_success_at": "2026-11-19T17:46:07.229562+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-19T17:38:55.232674+00:00",
@@ -288962,7 +288962,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-3051794": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-19T17:46:03.800750+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-19T17:46:07.229562+00:00",
+      "aparat_video_hash": "tgz233z",
+      "aparat_video_record_id": "74300009",
+      "aparat_video_url": "https://www.aparat.com/v/tgz233z",
+      "aparat_visibility": "public",
       "bale_message_id": 2342,
       "bale_posted_at": "2026-11-19T17:44:15.219221+00:00",
       "brand": "",
@@ -289086,8 +289092,17 @@
       "telegram_posted_at": "2026-11-19T17:44:11.275950+00:00",
       "title": "دستگیره آشپزخانه کد 519 بسته ۲ عددی",
       "ts": 1795110244.634677,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-3051794.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-3051794.mp4"
+      },
+      "video_generated_at": "2026-11-19T17:45:58.365564+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-3116893": {
       "aparat_skip_reason": "selection_outside_freshness_window",
