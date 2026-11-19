@@ -2,6 +2,8 @@ name: Affilio Product Radar
 
 on:
   push:
+    branches:
+      - main
     paths:
       - "affilio_radar/affilio_radar.py"
       - "affilio_radar/catalog_sweep.py"
