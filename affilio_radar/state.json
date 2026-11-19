@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-19T18:21:53.290550+00:00",
-  "aparat_last_upload_success_at": "2026-11-19T18:21:56.919220+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-19T19:00:49.430145+00:00",
+  "aparat_last_upload_success_at": "2026-11-19T19:01:04.058889+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-19T18:41:44.326443+00:00",
@@ -285168,7 +285168,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-23039449": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-19T19:00:49.430145+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-19T19:01:04.058889+00:00",
+      "aparat_video_hash": "xrq87bi",
+      "aparat_video_record_id": "74301025",
+      "aparat_video_url": "https://www.aparat.com/v/xrq87bi",
+      "aparat_visibility": "public",
       "bale_message_id": 2345,
       "bale_posted_at": "2026-11-19T18:59:46.856025+00:00",
       "brand": "",
@@ -285292,8 +285298,17 @@
       "telegram_posted_at": "2026-11-19T18:59:42.085075+00:00",
       "title": "براش آرایشی ویتل مدل 034",
       "ts": 1795114774.85509,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-23039449.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-23039449.mp4"
+      },
+      "video_generated_at": "2026-11-19T19:00:42.206419+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-19T22:07:26.442174+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-23047059": {
       "aparat_skip_reason": "selection_outside_freshness_window",
