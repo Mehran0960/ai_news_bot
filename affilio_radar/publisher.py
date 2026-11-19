@@ -238,7 +238,9 @@ def _record_from_item(item: dict, old: dict | None, now: datetime, delivery_id: 
             and str(item.get("expiry_source") or "") == "digikala_mcp_offer_card"
         ),
         "caption_deadline_format_version": radar.CAPTION_DEADLINE_FORMAT_VERSION,
-        "posted_discount_percent": int(item.get("discount_percent") or 0),
+        "posted_discount_percent": int(item.get("verified_discount_percent", item.get("discount_percent")) or 0),
+        "verified_discount_source": str(item.get("verified_discount_source") or ""),
+        "verified_reference_price_toman": item.get("verified_reference_price_toman"),
         "selection_discount_floor": int(
             item.get("selection_discount_floor") or radar.DISCOUNT_FALLBACK_FLOORS[0]
         ),
