@@ -287,6 +287,49 @@ class EditorialContentTests(unittest.TestCase):
             "t-2",
         )
 
+    def test_topic_cooldown_blocks_new_editorial_ids_for_four_hours(self):
+        state = {}
+        first = item("first-delivery-guide", "purchase-planning")
+        first["title"] = "راهنمای بررسی زمان تحویل فروشگاه"
+        first["body"] = "زمان آماده‌سازی کالا، تحویل به شرکت حمل و بازه دریافت سفارش را جداگانه بررسی کنید."
+        chosen = select_editorial_fallback([first], state, now=NOW)
+        self.assertIsNotNone(chosen)
+        chosen["sequence_number"] = 101
+        record_editorial_delivery(
+            state, chosen, published_at=NOW,
+            destinations={"telegram": {"status": "sent", "message_id": "tg-101"}},
+        )
+
+        second = item("second-delivery-guide", "purchase-planning")
+        second["title"] = "پیش از پرداخت، شرایط لغو سفارش را بخوانید"
+        second["body"] = "مهلت انصراف، روش بازپرداخت و استثناهای لغو را در مقررات فروشنده پیدا کنید."
+        self.assertIsNone(
+            select_editorial_fallback([second], state, now=NOW + timedelta(hours=3))
+        )
+        self.assertIsNotNone(
+            select_editorial_fallback([second], state, now=NOW + timedelta(hours=5))
+        )
+
+    def test_topic_cooldown_can_be_disabled_explicitly(self):
+        state = {}
+        first = item("first-topic-guide", "purchase-planning")
+        first["title"] = "راهنمای روش دریافت کالا"
+        first["body"] = "زمان آماده‌سازی، بسته‌بندی، ارسال و تحویل را از هم تفکیک کنید."
+        chosen = select_editorial_fallback([first], state, now=NOW)
+        self.assertIsNotNone(chosen)
+        record_editorial_delivery(
+            state, chosen, published_at=NOW,
+            destinations={"telegram": {"status": "sent", "message_id": "tg-1"}},
+        )
+        second = item("second-topic-guide", "purchase-planning")
+        second["title"] = "قوانین بازگشت پول هنگام لغو خرید"
+        second["body"] = "روش بازپرداخت وجه و مهلت قانونی لغو سفارش را در سیاست فروشگاه بررسی کنید."
+        self.assertIsNotNone(
+            select_editorial_fallback(
+                [second], state, now=NOW + timedelta(hours=1), topic_cooldown_hours=0
+            )
+        )
+
     def test_permanent_delivery_ledger_blocks_evicted_ids_and_fingerprints(self):
         value = item("old-content")
         state = {
