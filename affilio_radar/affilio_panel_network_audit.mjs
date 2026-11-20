@@ -33,10 +33,30 @@ function safeRoute(urlString) {
   return parsed.hostname + path;
 }
 
-function safeQueryKeys(urlString) {
+function safeQueryMetadata(urlString) {
   try {
     const parsed = new URL(urlString);
-    return [...new Set([...parsed.searchParams.keys()])].sort().slice(0, 30);
+    const values = new Map();
+    for (const key of parsed.searchParams.keys()) {
+      const rawValues = parsed.searchParams.getAll(key);
+      if (key === "from_" || key === "to") {
+        const value = rawValues[0] || "";
+        if (/^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:\d{2})?)?$/.test(value)) {
+          values.set(key, key + "=" + value);
+        } else {
+          values.set(key, key);
+        }
+      } else if (key === "page" || key === "page_size") {
+        const value = rawValues[0] || "";
+        values.set(key, /^\d{1,5}$/.test(value) ? key + "=" + value : key);
+      } else if (key === "sort_order") {
+        const value = (rawValues[0] || "").toLowerCase();
+        values.set(key, ["asc", "desc", "ascending", "descending"].includes(value) ? key + "=" + value : key);
+      } else {
+        values.set(key, key);
+      }
+    }
+    return [...values.values()].sort().slice(0, 30);
   } catch {
     return [];
   }
@@ -80,7 +100,7 @@ async function main() {
     if (!route) return;
     const method = request.method().toUpperCase();
     const key = method + " " + route;
-    const queryKeys = safeQueryKeys(request.url());
+    const queryKeys = safeQueryMetadata(request.url());
     if (!observed.has(key)) {
       observed.set(key, { method, route, queryKeys, status: "pending", contentType: "unknown" });
     } else {
@@ -174,8 +194,8 @@ async function main() {
     for (const record of records.slice(0, 80)) {
       console.log("AFFILIO_NETWORK_ROUTE=" + record.method + " " + record.route + " status=" + record.status + " type=" + record.contentType + " params=" + ((record.queryKeys || []).join(",") || "none") + " schema=" + (record.schema || "not_observed"));
     }
-    console.log("AFFILIO_NETWORK_QUERY_KEYS_RECORDED=yes");
-    console.log("AFFILIO_NETWORK_QUERY_VALUES_RECORDED=no");
+    console.log("AFFILIO_NETWORK_QUERY_METADATA_RECORDED=yes");
+    console.log("AFFILIO_NETWORK_QUERY_VALUES_RECORDED=only_safe_date_page_sort_fields");
     console.log("AFFILIO_NETWORK_HEADERS_OR_BODIES_RECORDED=no");
     console.log("AFFILIO_RESPONSE_VALUES_RECORDED=no");
     console.log("AFFILIO_REPORT_ROWS_CAPTURED=no");
