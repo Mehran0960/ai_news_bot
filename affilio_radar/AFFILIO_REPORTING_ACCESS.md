@@ -211,4 +211,8 @@ Browser audit در run `44697387470` این مسیرها را روی API رسم�
 ### عمق و کنترل خطای schema capture
 
 نسخهٔ جدید Playwright تا ۶ سطح nested schema را استخراج می‌کند تا فیلدهای هر آیتم در آرایه‌های breakdown معلوم شوند. درخواست‌های XHR/Fetch شکست‌خورده با status کلی `network_failed` ثبت می‌شوند؛ متن خطا و URL query هرگز ذخیره نمی‌شود.
+ 
+### کلیدهای query و تکمیل schema
+
+browser audit نسخهٔ جاری نام query-keyها را بدون مقدار ثبت می‌کند و قبل از چاپ خروجی منتظر اتمام تمام کارهای async پردازش schema می‌ماند. این مرحله برای تعیین تاریخ شروع/پایان، media filter و pagination لازم است؛ مقادیر این پارامترها و payloadها همچنان محرمانه می‌مانند.
 
