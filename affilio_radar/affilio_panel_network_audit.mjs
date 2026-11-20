@@ -33,6 +33,20 @@ function safeRoute(urlString) {
   return parsed.hostname + path;
 }
 
+function describeSchema(value, depth = 0) {
+  if (value === null) return "null";
+  if (Array.isArray(value)) {
+    if (value.length === 0) return "array<unknown>";
+    return "array<" + describeSchema(value[0], depth + 1) + ">";
+  }
+  if (typeof value === "object") {
+    if (depth >= 3) return "object";
+    const keys = Object.keys(value).sort().slice(0, 24);
+    return "{" + keys.map((key) => key + ":" + describeSchema(value[key], depth + 1)).join(",") + "}";
+  }
+  return typeof value;
+}
+
 async function main() {
   const username = process.env.AFFILIO_USER || "";
   const password = process.env.AFFILIO_PASS || "";
@@ -59,7 +73,7 @@ async function main() {
     if (!observed.has(key)) observed.set(key, { method, route, status: "pending", contentType: "unknown" });
   });
 
-  page.on("response", (response) => {
+  page.on("response", async (response) => {
     const request = response.request();
     const kind = request.resourceType();
     if (kind !== "xhr" && kind !== "fetch") return;
@@ -71,6 +85,25 @@ async function main() {
     record.status = String(response.status());
     const contentType = response.headers()["content-type"] || "unknown";
     record.contentType = contentType.split(";")[0].slice(0, 80);
+    record.schema = "not_json";
+    if (record.contentType.includes("json")) {
+      try {
+        const body = await response.json();
+        record.schema = describeSchema(body);
+      } catch {
+        record.schema = "json_parse_unavailable";
+      }
+    }
+  });
+
+  page.on("requestfailed", (request) => {
+    const kind = request.resourceType();
+    if (kind !== "xhr" && kind !== "fetch") return;
+    const route = safeRoute(request.url());
+    if (!route) return;
+    const key = request.method().toUpperCase() + " " + route;
+    const record = observed.get(key);
+    if (record && record.status === "pending") record.status = "network_failed";
   });
 
   try {
@@ -99,7 +132,7 @@ async function main() {
     for (const route of REPORT_PAGES) {
       try {
         await page.goto(PANEL_ORIGIN + route, { waitUntil: "domcontentloaded", timeout: 30000 });
-        await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => null);
+        await page.waitForLoadState("networkidle", { timeout: 20000 }).catch(() => null);
         await page.waitForTimeout(1200);
         if (new URL(page.url()).hostname !== "publisher.affilio.ir") {
           console.log("AFFILIO_BROWSER_AUDIT_RESULT=session_lost_during_report_navigation");
@@ -116,10 +149,11 @@ async function main() {
     console.log("AFFILIO_BROWSER_AUDIT_RESULT=authenticated_read_only");
     console.log("AFFILIO_XHR_FETCH_ROUTE_COUNT=" + records.length);
     for (const record of records.slice(0, 80)) {
-      console.log("AFFILIO_NETWORK_ROUTE=" + record.method + " " + record.route + " status=" + record.status + " type=" + record.contentType);
+      console.log("AFFILIO_NETWORK_ROUTE=" + record.method + " " + record.route + " status=" + record.status + " type=" + record.contentType + " schema=" + (record.schema || "not_observed"));
     }
     console.log("AFFILIO_NETWORK_QUERY_STRINGS_RECORDED=no");
     console.log("AFFILIO_NETWORK_HEADERS_OR_BODIES_RECORDED=no");
+    console.log("AFFILIO_RESPONSE_VALUES_RECORDED=no");
     console.log("AFFILIO_REPORT_ROWS_CAPTURED=no");
     console.log("AFFILIO_BROWSER_STATE_PERSISTED=no");
   } finally {
