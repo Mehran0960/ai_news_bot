@@ -9,6 +9,7 @@
 - [اصل دائمی و غیرقابل‌مذاکرهٔ لینک افیلیت در اینترنت ملی](docs/OFFERCHIN_DOMESTIC_NETWORK_LINK_INVARIANT_FA.md)\n- [گزارش عیب‌یابی توقف صف انتشار چندرسانه‌ای (۱۷ نوامبر ۲۰۲۶)](docs/OFFERCHIN_PUBLICATION_STARVATION_FIX_2026-11-17_FA.md)\n- [سیاست استقلال کامل رسانه‌ها (۱۷ نوامبر ۲۰۲۶)](docs/OFFERCHIN_INDEPENDENT_MEDIA_POLICY_2026-11-17_FA.md)
 - [راهنمای فنی و نقطهٔ بازیابی](docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md)
 - [دفتر تغییرات و اقدامات](docs/CHANGELOG_FA.md)
+- [سیاست اولویت‌بندی بین‌پروژه‌ای](PROJECT_PRIORITY.md) — OfferChin فعال می‌ماند؛ کارهای غیرفوری ممکن است در اولویت اجرایی پایین‌تری قرار گیرند.
 - [سیاست کشف چندمنبعی RSS و تحریریهٔ تصمیم‌یار خرید](docs/OFFERCHIN_DIGIKALA_MAG_SOURCE_POLICY_FA.md)
 - [دسترسی و گزارش‌گیری افیلیو](affilio_radar/AFFILIO_REPORTING_ACCESS.md)
 - [استاندارد برندینگ تصویر/ویدئو](affilio_radar/VISUAL_BRANDING.md)
