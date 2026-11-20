@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-20T04:45:40.148355+00:00",
-  "aparat_last_upload_success_at": "2026-11-20T04:45:43.508044+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-20T05:28:46.685530+00:00",
+  "aparat_last_upload_success_at": "2026-11-20T05:28:49.975994+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-20T05:24:39.145139+00:00",
@@ -228992,7 +228992,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-20057329": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-20T05:28:46.685530+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-20T05:28:49.975994+00:00",
+      "aparat_video_hash": "vwxz5p1",
+      "aparat_video_record_id": "74304497",
+      "aparat_video_url": "https://www.aparat.com/v/vwxz5p1",
+      "aparat_visibility": "public",
       "bale_message_id": 2362,
       "bale_posted_at": "2026-11-20T05:27:40.943988+00:00",
       "brand": "به ویت",
@@ -229116,8 +229122,17 @@
       "telegram_posted_at": "2026-11-20T05:27:40.516159+00:00",
       "title": "تونر پاک‌کننده صورت به ویت مدل DAILY USE مناسب برای پوست‌های مختلط و چرب حجم 200 میلی‌لیتر",
       "ts": 1795152453.678633,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-20057329.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-20057329.mp4"
+      },
+      "video_generated_at": "2026-11-20T05:28:40.623614+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-20072945": {
       "aparat_upload_started_at": "2026-10-27T21:58:58.353396+00:00",
