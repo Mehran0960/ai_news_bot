@@ -3180,3 +3180,24 @@ PR #251 با commit ادغام `52ae2e4af60690f090c6db07a6156339c766ffd0` وار
 **ریسک/بازگشت:** اگر SSO، MFA یا CAPTCHA تغییر کند، ممیزی باید امن متوقف شود و نباید MFA/CAPTCHA را دور بزند یا login را چندبار تکرار کند. workflow فقط به همان host/path رسمی SSO POST می‌زند. rollback با revert همین اسکریپت، تست و workflow ممکن است؛ Secretهای اصلی حذف یا تغییر نمی‌شوند. هیچ دادهٔ محرمانه‌ای در artifact یا log مجاز نیست.
 
 **وضعیت:** ابزار read-only و workflow در شاخهٔ PR آماده شده‌اند؛ ورود واقعی و کشف مسیر گزارش هنوز در انتظار نتیجهٔ Actions است. دریافت/پردازش CSV/XLSX، داشبورد و Postback همچنان مرحله‌های جداگانه‌اند و در این تغییر فعال نشده‌اند.
+
+## ۲۰۲۶-۱۱-۲۰ — اصلاح مسیر ورود پنل به OIDC Authorization Code + PKCE
+
+**هدف:** رفع تفاوت بین redirect مرورگر و پاسخ HTTP خام runner، بدون کاهش کنترل امنیتی و بدون وابستگی به اجرای JavaScript صفحهٔ اصلی.
+
+**تغییر/اقدام:**
+- اجرای نخست ثابت کرد هر دو Secret با نام‌های `AFFILIO_USER` و `AFFILIO_PASS` در GitHub Actions در دسترس هستند؛ پنج تست parser/URL safety موفق شدند، اما GET سادهٔ ریشهٔ پنل به صفحه‌ای رسید که فرم login در HTML خام آن وجود نداشت. هیچ credentialی چاپ نشد.
+- اسکریپت اکنون Authorization URL رسمی Keycloak را با `client_id=affilio-publisher-panel`، `response_type=code`، `response_mode=fragment` و PKCE/S256 می‌سازد؛ state و verifier برای هر اجرا تازه‌اند.
+- callback فقط وقتی پذیرفته می‌شود که HTTPS و host دقیق `publisher.affilio.ir` و state مطابق با درخواست باشد؛ سپس authorization code با `code_verifier` از token endpoint رسمی همان realm مبادله می‌شود.
+- redirect به‌صورت دستی متوقف و بررسی می‌شود تا code در log یا URLهای ثبت‌شده چاپ نشود. access token فقط در حافظه باقی می‌ماند و هرگز چاپ/ذخیره نمی‌شود.
+- دو تست جدید برای ساخت درخواست PKCE و پذیرش کد فقط با host/state صحیح افزوده شد؛ تعداد تست‌های واحد این ابزار به ۷ رسید.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_audit.py`، `affilio_radar/test_affilio_panel_audit.py`، `.github/workflows/affilio-panel-readonly-audit.yml`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`.
+
+**آزمون و نتیجه:** اجرای اولیهٔ workflow #44695582764 تأیید کرد هر دو Secret حاضرند و تست‌های قبلی موفق‌اند؛ login به‌دلیل نداشتن فرم در پاسخ خام متوقف شد. تست‌های جدید PKCE/state تعریف شده‌اند و اجرای کامل دوباره پس از push این اصلاح در انتظار نتیجه است. ورود موفق و دریافت گزارش هنوز ادعا نمی‌شود.
+
+**شواهد/شناسه:** workflow run #44695582764؛ PR #262؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** اگر SSO به MFA، CAPTCHA، client secret یا تغییر قرارداد نیاز داشته باشد، workflow متوقف می‌شود؛ دورزدن challenge یا تکرار login انجام نمی‌شود. rollback با revert همین اصلاح PKCE ممکن است؛ Secretهای کاربر، نشست یا گزارش مالی تغییر داده نمی‌شوند.
+
+**وضعیت:** مسیر PKCE در شاخهٔ PR اصلاح و آمادهٔ آزمون مجدد است؛ discovery مسیرهای گزارش و هرگونه دریافت دادهٔ مالی هنوز منتظر login موفق‌اند.
