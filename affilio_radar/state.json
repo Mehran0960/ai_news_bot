@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-20T18:25:51.962431+00:00",
-  "aparat_last_upload_success_at": "2026-11-20T18:26:06.972111+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-20T19:39:57.510396+00:00",
+  "aparat_last_upload_success_at": "2026-11-20T19:40:01.801249+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-20T19:34:48.643813+00:00",
@@ -298464,7 +298464,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-2537890": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-20T19:39:57.510396+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-20T19:40:01.801249+00:00",
+      "aparat_video_hash": "znwp59k",
+      "aparat_video_record_id": "74316716",
+      "aparat_video_url": "https://www.aparat.com/v/znwp59k",
+      "aparat_visibility": "public",
       "bale_message_id": 2387,
       "bale_posted_at": "2026-11-20T19:38:50.484494+00:00",
       "brand": "آردن سبوما",
@@ -298588,8 +298594,17 @@
       "telegram_posted_at": "2026-11-20T19:38:47.580734+00:00",
       "title": "مایع شوینده غیر صابونی بدن آردن سبوما مدل Liquipain مناسب پوست های چرب حجم 250 میلی لیتر",
       "ts": 1795203516.792883,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-2537890.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-2537890.mp4"
+      },
+      "video_generated_at": "2026-11-20T19:39:49.838302+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-2540907": {
       "aparat_skip_reason": "selection_outside_freshness_window",
