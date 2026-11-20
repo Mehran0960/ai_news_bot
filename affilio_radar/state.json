@@ -3364,178 +3364,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-19192461",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "next_attempt_at": "2026-11-16T18:47:24.509648+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-19192461%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "8721",
-        "catalog_best_selling_category_name": "بهداشت، مراقبت و نگهداری حیوانات",
-        "catalog_best_selling_rank": 13,
-        "catalog_best_selling_ranks_by_category": {
-          "8721": {
-            "category_name": "بهداشت، مراقبت و نگهداری حیوانات",
-            "observed_at": "2026-11-16T14:25:48.101599+00:00",
-            "rank": 13,
-            "rank_history": [
-              {
-                "category_name": "بهداشت، مراقبت و نگهداری حیوانات",
-                "observed_at": "2026-11-16T14:25:48.101599+00:00",
-                "rank": 13
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T15:08:57.863519+00:00",
-        "catalog_cycle_snapshot_rank": 275,
-        "catalog_rank_observed_at": "2026-11-16T14:25:48.101599+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-16T15:32:23.289088+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-19192461",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 420000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 57.19,
-        "discount_percent": 40,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T15:32:41.703885+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 420000,
-        "history_low_toman": 420000,
-        "history_median_toman": 420000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/c16f2ff939f716d246c8d8ef2420e9d11fb37486_1784462022.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 57.58,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 57.19,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 44.0,
-          "generality_group": "pet_care",
-          "live_demand": 84.14,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T15:32:41.705592+00:00",
-          "weakest_factor_score": 44.0
-        },
-        "original_price": 700000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-19192461",
-        "product_url": "https://www.digikala.com/product/dkp-19192461/",
-        "promo_score": 30,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.58,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 55,
-        "savings_toman": 280000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 13,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 57.58,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 57.19,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 44.0,
-          "generality_group": "pet_care",
-          "live_demand": 84.14,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T15:32:41.705592+00:00",
-          "weakest_factor_score": 44.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1366,
-        "title": "کیسه جمع‌آوری فضولات سگ و گربه مدل Reff بسته 10 عددی"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-19192461",
-      "product_plan_cycle_id": "2026-11-16T18:12:48.333976+00:00",
-      "scheduled_at": "2026-11-16T18:47:24.509648+00:00",
-      "selected_at": "2026-11-16T15:32:49.591067+00:00",
-      "sequence_number": 1366,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T19:34:58.878537+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-20317737",
       "content_type": "product",
       "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
@@ -39795,6 +39623,182 @@
       "sequence_number": 1642,
       "status": "published",
       "updated_at": "2026-11-20T22:26:35.747247+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-19925735",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-20T23:08:37.641947+00:00",
+      "last_detail": "selected_price_stale_selected=899000_live=1144800",
+      "next_attempt_at": "2026-11-20T23:07:35.746072+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-19925735%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "کوکو جم",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "6266",
+        "catalog_best_selling_category_name": "پتو",
+        "catalog_best_selling_rank": 9,
+        "catalog_best_selling_ranks_by_category": {
+          "6266": {
+            "category_name": "پتو",
+            "observed_at": "2026-11-20T17:09:43.580340+00:00",
+            "rank": 9,
+            "rank_history": [
+              {
+                "category_name": "پتو",
+                "observed_at": "2026-11-20T17:09:43.580340+00:00",
+                "rank": 9
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-20T17:38:32.234962+00:00",
+        "catalog_cycle_snapshot_rank": 658,
+        "catalog_rank_observed_at": "2026-11-20T17:09:43.580340+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "other",
+        "checked_at": "2026-11-20T18:03:59.704044+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-19925735",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 899000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 51.38,
+        "discount_percent": 28,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-20T18:04:26.050161+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-20",
+        "history_high_toman": 899000,
+        "history_low_toman": 899000,
+        "history_median_toman": 899000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-20",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/7fbc1c9a35a92a7d7f5b364ccde69f1f42000fd9_1785148664.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 59.03,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 51.38,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 47.0,
+          "generality_group": "outdoor_travel",
+          "live_demand": 99.16,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-20T18:04:41.649047+00:00",
+          "weakest_factor_score": 47.0
+        },
+        "original_price": 1250000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-19925735",
+        "product_url": "https://www.digikala.com/product/dkp-19925735/",
+        "promo_score": 23,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 3.5,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 193,
+        "savings_toman": 351000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 9,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 59.03,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 51.38,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 47.0,
+          "generality_group": "outdoor_travel",
+          "live_demand": 99.16,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-20T18:04:41.649047+00:00",
+          "weakest_factor_score": 47.0
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1643,
+        "title": "پتو مسافرتی 1 نفره کوکو جم مدل رافائل طرح قلبی سایز 200x160 سانتی‌متر",
+        "variant_label": "سبز"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-19925735",
+      "product_plan_cycle_id": "2026-11-20T22:48:36.074219+00:00",
+      "scheduled_at": "2026-11-20T23:07:35.746072+00:00",
+      "selected_at": "2026-11-20T18:04:46.325661+00:00",
+      "sequence_number": 1643,
+      "status": "stale_selection",
+      "updated_at": "2026-11-20T23:08:37.641947+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -39978,179 +39982,6 @@
       "scheduled_at": "2026-11-21T01:42:35.746072+00:00",
       "selected_at": "2026-11-20T19:38:35.987872+00:00",
       "sequence_number": 1647,
-      "status": "queued"
-    },
-    "dkp-19925735": {
-      "attempt_count": 0,
-      "content_id": "dkp-19925735",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-20T23:07:35.746072+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-19925735%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "کوکو جم",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "6266",
-        "catalog_best_selling_category_name": "پتو",
-        "catalog_best_selling_rank": 9,
-        "catalog_best_selling_ranks_by_category": {
-          "6266": {
-            "category_name": "پتو",
-            "observed_at": "2026-11-20T17:09:43.580340+00:00",
-            "rank": 9,
-            "rank_history": [
-              {
-                "category_name": "پتو",
-                "observed_at": "2026-11-20T17:09:43.580340+00:00",
-                "rank": 9
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-20T17:38:32.234962+00:00",
-        "catalog_cycle_snapshot_rank": 658,
-        "catalog_rank_observed_at": "2026-11-20T17:09:43.580340+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-20T18:03:59.704044+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-19925735",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 899000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 51.38,
-        "discount_percent": 28,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-20T18:04:26.050161+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-20",
-        "history_high_toman": 899000,
-        "history_low_toman": 899000,
-        "history_median_toman": 899000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-20",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/7fbc1c9a35a92a7d7f5b364ccde69f1f42000fd9_1785148664.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 59.03,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 51.38,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 47.0,
-          "generality_group": "outdoor_travel",
-          "live_demand": 99.16,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-20T18:04:41.649047+00:00",
-          "weakest_factor_score": 47.0
-        },
-        "original_price": 1250000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-19925735",
-        "product_url": "https://www.digikala.com/product/dkp-19925735/",
-        "promo_score": 23,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 3.5,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 193,
-        "savings_toman": 351000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 9,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 59.03,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 51.38,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 47.0,
-          "generality_group": "outdoor_travel",
-          "live_demand": 99.16,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-20T18:04:41.649047+00:00",
-          "weakest_factor_score": 47.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1643,
-        "title": "پتو مسافرتی 1 نفره کوکو جم مدل رافائل طرح قلبی سایز 200x160 سانتی‌متر",
-        "variant_label": "سبز"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-19925735",
-      "product_plan_cycle_id": "2026-11-20T22:48:36.074219+00:00",
-      "scheduled_at": "2026-11-20T23:07:35.746072+00:00",
-      "selected_at": "2026-11-20T18:04:46.325661+00:00",
-      "sequence_number": 1643,
       "status": "queued"
     },
     "dkp-21489884": {
@@ -101019,7 +100850,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.3,
+      "delivery_duration_seconds": 1.6,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -101082,8 +100913,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.3,
-      "delivery_started_at": "2026-11-20T22:52:49.312251+00:00",
+      "delivery_duration_seconds": 1.6,
+      "delivery_started_at": "2026-11-20T23:08:40.346340+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -288333,12 +288164,16 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
-      "expires_at": "",
-      "expiry_deadline_verified_directly": false,
+      "expires_at": "2026-11-20T23:07:36.068302+00:00",
+      "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
-      "expiry_source": "unavailable",
-      "expiry_status": "unknown",
+      "expiry_last_direct_verification_at": "2026-11-20T23:07:36.068302+00:00",
+      "expiry_last_removal_check_at": "2026-11-20T23:07:36.068302+00:00",
+      "expiry_last_removal_check_result": "confirmed",
+      "expiry_reason": "price_mismatch",
+      "expiry_source": "live_product_stock_or_price",
+      "expiry_status": "delete_unavailable",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-18T03:03:59.808479+00:00",
@@ -288352,6 +288187,9 @@
       "history_days": 1,
       "history_status": "pending_history",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/0e2945518add5036911bfd34781cff1fb5178d3e_1790435161.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "last_seen_current_price": 730000,
+      "last_seen_in_stock": true,
+      "last_seen_original_price": 1750000,
       "market_price_advantage_pct": null,
       "market_price_checked_at": "",
       "market_reference_kind": "",
@@ -288362,6 +288200,20 @@
       "posted_current_price": 745000,
       "posted_discount_percent": 59,
       "posted_original_price": 1820000,
+      "price_audit_invalidated_at": "2026-11-20T23:07:36.068302+00:00",
+      "price_audit_last_checked_at": "2026-11-20T23:07:36.068302+00:00",
+      "price_audit_live_original_price": 1750000,
+      "price_audit_live_price": 730000,
+      "price_audit_mismatch_fields": [
+        "current_price",
+        "original_price",
+        "discount_percent"
+      ],
+      "price_audit_next_check_at": "2026-11-20T23:12:36.068302+00:00",
+      "price_audit_posted_original_price": 1820000,
+      "price_audit_posted_price": 745000,
+      "price_audit_reason": "price_mismatch",
+      "price_audit_status": "invalidated",
       "product_url": "https://www.digikala.com/product/dkp-22837377/",
       "promo_score": 45,
       "publication_category": "kids_sports",
@@ -288401,6 +288253,7 @@
       },
       "selection_review_growth_evidence": "none",
       "sequence_number": 1453,
+      "telegram_expiry_last_delete_error": "RuntimeError: Bad Request: message can't be deleted",
       "telegram_message_id": 1654,
       "telegram_posted_at": "2026-11-17T00:19:53.710808+00:00",
       "title": "اسباب بازی گربه مدل KT-10",
@@ -340368,6 +340221,13 @@
       "reason": "selected_price_stale_selected=39126350_live=39001850",
       "rejected_at": "2026-11-03T19:25:45.246018+00:00",
       "retry_after": "2026-11-03T19:45:45.246018+00:00"
+    },
+    "dkp-19925735": {
+      "current_price": 899000,
+      "original_price": 1250000,
+      "reason": "selected_price_stale_selected=899000_live=1144800",
+      "rejected_at": "2026-11-20T23:08:37.641947+00:00",
+      "retry_after": "2026-11-20T23:28:37.641947+00:00"
     },
     "dkp-20548": {
       "current_price": 1313600,
