@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-20T15:17:49.363958+00:00",
-  "aparat_last_upload_success_at": "2026-11-20T15:17:53.164147+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-20T15:52:58.579922+00:00",
+  "aparat_last_upload_success_at": "2026-11-20T15:53:01.998315+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-20T15:47:49.350467+00:00",
@@ -290063,7 +290063,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-2822523": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-20T15:52:58.579922+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-20T15:53:01.998315+00:00",
+      "aparat_video_hash": "ium47lc",
+      "aparat_video_record_id": "74313524",
+      "aparat_video_url": "https://www.aparat.com/v/ium47lc",
+      "aparat_visibility": "public",
       "bale_message_id": 2381,
       "bale_posted_at": "2026-11-20T15:51:02.623665+00:00",
       "brand": "پرلا",
@@ -290187,8 +290193,17 @@
       "telegram_posted_at": "2026-11-20T15:51:01.661390+00:00",
       "title": "رومیزی پرلا کد260",
       "ts": 1795189854.565892,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-2822523.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-2822523.mp4"
+      },
+      "video_generated_at": "2026-11-20T15:52:50.154657+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-2833096": {
       "aparat_skip_reason": "selection_outside_freshness_window",
