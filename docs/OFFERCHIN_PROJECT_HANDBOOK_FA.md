@@ -3304,3 +3304,22 @@ PR #251 با commit ادغام `52ae2e4af60690f090c6db07a6156339c766ffd0` وار
 **ریسک/بازگشت:** schema ممکن است نام فیلدهای جدید یا حساس را نشان دهد، اما مقدار فیلدها نشان داده نمی‌شود. در صورت نیاز می‌توان فیلتر کلیدها را محدودتر کرد؛ هیچ body یا artifact خام ذخیره نمی‌شود. rollback با revert تغییر browser script انجام می‌شود.
 
 **وضعیت:** schema سطح بالا و endpointهای عملکرد شناسایی شده‌اند؛ schema عمیق‌تر و تشخیص درخواست‌های ناموفق در انتظار اجرای مجدد است. import مالی هنوز فعال نشده است.
+
+## ۲۰۲۶-۱۱-۲۰ — ثبت کلیدهای query و همگام‌سازی کامل schema response
+
+**هدف:** تعیین پارامترهای فیلتر/صفحه‌بندی endpointهای Performance و جلوگیری از ناقص‌ماندن schema به‌علت listenerهای asynchronous.
+
+**تغییر/اقدام:**
+- فقط نام پارامترهای query (مانند کلیدهای احتمالی تاریخ/صفحه‌بندی/media) ثبت می‌شود؛ مقدارهای query به‌هیچ‌وجه خوانده یا چاپ نمی‌شوند.
+- schema parser پیش از پایان job منتظر تمام taskهای response JSON می‌ماند تا نام کلیدهای nested حذف نشوند.
+- listener تکراری `requestfailed` حذف شد؛ failure فقط با status عمومی ثبت می‌شود.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_network_audit.mjs`، workflow ممیزی پنل، Handbook، Changelog و `AFFILIO_REPORTING_ACCESS.md`.
+
+**آزمون و نتیجه:** نسخهٔ عمیق قبلی در run `44698048743` موفق بود؛ کلیدهای query و انتظار response در commit `51322b5a8636dd256eaa825cb760b9355f49d96a` افزوده شد. نتیجهٔ CI بعدی در انتظار است.
+
+**شواهد/شناسه:** PR #262؛ run موفق browser audit `44698048743`؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** فقط نام query keyها و schema ساختاری ثبت می‌شوند؛ هیچ مقدار، header، body، cookie یا token در log نوشته نمی‌شود. rollback با revert اسکریپت انجام می‌شود.
+
+**وضعیت:** در انتظار اجرای نهایی برای شناسایی پارامترهای فیلتر و صفحه‌بندی.
