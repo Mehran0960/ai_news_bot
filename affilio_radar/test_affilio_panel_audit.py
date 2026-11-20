@@ -8,7 +8,8 @@ from affilio_radar.affilio_panel_audit import (
     normalized_path,
     parse_page,
     report_route_candidates,
-    trusted_login_action,\n    _json_schema_only,
+    trusted_login_action,
+    _json_schema_only,
 )
 
 
