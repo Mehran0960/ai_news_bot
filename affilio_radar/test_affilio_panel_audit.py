@@ -1,4 +1,5 @@
 import unittest
+from urllib.parse import parse_qs, urlsplit
 
 from affilio_radar.affilio_panel_audit import (
     build_authorization_request,
