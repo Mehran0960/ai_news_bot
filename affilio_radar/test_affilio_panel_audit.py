@@ -8,7 +8,7 @@ from affilio_radar.affilio_panel_audit import (
     normalized_path,
     parse_page,
     report_route_candidates,
-    trusted_login_action,
+    trusted_login_action,\n    _json_schema_only,
 )
 
 
@@ -137,6 +137,18 @@ class AffilioPanelAuditTests(unittest.TestCase):
                 "expected-state",
             ),
         )
+
+
+    def test_json_schema_summary_never_returns_report_values(self):
+        summary = _json_schema_only(
+            '{"success":true,"amount":987654,"data":{"orders":[{"payout":12345}],"status":"approved"}}'
+        )
+        self.assertIn("success", summary)
+        self.assertIn("amount", summary)
+        self.assertIn("orders", summary)
+        self.assertNotIn("987654", summary)
+        self.assertNotIn("12345", summary)
+        self.assertIn("data_object", summary)
 
     def test_rejects_non_panel_host_and_non_https_urls(self):
         self.assertIsNone(
