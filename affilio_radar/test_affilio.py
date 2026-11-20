@@ -903,17 +903,45 @@ class AffilioRadarTests(unittest.TestCase):
     def test_purchase_button_always_opens_direct_affilio_url_without_tracker(self):
         product = "https://snappshop.ir/product/snp-2097083854"
         affiliate = build_affilio_tracking_link(product)
+        self.assertTrue(affiliate.startswith("https://aflo.ir/QekEYTRg?p="))
+
+        # Every active/known media destination must expose the same official
+        # publisher link directly. No Worker, shortener, tracker, or analytics
+        # dependency is allowed in the purchase path.
+        media_sources = (
+            "telegram",
+            "bale",
+            "rubika",
+            "eitaa",
+            "youtube",
+            "aparat",
+            "filo",
+        )
         with (
             patch("affilio_radar._click_tracker_is_healthy", return_value=True),
-            patch("affilio_radar.build_click_tracking_link", side_effect=AssertionError("purchase CTA must bypass tracker")),
+            patch(
+                "affilio_radar.build_click_tracking_link",
+                side_effect=AssertionError("purchase CTA must bypass tracker"),
+            ),
         ):
-            self.assertEqual(
-                tracked_affiliate_button_url(
-                    affiliate, "telegram", "creative-test-1", "B", "caption-test-1", "A"
-                ),
-                affiliate,
-            )
-        self.assertEqual(tracked_affiliate_button_url("https://example.com/not-affiliate", "bale"), "")
+            for source in media_sources:
+                with self.subTest(source=source):
+                    self.assertEqual(
+                        tracked_affiliate_button_url(
+                            affiliate,
+                            source,
+                            "creative-test-1",
+                            "B",
+                            "caption-test-1",
+                            "A",
+                        ),
+                        affiliate,
+                    )
+
+        self.assertEqual(
+            tracked_affiliate_button_url("https://example.com/not-affiliate", "bale"),
+            "",
+        )
 
     def test_click_statistics_include_aggregate_counts_for_both_stores(self):
         payload = {
