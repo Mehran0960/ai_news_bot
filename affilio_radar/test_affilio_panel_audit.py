@@ -1,6 +1,8 @@
 import unittest
 
 from affilio_radar.affilio_panel_audit import (
+    build_authorization_request,
+    extract_authorization_code,
     find_login_form,
     normalized_path,
     parse_page,
