@@ -3323,3 +3323,27 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** رویدادهای تبدیل با prefix جدا در KV کلیک ذخیره می‌شوند و retention یک‌ساله دارند. افزایش مصرف KV باید پایش شود. تا زمان دریافت token رسمی و تأیید افیلیو هیچ تبدیل تولیدی دریافت نمی‌شود. توقف اضطراری با حذف secret AFFILIO_POSTBACK_TOKEN یا revert کد ممکن است؛ لینک‌های خرید و تاریخچهٔ انتشار حذف یا بازنویسی نمی‌شوند.
 
 **وضعیت:** کد و تست اختصاصی موفق در PR باز؛ گیت مستندات منتظر اجرای دوباره؛ merge، deploy، ثبت webhook و ثبت فروش/کمیسیون واقعی هنوز انجام نشده‌اند.
+
+## ۲۰۲۶-۱۱-۲۰ — تصویب نقشه‌راه الزام‌آور درآمد و تثبیت اصل لینک اینترنت ملی
+
+**هدف:** تبدیل نقشه‌راه رشد فروش/کمیسیون به سیاست الزام‌آور پروژه؛ تثبیت قاعدهٔ دائمیِ عدم وابستگی لینک خرید به اینترنت بین‌الملل/واسطهٔ اضافی؛ ثبت وضعیت واقعی اتصال پنل، Postback و گزارش درآمد بدون ادعای اثبات‌نشده.
+
+**تغییر/اقدام:**
+- سند الزام‌آور `docs/OFFERCHIN_REVENUE_GROWTH_ROADMAP_FA.md` ایجاد شد. هدف نهایی را کمیسیون خالص تأییدشده و قابل‌وصول تعریف می‌کند؛ اما صلاحیت و رتبه‌بندی تحریریه‌ای محصول را از بهینه‌سازی تجاری کانال/خلاقه جدا نگه می‌دارد. مراحل آن شامل استفاده از خروجی رسمی پنل، Postback، انتساب `aff_sub`، دفتر تبدیل، داشبورد و بهینه‌سازی درآمدمحور است.
+- سند قانون اساسی لینک `docs/OFFERCHIN_DOMESTIC_NETWORK_LINK_INVARIANT_FA.md` ایجاد شد: CTA فقط لینک رسمی و معتبر افیلیو را مستقیم باز می‌کند؛ Worker، Cloudflare، GitHub، کوتاه‌کننده یا tracker در زنجیرهٔ خرید ممنوع‌اند. آزمون واقعی از حداقل دو اتصال مستقل داخل ایران برای هر مقصد لازم است. پسوند `.ir` به‌تنهایی اثبات دسترسی ملی نیست و نبود مسیر رسمیِ آزموده‌شده باید به تعلیق آفر منجر شود، نه fallback غیررسمی.
+- `README.md` و منشور پروژه به نسخهٔ ۱.۳ ارتقا یافتند و هر دو سند جدید را مرجع پروژه معرفی کردند.
+- تست `test_purchase_button_always_opens_direct_affilio_url_without_tracker` گسترش یافت تا هر هفت منبع رسانه‌ای شناخته‌شده (Telegram، Bale، Rubika، Eitaa، YouTube، Aparat و Filo) را بررسی کند و ثابت کند CTA، URL رسمی را بدون فراخوانی tracker بازمی‌گرداند.
+- سند `affilio_radar/AFFILIO_REPORTING_ACCESS.md` با ممیزی اجرایی ۲۰ نوامبر به‌روز شد. snapshot گزارش عملکرد در زمان ممیزی سفارش/کمیسیون/impression/CTR را null نشان می‌داد؛ Worker فاقد Secret `AFFILIO_POSTBACK_TOKEN` و فقط دارای KV binding `CLICKS` بود؛ D1 موجود هنوز جدول دفتر تبدیل نداشت و به Worker متصل نبود.
+- دو workflow اصلی `affilio-radar.yml` و `affilio-publisher.yml` بررسی شدند؛ در محتوای آن‌ها مرحلهٔ دریافت خروجی مالی از پنل Affilio مشاهده نشد. این به معنی اثبات نبود Secret در تنظیمات GitHub نیست؛ ابزار اتصال امکان مشاهدهٔ مقدار یا فهرست کامل Secretها را ندارد. این محدودیت و اقدام بعدی در سند دسترسی ثبت شد.
+- هیچ CTA زنده، لینک منتشرشده، Secret تولیدی، Worker production یا پیکربندی پنل Affilio در این تغییر مستنداتی دستکاری نشد. دسترسی واقعی دامنه‌های Affilio/فروشگاه از داخل شبکهٔ ملی هنوز آزموده نشده و صریحاً «تأییدنشده» باقی ماند.
+
+**فایل‌ها/سامانه‌ها:** `README.md`، `docs/PROJECT_CHARTER_FA.md`، `docs/OFFERCHIN_REVENUE_GROWTH_ROADMAP_FA.md`، `docs/OFFERCHIN_DOMESTIC_NETWORK_LINK_INVARIANT_FA.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، `affilio_radar/test_affilio.py`؛ GitHub branch `docs/offerchin-revenue-roadmap-nin-invariant-20261120`؛ Cloudflare Worker `affiliate-deal-radar` و D1 `affiliate-deal-radar` صرفاً ممیزی شدند.
+
+**آزمون و نتیجه:** تست regression مستقیم‌بودن CTA برای هفت رسانه در این شاخه گسترش یافته است؛ اجرای GitHub Actions پس از ایجاد PR تعیین‌کننده است و در زمان ثبت این ورودی هنوز اجرا/تأیید نشده. آزمون واقعی شبکهٔ ملی داخل ایران اجرا نشده است. هیچ خرید یا Postback تولیدی برای این تغییر شبیه‌سازی یا ادعا نشده است.
+
+**شواهد/شناسه:** branch `docs/offerchin-revenue-roadmap-nin-invariant-20261120`؛ آخرین main پایه هنگام ایجاد branch: `06488c4a9aaa6fd7ffb77fdb74fb78b1dfee6d39`. snapshot عملکرد: `2026-11-20T06:51:38Z`. Cloudflare Worker آخرین deployment مشاهده‌شده: `594e19be-7596-4507-bd01-b5b5cd3fb9fe` در `2026-11-19T17:41:30Z`.
+
+**ریسک/بازگشت:** گسترش تست فقط سخت‌گیرانه‌تر شدن شرط مستقیم‌بودن CTA است و منطق لینک تولیدی را تغییر نمی‌دهد. rollback کد تست با revert همان تغییر ممکن است؛ اسناد حاکم نباید حذف شوند مگر از مسیر بازنگری رسمی مالک پروژه. هیچ state، صف، پست، لینک یا conversion ledger تغییر داده نشده است.
+
+**وضعیت:** اسناد جدید، منشور، README، راهنمای دسترسی افیلیو و تست رگرسیون در شاخهٔ PR آماده شده‌اند؛ CI و بازبینی هنوز در انتظار اجرا هستند. Postback production، اتصال گزارش پنل، `aff_sub`، D1 conversion ledger و آزمون داخل ایران همچنان اقدام‌های بازِ نقشه‌راه‌اند.
+
