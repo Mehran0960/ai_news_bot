@@ -97,13 +97,12 @@
       }
     ]
   },
-  "generated_at": "2026-11-20T23:23:15.937227+00:00",
+  "generated_at": "2026-11-20T23:51:03.878162+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ادویه‌های ارگانیک": 1,
       "ارگانایزر آشپزخانه": 1,
       "بازی فکری": 1,
-      "تبلت": 1,
       "تجهیزات معاینه پزشکی": 1,
       "تخت خواب": 1,
       "تونر": 1,
@@ -113,6 +112,7 @@
       "روغن آفتاب": 1,
       "رومیزی و رانر": 1,
       "رژ لب جامد": 1,
+      "ساعت رومیزی": 1,
       "ست زیرپوش و شورت مردانه": 1,
       "شامپو بدن": 1,
       "شلوار ورزشی مردانه": 1,
@@ -139,8 +139,7 @@
       "grocery_food": 2,
       "home": 2,
       "kids_sports": 3,
-      "mobile_devices": 1,
-      "other": 8,
+      "other": 9,
       "personal_care": 6,
       "sports_outdoor": 3,
       "tv_audio_video": 1
@@ -152,18 +151,17 @@
       "grocery_food": 6.2,
       "home": 6.2,
       "kids_sports": 9.4,
-      "mobile_devices": 3.1,
-      "other": 25.0,
+      "other": 28.1,
       "personal_care": 18.8,
       "sports_outdoor": 9.4,
       "tv_audio_video": 3.1
     },
     "distinct_catalog_categories": 31,
-    "distinct_categories": 11,
+    "distinct_categories": 10,
     "distinct_families": 32,
     "distinct_retailers": 1,
-    "distinct_use_cases": 13,
-    "known_brand_posts": 21,
+    "distinct_use_cases": 12,
+    "known_brand_posts": 20,
     "posts": 32,
     "repeated_brand_count": 0,
     "repeated_brands": {},
@@ -178,13 +176,12 @@
       "automotive": 2,
       "baby_care": 1,
       "books_learning": 2,
-      "catalog_taxonomy_other": 5,
+      "catalog_taxonomy_other": 6,
       "fashion_lifestyle": 3,
       "grocery_food": 3,
       "health_wellness": 1,
       "home_living": 2,
       "kitchen_food": 2,
-      "mobile_productivity": 1,
       "personal_care": 6,
       "sports_fitness": 3
     }
@@ -250,6 +247,7 @@
       "رژ لب جامد": 2,
       "زیرانداز بهداشتی سگ": 1,
       "ساعت دیواری و ایستاده": 1,
+      "ساعت رومیزی": 1,
       "ساعت عقربه ای مردانه": 1,
       "ساک سفری": 1,
       "سایر روغن‌ها": 2,
@@ -400,7 +398,7 @@
       "large_appliances": 3,
       "lighting": 2,
       "mobile_devices": 4,
-      "other": 50,
+      "other": 51,
       "personal_care": 33,
       "power_backup": 5,
       "sports_outdoor": 19,
@@ -415,26 +413,26 @@
       "digital_accessories": 2.7,
       "fashion": 10.3,
       "gaming": 1.1,
-      "grocery_food": 14.6,
+      "grocery_food": 14.5,
       "home": 10.3,
       "home_cleaning": 1.5,
       "kids_sports": 4.2,
       "large_appliances": 1.1,
       "lighting": 0.8,
       "mobile_devices": 1.5,
-      "other": 19.2,
+      "other": 19.5,
       "personal_care": 12.6,
       "power_backup": 1.9,
       "sports_outdoor": 7.3,
       "tv_audio_video": 1.5
     },
-    "distinct_catalog_categories": 192,
+    "distinct_catalog_categories": 193,
     "distinct_categories": 20,
-    "distinct_families": 198,
+    "distinct_families": 199,
     "distinct_retailers": 1,
     "distinct_use_cases": 21,
     "known_brand_posts": 123,
-    "posts": 261,
+    "posts": 262,
     "repeated_brand_count": 26,
     "repeated_brands": {
       "arden": 2,
@@ -462,7 +460,7 @@
       "zarin_barakat": 2
     },
     "retailer_post_counts": {
-      "digikala": 261
+      "digikala": 262
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -472,7 +470,7 @@
       "automotive": 8,
       "baby_care": 7,
       "books_learning": 14,
-      "catalog_taxonomy_other": 34,
+      "catalog_taxonomy_other": 35,
       "fashion_lifestyle": 25,
       "gaming": 5,
       "general": 2,
@@ -507,32 +505,14 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1667,
-    "last_7_days_count": 472,
+    "all_time_count": 1668,
+    "last_7_days_count": 469,
     "reason_counts_in_retained_history": {
-      "brand_repeat": 51,
-      "family_repeat": 400,
+      "brand_repeat": 52,
+      "family_repeat": 401,
       "similarity_repeat": 498
     },
     "recent_events": [
-      {
-        "at": "2026-11-20T14:30:01.704126+00:00",
-        "brand": "brand:زدفون",
-        "catalog_category_id": "6139",
-        "catalog_category_name": "عطر و ادکلن مردانه",
-        "category": "beauty_fragrance",
-        "compared_to_product_id": "dkp-21090992",
-        "family": "digikala_category:6139",
-        "product_id": "dkp-18333637",
-        "reason": "family_repeat,brand_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "brand_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-20T14:54:31.290708+00:00",
         "brand": "brand:زدفون",
@@ -859,6 +839,24 @@
       },
       {
         "at": "2026-11-20T23:23:15.937227+00:00",
+        "brand": "brand:زدفون",
+        "catalog_category_id": "6139",
+        "catalog_category_name": "عطر و ادکلن مردانه",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-21090992",
+        "family": "digikala_category:6139",
+        "product_id": "dkp-18333637",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-20T23:51:03.878162+00:00",
         "brand": "brand:زدفون",
         "catalog_category_id": "6139",
         "catalog_category_name": "عطر و ادکلن مردانه",
