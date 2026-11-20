@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-20T21:05:59.714157+00:00",
+  "generated_at": "2026-11-20T21:33:12.783404+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ادویه‌های ارگانیک": 1,
@@ -502,32 +502,14 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1662,
-    "last_7_days_count": 471,
+    "all_time_count": 1663,
+    "last_7_days_count": 472,
     "reason_counts_in_retained_history": {
-      "brand_repeat": 46,
+      "brand_repeat": 47,
       "family_repeat": 400,
       "similarity_repeat": 498
     },
     "recent_events": [
-      {
-        "at": "2026-11-20T12:56:39.597117+00:00",
-        "brand": "brand:زدفون",
-        "catalog_category_id": "6139",
-        "catalog_category_name": "عطر و ادکلن مردانه",
-        "category": "beauty_fragrance",
-        "compared_to_product_id": "dkp-21090992",
-        "family": "digikala_category:6139",
-        "product_id": "dkp-18333637",
-        "reason": "family_repeat,brand_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "brand_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-20T13:26:07.114676+00:00",
         "brand": "brand:زدفون",
@@ -854,6 +836,24 @@
       },
       {
         "at": "2026-11-20T21:05:59.714157+00:00",
+        "brand": "brand:زدفون",
+        "catalog_category_id": "6139",
+        "catalog_category_name": "عطر و ادکلن مردانه",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-21090992",
+        "family": "digikala_category:6139",
+        "product_id": "dkp-18333637",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-20T21:33:12.783404+00:00",
         "brand": "brand:زدفون",
         "catalog_category_id": "6139",
         "catalog_category_name": "عطر و ادکلن مردانه",
