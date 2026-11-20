@@ -3347,3 +3347,25 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 
 **وضعیت:** اسناد جدید، منشور، README، راهنمای دسترسی افیلیو و تست رگرسیون در شاخهٔ PR آماده شده‌اند؛ CI و بازبینی هنوز در انتظار اجرا هستند. Postback production، اتصال گزارش پنل، `aff_sub`، D1 conversion ledger و آزمون داخل ایران همچنان اقدام‌های بازِ نقشه‌راه‌اند.
 
+## ۲۰۲۶-۱۱-۲۰ — تکمیل CI و ادغام نقشه‌راه الزام‌آور و اصل لینک اینترنت ملی
+
+**هدف:** ثبت نتیجهٔ نهایی آزمون‌ها و ادغام واقعی تغییرات مستندشده در PR #260؛ تفکیک روشنِ اتمام مرحلهٔ سیاست/مستندسازی از مراحل فعال‌سازی درآمد و آزمون شبکهٔ ملی.
+
+**تغییر/اقدام:** PR #260 با عنوان «feat(offerchin): bind revenue roadmap and NIN-safe affiliate links» به‌صورت squash در `main` ادغام شد. commit ادغام: `5bca1a18e87a4c20f04c9cea90c302fee28b9fa2` در `2026-11-20T07:17:10Z`. دو سند جدید، نسخهٔ ۱.۳ منشور، اصلاح README، ممیزی گزارش افیلیو و تست هفت‌رسانه‌ای CTA اکنون در `main` قرار دارند. پس از ادغام، فایل‌های اصلی از شاخهٔ `main` دوباره خوانده شدند و وجود محتوای مورد انتظار تأیید شد.
+
+**آزمون و نتیجه:** تمام گیت‌های لازم روی head نهایی پیش از ادغام موفق شدند:
+- Documentation Gate — run `44693716563`: success.
+- Catalog Sweep Regression Tests — run `44693716564`: success.
+- Top-100 and DigiPay Regression Tests — run `44693716565`: success.
+- Unified Video Fan-out Validation — run `44693716616`: success.
+- Platform Logo Regression Tests — run `44693716562`: success.
+- Affilio Product Radar (شامل suite تغییرکردهٔ `test_affilio.py`) — run `44693161892`: success.
+تست اصلی CTA تأیید می‌کند که هفت رسانهٔ Telegram، Bale، Rubika، Eitaa، YouTube، Aparat و Filo همان URL رسمی Aflo را بدون فراخوانی tracker دریافت می‌کنند. این تست، دسترسی Aflo از اینترنت ملی را اثبات نمی‌کند.
+
+**شواهد/شناسه:** PR #260؛ merge commit `5bca1a18e87a4c20f04c9cea90c302fee28b9fa2`؛ head تست‌شدهٔ همگام‌شده `99fec68d9bf4fe6e87175b987db062074af4c1b5`؛ branch تکمیلی ثبت شواهد `docs/record-roadmap-pr260-ci-merge-20261120`.
+
+**ریسک/بازگشت:** این ورودی صرفاً سابقهٔ نتیجهٔ CI/ادغام را کامل می‌کند؛ هیچ CTA، لینک منتشرشده، Secret، Worker، D1، صف یا state عملیاتی تغییر نکرده است. بازگشت مستندات فقط با PR اصلاحیِ جدید و ثبت append-only مجاز است.
+
+**وضعیت:** مرحلهٔ تصویب سیاست، مستندسازی و گیت رگرسیون در `main` ادغام و آزمون‌شده است. اتصال خودکار پنل Affilio، Postback تولیدی، `aff_sub`، دفتر تبدیل D1، داشبورد درآمد و آزمون واقعی دو اپراتور داخل ایران همچنان باز/مسدود به دسترسی رسمی و شواهد بیرونی هستند.
+
+**فایل‌ها/سامانه‌ها:** `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`؛ PR #260 و merge commit `5bca1a18e87a4c20f04c9cea90c302fee28b9fa2`؛ GitHub Actions runs `44693716563`، `44693716564`، `44693716565`، `44693716616`، `44693716562` و `44693161892`.
