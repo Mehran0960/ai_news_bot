@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-20T21:39:04.138267+00:00",
-  "aparat_last_upload_success_at": "2026-11-20T21:39:08.591775+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-20T22:15:50.562151+00:00",
+  "aparat_last_upload_success_at": "2026-11-20T22:15:54.643699+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-20T21:56:40.325659+00:00",
@@ -231993,7 +231993,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-18020129": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-20T22:15:50.562151+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-20T22:15:54.643699+00:00",
+      "aparat_video_hash": "xie7732",
+      "aparat_video_record_id": "74318035",
+      "aparat_video_url": "https://www.aparat.com/v/xie7732",
+      "aparat_visibility": "public",
       "bale_message_id": 2393,
       "bale_posted_at": "2026-11-20T22:12:45.013235+00:00",
       "brand": "",
@@ -232119,8 +232125,17 @@
       "telegram_message_id": null,
       "title": "بازی فکری مهره‌ای گونگی مدل اسکویید گیم مناسب 2 تا 10 نفر، افزایش سرعت عمل و تمرکز، درجه سختی آسان، جنس مهره پلاستیکی، همراه با جعبه مهره، مناسب کودکان و بزرگسالان",
       "ts": 1795212757.67008,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-18020129.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-18020129.mp4"
+      },
+      "video_generated_at": "2026-11-20T22:15:43.922112+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-18140343": {
       "aparat_skip_reason": "selection_outside_freshness_window",
