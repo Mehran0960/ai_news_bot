@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-20T06:52:50.055611+00:00",
-  "aparat_last_upload_success_at": "2026-11-20T06:52:53.813436+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-20T07:28:39.504500+00:00",
+  "aparat_last_upload_success_at": "2026-11-20T07:28:43.378042+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-20T07:18:51.741355+00:00",
@@ -258077,7 +258077,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22286921": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-20T07:28:39.504500+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-20T07:28:43.378042+00:00",
+      "aparat_video_hash": "qcz563e",
+      "aparat_video_record_id": "74305865",
+      "aparat_video_url": "https://www.aparat.com/v/qcz563e",
+      "aparat_visibility": "public",
       "bale_message_id": 2364,
       "bale_posted_at": "2026-11-20T07:27:47.259163+00:00",
       "brand": "",
@@ -258201,8 +258207,17 @@
       "telegram_posted_at": "2026-11-20T07:27:46.269143+00:00",
       "title": "سرویس خواب ام دی اف دو نفره مدل مینا سایز 160 * 200 سانتی‌متر مجموعه ۵ عددی",
       "ts": 1795159658.912245,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22286921.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22286921.mp4"
+      },
+      "video_generated_at": "2026-11-20T07:28:34.286628+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22290281": {
       "aparat_skip_reason": "selection_outside_freshness_window",
