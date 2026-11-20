@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-20T06:25:18.902389+00:00",
+  "generated_at": "2026-11-20T06:51:38.929955+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ادویه‌های ارگانیک": 1,
@@ -109,7 +109,6 @@
       "حوله": 1,
       "دستگیره": 1,
       "روغن آفتاب": 1,
-      "رومیزی و رانر": 1,
       "سایر روغن‌ها": 1,
       "سبد آشپزخانه": 1,
       "شلوار ورزشی مردانه": 1,
@@ -137,7 +136,7 @@
       "digital_accessories": 1,
       "fashion": 3,
       "grocery_food": 3,
-      "home": 8,
+      "home": 7,
       "lighting": 1,
       "mobile_devices": 1,
       "other": 3,
@@ -147,33 +146,33 @@
       "tv_audio_video": 1
     },
     "category_share_percent": {
-      "beauty_fragrance": 3.2,
-      "books_stationery": 3.2,
-      "digital_accessories": 3.2,
-      "fashion": 9.7,
-      "grocery_food": 9.7,
-      "home": 25.8,
-      "lighting": 3.2,
-      "mobile_devices": 3.2,
-      "other": 9.7,
-      "personal_care": 9.7,
-      "power_backup": 6.5,
-      "sports_outdoor": 9.7,
-      "tv_audio_video": 3.2
+      "beauty_fragrance": 3.3,
+      "books_stationery": 3.3,
+      "digital_accessories": 3.3,
+      "fashion": 10.0,
+      "grocery_food": 10.0,
+      "home": 23.3,
+      "lighting": 3.3,
+      "mobile_devices": 3.3,
+      "other": 10.0,
+      "personal_care": 10.0,
+      "power_backup": 6.7,
+      "sports_outdoor": 10.0,
+      "tv_audio_video": 3.3
     },
-    "distinct_catalog_categories": 30,
+    "distinct_catalog_categories": 29,
     "distinct_categories": 13,
-    "distinct_families": 31,
+    "distinct_families": 30,
     "distinct_retailers": 1,
     "distinct_use_cases": 13,
-    "known_brand_posts": 21,
-    "posts": 31,
+    "known_brand_posts": 20,
+    "posts": 30,
     "repeated_brand_count": 1,
     "repeated_brands": {
       "brand:تکنیک_07": 2
     },
     "retailer_post_counts": {
-      "digikala": 31
+      "digikala": 30
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -186,7 +185,7 @@
       "fashion_lifestyle": 4,
       "general": 1,
       "grocery_food": 3,
-      "home_living": 5,
+      "home_living": 4,
       "kitchen_food": 4,
       "lighting_electrical": 1,
       "mobile_productivity": 2,
@@ -519,31 +518,14 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1629,
+    "all_time_count": 1630,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "brand_repeat": 13,
+      "brand_repeat": 14,
       "family_repeat": 395,
       "similarity_repeat": 498
     },
     "recent_events": [
-      {
-        "at": "2026-11-17T15:58:33.930816+00:00",
-        "brand": "",
-        "catalog_category_id": "9297",
-        "catalog_category_name": "ست لباس راحتی زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22750115",
-        "family": "digikala_category:9297",
-        "product_id": "dkp-21003279",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ست بلوز و شلوار راحتی زنانه مدل گل کد A1111",
-        "use_case": "fashion_lifestyle"
-      },
       {
         "at": "2026-11-17T15:58:33.930816+00:00",
         "brand": "",
@@ -854,6 +836,24 @@
       },
       {
         "at": "2026-11-20T06:25:18.902389+00:00",
+        "brand": "brand:زدفون",
+        "catalog_category_id": "6139",
+        "catalog_category_name": "عطر و ادکلن مردانه",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-21090992",
+        "family": "digikala_category:6139",
+        "product_id": "dkp-18333637",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-20T06:51:38.929955+00:00",
         "brand": "brand:زدفون",
         "catalog_category_id": "6139",
         "catalog_category_name": "عطر و ادکلن مردانه",
