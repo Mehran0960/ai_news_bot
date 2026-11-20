@@ -33,6 +33,15 @@ function safeRoute(urlString) {
   return parsed.hostname + path;
 }
 
+function safeQueryKeys(urlString) {
+  try {
+    const parsed = new URL(urlString);
+    return [...new Set([...parsed.searchParams.keys()])].sort().slice(0, 30);
+  } catch {
+    return [];
+  }
+}
+
 function describeSchema(value, depth = 0) {
   if (value === null) return "null";
   if (Array.isArray(value)) {
@@ -62,6 +71,7 @@ async function main() {
   const context = await browser.newContext({ locale: "fa-IR", timezoneId: "Asia/Tehran" });
   const page = await context.newPage();
   const observed = new Map();
+  const responseTasks = new Set();
 
   page.on("request", (request) => {
     const kind = request.resourceType();
@@ -70,39 +80,12 @@ async function main() {
     if (!route) return;
     const method = request.method().toUpperCase();
     const key = method + " " + route;
-    if (!observed.has(key)) observed.set(key, { method, route, status: "pending", contentType: "unknown" });
-  });
-
-  page.on("requestfailed", (request) => {
-    const kind = request.resourceType();
-    if (kind !== "xhr" && kind !== "fetch") return;
-    const route = safeRoute(request.url());
-    if (!route) return;
-    const key = request.method().toUpperCase() + " " + route;
-    const record = observed.get(key);
-    if (record && record.status === "pending") record.status = "network_failed";
-  });
-
-  page.on("response", async (response) => {
-    const request = response.request();
-    const kind = request.resourceType();
-    if (kind !== "xhr" && kind !== "fetch") return;
-    const route = safeRoute(request.url());
-    if (!route) return;
-    const key = request.method().toUpperCase() + " " + route;
-    const record = observed.get(key);
-    if (!record) return;
-    record.status = String(response.status());
-    const contentType = response.headers()["content-type"] || "unknown";
-    record.contentType = contentType.split(";")[0].slice(0, 80);
-    record.schema = "not_json";
-    if (record.contentType.includes("json")) {
-      try {
-        const body = await response.json();
-        record.schema = describeSchema(body);
-      } catch {
-        record.schema = "json_parse_unavailable";
-      }
+    const queryKeys = safeQueryKeys(request.url());
+    if (!observed.has(key)) {
+      observed.set(key, { method, route, queryKeys, status: "pending", contentType: "unknown" });
+    } else {
+      const record = observed.get(key);
+      record.queryKeys = [...new Set([...(record.queryKeys || []), ...queryKeys])].sort().slice(0, 30);
     }
   });
 
@@ -115,6 +98,35 @@ async function main() {
     const record = observed.get(key);
     if (record && record.status === "pending") record.status = "network_failed";
   });
+
+  page.on("response", (response) => {
+    const task = (async () => {
+      const request = response.request();
+      const kind = request.resourceType();
+      if (kind !== "xhr" && kind !== "fetch") return;
+      const route = safeRoute(request.url());
+      if (!route) return;
+      const key = request.method().toUpperCase() + " " + route;
+      const record = observed.get(key);
+      if (!record) return;
+      record.status = String(response.status());
+      const contentType = response.headers()["content-type"] || "unknown";
+      record.contentType = contentType.split(";")[0].slice(0, 80);
+      record.schema = "not_json";
+      if (record.contentType.includes("json")) {
+        try {
+          const body = await response.json();
+          record.schema = describeSchema(body);
+        } catch {
+          record.schema = "json_parse_unavailable";
+        }
+      }
+    })();
+    responseTasks.add(task);
+    task.finally(() => responseTasks.delete(task));
+  });
+
+
 
   try {
     await page.goto(PANEL_ORIGIN, { waitUntil: "domcontentloaded", timeout: 45000 });
@@ -155,13 +167,15 @@ async function main() {
       }
     }
 
+    await Promise.allSettled([...responseTasks]);
     const records = [...observed.values()].sort((a, b) => (a.route + a.method).localeCompare(b.route + b.method));
     console.log("AFFILIO_BROWSER_AUDIT_RESULT=authenticated_read_only");
     console.log("AFFILIO_XHR_FETCH_ROUTE_COUNT=" + records.length);
     for (const record of records.slice(0, 80)) {
-      console.log("AFFILIO_NETWORK_ROUTE=" + record.method + " " + record.route + " status=" + record.status + " type=" + record.contentType + " schema=" + (record.schema || "not_observed"));
+      console.log("AFFILIO_NETWORK_ROUTE=" + record.method + " " + record.route + " status=" + record.status + " type=" + record.contentType + " params=" + ((record.queryKeys || []).join(",") || "none") + " schema=" + (record.schema || "not_observed"));
     }
-    console.log("AFFILIO_NETWORK_QUERY_STRINGS_RECORDED=no");
+    console.log("AFFILIO_NETWORK_QUERY_KEYS_RECORDED=yes");
+    console.log("AFFILIO_NETWORK_QUERY_VALUES_RECORDED=no");
     console.log("AFFILIO_NETWORK_HEADERS_OR_BODIES_RECORDED=no");
     console.log("AFFILIO_RESPONSE_VALUES_RECORDED=no");
     console.log("AFFILIO_REPORT_ROWS_CAPTURED=no");
