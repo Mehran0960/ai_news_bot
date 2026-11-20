@@ -215,4 +215,13 @@ Browser audit در run `44697387470` این مسیرها را روی API رسم�
 ### کلیدهای query و تکمیل schema
 
 browser audit نسخهٔ جاری نام query-keyها را بدون مقدار ثبت می‌کند و قبل از چاپ خروجی منتظر اتمام تمام کارهای async پردازش schema می‌ماند. این مرحله برای تعیین تاریخ شروع/پایان، media filter و pagination لازم است؛ مقادیر این پارامترها و payloadها همچنان محرمانه می‌مانند.
+ 
+### فیلدها و query metadata کشف‌شده
+
+- `GET /api/v1/links/analytics`: `from_`، `to`، `page`، `page_size`، `sort_order`; schema دارای `click_count`، `conversion_rate`، `income_items_count`، `total_income`، `revenue_share`، `media_uid`، `link_uid`، `advertiser_name` و `first_click_date`.
+- `GET /api/v1/dashboard/performance-by-link-type`: `from_` و `to`; شامل breakdownهای clicks، conversions و revenue.
+- `GET /api/v1/dashboard/top-categories` و `/api/v1/dashboard/top-links`: `from_` و `to`.
+- `GET /api/v1/users/me/wallet-summary`: `finalized_income_amount`، `wallet_balance_amount`، `days_until_next_invoice`.
+
+اسکریپت فعلی فقط مقدار safe تاریخ، page/page_size و sort enum را نشان می‌دهد؛ بقیهٔ query valueها پنهان‌اند. هیچ مقدار مالی از پاسخ API ثبت یا به عنوان درآمد قطعی تفسیر نشده است.
 
