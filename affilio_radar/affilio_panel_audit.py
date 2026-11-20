@@ -37,11 +37,13 @@ MAX_HTML_BYTES = 2_000_000
 MAX_SCRIPT_BYTES = 2_000_000
 MAX_SCRIPTS = 20
 KEYWORDS = re.compile(
-    r"(report|performance|commission|transaction|order|click|analytics|"
-    r"statistic|sales|conversion|payout|earning)",
+    r"(api|graphql|report|performance|commission|transaction|order|click|analytics|"
+    r"statistic|sales|conversion|payout|earning|affiliate|publisher|finance|revenue|"
+    r"dashboard|overview|summary|metric|link|product)",
     re.IGNORECASE,
 )
-ROUTE_LITERAL = re.compile(r'''['"`](/[^'"`\s<>]{1,220})['"`]''')
+ROUTE_LITERAL = re.compile(r'''['"`](/[^'"`\\s<>]{1,220})['"`]''')
+ABSOLUTE_URL_LITERAL = re.compile(r'''['"`](https://[^'"`\\s<>]{1,400})['"`]''')
 REDIRECT_CODES = {301, 302, 303, 307, 308}
 
 
@@ -168,7 +170,17 @@ def extract_authorization_code(callback_url: str, expected_state: str) -> str | 
 def normalized_path(raw_url: str, base_url: str) -> str | None:
     resolved = urljoin(base_url, raw_url)
     parsed = urlsplit(resolved)
-    if parsed.scheme != "https" or (parsed.hostname or "").lower() != "publisher.affilio.ir":
+    hostname = (parsed.hostname or "").lower()
+    if (
+        parsed.scheme != "https"
+        or not (
+            hostname == "publisher.affilio.ir"
+            or hostname.endswith(".affilio.ir")
+            or hostname.endswith(".digiwise.ir")
+        )
+        or parsed.username
+        or parsed.password
+    ):
         return None
     path = parsed.path or "/"
     path = re.sub(
@@ -176,8 +188,9 @@ def normalized_path(raw_url: str, base_url: str) -> str | None:
         "{id}",
         path,
     )
-    path = re.sub(r"(?<=/)\d{5,}(?=/|$)", "{id}", path)
-    return path[:220]
+    path = re.sub(r"(?<=/)\\d{5,}(?=/|$)", "{id}", path)
+    normalized = path[:220] if hostname == "publisher.affilio.ir" else f"{hostname}{path[:180]}"
+    return normalized
 
 
 def report_route_candidates(
@@ -194,10 +207,22 @@ def report_route_candidates(
     for source in script_texts:
         for match in ROUTE_LITERAL.finditer(source):
             path = normalized_path(match.group(1), page_url)
-            if path and KEYWORDS.search(path):
+            if path and (
+                KEYWORDS.search(path)
+                or path.startswith(("/api/", "/v1/", "/v2/", "/graphql"))
+                or "/api/" in path
+            ):
+                paths.add(path)
+        for match in ABSOLUTE_URL_LITERAL.finditer(source):
+            path = normalized_path(match.group(1), page_url)
+            if path and (
+                KEYWORDS.search(path)
+                or path.endswith(("/graphql", "/api", "/v1", "/v2"))
+                or "/api/" in path
+            ):
                 paths.add(path)
 
-    return sorted(paths)[:40]
+    return sorted(paths)[:60]
 
 
 def _read_response(opener, request: Request, max_bytes: int) -> tuple[str, str, int]:
