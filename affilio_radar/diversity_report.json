@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-20T22:26:24.165502+00:00",
+  "generated_at": "2026-11-20T22:52:45.783837+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ادویه‌های ارگانیک": 1,
@@ -138,7 +138,7 @@
       "fashion": 3,
       "grocery_food": 2,
       "home": 2,
-      "kids_sports": 2,
+      "kids_sports": 3,
       "mobile_devices": 1,
       "other": 8,
       "personal_care": 6,
@@ -146,36 +146,36 @@
       "tv_audio_video": 1
     },
     "category_share_percent": {
-      "beauty_fragrance": 3.2,
-      "books_stationery": 6.5,
-      "fashion": 9.7,
-      "grocery_food": 6.5,
-      "home": 6.5,
-      "kids_sports": 6.5,
-      "mobile_devices": 3.2,
-      "other": 25.8,
-      "personal_care": 19.4,
-      "sports_outdoor": 9.7,
-      "tv_audio_video": 3.2
+      "beauty_fragrance": 3.1,
+      "books_stationery": 6.2,
+      "fashion": 9.4,
+      "grocery_food": 6.2,
+      "home": 6.2,
+      "kids_sports": 9.4,
+      "mobile_devices": 3.1,
+      "other": 25.0,
+      "personal_care": 18.8,
+      "sports_outdoor": 9.4,
+      "tv_audio_video": 3.1
     },
     "distinct_catalog_categories": 31,
     "distinct_categories": 11,
-    "distinct_families": 31,
+    "distinct_families": 32,
     "distinct_retailers": 1,
     "distinct_use_cases": 13,
     "known_brand_posts": 21,
-    "posts": 31,
+    "posts": 32,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 31
+      "digikala": 32
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
       "audio_visual": 1,
-      "automotive": 1,
+      "automotive": 2,
       "baby_care": 1,
       "books_learning": 2,
       "catalog_taxonomy_other": 5,
@@ -396,7 +396,7 @@
       "grocery_food": 38,
       "home": 27,
       "home_cleaning": 4,
-      "kids_sports": 10,
+      "kids_sports": 11,
       "large_appliances": 3,
       "lighting": 2,
       "mobile_devices": 4,
@@ -408,33 +408,33 @@
     },
     "category_share_percent": {
       "audio_wearables": 0.4,
-      "automotive": 1.2,
+      "automotive": 1.1,
       "beauty_fragrance": 0.8,
       "books_stationery": 5.0,
       "computer_network": 1.9,
       "digital_accessories": 2.7,
-      "fashion": 10.4,
-      "gaming": 1.2,
+      "fashion": 10.3,
+      "gaming": 1.1,
       "grocery_food": 14.6,
-      "home": 10.4,
+      "home": 10.3,
       "home_cleaning": 1.5,
-      "kids_sports": 3.8,
-      "large_appliances": 1.2,
+      "kids_sports": 4.2,
+      "large_appliances": 1.1,
       "lighting": 0.8,
       "mobile_devices": 1.5,
       "other": 19.2,
-      "personal_care": 12.7,
+      "personal_care": 12.6,
       "power_backup": 1.9,
       "sports_outdoor": 7.3,
       "tv_audio_video": 1.5
     },
     "distinct_catalog_categories": 192,
     "distinct_categories": 20,
-    "distinct_families": 197,
+    "distinct_families": 198,
     "distinct_retailers": 1,
     "distinct_use_cases": 21,
     "known_brand_posts": 123,
-    "posts": 260,
+    "posts": 261,
     "repeated_brand_count": 26,
     "repeated_brands": {
       "arden": 2,
@@ -462,14 +462,14 @@
       "zarin_barakat": 2
     },
     "retailer_post_counts": {
-      "digikala": 260
+      "digikala": 261
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
       "audio_visual": 4,
-      "automotive": 7,
+      "automotive": 8,
       "baby_care": 7,
       "books_learning": 14,
       "catalog_taxonomy_other": 34,
@@ -507,32 +507,14 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1665,
-    "last_7_days_count": 473,
+    "all_time_count": 1666,
+    "last_7_days_count": 474,
     "reason_counts_in_retained_history": {
-      "brand_repeat": 49,
+      "brand_repeat": 50,
       "family_repeat": 400,
       "similarity_repeat": 498
     },
     "recent_events": [
-      {
-        "at": "2026-11-20T14:04:25.882280+00:00",
-        "brand": "brand:زدفون",
-        "catalog_category_id": "6139",
-        "catalog_category_name": "عطر و ادکلن مردانه",
-        "category": "beauty_fragrance",
-        "compared_to_product_id": "dkp-21090992",
-        "family": "digikala_category:6139",
-        "product_id": "dkp-18333637",
-        "reason": "family_repeat,brand_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "brand_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-20T14:26:57.973181+00:00",
         "brand": "brand:زدفون",
@@ -859,6 +841,24 @@
       },
       {
         "at": "2026-11-20T22:26:24.165502+00:00",
+        "brand": "brand:زدفون",
+        "catalog_category_id": "6139",
+        "catalog_category_name": "عطر و ادکلن مردانه",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-21090992",
+        "family": "digikala_category:6139",
+        "product_id": "dkp-18333637",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-20T22:52:45.783837+00:00",
         "brand": "brand:زدفون",
         "catalog_category_id": "6139",
         "catalog_category_name": "عطر و ادکلن مردانه",
