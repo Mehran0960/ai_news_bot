@@ -103,3 +103,41 @@
 Worker sourceهای `telegram`، `bale`، `rubika`، `eitaa`، `youtube`، `aparat` و `filo` را می‌شناسد؛ این قابلیت به معنی فعال بودن redirect برای CTA زنده نیست.
 
 تا زمان دریافت postback و ثبت سفارش واقعی، نرخ تبدیل یا کمیسیون به تفکیک رسانه را تخمین نزن. گزارش رسمی `approved` و `declined` مبنای سنجش درآمد خواهد بود.
+
+---
+
+## ممیزی وضعیت اجرایی و اتصال پنل — ۲۰ نوامبر ۲۰۲۶
+
+این بخش از snapshot زندهٔ مخزن و Cloudflare تهیه شده و باید در تغییرات بعدی با شواهد جدید به‌روزرسانی شود.
+
+### وضعیت مشاهده‌شده
+
+- آخرین snapshot گزارش عملکرد بررسی‌شده: `2026-11-20T06:51:38Z`.
+- در این snapshot، `live_purchase_link_mode=direct_affilio_link`، `live_purchase_click_tracking_enabled=false` و `live_purchase_source_attribution_available=false` است.
+- مقادیر `orders`، `approved_commission`، `sales_amount`، `impressions` و `ctr` در گزارش موجود، `null` هستند؛ بنابراین گزارش فعلی هنوز مبنای محاسبهٔ EPC/EPM یا اعلام درآمد نیست.
+- در Cloudflare Worker با نام `affiliate-deal-radar`، آخرین deployment مشاهده‌شده در `2026-11-19T17:41:30Z` بوده است. تنها binding مشاهده‌شده `CLICKS` از نوع KV است.
+- نام Secretهای Worker در snapshot بررسی‌شده خالی بود؛ به‌طور مشخص `AFFILIO_POSTBACK_TOKEN` وجود نداشت. در نتیجه `POST /postback/affilio` با وضعیت 503 غیرفعال می‌ماند و هیچ ادعایی دربارهٔ دریافت Postback تولیدی مجاز نیست.
+- پایگاه D1 موجود با نام `affiliate-deal-radar` دارای جدول‌های کاتالوگ/قیمت/تنظیمات است؛ در schema مشاهده‌شده جدول دفتر تبدیل وجود ندارد و این D1 به Worker فعلی نیز binding نشده است.
+- در دو workflow اصلی بررسی‌شده، یعنی `.github/workflows/affilio-radar.yml` و `.github/workflows/affilio-publisher.yml`، مرحله‌ای برای ورود به پنل Affilio یا دریافت/پردازش خروجی مالی پنل مشاهده نشد. secretهای ارجاع‌شده در همین دو فایل نیز شامل credential آشکارِ پنل نبودند. این بررسی **وجود یا عدم وجود Secretهای دیگر در تنظیمات GitHub را اثبات نمی‌کند**؛ ابزار جاری امکان خواندن مقدار یا فهرست کامل GitHub Secrets را ندارد.
+- پس باید ادعای «دسترسی پنل در GitHub وجود دارد» از «یک workflow فعال گزارش پنل را می‌خواند» تفکیک شود. مسیر مصرف عملیاتی credential هنوز نیازمند شناسایی دقیق و آزمون واقعی است.
+
+### اقدام اجرایی لازم برای اتصال پنل
+
+1. نام دقیق GitHub Secret/Variables و workflowای که آن را مصرف می‌کند از تنظیمات مخزن بررسی شود؛ مقدار secret هرگز چاپ یا echo نشود.
+2. اگر دسترسی صرفاً برای login وب است، روش رسمی/مجاز خروجی CSV/XLSX یا API پنل مشخص شود. استفاده از scraping شکننده، دورزدن MFA، یا ذخیرهٔ cookie/session در فایل ممنوع است.
+3. گزارش واقعی ۳۰ و ۹۰ روزه (در صورت موجودبودن) به‌صورت ورودی خصوصی دریافت شود. فایل خام و شناسه‌های حساس به مخزن عمومی commit نشوند؛ فقط گزارش aggregate و بدون دادهٔ شخصی/محرمانه در repository ثبت شود.
+4. نام ستون‌ها، timezone، واحد پول و تعریف هر status با خود پنل تطبیق داده شود.
+5. تعداد سفارش، مجموع مبلغ سفارش و مجموع payout هر وضعیت با پنل تطبیق داده شود؛ رکوردهای فاقد کلید تطبیق در گروه `unattributed` بمانند، نه اینکه به محصول یا رسانه‌ای حدس زده شوند.
+6. پس از مشخص‌شدن روش دسترسی، workflow خودکار با least privilege و بدون چاپ credential ساخته شود. اگر پنل API یا export خودکار نمی‌دهد، ورود دستیِ ساختاریافته و امن بهتر از automation شکننده است.
+
+### وضعیت Postback و storage
+
+کد receiver موجود است، اما secret تولیدی و ثبت URL در پنل افیلیو هنوز مشاهده/تأیید نشده‌اند. قبل از فعال‌سازی:
+- endpoint عمومی HTTPS باید از سوی Affilio ثبت و token آن صادر شود؛
+- token فقط در Cloudflare Worker Secret بماند؛
+- schema دفتر تبدیل و binding پایدار D1 پیاده‌سازی و تست شود؛
+- مسیر ذخیره‌سازی باید duplicate، status transition، رویداد دیررس و retry را پوشش دهد؛
+- یک رویداد واقعی با گزارش پنل تطبیق داده شود.
+
+**توقف امن:** تا پیش از اثبات end-to-end، Postback receiver یا گزارش داخلی نباید به‌عنوان منبع فروش قطعی معرفی شود. CTA خرید مستقل و مستقیم باقی می‌ماند.
+
