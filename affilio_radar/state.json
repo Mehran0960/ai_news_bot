@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-20T11:33:02.060897+00:00",
-  "aparat_last_upload_success_at": "2026-11-20T11:33:06.890598+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-20T12:14:39.914926+00:00",
+  "aparat_last_upload_success_at": "2026-11-20T12:14:45.682861+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-20T11:58:06.610342+00:00",
@@ -303951,7 +303951,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-7080457": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-20T12:14:39.914926+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-20T12:14:45.682861+00:00",
+      "aparat_video_hash": "yhd161x",
+      "aparat_video_record_id": "74310180",
+      "aparat_video_url": "https://www.aparat.com/v/yhd161x",
+      "aparat_visibility": "public",
       "bale_message_id": 2375,
       "bale_posted_at": "2026-11-20T12:13:43.983356+00:00",
       "brand": "نبض آوا",
@@ -304075,8 +304081,17 @@
       "telegram_posted_at": "2026-11-20T12:13:42.795607+00:00",
       "title": "گوشی طبی نبض آوا مدل NS0-CARDIO",
       "ts": 1795176815.980876,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-7080457.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-7080457.mp4"
+      },
+      "video_generated_at": "2026-11-20T12:14:33.612163+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-708421": {
       "aparat_upload_started_at": "2026-11-20T08:57:44.631126+00:00",
