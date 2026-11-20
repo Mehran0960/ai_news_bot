@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-20T11:28:53.698212+00:00",
+  "generated_at": "2026-11-20T12:00:35.636865+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ادویه‌های ارگانیک": 1,
@@ -124,11 +124,11 @@
       "پنکیک": 1,
       "چراغ خواب و آباژور": 1,
       "کابینت": 1,
-      "کاور مبل": 1,
       "کتاب رمان و ادبیات داستانی و نمایشی": 1,
       "کرم آبرسان و مرطوب کننده": 1,
       "کفش تخت زنانه": 1,
       "کفش روزمره مردانه": 1,
+      "کیک و شیرینی خانگی": 1,
       "گوش پاک کن": 1
     },
     "category_post_counts": {
@@ -136,8 +136,8 @@
       "books_stationery": 1,
       "digital_accessories": 1,
       "fashion": 2,
-      "grocery_food": 3,
-      "home": 6,
+      "grocery_food": 4,
+      "home": 5,
       "lighting": 1,
       "mobile_devices": 1,
       "other": 6,
@@ -150,8 +150,8 @@
       "books_stationery": 3.2,
       "digital_accessories": 3.2,
       "fashion": 6.5,
-      "grocery_food": 9.7,
-      "home": 19.4,
+      "grocery_food": 12.9,
+      "home": 16.1,
       "lighting": 3.2,
       "mobile_devices": 3.2,
       "other": 19.4,
@@ -164,7 +164,7 @@
     "distinct_families": 31,
     "distinct_retailers": 1,
     "distinct_use_cases": 11,
-    "known_brand_posts": 19,
+    "known_brand_posts": 18,
     "posts": 31,
     "repeated_brand_count": 1,
     "repeated_brands": {
@@ -182,8 +182,8 @@
       "catalog_taxonomy_other": 3,
       "fashion_lifestyle": 3,
       "general": 1,
-      "grocery_food": 3,
-      "home_living": 4,
+      "grocery_food": 4,
+      "home_living": 3,
       "kitchen_food": 5,
       "mobile_productivity": 2,
       "personal_care": 6,
@@ -235,7 +235,6 @@
       "دستگاه ذوب وکس": 1,
       "دستگاه پخش خودرو": 1,
       "دستگیره": 1,
-      "دمبل": 1,
       "دمنوش": 1,
       "رنگ": 1,
       "روغن آفتاب": 1,
@@ -388,7 +387,7 @@
       "کیف و کاور لپ تاپ": 1,
       "کیف و کوله سفری": 1,
       "کیف پول و کیف لوازم آرایش دخترانه": 1,
-      "کیک و شیرینی خانگی": 1,
+      "کیک و شیرینی خانگی": 2,
       "گوش پاک کن": 1,
       "گوشت گوسفند": 1
     },
@@ -401,7 +400,7 @@
       "digital_accessories": 7,
       "fashion": 27,
       "gaming": 3,
-      "grocery_food": 38,
+      "grocery_food": 39,
       "home": 29,
       "home_cleaning": 4,
       "kids_sports": 8,
@@ -411,7 +410,7 @@
       "other": 50,
       "personal_care": 34,
       "power_backup": 5,
-      "sports_outdoor": 19,
+      "sports_outdoor": 18,
       "tools_industrial": 1,
       "tv_audio_video": 3
     },
@@ -424,7 +423,7 @@
       "digital_accessories": 2.7,
       "fashion": 10.4,
       "gaming": 1.2,
-      "grocery_food": 14.6,
+      "grocery_food": 15.0,
       "home": 11.2,
       "home_cleaning": 1.5,
       "kids_sports": 3.1,
@@ -434,16 +433,16 @@
       "other": 19.2,
       "personal_care": 13.1,
       "power_backup": 1.9,
-      "sports_outdoor": 7.3,
+      "sports_outdoor": 6.9,
       "tools_industrial": 0.4,
       "tv_audio_video": 1.2
     },
-    "distinct_catalog_categories": 199,
+    "distinct_catalog_categories": 198,
     "distinct_categories": 21,
-    "distinct_families": 204,
+    "distinct_families": 203,
     "distinct_retailers": 1,
     "distinct_use_cases": 21,
-    "known_brand_posts": 116,
+    "known_brand_posts": 115,
     "posts": 260,
     "repeated_brand_count": 23,
     "repeated_brands": {
@@ -483,7 +482,7 @@
       "fashion_lifestyle": 23,
       "gaming": 5,
       "general": 2,
-      "grocery_food": 48,
+      "grocery_food": 49,
       "health_wellness": 1,
       "home_cleaning": 4,
       "home_living": 19,
@@ -494,7 +493,7 @@
       "outdoor_travel": 4,
       "personal_care": 32,
       "pet_care": 5,
-      "sports_fitness": 14,
+      "sports_fitness": 13,
       "tools_industrial": 2
     }
   },
@@ -514,31 +513,14 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1640,
+    "all_time_count": 1641,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "brand_repeat": 24,
-      "family_repeat": 395,
+      "brand_repeat": 25,
+      "family_repeat": 396,
       "similarity_repeat": 498
     },
     "recent_events": [
-      {
-        "at": "2026-11-17T16:35:47.922923+00:00",
-        "brand": "",
-        "catalog_category_id": "11020",
-        "catalog_category_name": "استابیلایزر و گیمبال",
-        "category": "gaming",
-        "compared_to_product_id": "dkp-16045969",
-        "family": "digikala_category:11020",
-        "product_id": "dkp-11401055",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "گیمبال و لرزشگیر مدل L7BPRO",
-        "use_case": "gaming"
-      },
       {
         "at": "2026-11-17T16:44:40.125969+00:00",
         "brand": "",
@@ -860,6 +842,24 @@
       },
       {
         "at": "2026-11-20T11:28:53.698212+00:00",
+        "brand": "brand:زدفون",
+        "catalog_category_id": "6139",
+        "catalog_category_name": "عطر و ادکلن مردانه",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-21090992",
+        "family": "digikala_category:6139",
+        "product_id": "dkp-18333637",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-20T12:00:35.636865+00:00",
         "brand": "brand:زدفون",
         "catalog_category_id": "6139",
         "catalog_category_name": "عطر و ادکلن مردانه",
