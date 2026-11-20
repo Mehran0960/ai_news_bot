@@ -3201,3 +3201,26 @@ PR #251 با commit ادغام `52ae2e4af60690f090c6db07a6156339c766ffd0` وار
 **ریسک/بازگشت:** اگر SSO به MFA، CAPTCHA، client secret یا تغییر قرارداد نیاز داشته باشد، workflow متوقف می‌شود؛ دورزدن challenge یا تکرار login انجام نمی‌شود. rollback با revert همین اصلاح PKCE ممکن است؛ Secretهای کاربر، نشست یا گزارش مالی تغییر داده نمی‌شوند.
 
 **وضعیت:** مسیر PKCE در شاخهٔ PR اصلاح و آمادهٔ آزمون مجدد است؛ discovery مسیرهای گزارش و هرگونه دریافت دادهٔ مالی هنوز منتظر login موفق‌اند.
+
+## ۲۰۲۶-۱۱-۲۰ — تأیید ورود پنل و کشف صفحات عملکرد افیلیو
+
+**هدف:** ثبت اولین شواهد end-to-end ورود امن به پنل افیلیو و کشف صفحات مرتبط با گزارش، بدون دریافت یا افشای ردیف‌های مالی.
+
+**تغییر/اقدام:**
+- دو Secret با نام‌های `AFFILIO_USER` و `AFFILIO_PASS` در محیط GitHub Actions حاضر بودن خود را تأیید کردند؛ مقدار آن‌ها هرگز چاپ نشد.
+- مسیر OIDC Authorization Code + PKCE با state و code_verifier تازه در runner موفق شد؛ پاسخ token فقط در حافظه باقی ماند.
+- نتیجهٔ ممیزی: `authenticated_read_only`؛ host نهایی `publisher.affilio.ir`.
+- چهار صفحهٔ UI مرتبط با عملکرد در bundle کشف شدند: `/performance`، `/performance/overview`، `/performance/links` و `/performance/products`.
+- نسخهٔ بعدی کشف route اکنون رشته‌های مسیر نسبی و URLهای مطلق در زیر‌دامنه‌های `*.affilio.ir` و `*.digiwise.ir` را بررسی می‌کند؛ query string، code/token و شناسه‌های بلند از خروجی حذف/ماسک می‌شوند.
+- هیچ endpoint مالی هنوز به‌عنوان API قطعی شناسایی نشده؛ مسیرهای چهارگانه فعلاً صفحات رابط کاربری‌اند، نه اثبات وجود endpoint JSON.
+- هیچ report row، سفارش، payout، کلیک، CSV/XLSX یا فایل artifact دریافت/ذخیره/منتشر نشد.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_audit.py`، `affilio_radar/test_affilio_panel_audit.py`، `.github/workflows/affilio-panel-readonly-audit.yml`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md` و `docs/CHANGELOG_FA.md`.
+
+**آزمون و نتیجه:** GitHub Actions run `44696134790` با موفقیت پایان یافت: هفت تست آن نسخه سبز؛ ورود واقعی OIDC/PKCE موفق؛ شمار asset یک؛ چهار مسیر UI شناسایی شد. آزمون گسترش‌یافتهٔ routeهای API در commit بعدی تعریف شده و منتظر CI است.
+
+**شواهد/شناسه:** PR #262؛ run `44696134790`؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** تغییر فقط read-only است. session cookie و access token در runner نگهداری پایدار نمی‌شوند. اگر endpoint رسمی یا وضعیت گزارش از شواهد UI/دادهٔ پاسخ قابل اثبات نباشد، هیچ فراخوانی تولیدی انجام نمی‌شود. rollback با revert اسکریپت و تست‌ها ممکن است؛ Secretها و لینک‌های خرید تغییر نکرده‌اند.
+
+**وضعیت:** ورود واقعی پنل تأییدشده؛ صفحات عملکرد کشف شده؛ API گزارش، دریافت report data و تطبیق اعداد با پنل هنوز انجام نشده و در مرحلهٔ بعدی است.
