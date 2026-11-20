@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-20T19:39:57.510396+00:00",
-  "aparat_last_upload_success_at": "2026-11-20T19:40:01.801249+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-20T20:12:48.998695+00:00",
+  "aparat_last_upload_success_at": "2026-11-20T20:12:53.185822+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-20T20:03:44.440190+00:00",
@@ -204234,7 +204234,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-11069834": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-20T20:12:48.998695+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-20T20:12:53.185822+00:00",
+      "aparat_video_hash": "aoi00ow",
+      "aparat_video_record_id": "74317089",
+      "aparat_video_url": "https://www.aparat.com/v/aoi00ow",
+      "aparat_visibility": "public",
       "bale_message_id": 2389,
       "bale_posted_at": "2026-11-20T20:11:12.500132+00:00",
       "brand": "",
@@ -204358,8 +204364,17 @@
       "telegram_posted_at": "2026-11-20T20:11:10.439530+00:00",
       "title": "شورت پسرانه مدل پادار بسته 3 عددی",
       "ts": 1795205463.273844,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-11069834.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-11069834.mp4"
+      },
+      "video_generated_at": "2026-11-20T20:12:43.816659+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-11145813": {
       "aparat_skip_reason": "selection_outside_freshness_window",
