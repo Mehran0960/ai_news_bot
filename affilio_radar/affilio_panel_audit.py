@@ -285,6 +285,69 @@ def _exchange_code_for_token(opener, code: str, verifier: str) -> str | None:
     return token if isinstance(token, str) and token else None
 
 
+def _json_schema_only(body: str) -> str:
+    """Return key names and value types only; never return report values."""
+    try:
+        payload = json.loads(body)
+    except (TypeError, ValueError):
+        return "non_json"
+    if isinstance(payload, dict):
+        keys = sorted(str(key) for key in payload.keys())[:30]
+        summary = "object:" + ",".join(keys)
+        data = payload.get("data")
+        if isinstance(data, dict):
+            data_keys = sorted(str(key) for key in data.keys())[:30]
+            summary += "|data_object:" + ",".join(data_keys)
+        elif isinstance(data, list):
+            summary += "|data_array"
+        return summary[:700]
+    if isinstance(payload, list):
+        return "array"
+    return type(payload).__name__
+
+
+def probe_candidate_api_routes(opener, access_token: str, page_routes: list[str]) -> list[str]:
+    """Probe only safe GETs on the API host discovered in Affilio's own JS bundle.
+
+    Response bodies are read in memory for content-type/schema-key inspection only.
+    No response value, row count, report amount, or record is printed or persisted.
+    """
+    candidates = {"/"}
+    for route in page_routes:
+        if route.startswith(("/performance", "/api/", "/v1/", "/v2/")):
+            candidates.add(route)
+    results: list[str] = []
+    for path in sorted(candidates)[:12]:
+        url = f"https://api.affilio.ir{path}"
+        request = Request(
+            url,
+            headers={
+                "User-Agent": "OfferChinReadOnlyPanelAudit/1.0",
+                "Accept": "application/json",
+                "Authorization": f"Bearer {access_token}",
+                "Origin": "https://publisher.affilio.ir",
+                "Referer": "https://publisher.affilio.ir/",
+            },
+            method="GET",
+        )
+        try:
+            with opener.open(request, timeout=20) as response:
+                body = response.read(1_000_001)
+                if len(body) > 1_000_000:
+                    schema = "response_too_large"
+                else:
+                    charset = response.headers.get_content_charset() or "utf-8"
+                    schema = _json_schema_only(body.decode(charset, errors="replace"))
+                content_type = response.headers.get_content_type()
+                result = f"{path} status={response.status} type={content_type} schema={schema}"
+        except HTTPError as exc:
+            result = f"{path} status={exc.code} type={exc.headers.get_content_type()} schema=unavailable"
+        except Exception:
+            result = f"{path} status=network_error type=unknown schema=unavailable"
+        results.append(result)
+    return results
+
+
 def audit_panel() -> int:
     username = os.environ.get("AFFILIO_USER", "")
     password = os.environ.get("AFFILIO_PASS", "")
@@ -413,6 +476,10 @@ def audit_panel() -> int:
         print(f"AFFILIO_REPORT_ROUTE_CANDIDATES={len(routes)}")
         for path in routes:
             print(f"AFFILIO_REPORT_ROUTE={path}")
+        api_probes = probe_candidate_api_routes(opener, access_token, routes)
+        print(f"AFFILIO_API_PROBE_COUNT={len(api_probes)}")
+        for result in api_probes:
+            print(f"AFFILIO_API_PROBE={result}")
         print("AFFILIO_PANEL_RAW_DATA_EXPORTED=no")
         print("AFFILIO_PANEL_COOKIE_PERSISTED=no")
         print("AFFILIO_OIDC_TOKEN_PERSISTED=no")
