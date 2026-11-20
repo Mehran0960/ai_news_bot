@@ -75,6 +75,27 @@ class AffilioPanelAuditTests(unittest.TestCase):
         self.assertNotIn("/settings/profile", routes)
         self.assertNotIn("secret", " ".join(routes))
 
+
+    def test_discovers_affilio_api_routes_and_discards_url_queries(self):
+        parser = parse_page(
+            """
+            <a href="/performance/overview?tab=sales">overview</a>
+            <script src="/assets/app.js"></script>
+            """
+        )
+        routes = report_route_candidates(
+            parser,
+            "https://publisher.affilio.ir/",
+            [
+                'const api="https://api.affilio.ir/api/v1/publisher/performance?token=private";'
+                'const other="https://evil.example/api/reports";'
+            ],
+        )
+        self.assertIn("/performance/overview", routes)
+        self.assertIn("api.affilio.ir/api/v1/publisher/performance", routes)
+        self.assertNotIn("evil.example/api/reports", routes)
+        self.assertNotIn("private", " ".join(routes))
+
     def test_normalizes_long_numeric_and_uuid_path_segments(self):
         path = normalized_path(
             "/reports/123456/orders/550e8400-e29b-41d4-a716-446655440000",
