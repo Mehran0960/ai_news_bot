@@ -7,6 +7,7 @@ on:
     paths:
       - "affilio_radar/affilio_panel_audit.py"
       - "affilio_radar/test_affilio_panel_audit.py"
+      - "affilio_radar/affilio_panel_network_audit.mjs"
       - ".github/workflows/affilio-panel-readonly-audit.yml"
   push:
     branches:
@@ -22,7 +23,7 @@ permissions:
 
 concurrency:
   group: affilio-panel-readonly-audit
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   readonly-panel-audit:
@@ -41,11 +42,16 @@ jobs:
       - name: Run parser and URL safety tests
         run: python -m unittest -v affilio_radar.test_affilio_panel_audit
 
-      - name: Authenticate to Affilio and inspect report navigation (read-only)
+      - name: Install Playwright browser
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Authenticate and capture read-only panel API routes
         env:
           AFFILIO_USER: ${{ secrets.AFFILIO_USER }}
           AFFILIO_PASS: ${{ secrets.AFFILIO_PASS }}
-        run: python affilio_radar/affilio_panel_audit.py
+        run: node affilio_radar/affilio_panel_network_audit.mjs
 
       - name: State security boundaries
         if: always()
