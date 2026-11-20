@@ -2380,190 +2380,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 1,
-      "content_id": "dkp-18595649",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-16T12:22:52.581273+00:00",
-      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
-      "next_attempt_at": "2026-11-16T12:21:18.256060+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-18595649%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "5604",
-        "catalog_best_selling_category_name": "سایر لوازم جانبی صوتی و تصویری",
-        "catalog_best_selling_rank": 8,
-        "catalog_best_selling_ranks_by_category": {
-          "5604": {
-            "category_name": "سایر لوازم جانبی صوتی و تصویری",
-            "observed_at": "2026-11-16T08:55:45.798845+00:00",
-            "rank": 8,
-            "rank_history": [
-              {
-                "category_name": "سایر لوازم جانبی صوتی و تصویری",
-                "observed_at": "2026-11-16T08:55:45.798845+00:00",
-                "rank": 8
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T09:35:24.901719+00:00",
-        "catalog_cycle_snapshot_rank": 26,
-        "catalog_rank_observed_at": "2026-11-16T08:55:45.798845+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-16T10:13:45.487293+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-18595649",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 249800,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 60.89,
-        "discount_percent": 51,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T10:14:03.380578+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 249800,
-        "history_low_toman": 249800,
-        "history_median_toman": 249800,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/eeb81d2a4ebed2216b4f5894fcad455ca99a42e8_1787419337.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "affordability": 95.58,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 43.21,
-          "discount_attractiveness": 60.89,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 98.81,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "5604",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T10:14:03.383322+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "original_price": 510000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-18595649",
-        "product_url": "https://www.digikala.com/product/dkp-18595649/",
-        "promo_score": 37,
-        "publication_policy": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-        "qualifies_as_deal": true,
-        "rating": 4.05,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 119,
-        "savings_toman": 260200,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 8,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "affordability": 95.58,
-          "affordability_basis": "listed_final_cash_price_excluding_unverified_delivery_fees",
-          "affordability_reference_basis": "iran_1405_minimum_base_wage_30day_month",
-          "affordability_reference_full_score_price_share": 0.01,
-          "affordability_reference_monthly_income_toman": 16625550,
-          "balanced_score": 43.21,
-          "discount_attractiveness": 60.89,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 98.81,
-          "policy_version": "offerchin_four_factor_harmonic_v4_taxonomy_consistency",
-          "price_cohort_key": "5604",
-          "price_cohort_size": 0,
-          "score_interpretation": "heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T10:14:03.383322+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1309,
-        "title": "محافظ کنترل مدل 30-8 بسته 20 عددی",
-        "variant_label": "بی رنگ شفاف"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-16T12:22:52.581273+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T12:24:00.358681+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "credentials_not_configured",
-          "status": "not_connected",
-          "updated_at": "2026-11-16T12:22:52.581273+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-16T12:22:52.581273+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T12:24:08.864241+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-16T12:22:52.581273+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T12:23:02.982807+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-18595649",
-      "product_plan_cycle_id": "2026-11-16T11:16:37.619263+00:00",
-      "scheduled_at": "2026-11-16T12:21:18.256060+00:00",
-      "selected_at": "2026-11-16T10:14:11.013227+00:00",
-      "sequence_number": 1309,
-      "status": "published",
-      "updated_at": "2026-11-16T12:24:10.299466+00:00"
-    },
-    {
-      "attempt_count": 1,
       "content_id": "dkp-22653253",
       "content_type": "product",
       "last_attempt_at": "2026-11-16T12:25:36.659303+00:00",
@@ -38817,6 +38633,181 @@
       "sequence_number": 1599,
       "status": "published",
       "updated_at": "2026-11-19T23:29:00.549915+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-16660804",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-20T00:10:32.962479+00:00",
+      "last_detail": "selected_price_stale_selected=1599900_live=1990000",
+      "next_attempt_at": "2026-11-20T00:10:00.549057+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-16660804%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "9297",
+        "catalog_best_selling_category_name": "ست لباس راحتی زنانه",
+        "catalog_best_selling_rank": 5,
+        "catalog_best_selling_ranks_by_category": {
+          "9297": {
+            "category_name": "ست لباس راحتی زنانه",
+            "observed_at": "2026-11-19T15:11:49.565356+00:00",
+            "rank": 5,
+            "rank_history": [
+              {
+                "category_name": "ست لباس راحتی زنانه",
+                "observed_at": "2026-11-19T15:11:49.565356+00:00",
+                "rank": 5
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-19T15:37:38.816861+00:00",
+        "catalog_cycle_snapshot_rank": 440,
+        "catalog_rank_observed_at": "2026-11-19T15:11:49.565356+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "fashion",
+        "checked_at": "2026-11-19T16:07:27.271544+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-16660804",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 1599900,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 65.98,
+        "discount_percent": 52,
+        "discount_vs_30d_median_pct": 20,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 390100,
+        "history_checked_at": "2026-11-19T16:07:59.364016+00:00",
+        "history_days": 3,
+        "history_end_day": "2026-11-19",
+        "history_high_toman": 1990000,
+        "history_low_toman": 1599900,
+        "history_median_toman": 1990000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": 1990000,
+        "history_start_day": "2026-11-16",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/de928258b421fcfca5583ef4768bc935b19c06f6_1787752365.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 73.41,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 65.98,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 64.0,
+          "generality_group": "fashion_lifestyle",
+          "live_demand": 99.14,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-19T16:08:10.129191+00:00",
+          "weakest_factor_score": 64.0
+        },
+        "original_price": 3300000,
+        "pct_above_stable_low": -20,
+        "product_id": "dkp-16660804",
+        "product_url": "https://www.digikala.com/product/dkp-16660804/",
+        "promo_score": 42,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.25,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 28,
+        "savings_toman": 1700100,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 5,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 73.41,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 65.98,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 64.0,
+          "generality_group": "fashion_lifestyle",
+          "live_demand": 99.14,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-19T16:08:10.129191+00:00",
+          "weakest_factor_score": 64.0
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1600,
+        "title": "ست نیم تنه و شلوارک راحتی زنانه مدل استیج",
+        "variant_label": "آبی 36-42"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-16660804",
+      "product_plan_cycle_id": "2026-11-20T00:01:41.396611+00:00",
+      "scheduled_at": "2026-11-20T00:10:00.549057+00:00",
+      "selected_at": "2026-11-19T16:08:14.324804+00:00",
+      "sequence_number": 1600,
+      "status": "stale_selection",
+      "updated_at": "2026-11-20T00:10:32.962479+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -39696,178 +39687,6 @@
       "scheduled_at": "2026-11-20T05:54:00.549057+00:00",
       "selected_at": "2026-11-19T17:09:15.518063+00:00",
       "sequence_number": 1609,
-      "status": "queued"
-    },
-    "dkp-16660804": {
-      "attempt_count": 0,
-      "content_id": "dkp-16660804",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-20T00:10:00.549057+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-16660804%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "9297",
-        "catalog_best_selling_category_name": "ست لباس راحتی زنانه",
-        "catalog_best_selling_rank": 5,
-        "catalog_best_selling_ranks_by_category": {
-          "9297": {
-            "category_name": "ست لباس راحتی زنانه",
-            "observed_at": "2026-11-19T15:11:49.565356+00:00",
-            "rank": 5,
-            "rank_history": [
-              {
-                "category_name": "ست لباس راحتی زنانه",
-                "observed_at": "2026-11-19T15:11:49.565356+00:00",
-                "rank": 5
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-19T15:37:38.816861+00:00",
-        "catalog_cycle_snapshot_rank": 440,
-        "catalog_rank_observed_at": "2026-11-19T15:11:49.565356+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "fashion",
-        "checked_at": "2026-11-19T16:07:27.271544+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-16660804",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 1599900,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 65.98,
-        "discount_percent": 52,
-        "discount_vs_30d_median_pct": 20,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 390100,
-        "history_checked_at": "2026-11-19T16:07:59.364016+00:00",
-        "history_days": 3,
-        "history_end_day": "2026-11-19",
-        "history_high_toman": 1990000,
-        "history_low_toman": 1599900,
-        "history_median_toman": 1990000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 1990000,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/de928258b421fcfca5583ef4768bc935b19c06f6_1787752365.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 73.41,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 65.98,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 64.0,
-          "generality_group": "fashion_lifestyle",
-          "live_demand": 99.14,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-19T16:08:10.129191+00:00",
-          "weakest_factor_score": 64.0
-        },
-        "original_price": 3300000,
-        "pct_above_stable_low": -20,
-        "product_id": "dkp-16660804",
-        "product_url": "https://www.digikala.com/product/dkp-16660804/",
-        "promo_score": 42,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.25,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 28,
-        "savings_toman": 1700100,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 5,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 73.41,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 65.98,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 64.0,
-          "generality_group": "fashion_lifestyle",
-          "live_demand": 99.14,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-19T16:08:10.129191+00:00",
-          "weakest_factor_score": 64.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1600,
-        "title": "ست نیم تنه و شلوارک راحتی زنانه مدل استیج",
-        "variant_label": "آبی 36-42"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-16660804",
-      "product_plan_cycle_id": "2026-11-20T00:01:41.396611+00:00",
-      "scheduled_at": "2026-11-20T00:10:00.549057+00:00",
-      "selected_at": "2026-11-19T16:08:14.324804+00:00",
-      "sequence_number": 1600,
       "status": "queued"
     },
     "dkp-19920409": {
@@ -94281,7 +94100,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.3,
+      "delivery_duration_seconds": 1.7,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -94344,8 +94163,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.3,
-      "delivery_started_at": "2026-11-20T00:06:36.826289+00:00",
+      "delivery_duration_seconds": 1.7,
+      "delivery_started_at": "2026-11-20T00:10:36.119884+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -326220,6 +326039,13 @@
       "reason": "selected_price_stale_selected=2300000_live=2420000",
       "rejected_at": "2026-11-07T20:57:26.320576+00:00",
       "retry_after": "2026-11-07T21:17:26.320576+00:00"
+    },
+    "dkp-16660804": {
+      "current_price": 1599900,
+      "original_price": 3300000,
+      "reason": "selected_price_stale_selected=1599900_live=1990000",
+      "rejected_at": "2026-11-20T00:10:32.962479+00:00",
+      "retry_after": "2026-11-20T00:30:32.962479+00:00"
     },
     "dkp-1785946": {
       "current_price": 5061000,
