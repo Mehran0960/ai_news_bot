@@ -6501,13 +6501,13 @@
   "last_error_at": "2026-11-15T05:00:24.184952+00:00",
   "last_successful_category_id": "6301",
   "last_successful_category_name": "ظرف نگهدارنده",
-  "last_successful_page": 30,
-  "last_successful_page_at": "2026-11-20T22:12:46.700595+00:00",
+  "last_successful_page": 33,
+  "last_successful_page_at": "2026-11-20T22:13:58.146062+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 25,
+  "page": 31,
   "parallel_api_route_policy_version": "digikala_discovery_api_v1_trusted_category_taxonomy_v4",
-  "parallel_category_mismatch_rows_rejected": 5619864,
+  "parallel_category_mismatch_rows_rejected": 5620796,
   "parallel_cycle_completed_category_ids": [
     "11",
     "13",
@@ -6517,6 +6517,7 @@
     "41",
     "48",
     "49",
+    "64",
     "70",
     "77",
     "81",
@@ -6531,6 +6532,7 @@
     "156",
     "174",
     "193",
+    "209",
     "210",
     "219",
     "2406",
@@ -6566,6 +6568,7 @@
     "6084",
     "6085",
     "6086",
+    "6105",
     "6115",
     "6116",
     "6117",
@@ -6602,6 +6605,7 @@
     "6346",
     "6356",
     "6357",
+    "6359",
     "6367",
     "6369",
     "6400",
@@ -6622,6 +6626,7 @@
     "6480",
     "6482",
     "6483",
+    "6484",
     "6485",
     "6488",
     "6489",
@@ -6642,6 +6647,7 @@
     "6614",
     "6623",
     "6625",
+    "6658",
     "6661",
     "6663",
     "6664",
@@ -6664,6 +6670,7 @@
     "6911",
     "6920",
     "6924",
+    "6944",
     "6946",
     "6951",
     "6955",
@@ -6708,6 +6715,8 @@
     "8687",
     "8693",
     "8716",
+    "8721",
+    "8723",
     "8725",
     "8733",
     "8900",
@@ -6716,6 +6725,7 @@
     "8904",
     "8906",
     "8908",
+    "8909",
     "8910",
     "8912",
     "8914",
@@ -6725,6 +6735,7 @@
     "8942",
     "8948",
     "8996",
+    "9012",
     "9083",
     "9219",
     "9220",
@@ -6807,6 +6818,7 @@
     "10056",
     "10064",
     "10067",
+    "10068",
     "10082",
     "10116",
     "10122",
@@ -6880,6 +6892,7 @@
     "10809",
     "10812",
     "10821",
+    "10822",
     "10823",
     "10824",
     "10825",
@@ -6940,6 +6953,7 @@
     "11304",
     "11306",
     "11331",
+    "11338",
     "11345",
     "11354",
     "11355",
@@ -6982,8 +6996,8 @@
     "11792",
     "11793"
   ],
-  "parallel_cycle_pages_success": 11439,
-  "parallel_cycle_product_rows_success": 225083,
+  "parallel_cycle_pages_success": 11774,
+  "parallel_cycle_product_rows_success": 231661,
   "parallel_cycle_started_at": "2026-11-20T21:54:25.881659+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -7579,875 +7593,763 @@
     "11792",
     "11793"
   ],
-  "parallel_last_batch_at": "2026-11-20T22:12:47.215316+00:00",
-  "parallel_last_batch_candidate_file_bytes": 7435730,
-  "parallel_last_batch_candidate_write_seconds": 0.194,
+  "parallel_last_batch_at": "2026-11-20T22:13:58.425259+00:00",
+  "parallel_last_batch_candidate_file_bytes": 7436920,
+  "parallel_last_batch_candidate_write_seconds": 0.114,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 2.86,
+  "parallel_last_batch_fetch_seconds": 4.26,
   "parallel_last_batch_http_5xx_retries": 0,
-  "parallel_last_batch_nonempty_product_pages": 106,
-  "parallel_last_batch_pages": 120,
-  "parallel_last_batch_pages_per_second": 41.97,
-  "parallel_last_batch_processing_seconds": 0.489,
-  "parallel_last_batch_product_rows": 2066,
-  "parallel_last_batch_rate_limited": 14,
-  "parallel_last_batch_request_count": 120,
-  "parallel_last_batch_request_max_seconds": 0.971,
-  "parallel_last_batch_request_p50_seconds": 0.243,
-  "parallel_last_batch_request_p95_seconds": 0.842,
-  "parallel_last_batch_retries": 14,
-  "parallel_last_batch_rows_per_second": 583.19,
-  "parallel_last_batch_successes": 106,
+  "parallel_last_batch_nonempty_product_pages": 109,
+  "parallel_last_batch_pages": 109,
+  "parallel_last_batch_pages_per_second": 25.59,
+  "parallel_last_batch_processing_seconds": 0.247,
+  "parallel_last_batch_product_rows": 2107,
+  "parallel_last_batch_rate_limited": 0,
+  "parallel_last_batch_request_count": 109,
+  "parallel_last_batch_request_max_seconds": 1.209,
+  "parallel_last_batch_request_p50_seconds": 0.332,
+  "parallel_last_batch_request_p95_seconds": 0.858,
+  "parallel_last_batch_retries": 0,
+  "parallel_last_batch_rows_per_second": 455.98,
+  "parallel_last_batch_successes": 109,
   "parallel_last_batch_terminals": 0,
   "parallel_last_batch_timeout_retries": 0,
-  "parallel_last_batch_worker_limit_before": 14,
-  "parallel_last_batch_worker_limit_next": 7,
+  "parallel_last_batch_worker_limit_before": 11,
+  "parallel_last_batch_worker_limit_next": 12,
   "parallel_leaf_category_count": 588,
   "parallel_pending_pages": [
     {
       "attempts": 0,
-      "category_id": "10822",
-      "category_name": "سایر سبزی‌های خشک",
-      "category_query": "مواد غذایی",
-      "page": 25
+      "category_id": "8123",
+      "category_name": "لوازم جانبی ورزش های توپی",
+      "category_query": "ورزش",
+      "page": 31
     },
     {
       "attempts": 0,
       "category_id": "8270",
       "category_name": "کفپوش خودرو",
       "category_query": "خودرو",
-      "page": 28
+      "page": 31
     },
     {
       "attempts": 0,
       "category_id": "8331",
       "category_name": "روکش و تزئینات داشبورد خودرو",
       "category_query": "خودرو",
-      "page": 28
+      "page": 31
+    },
+    {
+      "attempts": 0,
+      "category_id": "8347",
+      "category_name": "خوشبوکننده و تصفیه کننده هوای خودرو",
+      "category_query": "خودرو",
+      "page": 31
     },
     {
       "attempts": 0,
       "category_id": "1271",
       "category_name": "شارژر تبلت و موبایل",
       "category_query": "گوشی",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "6294",
       "category_name": "دستمال نظافت یکبار مصرف",
       "category_query": "لوازم خانگی",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "6537",
       "category_name": "لوسیون و روغن بدن",
       "category_query": "مواد غذایی",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "6654",
       "category_name": "سرم پوست",
       "category_query": "مواد غذایی",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "6728",
       "category_name": "ابزار جوشکاری",
       "category_query": "ابزار",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "6904",
       "category_name": "پد آرایشی و بیوتی بلندر",
       "category_query": "آرایشی",
-      "page": 29
-    },
-    {
-      "attempts": 1,
-      "category_id": "8123",
-      "category_name": "لوازم جانبی ورزش های توپی",
-      "category_query": "ورزش",
-      "last_error": "rate_limited",
-      "page": 28
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "8303",
       "category_name": "کتابخانه",
       "category_query": "خانه",
-      "page": 29
-    },
-    {
-      "attempts": 1,
-      "category_id": "8347",
-      "category_name": "خوشبوکننده و تصفیه کننده هوای خودرو",
-      "category_query": "خودرو",
-      "last_error": "rate_limited",
-      "page": 28
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "8354",
       "category_name": "پد و دستمال نظافت خودرو",
       "category_query": "خودرو",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "8369",
       "category_name": "تجهیزات نظم دهنده داخل خودرو",
       "category_query": "خودرو",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "8390",
       "category_name": "آفتابگیر خودرو",
       "category_query": "خودرو",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "8397",
       "category_name": "ابزار و ملزومات هنرهای تجسمی",
       "category_query": "ابزار",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "8718",
       "category_name": "کابل و سیم",
       "category_query": "لوازم خانگی",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
-      "category_id": "8721",
-      "category_name": "بهداشت، مراقبت و نگهداری حیوانات",
-      "category_query": "پوشاک",
-      "page": 29
-    },
-    {
-      "attempts": 0,
-      "category_id": "8723",
-      "category_name": "لانه و قفس نگهداری حیوانات",
-      "category_query": "لوازم خانگی",
-      "page": 29
+      "category_id": "8939",
+      "category_name": "سایر غلات صبحانه",
+      "category_query": "مواد غذایی",
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "8943",
       "category_name": "زعفران",
       "category_query": "مواد غذایی",
-      "page": 29
-    },
-    {
-      "attempts": 0,
-      "category_id": "9012",
-      "category_name": "در باز کن",
-      "category_query": "گوشی",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "9369",
       "category_name": "کفش تخت زنانه",
       "category_query": "کفش",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "9371",
       "category_name": "کفش پاشنه دار زنانه",
       "category_query": "کفش",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "9477",
       "category_name": "نیم بوت مردانه",
       "category_query": "کفش",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "9481",
       "category_name": "کفش رسمی مردانه",
       "category_query": "کفش",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "10073",
       "category_name": "قطعات یدکی موبایل و تبلت",
       "category_query": "گوشی",
-      "page": 29
+      "page": 32
+    },
+    {
+      "attempts": 0,
+      "category_id": "10334",
+      "category_name": "غلات ارگانیک",
+      "category_query": "مواد غذایی",
+      "page": 32
+    },
+    {
+      "attempts": 0,
+      "category_id": "10481",
+      "category_name": "دستمال نظافت خانه و آشپزخانه",
+      "category_query": "خانه",
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "10559",
       "category_name": "کتاب زبان خارجی",
       "category_query": "کتاب",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "10561",
       "category_name": "کتاب دینی",
       "category_query": "کتاب",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "10707",
       "category_name": "ماگ",
       "category_query": "ورزش",
-      "page": 29
+      "page": 32
+    },
+    {
+      "attempts": 0,
+      "category_id": "10756",
+      "category_name": "سایر ادویه و چاشنی‌ها",
+      "category_query": "مواد غذایی",
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "10987",
       "category_name": "چاقو",
       "category_query": "خانه",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "11333",
       "category_name": "شیر ظرفشویی",
       "category_query": "خانه",
-      "page": 29
-    },
-    {
-      "attempts": 0,
-      "category_id": "11338",
-      "category_name": "استندهای آرایشی",
-      "category_query": "آرایشی",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "11358",
       "category_name": "قاب، زه و ضربه‌گیر خودرو",
       "category_query": "خودرو",
-      "page": 29
+      "page": 32
+    },
+    {
+      "attempts": 0,
+      "category_id": "11419",
+      "category_name": "براش‌های آرایشی",
+      "category_query": "آرایشی",
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "11539",
       "category_name": "کابل اتصال باتری به باتری خودرو",
       "category_query": "خودرو",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "11576",
       "category_name": "پوشاک گربه",
       "category_query": "پوشاک",
-      "page": 29
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "11587",
       "category_name": "کتاب شعر",
       "category_query": "کتاب",
-      "page": 29
+      "page": 32
+    },
+    {
+      "attempts": 0,
+      "category_id": "11621",
+      "category_name": "پوشاک سگ و گربه",
+      "category_query": "پوشاک",
+      "page": 32
     },
     {
       "attempts": 0,
       "category_id": "18",
       "category_name": "لپ تاپ و الترابوک",
       "category_query": "لپ تاپ",
-      "page": 30
-    },
-    {
-      "attempts": 0,
-      "category_id": "64",
-      "category_name": "فلش مموری",
-      "category_query": "گوشی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "76",
       "category_name": "محافظ صفحه نمایش گوشی",
       "category_query": "گوشی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "97",
       "category_name": "کیف و کاور لپ تاپ",
       "category_query": "لپ تاپ",
-      "page": 30
+      "page": 33
+    },
+    {
+      "attempts": 0,
+      "category_id": "1272",
+      "category_name": "پاوربانک (شارژر همراه)",
+      "category_query": "گوشی",
+      "page": 33
+    },
+    {
+      "attempts": 0,
+      "category_id": "5857",
+      "category_name": "سایر لوازم خودرو",
+      "category_query": "ابزار",
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "5867",
       "category_name": "لوازم جانبی جاروبرقی و بخار شو",
       "category_query": "لوازم خانگی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
-      "category_id": "6105",
-      "category_name": "چاقوی سفر و ابزار چند کاره",
+      "category_id": "6044",
+      "category_name": "آشنایی با فنون",
       "category_query": "ابزار",
-      "page": 30
+      "page": 33
+    },
+    {
+      "attempts": 0,
+      "category_id": "6055",
+      "category_name": "ماشین بازی",
+      "category_query": "اسباب بازی",
+      "page": 33
+    },
+    {
+      "attempts": 0,
+      "category_id": "6102",
+      "category_name": "قمقمه، فلاسک و کلمن",
+      "category_query": "لوازم خانگی",
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "6166",
       "category_name": "قیچی‌، چاقو و ابزار باغبانی",
       "category_query": "ابزار",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "6167",
       "category_name": "جعبه و کیف ابزار",
       "category_query": "ابزار",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "6172",
       "category_name": "لوازم روانکاری",
       "category_query": "ابزار",
-      "page": 30
+      "page": 33
+    },
+    {
+      "attempts": 0,
+      "category_id": "6247",
+      "category_name": "ابزار آشپزی",
+      "category_query": "ابزار",
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "6280",
       "category_name": "سرویس خواب",
       "category_query": "خانه",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "6328",
       "category_name": "ملحفه",
       "category_query": "لوازم خانگی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "6347",
       "category_name": "سبد آشپزخانه",
       "category_query": "لوازم خانگی",
-      "page": 30
-    },
-    {
-      "attempts": 0,
-      "category_id": "6359",
-      "category_name": "سایر ظروف",
-      "category_query": "لوازم خانگی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "6432",
       "category_name": "لوازم پوششی و محافظتی ورزشی",
       "category_query": "ورزش",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "6444",
       "category_name": "کاور لوازم خانگی",
       "category_query": "لوازم خانگی",
-      "page": 30
-    },
-    {
-      "attempts": 0,
-      "category_id": "6484",
-      "category_name": "ابزار آرایش صورت",
-      "category_query": "آرایشی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "6510",
       "category_name": "تجهیزات آرایشی چشم و ابرو",
       "category_query": "آرایشی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "6518",
       "category_name": "شامپو مو",
       "category_query": "مواد غذایی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "6576",
       "category_name": "منقل و تک شعله",
       "category_query": "لوازم خانگی",
-      "page": 30
-    },
-    {
-      "attempts": 0,
-      "category_id": "6658",
-      "category_name": "لوازم جانبی اپل واچ",
-      "category_query": "آرایشی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "6740",
       "category_name": "ابزار نقاشی ساختمان",
       "category_query": "ابزار",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "6757",
       "category_name": "لوازم بسته بندی",
       "category_query": "مواد غذایی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "6759",
       "category_name": "ابزار ایمنی کودک و نوزاد",
       "category_query": "لوازم خانگی",
-      "page": 30
-    },
-    {
-      "attempts": 0,
-      "category_id": "6944",
-      "category_name": "بند ساعت و مچ‌ بند",
-      "category_query": "آرایشی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "6975",
       "category_name": "لوازم جانبی نور و روشنایی",
       "category_query": "لوازم خانگی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "8157",
       "category_name": "خاک و کود",
       "category_query": "مواد غذایی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "8185",
       "category_name": "روکش صندلی خودرو",
       "category_query": "خودرو",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "8273",
       "category_name": "سر دنده",
       "category_query": "خودرو",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "8286",
       "category_name": "جاسوئیچی وسایل نقلیه",
       "category_query": "خودرو",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "8306",
       "category_name": "قطعات دوچرخه",
       "category_query": "لوازم خانگی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "8349",
       "category_name": "دستمال کاغذی",
       "category_query": "خودرو",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "8355",
       "category_name": "واکس، پولیش و تمیزکننده خودرو",
       "category_query": "خودرو",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "8370",
       "category_name": "تجهیزات راحتی سرنشین",
       "category_query": "خودرو",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "8432",
       "category_name": "تابلو شاسی",
       "category_query": "ورزش",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "8722",
       "category_name": "آموزش، سرگرمی و اکسسوری حیوانات",
       "category_query": "اسباب بازی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "8748",
       "category_name": "سایر لوازم اداری",
       "category_query": "لوازم خانگی",
-      "page": 30
-    },
-    {
-      "attempts": 0,
-      "category_id": "8909",
-      "category_name": "تافی و آبنبات",
-      "category_query": "مواد غذایی",
-      "page": 30
-    },
-    {
-      "attempts": 1,
-      "category_id": "8939",
-      "category_name": "سایر غلات صبحانه",
-      "category_query": "مواد غذایی",
-      "last_error": "rate_limited",
-      "page": 29
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "9004",
       "category_name": "تجهیزات تعمیرگاهی",
       "category_query": "خودرو",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "9005",
       "category_name": "لوازم یدکی خانگی",
       "category_query": "لوازم خانگی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "9268",
       "category_name": "ابزار و یراق آلات چرم دوزی",
       "category_query": "ابزار",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "9428",
       "category_name": "اکسسوری ورزشی زنانه",
       "category_query": "ورزش",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "9524",
       "category_name": "اکسسوری ورزشی مردانه",
       "category_query": "ورزش",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "9551",
       "category_name": "ورزش",
       "category_query": "ورزش",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "9908",
       "category_name": "کفش روزمره زنانه",
       "category_query": "کفش",
-      "page": 30
-    },
-    {
-      "attempts": 0,
-      "category_id": "10068",
-      "category_name": "سفره یکبار مصرف",
-      "category_query": "لوازم خانگی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "10072",
       "category_name": "محافظ لنز گوشی موبایل",
       "category_query": "گوشی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "10140",
       "category_name": "محافظ و آبگیر کنار سینک",
       "category_query": "لوازم خانگی",
-      "page": 30
-    },
-    {
-      "attempts": 1,
-      "category_id": "10334",
-      "category_name": "غلات ارگانیک",
-      "category_query": "مواد غذایی",
-      "last_error": "rate_limited",
-      "page": 29
-    },
-    {
-      "attempts": 1,
-      "category_id": "10481",
-      "category_name": "دستمال نظافت خانه و آشپزخانه",
-      "category_query": "خانه",
-      "last_error": "rate_limited",
-      "page": 29
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "10704",
       "category_name": "آرم و برچسب خودرو",
       "category_query": "خودرو",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "10709",
       "category_name": "روکش لحاف",
       "category_query": "لوازم خانگی",
-      "page": 30
-    },
-    {
-      "attempts": 1,
-      "category_id": "10756",
-      "category_name": "سایر ادویه و چاشنی‌ها",
-      "category_query": "مواد غذایی",
-      "last_error": "rate_limited",
-      "page": 29
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "11339",
       "category_name": "آینه های آرایشی",
       "category_query": "آرایشی",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "11351",
       "category_name": "کمربند ایمنی خودرو و لوازم جانبی کمربند",
       "category_query": "خودرو",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "11353",
       "category_name": "آویز تزئینی خودرو",
       "category_query": "خودرو",
-      "page": 30
-    },
-    {
-      "attempts": 1,
-      "category_id": "11419",
-      "category_name": "براش‌های آرایشی",
-      "category_query": "آرایشی",
-      "last_error": "rate_limited",
-      "page": 29
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "11554",
       "category_name": "پوشاک سگ",
       "category_query": "پوشاک",
-      "page": 30
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "11600",
       "category_name": "کتاب کسب و کار و اقتصاد",
       "category_query": "کتاب",
-      "page": 30
-    },
-    {
-      "attempts": 1,
-      "category_id": "11621",
-      "category_name": "پوشاک سگ و گربه",
-      "category_query": "پوشاک",
-      "last_error": "rate_limited",
-      "page": 29
+      "page": 33
     },
     {
       "attempts": 0,
       "category_id": "79",
       "category_name": "باتری گوشی",
       "category_query": "گوشی",
-      "page": 31
-    },
-    {
-      "attempts": 0,
-      "category_id": "209",
-      "category_name": "رم کامپیوتر و لپ‌تاپ (RAM)",
-      "category_query": "لپ تاپ",
-      "page": 31
+      "page": 34
     },
     {
       "attempts": 0,
       "category_id": "211",
       "category_name": "هدفون، هدست و هندزفری",
       "category_query": "ورزش",
-      "page": 31
-    },
-    {
-      "attempts": 1,
-      "category_id": "1272",
-      "category_name": "پاوربانک (شارژر همراه)",
-      "category_query": "گوشی",
-      "last_error": "rate_limited",
-      "page": 30
+      "page": 34
     },
     {
       "attempts": 0,
       "category_id": "1289",
       "category_name": "چندراهی برق و محافظ ولتاژ",
       "category_query": "لوازم خانگی",
-      "page": 31
-    },
-    {
-      "attempts": 1,
-      "category_id": "5857",
-      "category_name": "سایر لوازم خودرو",
-      "category_query": "ابزار",
-      "last_error": "rate_limited",
-      "page": 30
+      "page": 34
     },
     {
       "attempts": 0,
       "category_id": "5871",
       "category_name": "لوازم جانبی قطعات کامپیوتر",
       "category_query": "لوازم خانگی",
-      "page": 31
+      "page": 34
     },
     {
       "attempts": 0,
       "category_id": "5928",
       "category_name": "لوازم جانبی صوتی و تصویری خودرو",
       "category_query": "خودرو",
-      "page": 31
+      "page": 34
     },
     {
       "attempts": 0,
       "category_id": "6021",
       "category_name": "چمدان",
       "category_query": "لوازم خانگی",
-      "page": 31
+      "page": 34
     },
     {
       "attempts": 0,
       "category_id": "6029",
       "category_name": "بازی فکری",
       "category_query": "اسباب بازی",
-      "page": 31
-    },
-    {
-      "attempts": 1,
-      "category_id": "6044",
-      "category_name": "آشنایی با فنون",
-      "category_query": "ابزار",
-      "last_error": "rate_limited",
-      "page": 30
-    },
-    {
-      "attempts": 1,
-      "category_id": "6055",
-      "category_name": "ماشین بازی",
-      "category_query": "اسباب بازی",
-      "last_error": "rate_limited",
-      "page": 30
+      "page": 34
     },
     {
       "attempts": 0,
       "category_id": "6083",
       "category_name": "ابزار شوخی",
       "category_query": "اسباب بازی",
-      "page": 31
-    },
-    {
-      "attempts": 1,
-      "category_id": "6102",
-      "category_name": "قمقمه، فلاسک و کلمن",
-      "category_query": "لوازم خانگی",
-      "last_error": "rate_limited",
-      "page": 30
+      "page": 34
     },
     {
       "attempts": 0,
       "category_id": "6133",
       "category_name": "اسباب بازی زینتی",
       "category_query": "اسباب بازی",
-      "page": 31
-    },
-    {
-      "attempts": 1,
-      "category_id": "6247",
-      "category_name": "ابزار آشپزی",
-      "category_query": "ابزار",
-      "last_error": "rate_limited",
-      "page": 30
+      "page": 34
     },
     {
       "attempts": 0,
       "category_id": "6275",
       "category_name": "دستگیره",
       "category_query": "لوازم خانگی",
-      "page": 31
+      "page": 34
     },
     {
       "attempts": 0,
       "category_id": "6295",
       "category_name": "پادری",
       "category_query": "خانه",
-      "page": 31
+      "page": 34
     },
     {
       "attempts": 0,
       "category_id": "6297",
       "category_name": "رومیزی و رانر",
       "category_query": "لوازم خانگی",
-      "page": 31
+      "page": 34
     },
     {
       "attempts": 0,
       "category_id": "6301",
       "category_name": "ظرف نگهدارنده",
       "category_query": "مواد غذایی",
-      "page": 31
+      "page": 34
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "parallel_worker_limit": 7,
+  "parallel_worker_limit": 12,
   "parallel_worker_ramp_policy_version": "explicit_12_14_16_v1",
-  "parallel_workers_used": 14,
-  "pending_page_count": 116,
+  "parallel_workers_used": 11,
+  "pending_page_count": 102,
   "schema_version": 1,
   "stats": {
     "api_failures_total": 118340,
-    "catalog_candidate_cards_found_total": 87053685,
+    "catalog_candidate_cards_found_total": 87059331,
     "completed_cycles": 240,
     "cycles_with_gaps_total": 354,
-    "discounted_candidates_found_total": 19240691,
-    "empty_product_pages_total": 1776684,
-    "nonempty_product_pages_total": 4702642,
-    "pages_scanned_total": 4739807,
-    "product_rows_scanned_total": 92673589,
+    "discounted_candidates_found_total": 19241769,
+    "empty_product_pages_total": 1776685,
+    "nonempty_product_pages_total": 4702976,
+    "pages_scanned_total": 4740142,
+    "product_rows_scanned_total": 92680167,
     "unqueryable_categories_total": 1740482
   },
   "unacknowledged_candidate_count": 3000
