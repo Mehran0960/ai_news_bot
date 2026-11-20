@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-20T03:22:46.801037+00:00",
-  "aparat_last_upload_success_at": "2026-11-20T03:22:49.906669+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-20T04:04:49.717622+00:00",
+  "aparat_last_upload_success_at": "2026-11-20T04:04:53.972132+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-20T04:00:42.637538+00:00",
@@ -240068,7 +240068,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-21090992": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-20T04:04:49.717622+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-20T04:04:53.972132+00:00",
+      "aparat_video_hash": "dys99n7",
+      "aparat_video_record_id": "74304090",
+      "aparat_video_url": "https://www.aparat.com/v/dys99n7",
+      "aparat_visibility": "public",
       "bale_message_id": 2359,
       "bale_posted_at": "2026-11-20T04:03:43.433710+00:00",
       "brand": "زدفون",
@@ -240192,8 +240198,17 @@
       "telegram_posted_at": "2026-11-20T04:03:43.125187+00:00",
       "title": "ادو پرفیوم مردانه زدفون مدل ایو سن لورن وای با رایحه خنک حجم 100 میلی لیتر",
       "ts": 1795147417.208368,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-21090992.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-21090992.mp4"
+      },
+      "video_generated_at": "2026-11-20T04:04:42.718356+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-21091932": {
       "aparat_upload_started_at": "2026-11-19T02:40:57.185789+00:00",
