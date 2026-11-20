@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-11-20T09:32:09.516497+00:00",
-  "product_publication_cadence_cycle_id": "2026-11-20T08:51:28.918591+00:00",
-  "youtube_upload_pause_reason": "daily_upload_limit",
-  "pending_product_queue_count": 7,
   "filo_upload_interval_policy_version": 3,
-  "product_publication_interval_seconds": 3420.0,
-  "editorial_channel_queue": [],
+  "pending_product_queue_count": 7,
+  "filo_next_upload_at": null,
   "youtube_uploads_paused_until": "2026-11-20T22:48:40.998430+00:00",
-  "youtube_next_upload_at": null,
+  "product_publication_plan_cycle_id": "2026-11-20T09:29:32.996237+00:00",
+  "editorial_delivery_queue": {},
+  "last_channel_published_at": "2026-11-20T09:29:50.888595+00:00",
+  "product_publication_cadence_cycle_id": "2026-11-20T09:29:32.996237+00:00",
+  "emergency_continuity_baseline_completed_at": null,
   "published": {
     "dkp-22367542": {
       "aparat_upload_status": "uploaded",
@@ -634,8 +634,6 @@
       "youtube_upload_status": "retry"
     }
   },
-  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
-  "aparat_next_upload_at": null,
   "editorial_video_queue": [
     {
       "content_id": "editorial:measure-room-size",
@@ -651,17 +649,19 @@
       "status": "partial"
     }
   ],
-  "emergency_continuity_baseline_completed_at": null,
-  "filo_login_verified_at": "2026-11-20T09:31:32.024459+00:00",
-  "filo_next_upload_at": null,
-  "emergency_continuity_expires_at": null,
+  "youtube_upload_pause_reason": "daily_upload_limit",
   "next_channel_content_due_at": "2026-11-20T10:07:50.888595+00:00",
-  "last_product_channel_published_at": "2026-11-20T09:29:50.888595+00:00",
-  "product_publication_plan_cycle_id": "2026-11-20T08:51:28.918591+00:00",
   "filo_login_verification_status": "verified",
+  "aparat_next_upload_at": null,
+  "emergency_continuity_expires_at": null,
+  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
+  "last_product_channel_published_at": "2026-11-20T09:29:50.888595+00:00",
+  "youtube_next_upload_at": null,
   "emergency_continuity_active": false,
+  "generated_at": "2026-11-20T09:33:50.526173+00:00",
+  "product_publication_interval_seconds": 1860.0,
+  "filo_login_verified_at": "2026-11-20T09:31:32.024459+00:00",
   "emergency_continuity_snapshot_sha256": null,
-  "last_channel_published_at": "2026-11-20T09:29:50.888595+00:00",
-  "schema_version": 2,
-  "editorial_delivery_queue": {}
+  "editorial_channel_queue": [],
+  "schema_version": 2
 }
