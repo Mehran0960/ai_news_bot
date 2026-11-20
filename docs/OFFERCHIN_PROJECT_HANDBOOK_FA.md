@@ -3323,3 +3323,23 @@ PR #251 با commit ادغام `52ae2e4af60690f090c6db07a6156339c766ffd0` وار
 **ریسک/بازگشت:** فقط نام query keyها و schema ساختاری ثبت می‌شوند؛ هیچ مقدار، header، body، cookie یا token در log نوشته نمی‌شود. rollback با revert اسکریپت انجام می‌شود.
 
 **وضعیت:** در انتظار اجرای نهایی برای شناسایی پارامترهای فیلتر و صفحه‌بندی.
+
+## ۲۰۲۶-۱۱-۲۰ — آشکارسازی محدود metadata تاریخ و صفحه‌بندی
+
+**هدف:** شناخت بازهٔ زمانی و pagination گزارش‌های Affilio بدون افشای مقادیر query حساس یا شناسه‌های حساب/رسانه.
+
+**تغییر/اقدام:**
+- برای query keyهای `from_` و `to` فقط مقدارهای منطبق با قالب تاریخ/زمان استاندارد ثبت می‌شوند؛ `page` و `page_size` فقط عدد صحیح کوچک؛ `sort_order` فقط enumهای asc/desc/ascending/descending.
+- برای تمام query keyهای دیگر فقط نام پارامتر ثبت می‌شود و مقدار آن حذف می‌ماند؛ header، body، token و شناسه‌ها همچنان ثبت نمی‌شوند.
+- فیلدهای شناسایی‌شده در schema `links/analytics` شامل `click_count`، `conversion_rate`، `income_items_count`، `total_income`، `revenue_share`، `media_uid`، `link_uid`، `advertiser_name` و `first_click_date` هستند؛ معنی مالی هر فیلد قبل از جمع‌بندی باید با تعریف پنل تطبیق داده شود.
+- `performance-by-link-type` دادهٔ تفکیکی clicks/conversions/revenue و `wallet-summary` فیلدهای `finalized_income_amount` و `wallet_balance_amount` ارائه می‌کنند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_network_audit.mjs`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md` و `affilio_radar/AFFILIO_REPORTING_ACCESS.md`.
+
+**آزمون و نتیجه:** browser audit عمیق در run `44698880839` موفق شد و schemaهای فوق را بدون چاپ مقدارها ثبت کرد. query metadata محدود در commit `a5a7f60b330704b92c7365be0413e9ebcde4b607` افزوده شده؛ CI اجرای بعدی در انتظار است.
+
+**شواهد/شناسه:** PR #262؛ browser audit run `44698880839`؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** تاریخ/صفحه/ترتیب مجاز برای تشخیص بازه و pagination نمایش داده می‌شود؛ سایر مقدارها مخفی‌اند. هیچ مقدار مالی، دادهٔ مشتری یا ردیف سفارش وارد log نمی‌شود. rollback با revert browser script انجام می‌شود.
+
+**وضعیت:** endpointها و schemaهای پایه شناسایی شده‌اند؛ import کامل و تطبیق اعداد با پنل هنوز انجام نشده است.
