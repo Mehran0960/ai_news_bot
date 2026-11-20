@@ -79,6 +79,41 @@ class AffilioPanelAuditTests(unittest.TestCase):
         )
         self.assertEqual(path, "/reports/{id}/orders/{id}")
 
+
+    def test_builds_oidc_authorization_request_with_pkce(self):
+        url, state, verifier = build_authorization_request()
+        parsed = urlsplit(url)
+        query = parse_qs(parsed.query)
+        self.assertEqual(parsed.scheme, "https")
+        self.assertEqual(parsed.netloc, "sso.digiwise.ir")
+        self.assertEqual(parsed.path, "/realms/services/protocol/openid-connect/auth")
+        self.assertEqual(query["client_id"], ["affilio-publisher-panel"])
+        self.assertEqual(query["redirect_uri"], ["https://publisher.affilio.ir/"])
+        self.assertEqual(query["response_type"], ["code"])
+        self.assertEqual(query["code_challenge_method"], ["S256"])
+        self.assertEqual(len(query["code_challenge"][0]), 43)
+        self.assertTrue(state)
+        self.assertTrue(verifier)
+
+    def test_extracts_callback_code_only_for_registered_host_and_state(self):
+        callback = (
+            "https://publisher.affilio.ir/#code=opaque-code"
+            "&state=expected-state&session_state=ignored"
+        )
+        self.assertEqual(
+            extract_authorization_code(callback, "expected-state"),
+            "opaque-code",
+        )
+        self.assertIsNone(
+            extract_authorization_code(callback, "wrong-state"),
+        )
+        self.assertIsNone(
+            extract_authorization_code(
+                "https://attacker.example/#code=opaque-code&state=expected-state",
+                "expected-state",
+            ),
+        )
+
     def test_rejects_non_panel_host_and_non_https_urls(self):
         self.assertIsNone(
             normalized_path("http://publisher.affilio.ir/reports", "https://publisher.affilio.ir/")
