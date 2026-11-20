@@ -3369,3 +3369,26 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **وضعیت:** مرحلهٔ تصویب سیاست، مستندسازی و گیت رگرسیون در `main` ادغام و آزمون‌شده است. اتصال خودکار پنل Affilio، Postback تولیدی، `aff_sub`، دفتر تبدیل D1، داشبورد درآمد و آزمون واقعی دو اپراتور داخل ایران همچنان باز/مسدود به دسترسی رسمی و شواهد بیرونی هستند.
 
 **فایل‌ها/سامانه‌ها:** `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`؛ PR #260 و merge commit `5bca1a18e87a4c20f04c9cea90c302fee28b9fa2`؛ GitHub Actions runs `44693716563`، `44693716564`، `44693716565`، `44693716616`، `44693716562` و `44693161892`.
+
+## ۲۰۲۶-۱۱-۲۰ — آماده‌سازی ممیزی امن ورود به پنل Affilio
+
+**هدف:** استفاده از دو GitHub Secret موجود ناشر برای تأیید ورود به پنل و کشف مسیرهای گزارش‌گیری، بدون افشای credential یا دادهٔ مالی در مخزن عمومی.
+
+**تغییر/اقدام:**
+- نام Secretهای مورد استفاده مشخص شد: `AFFILIO_USER` و `AFFILIO_PASS`. مقدار آن‌ها فقط از طریق GitHub Actions environment به فرایند ممیزی داده می‌شود؛ کد و workflow هیچ مقدار محرمانه‌ای را چاپ یا ذخیره نمی‌کنند.
+- صفحهٔ عمومی پنل `publisher.affilio.ir` بررسی شد. فرم ورود به SSO دیجی‌وایز/Keycloak هدایت می‌شود؛ فیلدهای فرم `username` و `password` و action مورد انتظار روی host رسمی `sso.digiwise.ir` است.
+- اسکریپت read-only `affilio_radar/affilio_panel_audit.py` برای دریافت فرم، اعتبارسنجی سخت‌گیرانهٔ host/path احراز هویت، ارسال یک تلاش ورود و بررسی صفحهٔ پنل اضافه شد. کوکی فقط در CookieJar داخل حافظهٔ همان process می‌ماند؛ هیچ cookie، token، response body، کاربر، سفارش یا گزارش مالی ذخیره/چاپ نمی‌شود.
+- اسکریپت فقط لینک‌ها و routeهای هم‌مبدأ مرتبط با report/commission/order/transaction را از HTML و assetهای هم‌مبدأ استخراج می‌کند؛ query stringها و شناسه‌های مسیر طولانی حذف/ماسک می‌شوند.
+- workflow مستقل `.github/workflows/affilio-panel-readonly-audit.yml` اضافه شد. روی PR همان مخزن، push به main و اجرای دستی اجرا می‌شود؛ PRهای fork به مرحلهٔ احراز هویت نمی‌رسند. فقط وضعیت ورود و مسیرهای پاک‌سازی‌شده چاپ می‌شوند؛ هیچ artifact یا فایل گزارش خام upload نمی‌شود.
+- تست‌های parser، اعتبارسنجی مقصد SSO، محدودسازی host و پاک‌سازی مسیرها در `affilio_radar/test_affilio_panel_audit.py` اضافه شدند.
+- بررسی عمومی مستندات Affilio نشان داد Public API عمومی فعلی کاتالوگ/قیمت/دسته/تبلیغ‌دهنده و Conversion Postback را معرفی می‌کند؛ endpoint گزارش تاریخی ناشر در فهرست عمومی آن دیده نشد. بنابراین فعلاً هدف workflow کشف read-only مسیر واقعی پنل است، نه حدس‌زدن endpoint یا استخراج خودکار سفارش‌ها.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_audit.py`، `affilio_radar/test_affilio_panel_audit.py`، `.github/workflows/affilio-panel-readonly-audit.yml`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`؛ GitHub Secrets با نام‌های `AFFILIO_USER` و `AFFILIO_PASS`.
+
+**آزمون و نتیجه:** پنج تست واحد محلیِ رفتار parser و URL safety تعریف شده و workflow قبل از هر تلاش ورود آن‌ها را اجرا می‌کند. نتیجهٔ آزمون یکپارچهٔ login از داخل GitHub Actions پس از اجرای PR ثبت می‌شود؛ در لحظهٔ ثبت این ورودی هنوز credentials در runner آزموده نشده‌اند. هیچ گزارش مالی یا سفارش واقعی دریافت نشده است.
+
+**شواهد/شناسه:** صفحهٔ ورود عمومی `https://publisher.affilio.ir/`؛ SSO `https://sso.digiwise.ir/`؛ مستند API `https://public.affilio.ir/api/public/docs/`؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** اگر SSO، MFA یا CAPTCHA تغییر کند، ممیزی باید امن متوقف شود و نباید MFA/CAPTCHA را دور بزند یا login را چندبار تکرار کند. workflow فقط به همان host/path رسمی SSO POST می‌زند. rollback با revert همین اسکریپت، تست و workflow ممکن است؛ Secretهای اصلی حذف یا تغییر نمی‌شوند. هیچ دادهٔ محرمانه‌ای در artifact یا log مجاز نیست.
+
+**وضعیت:** ابزار read-only و workflow در شاخهٔ PR آماده شده‌اند؛ ورود واقعی و کشف مسیر گزارش هنوز در انتظار نتیجهٔ Actions است. دریافت/پردازش CSV/XLSX، داشبورد و Postback همچنان مرحله‌های جداگانه‌اند و در این تغییر فعال نشده‌اند.
