@@ -171,3 +171,13 @@ workflow مستقل `.github/workflows/affilio-panel-readonly-audit.yml` این 
 - access token، code، cookie و گزارش‌ها در log/artifact/repository قرار نمی‌گیرند.
 
 این تغییر هنوز یک روش ورود در حال آزمون است؛ تا اجرای موفق workflow، احراز هویت یا دسترسی گزارش را تأییدشده تلقی نکن.
+
+### نتیجهٔ اجرای واقعی ممیزی پنل — ۲۰ نوامبر ۲۰۲۶
+
+GitHub Actions run `44696134790` ورود OIDC/PKCE را با هر دو Secret (`AFFILIO_USER` و `AFFILIO_PASS`) با موفقیت انجام داد. مسیرهای UI کشف‌شده:
+- `/performance`
+- `/performance/overview`
+- `/performance/links`
+- `/performance/products`
+
+این‌ها مسیرهای صفحهٔ پنل هستند؛ هنوز endpoint API یا export مالی تأیید نشده‌اند. هیچ ردیف سفارش/کمیسیون دانلود یا چاپ نشده است و هیچ artifact خامی وجود ندارد. مرحلهٔ بعد باید با بررسی assetهای هم‌مبدأ و response schemaها، endpointهای رسمی را شناسایی کند و فقط پس از تعیین semantics، گزارش را بخواند.
