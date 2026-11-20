@@ -3245,3 +3245,23 @@ PR #251 با commit ادغام `52ae2e4af60690f090c6db07a6156339c766ffd0` وار
 **ریسک/بازگشت:** probe فقط GET روی host ثابت و بدون redirect-follow انجام می‌دهد؛ token فقط در حافظه نگهداری می‌شود. اگر endpointی دادهٔ خام برگرداند، فقط schema نام‌فیلدها ثبت می‌شود و body دور ریخته می‌شود. rollback با revert تغییر probe و تست ممکن است؛ هیچ لینک خرید یا دادهٔ تولیدی تغییر نمی‌کند.
 
 **وضعیت:** ورود پنل و کشف UI موفق؛ probe API در حال اعتبارسنجی است. هنوز گزارش مالی کامل/CSV دانلود نشده و هیچ عددی با پنل تطبیق داده نشده است.
+
+## ۲۰۲۶-۱۱-۲۰ — ثبت مسیرهای واقعی درخواست‌های پنل با مرورگر
+
+**هدف:** کشف endpointهای عملیاتی گزارش افیلیو از طریق مشاهدهٔ XHR/Fetch صفحات عملکرد؛ جلوگیری از حدس‌زدن endpoint بر اساس مسیر UI یا 404های host API.
+
+**تغییر/اقدام:**
+- اسکریپت Playwright با نام `affilio_radar/affilio_panel_network_audit.mjs` ساخته شد. مرورگر headless با استفاده از همان Secretها وارد پنل شده و چهار صفحهٔ performance/overview/links/products را باز می‌کند.
+- listenerها فقط درخواست‌های XHR/Fetch را به دامنه‌های رسمی افیلیو/دیجی‌وایز می‌گیرند؛ فقط method، host/path پاک‌سازی‌شده، status و content-type چاپ می‌شود.
+- query string، header، request/response body، cookie، token، screenshot، trace، HTML خام و report row ثبت یا upload نمی‌شود؛ کد هیچ دکمهٔ نوشتنی را کلیک نمی‌کند.
+- workflow با نصب Chromium/Playwright به‌روزرسانی و concurrency از اجرای هم‌زمان/قدیمی با cancel-in-progress محافظت می‌کند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_network_audit.mjs`، `.github/workflows/affilio-panel-readonly-audit.yml`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
+
+**آزمون و نتیجه:** اجرای OIDC/PKCE و parser در run `44696935924` موفق بود؛ probeهای حدسی `api.affilio.ir` همگی 404 دادند. Playwright network audit پس از CI روی نسخهٔ جدید در انتظار است.
+
+**شواهد/شناسه:** PR #262؛ run موفق ورود `44696935924`؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** فقط navigation به صفحات read-only و interception فرادادهٔ XHR/Fetch انجام می‌شود؛ body/headers/credentials ثبت نمی‌شوند. در صورت login challenge یا از دست‌رفتن session، run متوقف می‌شود. rollback با revert اسکریپت browser و workflow است.
+
+**وضعیت:** اسکریپت و workflow browser در شاخهٔ PR ایجاد شدند؛ endpointهای واقعی هنوز شناسایی نشده‌اند و منتظر CI هستند.
