@@ -3477,3 +3477,23 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** فقط navigation به صفحات read-only و interception فرادادهٔ XHR/Fetch انجام می‌شود؛ body/headers/credentials ثبت نمی‌شوند. در صورت login challenge یا از دست‌رفتن session، run متوقف می‌شود. rollback با revert اسکریپت browser و workflow است.
 
 **وضعیت:** اسکریپت و workflow browser در شاخهٔ PR ایجاد شدند؛ endpointهای واقعی هنوز شناسایی نشده‌اند و منتظر CI هستند.
+
+## ۲۰۲۶-۱۱-۲۰ — ثبت schema پاسخ‌های API بدون ذخیرهٔ مقادیر
+
+**هدف:** شناسایی فیلدهای واقعی پاسخ endpointهای گزارش افیلیو برای طراحی import مالی، بدون ثبت مقدارهای سفارش/کمیسیون در log یا repository.
+
+**تغییر/اقدام:**
+- اولین browser network audit در run `44697387470` موفق شد؛ ۱۳ درخواست XHR/Fetch در چهار صفحهٔ عملکرد دیده شد.
+- مسیرهای مهم کشف‌شده شامل `/api/v1/dashboard/summary-statistics`، `/api/v1/dashboard/revenue-trend`، `/api/v1/dashboard/revenue-basket`، `/api/v1/dashboard/clicks-trend`، `/api/v1/dashboard/top-categories`، `/api/v1/dashboard/top-links`، `/api/v1/dashboard/performance-by-link-type`، `/api/v1/links/analytics` و `/api/v1/users/me/wallet-summary` هستند.
+- برخی پاسخ‌ها در snapshot اول pending بودند؛ نسخهٔ بعدی Playwright زمان انتظار networkidle را افزایش می‌دهد و در صورت JSON بودن پاسخ فقط نام کلیدها و نوع دادهٔ هر فیلد را در عمق محدود گزارش می‌کند. body فقط در حافظه خوانده و دور ریخته می‌شود؛ هیچ مقدار، تعداد ردیف، شناسهٔ مشتری، مبلغ سفارش یا payout چاپ نمی‌شود.
+- رویداد `requestfailed` نیز فقط status کلی `network_failed` می‌دهد؛ متن خطا، URL query، header و body ثبت نمی‌شوند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_network_audit.mjs`، `.github/workflows/affilio-panel-readonly-audit.yml`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`.
+
+**آزمون و نتیجه:** run `44697387470` با موفقیت login و capture مسیرها را انجام داد؛ endpointها و statusهای مشاهده‌شده ثبت شدند. نسخهٔ schema-only در commit `be5edfb6a55e467c17bf1027664da4989e93b996` آماده شده و اجرای CI آن در انتظار است.
+
+**شواهد/شناسه:** PR #262؛ run `44697387470`؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** خواندن response JSON می‌تواند شامل دادهٔ مالی باشد؛ در این پیاده‌سازی مقدارها فقط در حافظه parse می‌شوند و تابع `describeSchema` صرفاً کلیدها و نوع‌ها را بازمی‌گرداند. هیچ response body در log یا فایل نوشته نمی‌شود. rollback با revert همین تغییر Playwright انجام می‌شود.
+
+**وضعیت:** endpointهای اصلی UI شناسایی شده‌اند؛ schema-only response inspection پیاده‌سازی شده و منتظر CI است. هنوز هیچ فایل مالی یا گزارش خام دانلود نشده و محاسبهٔ درآمد آغاز نشده است.
