@@ -15,6 +15,7 @@ on:
     paths:
       - "affilio_radar/affilio_panel_audit.py"
       - "affilio_radar/test_affilio_panel_audit.py"
+      - "affilio_radar/affilio_panel_network_audit.mjs"
       - ".github/workflows/affilio-panel-readonly-audit.yml"
   workflow_dispatch:
 
