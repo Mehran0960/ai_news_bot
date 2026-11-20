@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-20T20:12:48.998695+00:00",
-  "aparat_last_upload_success_at": "2026-11-20T20:12:53.185822+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-20T20:59:38.520435+00:00",
+  "aparat_last_upload_success_at": "2026-11-20T20:59:41.905179+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-20T20:34:56.685537+00:00",
@@ -281950,7 +281950,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22623897": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-20T20:59:38.520435+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-20T20:59:41.905179+00:00",
+      "aparat_video_hash": "bfox18d",
+      "aparat_video_record_id": "74317551",
+      "aparat_video_url": "https://www.aparat.com/v/bfox18d",
+      "aparat_visibility": "public",
       "bale_message_id": 2390,
       "bale_posted_at": "2026-11-20T20:58:41.570001+00:00",
       "brand": "",
@@ -282074,8 +282080,17 @@
       "telegram_posted_at": "2026-11-20T20:58:40.901057+00:00",
       "title": "دوربین دیجیتال مدل روباه کیوت",
       "ts": 1795208314.933921,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22623897.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22623897.mp4"
+      },
+      "video_generated_at": "2026-11-20T20:59:33.169569+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22625619": {
       "aparat_upload_started_at": "2026-11-19T11:59:52.119173+00:00",
