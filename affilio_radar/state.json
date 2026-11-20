@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-20T15:52:58.579922+00:00",
-  "aparat_last_upload_success_at": "2026-11-20T15:53:01.998315+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-20T17:07:52.480928+00:00",
+  "aparat_last_upload_success_at": "2026-11-20T17:07:56.561803+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-20T17:03:39.363065+00:00",
@@ -299251,7 +299251,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-7427571": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-20T17:07:52.480928+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-20T17:07:56.561803+00:00",
+      "aparat_video_hash": "dlah3n4",
+      "aparat_video_record_id": "74314649",
+      "aparat_video_url": "https://www.aparat.com/v/dlah3n4",
+      "aparat_visibility": "public",
       "bale_message_id": 2383,
       "bale_posted_at": "2026-11-20T17:05:49.487961+00:00",
       "brand": "انتشارات ندای معاصر",
@@ -299379,8 +299385,17 @@
       "telegram_posted_at": "2026-11-20T17:05:48.657292+00:00",
       "title": "کتاب معجزه شکرگزاری اثر راندا برن انتشارات ندای معاصر",
       "ts": 1795194343.488475,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-7427571.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-7427571.mp4"
+      },
+      "video_generated_at": "2026-11-20T17:07:45.340849+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-7461447": {
       "aparat_upload_started_at": "2026-11-17T19:46:50.775568+00:00",
