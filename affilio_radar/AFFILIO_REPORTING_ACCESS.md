@@ -140,4 +140,24 @@ Worker sourceهای `telegram`، `bale`، `rubika`، `eitaa`، `youtube`، `apar
 - یک رویداد واقعی با گزارش پنل تطبیق داده شود.
 
 **توقف امن:** تا پیش از اثبات end-to-end، Postback receiver یا گزارش داخلی نباید به‌عنوان منبع فروش قطعی معرفی شود. CTA خرید مستقل و مستقیم باقی می‌ماند.
+ 
+---
+
+## Secretهای پنل و ممیزی ورود read-only — ۲۰ نوامبر ۲۰۲۶
+
+دو نام GitHub Secret برای ورود پنل معرفی شدند:
+- `AFFILIO_USER`
+- `AFFILIO_PASS`
+
+workflow مستقل `.github/workflows/affilio-panel-readonly-audit.yml` این دو مقدار را فقط در environment همان step دریافت می‌کند. اسکریپت `affilio_radar/affilio_panel_audit.py`:
+- فقط به `https://publisher.affilio.ir/` و login action دقیق `https://sso.digiwise.ir/realms/services/login-actions/authenticate` متصل می‌شود؛
+- فقط یک تلاش login انجام می‌دهد و هیچ MFA/CAPTCHA یا challenge را دور نمی‌زند؛
+- کوکی را فقط در حافظهٔ process نگه می‌دارد؛
+- هیچ مقدار credential، cookie، token، HTML خام، مشخصات حساب، سفارش یا payout را چاپ، commit یا upload نمی‌کند؛
+- فقط نتیجهٔ login، شمار assetها، وجود واژه‌های گزارش و routeهای هم‌مبدأِ پاک‌سازی‌شده را در log می‌نویسد؛
+- از workflow artifact استفاده نمی‌کند.
+
+**محدودیت فعلی:** این ممیزی هنوز خودش گزارش مالی را استخراج نمی‌کند؛ اول باید ورود واقعی و مسیرهای گزارش/فیلتر/خروجی در پنل شناسایی شوند. پس از موفقیت login، مسیر دریافت باید فقط از API/export رسمی یا قابلیت رسمی پنل پیاده‌سازی شود. اگر MFA، CAPTCHA یا تغییر SSO لازم باشد، عملیات امن متوقف می‌شود و نیاز به اقدام مجاز مالک حساب دارد.
+
+مستند عمومی فعلی API افیلیو endpoint گزارش تاریخی کلیک/سفارش/کمیسیون ناشر را معرفی نمی‌کند؛ بنابراین تا مشاهدهٔ مسیر واقعی پنل، endpoint گزارش ساخته یا حدس زده نمی‌شود.
 
