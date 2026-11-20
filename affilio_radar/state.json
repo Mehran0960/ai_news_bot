@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-20T17:51:02.494565+00:00",
-  "aparat_last_upload_success_at": "2026-11-20T17:51:08.028711+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-20T18:25:51.962431+00:00",
+  "aparat_last_upload_success_at": "2026-11-20T18:26:06.972111+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-20T18:07:42.332102+00:00",
@@ -270137,7 +270137,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22215277": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-20T18:25:51.962431+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-20T18:26:06.972111+00:00",
+      "aparat_video_hash": "ewznca4",
+      "aparat_video_record_id": "74315798",
+      "aparat_video_url": "https://www.aparat.com/v/ewznca4",
+      "aparat_visibility": "public",
       "bale_message_id": 2386,
       "bale_posted_at": "2026-11-20T18:24:03.793535+00:00",
       "brand": "فلورمار",
@@ -270261,8 +270267,17 @@
       "telegram_posted_at": "2026-11-20T18:24:02.008266+00:00",
       "title": "رژ لب جامد براق فلورمار مدل SHEER UP رنگ کالباسی شماره 09",
       "ts": 1795199035.585408,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22215277.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22215277.mp4"
+      },
+      "video_generated_at": "2026-11-20T18:25:43.815704+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22230202": {
       "aparat_skip_reason": "selection_outside_freshness_window",
