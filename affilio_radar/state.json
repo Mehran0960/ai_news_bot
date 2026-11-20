@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-20T01:51:49.800474+00:00",
-  "aparat_last_upload_success_at": "2026-11-20T01:51:53.757900+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-20T02:36:38.844987+00:00",
+  "aparat_last_upload_success_at": "2026-11-20T02:36:43.784353+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-20T02:24:40.787348+00:00",
@@ -279837,7 +279837,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22942102": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-20T02:36:38.844987+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-20T02:36:43.784353+00:00",
+      "aparat_video_hash": "ixa8kh3",
+      "aparat_video_record_id": "74303853",
+      "aparat_video_url": "https://www.aparat.com/v/ixa8kh3",
+      "aparat_visibility": "public",
       "bale_message_id": 2357,
       "bale_posted_at": "2026-11-20T02:35:40.491890+00:00",
       "brand": "",
@@ -279961,8 +279967,17 @@
       "telegram_posted_at": "2026-11-20T02:35:40.149239+00:00",
       "title": "شلوار ورزشی مردانه ایکس پروداکتس مدل Niki FIX دمپا کش، پارچه آیرو خارجی، کمر کشی",
       "ts": 1795142134.286945,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22942102.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22942102.mp4"
+      },
+      "video_generated_at": "2026-11-20T02:36:33.786655+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22942845": {
       "aparat_skip_reason": "selection_outside_freshness_window",
