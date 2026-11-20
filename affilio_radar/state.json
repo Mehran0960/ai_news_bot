@@ -2308,180 +2308,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-22892720",
-      "content_type": "product",
-      "last_detail": "recent_product_family_or_brand_cooldown",
-      "next_attempt_at": "2026-11-16T12:59:42.649071+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22892720%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "10738",
-        "catalog_best_selling_category_name": "کنسرو نخود فرنگی",
-        "catalog_best_selling_rank": 7,
-        "catalog_best_selling_ranks_by_category": {
-          "10738": {
-            "category_name": "کنسرو نخود فرنگی",
-            "observed_at": "2026-11-16T09:35:42.572426+00:00",
-            "rank": 7,
-            "rank_history": [
-              {
-                "category_name": "کنسرو نخود فرنگی",
-                "observed_at": "2026-11-16T09:35:42.572426+00:00",
-                "rank": 7
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T10:07:39.742838+00:00",
-        "catalog_cycle_snapshot_rank": 158,
-        "catalog_rank_observed_at": "2026-11-16T09:35:42.572426+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "grocery_food",
-        "checked_at": "2026-11-16T10:33:51.527653+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22892720",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 990000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 64.11,
-        "discount_percent": 50,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T10:34:15.486326+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 990000,
-        "history_low_toman": 990000,
-        "history_median_toman": 990000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/95f4da0064c4f54e47098ec3f1568c8cd99fc6b6_1791122448.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_check_cached": true,
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "کنسرو نخود سبز مستر استار - 380 گرم بسته 12 عددی",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 82.58,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 64.11,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 99.1,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T10:34:27.709147+00:00",
-          "weakest_factor_score": 64.11
-        },
-        "original_price": 1980000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-22892720",
-        "product_url": "https://www.digikala.com/product/dkp-22892720/",
-        "promo_score": 39,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.0,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "savings_toman": 990000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 7,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 82.58,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 64.11,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 99.1,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T10:34:27.709147+00:00",
-          "weakest_factor_score": 64.11
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1315,
-        "title": "کنسرو نخود سبز مستر استار - 380 گرم بسته 12 عددی"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22892720",
-      "product_plan_cycle_id": "2026-11-16T12:41:29.903931+00:00",
-      "scheduled_at": "2026-11-16T12:59:42.649071+00:00",
-      "selected_at": "2026-11-16T10:34:36.018986+00:00",
-      "sequence_number": 1315,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T12:59:44.196103+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-21883276",
       "content_type": "product",
       "last_detail": "recent_product_family_or_brand_cooldown",
@@ -38737,6 +38563,179 @@
       "sequence_number": 1605,
       "status": "published",
       "updated_at": "2026-11-20T03:21:53.683914+00:00"
+    },
+    {
+      "attempt_count": 0,
+      "content_id": "dkp-5460119",
+      "content_type": "product",
+      "last_detail": "recent_product_family_or_brand_cooldown",
+      "next_attempt_at": "2026-11-20T03:58:53.683035+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-5460119%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "8938",
+        "catalog_best_selling_category_name": "لواشک، برگه و آلوچه",
+        "catalog_best_selling_rank": 6,
+        "catalog_best_selling_ranks_by_category": {
+          "8938": {
+            "category_name": "لواشک، برگه و آلوچه",
+            "observed_at": "2026-11-19T15:11:49.549796+00:00",
+            "rank": 6,
+            "rank_history": [
+              {
+                "category_name": "لواشک، برگه و آلوچه",
+                "observed_at": "2026-11-19T15:11:49.549796+00:00",
+                "rank": 6
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-19T15:37:38.816861+00:00",
+        "catalog_cycle_snapshot_rank": 418,
+        "catalog_rank_observed_at": "2026-11-19T15:11:49.549796+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "other",
+        "checked_at": "2026-11-19T16:07:28.410826+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-5460119",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 299000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 50.15,
+        "discount_percent": 30,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-19T16:07:59.364138+00:00",
+        "history_days": 2,
+        "history_end_day": "2026-11-19",
+        "history_high_toman": 299000,
+        "history_low_toman": 298000,
+        "history_median_toman": 298500,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": 299000,
+        "history_start_day": "2026-11-16",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/fe3e2759d9707a86e223a9bc4773dbd9e5605f3d_1623659610.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 35.05,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 50.15,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 18.0,
+          "generality_group": "catalog_taxonomy_other",
+          "live_demand": 99.14,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-19T16:08:10.129191+00:00",
+          "weakest_factor_score": 18.0
+        },
+        "original_price": 430000,
+        "pct_above_stable_low": 0,
+        "product_id": "dkp-5460119",
+        "product_url": "https://www.digikala.com/product/dkp-5460119/",
+        "promo_score": 22,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 3.93,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 124,
+        "savings_toman": 131000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 6,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 35.05,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 50.15,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 18.0,
+          "generality_group": "catalog_taxonomy_other",
+          "live_demand": 99.14,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-19T16:08:10.129191+00:00",
+          "weakest_factor_score": 18.0
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1606,
+        "title": "قره قروت پذیرایی طب طب بسته 100 عددی"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-5460119",
+      "product_plan_cycle_id": "2026-11-20T03:24:29.061654+00:00",
+      "scheduled_at": "2026-11-20T03:58:53.683035+00:00",
+      "selected_at": "2026-11-19T16:08:14.324804+00:00",
+      "sequence_number": 1606,
+      "status": "stale_selection",
+      "updated_at": "2026-11-20T03:59:51.412175+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -40310,177 +40309,6 @@
       "scheduled_at": "2026-11-20T08:46:53.683035+00:00",
       "selected_at": "2026-11-19T18:44:58.077090+00:00",
       "sequence_number": 1614,
-      "status": "queued"
-    },
-    "dkp-5460119": {
-      "attempt_count": 0,
-      "content_id": "dkp-5460119",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-20T03:58:53.683035+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-5460119%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "8938",
-        "catalog_best_selling_category_name": "لواشک، برگه و آلوچه",
-        "catalog_best_selling_rank": 6,
-        "catalog_best_selling_ranks_by_category": {
-          "8938": {
-            "category_name": "لواشک، برگه و آلوچه",
-            "observed_at": "2026-11-19T15:11:49.549796+00:00",
-            "rank": 6,
-            "rank_history": [
-              {
-                "category_name": "لواشک، برگه و آلوچه",
-                "observed_at": "2026-11-19T15:11:49.549796+00:00",
-                "rank": 6
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-19T15:37:38.816861+00:00",
-        "catalog_cycle_snapshot_rank": 418,
-        "catalog_rank_observed_at": "2026-11-19T15:11:49.549796+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-19T16:07:28.410826+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-5460119",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 299000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 50.15,
-        "discount_percent": 30,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-19T16:07:59.364138+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-19",
-        "history_high_toman": 299000,
-        "history_low_toman": 298000,
-        "history_median_toman": 298500,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 299000,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/fe3e2759d9707a86e223a9bc4773dbd9e5605f3d_1623659610.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 35.05,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 50.15,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 99.14,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-19T16:08:10.129191+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "original_price": 430000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-5460119",
-        "product_url": "https://www.digikala.com/product/dkp-5460119/",
-        "promo_score": 22,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 3.93,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 124,
-        "savings_toman": 131000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 6,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 35.05,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 50.15,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 99.14,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-19T16:08:10.129191+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1606,
-        "title": "قره قروت پذیرایی طب طب بسته 100 عددی"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-5460119",
-      "product_plan_cycle_id": "2026-11-20T03:24:29.061654+00:00",
-      "scheduled_at": "2026-11-20T03:58:53.683035+00:00",
-      "selected_at": "2026-11-19T16:08:14.324804+00:00",
-      "sequence_number": 1606,
       "status": "queued"
     }
   },
@@ -93234,7 +93062,7 @@
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
       "delivery_duration_seconds": 1.3,
-      "delivery_started_at": "2026-11-20T03:32:37.176187+00:00",
+      "delivery_started_at": "2026-11-20T03:59:52.815406+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -278108,15 +277936,16 @@
       "demand_window_hours": 21.9,
       "discount_vs_30d_median_pct": 0,
       "distribution_queue_id": "dkp-22905387:2026-11-04T07:32:42.472487+00:00",
-      "expires_at": "2026-11-11T12:00:02.600959+00:00",
-      "expiry_deadline_verified_directly": false,
-      "expiry_deadline_verified_from_site_card": true,
+      "expires_at": "2026-11-20T03:27:49.339631+00:00",
+      "expiry_deadline_verified_directly": true,
+      "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
-      "expiry_last_direct_verification_at": "2026-11-06T09:53:08.958190+00:00",
-      "expiry_last_removal_check_at": "2026-11-06T09:53:08.958190+00:00",
+      "expiry_last_direct_verification_at": "2026-11-20T03:27:49.339631+00:00",
+      "expiry_last_removal_check_at": "2026-11-20T03:27:49.339631+00:00",
       "expiry_last_removal_check_result": "confirmed",
-      "expiry_source": "digikala_mcp_offer_card",
-      "expiry_status": "tracked",
+      "expiry_reason": "price_reverted",
+      "expiry_source": "live_product_stock_or_price",
+      "expiry_status": "delete_unavailable",
       "filo_skip_reason": "selection_outside_freshness_window",
       "filo_skip_recorded_at": "2026-11-18T21:35:17.788690+00:00",
       "filo_upload_status": "skipped_stale_after_freshness_window",
