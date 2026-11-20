@@ -97,16 +97,16 @@
       }
     ]
   },
-  "generated_at": "2026-11-20T13:26:07.114676+00:00",
+  "generated_at": "2026-11-20T13:57:31.604588+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ادویه‌های ارگانیک": 1,
-      "اف ام پلیر": 1,
       "براش‌های آرایشی": 1,
       "تبلت": 1,
       "تجهیزات معاینه پزشکی": 1,
       "تخت خواب": 1,
       "تونر": 1,
+      "دستمال مرطوب": 1,
       "دستگیره": 1,
       "دوربین فیلم برداری": 1,
       "روغن آفتاب": 1,
@@ -140,9 +140,8 @@
       "home": 5,
       "lighting": 1,
       "mobile_devices": 1,
-      "other": 7,
+      "other": 8,
       "personal_care": 5,
-      "power_backup": 1,
       "sports_outdoor": 4
     },
     "category_share_percent": {
@@ -153,17 +152,16 @@
       "home": 15.6,
       "lighting": 3.1,
       "mobile_devices": 3.1,
-      "other": 21.9,
+      "other": 25.0,
       "personal_care": 15.6,
-      "power_backup": 3.1,
       "sports_outdoor": 12.5
     },
     "distinct_catalog_categories": 31,
-    "distinct_categories": 11,
+    "distinct_categories": 10,
     "distinct_families": 32,
     "distinct_retailers": 1,
-    "distinct_use_cases": 12,
-    "known_brand_posts": 19,
+    "distinct_use_cases": 11,
+    "known_brand_posts": 20,
     "posts": 32,
     "repeated_brand_count": 1,
     "repeated_brands": {
@@ -176,9 +174,8 @@
       "digikala": 100.0
     },
     "use_case_post_counts": {
-      "automotive": 1,
       "books_learning": 1,
-      "catalog_taxonomy_other": 3,
+      "catalog_taxonomy_other": 4,
       "fashion_lifestyle": 3,
       "general": 1,
       "grocery_food": 4,
@@ -231,6 +228,7 @@
       "خاک و کود": 1,
       "دئودورانت": 1,
       "در باز کن": 1,
+      "دستمال مرطوب": 1,
       "دستکش نظافت": 1,
       "دستگاه ذوب وکس": 1,
       "دستگاه پخش خودرو": 1,
@@ -384,7 +382,6 @@
       "کوسن": 1,
       "کیسه فریزر": 2,
       "کیف و کاور لپ تاپ": 1,
-      "کیف و کوله سفری": 1,
       "کیف پول و کیف لوازم آرایش دخترانه": 1,
       "کیک و شیرینی خانگی": 2,
       "گوش پاک کن": 1,
@@ -397,7 +394,7 @@
       "books_stationery": 12,
       "computer_network": 5,
       "digital_accessories": 7,
-      "fashion": 26,
+      "fashion": 25,
       "gaming": 3,
       "grocery_food": 39,
       "home": 29,
@@ -406,7 +403,7 @@
       "large_appliances": 3,
       "lighting": 2,
       "mobile_devices": 4,
-      "other": 51,
+      "other": 52,
       "personal_care": 33,
       "power_backup": 5,
       "sports_outdoor": 19,
@@ -420,7 +417,7 @@
       "books_stationery": 4.6,
       "computer_network": 1.9,
       "digital_accessories": 2.7,
-      "fashion": 10.0,
+      "fashion": 9.6,
       "gaming": 1.2,
       "grocery_food": 15.0,
       "home": 11.2,
@@ -429,7 +426,7 @@
       "large_appliances": 1.2,
       "lighting": 0.8,
       "mobile_devices": 1.5,
-      "other": 19.6,
+      "other": 20.0,
       "personal_care": 12.7,
       "power_backup": 1.9,
       "sports_outdoor": 7.3,
@@ -441,7 +438,7 @@
     "distinct_families": 202,
     "distinct_retailers": 1,
     "distinct_use_cases": 21,
-    "known_brand_posts": 116,
+    "known_brand_posts": 117,
     "posts": 260,
     "repeated_brand_count": 25,
     "repeated_brands": {
@@ -479,7 +476,7 @@
       "automotive": 6,
       "baby_care": 6,
       "books_learning": 13,
-      "catalog_taxonomy_other": 34,
+      "catalog_taxonomy_other": 35,
       "fashion_lifestyle": 23,
       "gaming": 5,
       "general": 2,
@@ -491,7 +488,7 @@
       "lighting_electrical": 1,
       "mobile_productivity": 17,
       "office_study": 3,
-      "outdoor_travel": 4,
+      "outdoor_travel": 3,
       "personal_care": 31,
       "pet_care": 5,
       "sports_fitness": 14,
@@ -514,31 +511,14 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1644,
+    "all_time_count": 1645,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "brand_repeat": 28,
+      "brand_repeat": 29,
       "family_repeat": 396,
       "similarity_repeat": 498
     },
     "recent_events": [
-      {
-        "at": "2026-11-17T17:19:40.709090+00:00",
-        "brand": "",
-        "catalog_category_id": "9297",
-        "catalog_category_name": "ست لباس راحتی زنانه",
-        "category": "fashion",
-        "compared_to_product_id": "dkp-22750115",
-        "family": "digikala_category:9297",
-        "product_id": "dkp-21003279",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ست بلوز و شلوار راحتی زنانه مدل گل کد A1111",
-        "use_case": "fashion_lifestyle"
-      },
       {
         "at": "2026-11-18T00:57:05.090482+00:00",
         "brand": "",
@@ -864,6 +844,24 @@
       },
       {
         "at": "2026-11-20T13:26:07.114676+00:00",
+        "brand": "brand:زدفون",
+        "catalog_category_id": "6139",
+        "catalog_category_name": "عطر و ادکلن مردانه",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-21090992",
+        "family": "digikala_category:6139",
+        "product_id": "dkp-18333637",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-20T13:57:31.604588+00:00",
         "brand": "brand:زدفون",
         "catalog_category_id": "6139",
         "catalog_category_name": "عطر و ادکلن مردانه",
