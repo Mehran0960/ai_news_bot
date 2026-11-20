@@ -2316,187 +2316,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 1,
-      "content_id": "dkp-13338289",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-16T13:04:39.553401+00:00",
-      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
-      "next_attempt_at": "2026-11-16T13:02:27.595509+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-13338289%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "9083",
-        "catalog_best_selling_category_name": "لوازم ماهیگیری",
-        "catalog_best_selling_rank": 10,
-        "catalog_best_selling_ranks_by_category": {
-          "9083": {
-            "category_name": "لوازم ماهیگیری",
-            "observed_at": "2026-11-16T09:35:42.398688+00:00",
-            "rank": 10,
-            "rank_history": [
-              {
-                "category_name": "لوازم ماهیگیری",
-                "observed_at": "2026-11-16T09:35:42.398688+00:00",
-                "rank": 10
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T10:07:39.742838+00:00",
-        "catalog_cycle_snapshot_rank": 1561,
-        "catalog_rank_observed_at": "2026-11-16T09:35:42.398688+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-16T10:33:58.759573+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-13338289",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 2000000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 57.13,
-        "discount_percent": 33,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T10:34:15.486888+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 2000000,
-        "history_low_toman": 2000000,
-        "history_median_toman": 2000000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/6fad1de7cb11518a09b44c931a8e701b3cc1e782_1699798063.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 61.39,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 57.13,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 47.0,
-          "generality_group": "outdoor_travel",
-          "live_demand": 99.1,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T10:34:27.709147+00:00",
-          "weakest_factor_score": 47.0
-        },
-        "original_price": 3000000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-13338289",
-        "product_url": "https://www.digikala.com/product/dkp-13338289/",
-        "promo_score": 28,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 3.47,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 11,
-        "savings_toman": 1000000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 10,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 61.39,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 57.13,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 47.0,
-          "generality_group": "outdoor_travel",
-          "live_demand": 99.1,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T10:34:27.709147+00:00",
-          "weakest_factor_score": 47.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1318,
-        "title": "چرخ ماهیگیری مدل CB440"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-16T13:04:39.553401+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T13:05:26.004786+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "credentials_not_configured",
-          "status": "not_connected",
-          "updated_at": "2026-11-16T13:04:39.553401+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-16T13:04:39.553401+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T13:05:36.554807+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-16T13:04:39.553401+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T13:04:47.888381+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-13338289",
-      "product_plan_cycle_id": "2026-11-16T12:41:29.903931+00:00",
-      "scheduled_at": "2026-11-16T13:02:27.595509+00:00",
-      "selected_at": "2026-11-16T10:34:36.018986+00:00",
-      "sequence_number": 1318,
-      "status": "published",
-      "updated_at": "2026-11-16T13:05:37.819223+00:00"
-    },
-    {
-      "attempt_count": 1,
       "content_id": "dkp-16913586",
       "content_type": "product",
       "last_attempt_at": "2026-11-16T13:06:41.203073+00:00",
@@ -38764,6 +38583,181 @@
       "sequence_number": 1608,
       "status": "published",
       "updated_at": "2026-11-20T04:44:48.128658+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-1518091",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-20T05:17:46.316353+00:00",
+      "last_detail": "selected_price_stale_selected=336900_live=346000",
+      "next_attempt_at": "2026-11-20T05:16:48.127116+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1518091%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "درمالیفت",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "6488",
+        "catalog_best_selling_category_name": "کرم دور چشم",
+        "catalog_best_selling_rank": 1,
+        "catalog_best_selling_ranks_by_category": {
+          "6488": {
+            "category_name": "کرم دور چشم",
+            "observed_at": "2026-11-19T16:46:53.565677+00:00",
+            "rank": 1,
+            "rank_history": [
+              {
+                "category_name": "کرم دور چشم",
+                "observed_at": "2026-11-19T16:46:53.565677+00:00",
+                "rank": 1
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-19T17:02:44.711264+00:00",
+        "catalog_cycle_snapshot_rank": 238,
+        "catalog_rank_observed_at": "2026-11-19T16:46:53.565677+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "personal_care",
+        "checked_at": "2026-11-19T17:08:24.718443+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-1518091",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 336900,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 57.12,
+        "discount_percent": 41,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-19T17:09:01.074716+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-19",
+        "history_high_toman": 336900,
+        "history_low_toman": 336900,
+        "history_median_toman": 336900,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-19",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/d25e3d40fd07bffc5b13a3495be0c8223cf5cccc_1648965004.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 77.11,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 57.12,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 99.66,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-19T17:09:12.458236+00:00",
+          "weakest_factor_score": 57.12
+        },
+        "original_price": 568500,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-1518091",
+        "product_url": "https://www.digikala.com/product/dkp-1518091/",
+        "promo_score": 30,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.03,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 3532,
+        "savings_toman": 231600,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 1,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 77.11,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 57.12,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 99.66,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-19T17:09:12.458236+00:00",
+          "weakest_factor_score": 57.12
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1609,
+        "title": "کرم دور چشم درمالیفت مدل Vitalift Anti Dark حجم 25 میلی لیتر"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-1518091",
+      "product_plan_cycle_id": "2026-11-20T04:52:30.908039+00:00",
+      "scheduled_at": "2026-11-20T05:16:48.127116+00:00",
+      "selected_at": "2026-11-19T17:09:15.518063+00:00",
+      "sequence_number": 1609,
+      "status": "stale_selection",
+      "updated_at": "2026-11-20T05:17:46.316353+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -39128,178 +39122,6 @@
       "scheduled_at": "2026-11-20T08:50:48.127116+00:00",
       "selected_at": "2026-11-19T19:15:45.190309+00:00",
       "sequence_number": 1615,
-      "status": "queued"
-    },
-    "dkp-1518091": {
-      "attempt_count": 0,
-      "content_id": "dkp-1518091",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-20T05:16:48.127116+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1518091%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "درمالیفت",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "6488",
-        "catalog_best_selling_category_name": "کرم دور چشم",
-        "catalog_best_selling_rank": 1,
-        "catalog_best_selling_ranks_by_category": {
-          "6488": {
-            "category_name": "کرم دور چشم",
-            "observed_at": "2026-11-19T16:46:53.565677+00:00",
-            "rank": 1,
-            "rank_history": [
-              {
-                "category_name": "کرم دور چشم",
-                "observed_at": "2026-11-19T16:46:53.565677+00:00",
-                "rank": 1
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-19T17:02:44.711264+00:00",
-        "catalog_cycle_snapshot_rank": 238,
-        "catalog_rank_observed_at": "2026-11-19T16:46:53.565677+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "personal_care",
-        "checked_at": "2026-11-19T17:08:24.718443+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-1518091",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 336900,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 57.12,
-        "discount_percent": 41,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-19T17:09:01.074716+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-19",
-        "history_high_toman": 336900,
-        "history_low_toman": 336900,
-        "history_median_toman": 336900,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-19",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/d25e3d40fd07bffc5b13a3495be0c8223cf5cccc_1648965004.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 77.11,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 57.12,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.66,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-19T17:09:12.458236+00:00",
-          "weakest_factor_score": 57.12
-        },
-        "original_price": 568500,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-1518091",
-        "product_url": "https://www.digikala.com/product/dkp-1518091/",
-        "promo_score": 30,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.03,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 3532,
-        "savings_toman": 231600,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 1,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 77.11,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 57.12,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.66,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-19T17:09:12.458236+00:00",
-          "weakest_factor_score": 57.12
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1609,
-        "title": "کرم دور چشم درمالیفت مدل Vitalift Anti Dark حجم 25 میلی لیتر"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-1518091",
-      "product_plan_cycle_id": "2026-11-20T04:52:30.908039+00:00",
-      "scheduled_at": "2026-11-20T05:16:48.127116+00:00",
-      "selected_at": "2026-11-19T17:09:15.518063+00:00",
-      "sequence_number": 1609,
       "status": "queued"
     },
     "dkp-20057329": {
@@ -92118,7 +91940,7 @@
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
       "delivery_duration_seconds": 1.7,
-      "delivery_started_at": "2026-11-20T04:57:09.075605+00:00",
+      "delivery_started_at": "2026-11-20T05:17:49.386829+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -325582,6 +325404,13 @@
       "reason": "selected_price_stale_selected=59200_live=107530",
       "rejected_at": "2026-11-02T00:08:45.695043+00:00",
       "retry_after": "2026-11-02T00:28:45.695043+00:00"
+    },
+    "dkp-1518091": {
+      "current_price": 336900,
+      "original_price": 568500,
+      "reason": "selected_price_stale_selected=336900_live=346000",
+      "rejected_at": "2026-11-20T05:17:46.316353+00:00",
+      "retry_after": "2026-11-20T05:37:46.316353+00:00"
     },
     "dkp-15381113": {
       "current_price": 2500000,
