@@ -1,7 +1,7 @@
 {
   "approved_commission": null,
   "caption_experiment_assignment_active": true,
-  "caption_experiment_assignment_coverage_percent": 19.22,
+  "caption_experiment_assignment_coverage_percent": 19.29,
   "caption_experiment_attribution_active": false,
   "caption_experiment_attribution_supported_by_worker": true,
   "caption_experiment_measurement_status": "blocked_live_cta_bypasses_click_tracker",
@@ -21,7 +21,7 @@
       "clicks_per_published_post": null,
       "ctr": null,
       "orders": null,
-      "published_posts": 123,
+      "published_posts": 124,
       "sales_amount": null,
       "tracked_clicks_30d": null
     }
@@ -34,7 +34,7 @@
       "clicks_per_published_post": null,
       "ctr": null,
       "orders": null,
-      "published_posts": 174,
+      "published_posts": 175,
       "sales_amount": null,
       "tracked_clicks_30d": null
     },
@@ -50,13 +50,13 @@
   },
   "ctr": null,
   "experiment_assignment_active": true,
-  "experiment_assignment_coverage_percent": 27.29,
+  "experiment_assignment_coverage_percent": 27.35,
   "experiment_attribution_active": false,
   "experiment_attribution_available": true,
   "experiment_attribution_supported_by_worker": true,
   "experiment_measurement_status": "blocked_live_cta_bypasses_click_tracker",
   "experiment_publication_status": "partially_assigned",
-  "generated_at": "2026-11-20T05:27:28.688708+00:00",
+  "generated_at": "2026-11-20T05:54:29.979592+00:00",
   "impressions": null,
   "interpretation": "Tracked clicks and clicks per published post are descriptive signals, not CTR or causal lift. Live purchase buttons intentionally use direct Affilio URLs and bypass the Cloudflare click tracker; Worker capability and historical tagged events do not establish attribution for current live CTAs. Official Affilio SubID support or an order/report export is required for verified source attribution. Impressions, orders, sales and commission are not inferred from clicks.",
   "live_purchase_attribution_blocker": "requires_official_affilio_subid_or_report_export",
@@ -64,17 +64,17 @@
   "live_purchase_link_mode": "direct_affilio_link",
   "live_purchase_source_attribution_available": false,
   "orders": null,
-  "published_caption_experiment_posts": 231,
-  "published_experiment_posts": 328,
+  "published_caption_experiment_posts": 232,
+  "published_experiment_posts": 329,
   "published_posts_by_caption_variant": {
     "offerchin-caption-v1:A": 108,
-    "offerchin-caption-v1:B": 123
+    "offerchin-caption-v1:B": 124
   },
   "published_posts_by_platform": {
     "aparat": 41,
-    "bale": 1192,
-    "rubika": 345,
-    "telegram": 1199,
+    "bale": 1193,
+    "rubika": 346,
+    "telegram": 1200,
     "youtube": 174
   },
   "published_posts_by_product": {
@@ -6399,6 +6399,24 @@
       "discount_percent": 20,
       "selection_demand_evidence": null,
       "selection_demand_quality": null
+    },
+    "dkp-20057329": {
+      "bestseller_category_count": 1,
+      "bestseller_rank": 10,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "B",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "A",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "demand_evidence_scope": "legacy_unknown",
+      "discount_percent": 59,
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold"
     },
     "dkp-20072945": {
       "bestseller_category_count": 0,
@@ -21137,10 +21155,10 @@
     }
   },
   "published_posts_by_variant": {
-    "offerchin-creative-v1:A": 174,
+    "offerchin-creative-v1:A": 175,
     "offerchin-creative-v1:B": 154
   },
-  "published_product_count": 1202,
+  "published_product_count": 1203,
   "sales_amount": null,
   "sales_data_status": "unavailable_until_official_Affilio_report_or_export_is_connected",
   "source_attribution_available": false,
