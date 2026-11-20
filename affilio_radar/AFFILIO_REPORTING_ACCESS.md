@@ -191,4 +191,20 @@ GitHub Actions run `44696134790` ورود OIDC/PKCE را با هر دو Secret (
 ### ممیزی شبکهٔ مرورگر پنل — ۲۰ نوامبر ۲۰۲۶
 
 برای کشف endpoint واقعی، workflow از Playwright/Chromium استفاده می‌کند و صفحات `/performance`، `/performance/overview`، `/performance/links` و `/performance/products` را پس از ورود باز می‌کند. فقط متادیتای XHR/Fetch (method، host/path پاک‌سازی‌شده، status و content-type) در log می‌آید. query string، header، body، cookie، token، screenshot، trace، ردیف سفارش و مبالغ مالی ذخیره یا چاپ نمی‌شوند. در workflow فعلی، تغییرات اسکریپت `affilio_panel_network_audit.mjs` هم در pull_request و هم در push روی main trigger محسوب می‌شود.
+ 
+### Endpointهای عملکرد کشف‌شده از Network واقعی پنل — ۲۰ نوامبر ۲۰۲۶
+
+Browser audit در run `44697387470` این مسیرها را روی API رسمی `api.affilio.ir` مشاهده کرد:
+- `GET /api/v1/dashboard/summary-statistics`
+- `GET /api/v1/dashboard/revenue-trend`
+- `GET /api/v1/dashboard/revenue-basket`
+- `GET /api/v1/dashboard/clicks-trend`
+- `GET /api/v1/dashboard/top-categories`
+- `GET /api/v1/dashboard/top-links`
+- `GET /api/v1/dashboard/performance-by-link-type`
+- `GET /api/v1/links/analytics`
+- `GET /api/v1/users/me/wallet-summary`
+همچنین مسیرهای `/api/v1/advertisers/`، `/api/v1/media/`، `/api/v1/users/me` و `/api/v1/notifications/unread-count` مشاهده شدند. همهٔ این‌ها از Network واقعی رابط کاربری به دست آمده‌اند؛ هنوز نباید آن‌ها را endpoint عمومی مستند یا قرارداد پایدار فرض کرد.
+
+نسخهٔ بعدی browser audit فقط schema نام‌فیلدها و نوع‌ها را از پاسخ JSON در حافظه استخراج می‌کند؛ هیچ مقدار مالی یا ردیف خام منتشر نمی‌شود. پیش از هر import مالی باید فیلدهای وضعیت سفارش، مرجوعی/لغو، amount و payout با پنل تطبیق داده شوند.
 
