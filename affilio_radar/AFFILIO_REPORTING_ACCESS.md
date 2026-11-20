@@ -140,4 +140,88 @@ Worker sourceهای `telegram`، `bale`، `rubika`، `eitaa`، `youtube`، `apar
 - یک رویداد واقعی با گزارش پنل تطبیق داده شود.
 
 **توقف امن:** تا پیش از اثبات end-to-end، Postback receiver یا گزارش داخلی نباید به‌عنوان منبع فروش قطعی معرفی شود. CTA خرید مستقل و مستقیم باقی می‌ماند.
+ 
+---
+
+## Secretهای پنل و ممیزی ورود read-only — ۲۰ نوامبر ۲۰۲۶
+
+دو نام GitHub Secret برای ورود پنل معرفی شدند:
+- `AFFILIO_USER`
+- `AFFILIO_PASS`
+
+workflow مستقل `.github/workflows/affilio-panel-readonly-audit.yml` این دو مقدار را فقط در environment همان step دریافت می‌کند. اسکریپت `affilio_radar/affilio_panel_audit.py`:
+- فقط به `https://publisher.affilio.ir/` و login action دقیق `https://sso.digiwise.ir/realms/services/login-actions/authenticate` متصل می‌شود؛
+- فقط یک تلاش login انجام می‌دهد و هیچ MFA/CAPTCHA یا challenge را دور نمی‌زند؛
+- کوکی را فقط در حافظهٔ process نگه می‌دارد؛
+- هیچ مقدار credential، cookie، token، HTML خام، مشخصات حساب، سفارش یا payout را چاپ، commit یا upload نمی‌کند؛
+- فقط نتیجهٔ login، شمار assetها، وجود واژه‌های گزارش و routeهای هم‌مبدأِ پاک‌سازی‌شده را در log می‌نویسد؛
+- از workflow artifact استفاده نمی‌کند.
+
+**محدودیت فعلی:** این ممیزی هنوز خودش گزارش مالی را استخراج نمی‌کند؛ اول باید ورود واقعی و مسیرهای گزارش/فیلتر/خروجی در پنل شناسایی شوند. پس از موفقیت login، مسیر دریافت باید فقط از API/export رسمی یا قابلیت رسمی پنل پیاده‌سازی شود. اگر MFA، CAPTCHA یا تغییر SSO لازم باشد، عملیات امن متوقف می‌شود و نیاز به اقدام مجاز مالک حساب دارد.
+
+مستند عمومی فعلی API افیلیو endpoint گزارش تاریخی کلیک/سفارش/کمیسیون ناشر را معرفی نمی‌کند؛ بنابراین تا مشاهدهٔ مسیر واقعی پنل، endpoint گزارش ساخته یا حدس زده نمی‌شود.
+ 
+### اصلاح روش ورود — ۲۰ نوامبر ۲۰۲۶
+
+در اجرای نخست GitHub Actions، هر دو Secret در دسترس بودند؛ اما GET سادهٔ `publisher.affilio.ir/` در HTML خام runner، فرم ورود را نداشت. برای حذف وابستگی به JavaScript مرورگر، ممیزی به OIDC Authorization Code + PKCE/S256 روی realm رسمی دیجی‌وایز تغییر یافته است:
+- درخواست authorization با state و verifier تازه ساخته می‌شود؛
+- فرم فقط وقتی به مقصد ثابت `sso.digiwise.ir/realms/services/login-actions/authenticate` ارسال می‌شود که host/path دقیقاً مطابق allowlist باشند؛
+- callback فقط با host ثبت‌شدهٔ `publisher.affilio.ir` و state منطبق پذیرفته می‌شود؛
+- token endpoint رسمی با code و verifier فراخوانی می‌شود؛
+- access token، code، cookie و گزارش‌ها در log/artifact/repository قرار نمی‌گیرند.
+
+این تغییر هنوز یک روش ورود در حال آزمون است؛ تا اجرای موفق workflow، احراز هویت یا دسترسی گزارش را تأییدشده تلقی نکن.
+
+### نتیجهٔ اجرای واقعی ممیزی پنل — ۲۰ نوامبر ۲۰۲۶
+
+GitHub Actions run `44696134790` ورود OIDC/PKCE را با هر دو Secret (`AFFILIO_USER` و `AFFILIO_PASS`) با موفقیت انجام داد. مسیرهای UI کشف‌شده:
+- `/performance`
+- `/performance/overview`
+- `/performance/links`
+- `/performance/products`
+
+این‌ها مسیرهای صفحهٔ پنل هستند؛ هنوز endpoint API یا export مالی تأیید نشده‌اند. هیچ ردیف سفارش/کمیسیون دانلود یا چاپ نشده است و هیچ artifact خامی وجود ندارد. مرحلهٔ بعد باید با بررسی assetهای هم‌مبدأ و response schemaها، endpointهای رسمی را شناسایی کند و فقط پس از تعیین semantics، گزارش را بخواند.
+
+### Probe فقط‌خواندنی API — مرحلهٔ شناسایی
+
+پس از ورود موفق، اسکریپت candidateهای performance و routeهای مرتبط را فقط با GET روی host ثابت `api.affilio.ir` probe می‌کند. body پاسخ در حافظه و با سقف ۱MB خوانده می‌شود تا status و content-type و نام کلیدهای JSON استخراج شوند. مقادیر، تعداد رکوردها، مبلغ فروش، payout و شناسه‌های سفارش هرگز در log/artifact/file ثبت نمی‌شوند. redirect دنبال نمی‌شود و token به host دیگری ارسال نمی‌شود.
+
+این مرحله فقط endpointهای احتمالی و schema را شناسایی می‌کند؛ تا زمانی که semantics هر فیلد و وضعیت سفارش با پنل رسمی تأیید نشود، دادهٔ پاسخ به‌عنوان درآمد یا فروش قطعی تفسیر نمی‌شود.
+ 
+### ممیزی شبکهٔ مرورگر پنل — ۲۰ نوامبر ۲۰۲۶
+
+برای کشف endpoint واقعی، workflow از Playwright/Chromium استفاده می‌کند و صفحات `/performance`، `/performance/overview`، `/performance/links` و `/performance/products` را پس از ورود باز می‌کند. فقط متادیتای XHR/Fetch (method، host/path پاک‌سازی‌شده، status و content-type) در log می‌آید. query string، header، body، cookie، token، screenshot، trace، ردیف سفارش و مبالغ مالی ذخیره یا چاپ نمی‌شوند. در workflow فعلی، تغییرات اسکریپت `affilio_panel_network_audit.mjs` هم در pull_request و هم در push روی main trigger محسوب می‌شود.
+ 
+### Endpointهای عملکرد کشف‌شده از Network واقعی پنل — ۲۰ نوامبر ۲۰۲۶
+
+Browser audit در run `44697387470` این مسیرها را روی API رسمی `api.affilio.ir` مشاهده کرد:
+- `GET /api/v1/dashboard/summary-statistics`
+- `GET /api/v1/dashboard/revenue-trend`
+- `GET /api/v1/dashboard/revenue-basket`
+- `GET /api/v1/dashboard/clicks-trend`
+- `GET /api/v1/dashboard/top-categories`
+- `GET /api/v1/dashboard/top-links`
+- `GET /api/v1/dashboard/performance-by-link-type`
+- `GET /api/v1/links/analytics`
+- `GET /api/v1/users/me/wallet-summary`
+همچنین مسیرهای `/api/v1/advertisers/`، `/api/v1/media/`، `/api/v1/users/me` و `/api/v1/notifications/unread-count` مشاهده شدند. همهٔ این‌ها از Network واقعی رابط کاربری به دست آمده‌اند؛ هنوز نباید آن‌ها را endpoint عمومی مستند یا قرارداد پایدار فرض کرد.
+
+نسخهٔ بعدی browser audit فقط schema نام‌فیلدها و نوع‌ها را از پاسخ JSON در حافظه استخراج می‌کند؛ هیچ مقدار مالی یا ردیف خام منتشر نمی‌شود. پیش از هر import مالی باید فیلدهای وضعیت سفارش، مرجوعی/لغو، amount و payout با پنل تطبیق داده شوند.
+ 
+### عمق و کنترل خطای schema capture
+
+نسخهٔ جدید Playwright تا ۶ سطح nested schema را استخراج می‌کند تا فیلدهای هر آیتم در آرایه‌های breakdown معلوم شوند. درخواست‌های XHR/Fetch شکست‌خورده با status کلی `network_failed` ثبت می‌شوند؛ متن خطا و URL query هرگز ذخیره نمی‌شود.
+ 
+### کلیدهای query و تکمیل schema
+
+browser audit نسخهٔ جاری نام query-keyها را بدون مقدار ثبت می‌کند و قبل از چاپ خروجی منتظر اتمام تمام کارهای async پردازش schema می‌ماند. این مرحله برای تعیین تاریخ شروع/پایان، media filter و pagination لازم است؛ مقادیر این پارامترها و payloadها همچنان محرمانه می‌مانند.
+ 
+### فیلدها و query metadata کشف‌شده
+
+- `GET /api/v1/links/analytics`: `from_`، `to`، `page`، `page_size`، `sort_order`; schema دارای `click_count`، `conversion_rate`، `income_items_count`، `total_income`، `revenue_share`، `media_uid`، `link_uid`، `advertiser_name` و `first_click_date`.
+- `GET /api/v1/dashboard/performance-by-link-type`: `from_` و `to`; شامل breakdownهای clicks، conversions و revenue.
+- `GET /api/v1/dashboard/top-categories` و `/api/v1/dashboard/top-links`: `from_` و `to`.
+- `GET /api/v1/users/me/wallet-summary`: `finalized_income_amount`، `wallet_balance_amount`، `days_until_next_invoice`.
+
+اسکریپت فعلی فقط مقدار safe تاریخ، page/page_size و sort enum را نشان می‌دهد؛ بقیهٔ query valueها پنهان‌اند. هیچ مقدار مالی از پاسخ API ثبت یا به عنوان درآمد قطعی تفسیر نشده است.
 

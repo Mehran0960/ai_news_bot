@@ -3158,3 +3158,188 @@ PR #251 با commit ادغام `52ae2e4af60690f090c6db07a6156339c766ffd0` وار
 
 **وضعیت:** مرحلهٔ تصویب سیاست، مستندسازی و گیت رگرسیون در `main` ادغام و آزمون‌شده است. اتصال خودکار پنل Affilio، Postback تولیدی، `aff_sub`، دفتر تبدیل D1، داشبورد درآمد و آزمون واقعی دو اپراتور داخل ایران همچنان باز/مسدود به دسترسی رسمی و شواهد بیرونی هستند.
 
+## ۲۰۲۶-۱۱-۲۰ — آماده‌سازی ممیزی امن ورود به پنل Affilio
+
+**هدف:** استفاده از دو GitHub Secret موجود ناشر برای تأیید ورود به پنل و کشف مسیرهای گزارش‌گیری، بدون افشای credential یا دادهٔ مالی در مخزن عمومی.
+
+**تغییر/اقدام:**
+- نام Secretهای مورد استفاده مشخص شد: `AFFILIO_USER` و `AFFILIO_PASS`. مقدار آن‌ها فقط از طریق GitHub Actions environment به فرایند ممیزی داده می‌شود؛ کد و workflow هیچ مقدار محرمانه‌ای را چاپ یا ذخیره نمی‌کنند.
+- صفحهٔ عمومی پنل `publisher.affilio.ir` بررسی شد. فرم ورود به SSO دیجی‌وایز/Keycloak هدایت می‌شود؛ فیلدهای فرم `username` و `password` و action مورد انتظار روی host رسمی `sso.digiwise.ir` است.
+- اسکریپت read-only `affilio_radar/affilio_panel_audit.py` برای دریافت فرم، اعتبارسنجی سخت‌گیرانهٔ host/path احراز هویت، ارسال یک تلاش ورود و بررسی صفحهٔ پنل اضافه شد. کوکی فقط در CookieJar داخل حافظهٔ همان process می‌ماند؛ هیچ cookie، token، response body، کاربر، سفارش یا گزارش مالی ذخیره/چاپ نمی‌شود.
+- اسکریپت فقط لینک‌ها و routeهای هم‌مبدأ مرتبط با report/commission/order/transaction را از HTML و assetهای هم‌مبدأ استخراج می‌کند؛ query stringها و شناسه‌های مسیر طولانی حذف/ماسک می‌شوند.
+- workflow مستقل `.github/workflows/affilio-panel-readonly-audit.yml` اضافه شد. روی PR همان مخزن، push به main و اجرای دستی اجرا می‌شود؛ PRهای fork به مرحلهٔ احراز هویت نمی‌رسند. فقط وضعیت ورود و مسیرهای پاک‌سازی‌شده چاپ می‌شوند؛ هیچ artifact یا فایل گزارش خام upload نمی‌شود.
+- تست‌های parser، اعتبارسنجی مقصد SSO، محدودسازی host و پاک‌سازی مسیرها در `affilio_radar/test_affilio_panel_audit.py` اضافه شدند.
+- بررسی عمومی مستندات Affilio نشان داد Public API عمومی فعلی کاتالوگ/قیمت/دسته/تبلیغ‌دهنده و Conversion Postback را معرفی می‌کند؛ endpoint گزارش تاریخی ناشر در فهرست عمومی آن دیده نشد. بنابراین فعلاً هدف workflow کشف read-only مسیر واقعی پنل است، نه حدس‌زدن endpoint یا استخراج خودکار سفارش‌ها.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_audit.py`، `affilio_radar/test_affilio_panel_audit.py`، `.github/workflows/affilio-panel-readonly-audit.yml`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`؛ GitHub Secrets با نام‌های `AFFILIO_USER` و `AFFILIO_PASS`.
+
+**آزمون و نتیجه:** پنج تست واحد محلیِ رفتار parser و URL safety تعریف شده و workflow قبل از هر تلاش ورود آن‌ها را اجرا می‌کند. نتیجهٔ آزمون یکپارچهٔ login از داخل GitHub Actions پس از اجرای PR ثبت می‌شود؛ در لحظهٔ ثبت این ورودی هنوز credentials در runner آزموده نشده‌اند. هیچ گزارش مالی یا سفارش واقعی دریافت نشده است.
+
+**شواهد/شناسه:** صفحهٔ ورود عمومی `https://publisher.affilio.ir/`؛ SSO `https://sso.digiwise.ir/`؛ مستند API `https://public.affilio.ir/api/public/docs/`؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** اگر SSO، MFA یا CAPTCHA تغییر کند، ممیزی باید امن متوقف شود و نباید MFA/CAPTCHA را دور بزند یا login را چندبار تکرار کند. workflow فقط به همان host/path رسمی SSO POST می‌زند. rollback با revert همین اسکریپت، تست و workflow ممکن است؛ Secretهای اصلی حذف یا تغییر نمی‌شوند. هیچ دادهٔ محرمانه‌ای در artifact یا log مجاز نیست.
+
+**وضعیت:** ابزار read-only و workflow در شاخهٔ PR آماده شده‌اند؛ ورود واقعی و کشف مسیر گزارش هنوز در انتظار نتیجهٔ Actions است. دریافت/پردازش CSV/XLSX، داشبورد و Postback همچنان مرحله‌های جداگانه‌اند و در این تغییر فعال نشده‌اند.
+
+## ۲۰۲۶-۱۱-۲۰ — اصلاح مسیر ورود پنل به OIDC Authorization Code + PKCE
+
+**هدف:** رفع تفاوت بین redirect مرورگر و پاسخ HTTP خام runner، بدون کاهش کنترل امنیتی و بدون وابستگی به اجرای JavaScript صفحهٔ اصلی.
+
+**تغییر/اقدام:**
+- اجرای نخست ثابت کرد هر دو Secret با نام‌های `AFFILIO_USER` و `AFFILIO_PASS` در GitHub Actions در دسترس هستند؛ پنج تست parser/URL safety موفق شدند، اما GET سادهٔ ریشهٔ پنل به صفحه‌ای رسید که فرم login در HTML خام آن وجود نداشت. هیچ credentialی چاپ نشد.
+- اسکریپت اکنون Authorization URL رسمی Keycloak را با `client_id=affilio-publisher-panel`، `response_type=code`، `response_mode=fragment` و PKCE/S256 می‌سازد؛ state و verifier برای هر اجرا تازه‌اند.
+- callback فقط وقتی پذیرفته می‌شود که HTTPS و host دقیق `publisher.affilio.ir` و state مطابق با درخواست باشد؛ سپس authorization code با `code_verifier` از token endpoint رسمی همان realm مبادله می‌شود.
+- redirect به‌صورت دستی متوقف و بررسی می‌شود تا code در log یا URLهای ثبت‌شده چاپ نشود. access token فقط در حافظه باقی می‌ماند و هرگز چاپ/ذخیره نمی‌شود.
+- دو تست جدید برای ساخت درخواست PKCE و پذیرش کد فقط با host/state صحیح افزوده شد؛ تعداد تست‌های واحد این ابزار به ۷ رسید.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_audit.py`، `affilio_radar/test_affilio_panel_audit.py`، `.github/workflows/affilio-panel-readonly-audit.yml`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`.
+
+**آزمون و نتیجه:** اجرای اولیهٔ workflow #44695582764 تأیید کرد هر دو Secret حاضرند و تست‌های قبلی موفق‌اند؛ login به‌دلیل نداشتن فرم در پاسخ خام متوقف شد. تست‌های جدید PKCE/state تعریف شده‌اند و اجرای کامل دوباره پس از push این اصلاح در انتظار نتیجه است. ورود موفق و دریافت گزارش هنوز ادعا نمی‌شود.
+
+**شواهد/شناسه:** workflow run #44695582764؛ PR #262؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** اگر SSO به MFA، CAPTCHA، client secret یا تغییر قرارداد نیاز داشته باشد، workflow متوقف می‌شود؛ دورزدن challenge یا تکرار login انجام نمی‌شود. rollback با revert همین اصلاح PKCE ممکن است؛ Secretهای کاربر، نشست یا گزارش مالی تغییر داده نمی‌شوند.
+
+**وضعیت:** مسیر PKCE در شاخهٔ PR اصلاح و آمادهٔ آزمون مجدد است؛ discovery مسیرهای گزارش و هرگونه دریافت دادهٔ مالی هنوز منتظر login موفق‌اند.
+
+## ۲۰۲۶-۱۱-۲۰ — تأیید ورود پنل و کشف صفحات عملکرد افیلیو
+
+**هدف:** ثبت اولین شواهد end-to-end ورود امن به پنل افیلیو و کشف صفحات مرتبط با گزارش، بدون دریافت یا افشای ردیف‌های مالی.
+
+**تغییر/اقدام:**
+- دو Secret با نام‌های `AFFILIO_USER` و `AFFILIO_PASS` در محیط GitHub Actions حاضر بودن خود را تأیید کردند؛ مقدار آن‌ها هرگز چاپ نشد.
+- مسیر OIDC Authorization Code + PKCE با state و code_verifier تازه در runner موفق شد؛ پاسخ token فقط در حافظه باقی ماند.
+- نتیجهٔ ممیزی: `authenticated_read_only`؛ host نهایی `publisher.affilio.ir`.
+- چهار صفحهٔ UI مرتبط با عملکرد در bundle کشف شدند: `/performance`، `/performance/overview`، `/performance/links` و `/performance/products`.
+- نسخهٔ بعدی کشف route اکنون رشته‌های مسیر نسبی و URLهای مطلق در زیر‌دامنه‌های `*.affilio.ir` و `*.digiwise.ir` را بررسی می‌کند؛ query string، code/token و شناسه‌های بلند از خروجی حذف/ماسک می‌شوند.
+- هیچ endpoint مالی هنوز به‌عنوان API قطعی شناسایی نشده؛ مسیرهای چهارگانه فعلاً صفحات رابط کاربری‌اند، نه اثبات وجود endpoint JSON.
+- هیچ report row، سفارش، payout، کلیک، CSV/XLSX یا فایل artifact دریافت/ذخیره/منتشر نشد.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_audit.py`، `affilio_radar/test_affilio_panel_audit.py`، `.github/workflows/affilio-panel-readonly-audit.yml`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md` و `docs/CHANGELOG_FA.md`.
+
+**آزمون و نتیجه:** GitHub Actions run `44696134790` با موفقیت پایان یافت: هفت تست آن نسخه سبز؛ ورود واقعی OIDC/PKCE موفق؛ شمار asset یک؛ چهار مسیر UI شناسایی شد. آزمون گسترش‌یافتهٔ routeهای API در commit بعدی تعریف شده و منتظر CI است.
+
+**شواهد/شناسه:** PR #262؛ run `44696134790`؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** تغییر فقط read-only است. session cookie و access token در runner نگهداری پایدار نمی‌شوند. اگر endpoint رسمی یا وضعیت گزارش از شواهد UI/دادهٔ پاسخ قابل اثبات نباشد، هیچ فراخوانی تولیدی انجام نمی‌شود. rollback با revert اسکریپت و تست‌ها ممکن است؛ Secretها و لینک‌های خرید تغییر نکرده‌اند.
+
+**وضعیت:** ورود واقعی پنل تأییدشده؛ صفحات عملکرد کشف شده؛ API گزارش، دریافت report data و تطبیق اعداد با پنل هنوز انجام نشده و در مرحلهٔ بعدی است.
+
+## ۲۰۲۶-۱۱-۲۰ — اضافه‌شدن probe فقط‌خواندنی API افیلیو با خروجی schema-only
+
+**هدف:** تشخیص اینکه host رسمی API افیلیو کدام مسیرهای گزارش عملکرد را می‌پذیرد، بدون چاپ یا ذخیرهٔ دادهٔ مالی.
+
+**تغییر/اقدام:**
+- workflow موفق ورود پنل `api.affilio.ir` را در bundle پنل شناسایی کرد؛ صفحات UI شامل `/performance`، `/performance/overview`، `/performance/links`، `/performance/products` و مسیرهای مدیریت لینک افیلیت هستند.
+- `affilio_panel_audit.py` اکنون URLهای نسبی و مطلق را فقط روی زیردامنه‌های رسمی `*.affilio.ir` و `*.digiwise.ir` کشف می‌کند؛ query string، شناسهٔ طولانی و دادهٔ متغیر از route output حذف می‌شوند.
+- بعد از OIDC/PKCE موفق، فقط درخواست‌های GET محدود به ریشهٔ API و candidateهای عملکرد به host ثابت `api.affilio.ir` فرستاده می‌شوند. هیچ POST، تغییر وضعیت، ساخت لینک، export یا عملیات نوشتنی انجام نمی‌شود.
+- پاسخ هر probe حداکثر ۱ مگابایت در حافظه خوانده می‌شود؛ فقط status، content-type و نام کلیدهای سطح اول/فیلد `data` گزارش می‌شود. هیچ مبلغ، شناسهٔ سفارش، مقدار payout، نام مشتری یا ردیف خام چاپ/ذخیره نمی‌شود.
+- تست جدید `_json_schema_only` ثابت می‌کند مقادیر عددی نمونه به خروجی راه پیدا نمی‌کنند؛ تست‌های مسیر API نیز query و host خارجی را حذف می‌کنند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_audit.py`، `affilio_radar/test_affilio_panel_audit.py`، `.github/workflows/affilio-panel-readonly-audit.yml`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، Handbook و Changelog.
+
+**آزمون و نتیجه:** ورود OIDC/PKCE در run `44696617415` موفق بود و ۱۱ route هم‌مبدأ/رسمی شناسایی شد؛ این run پیش از اضافه‌شدن probe schema-only اجرا شده است. نسخهٔ جدید دارای ۹ تست واحد است؛ نتیجهٔ اجرای کامل همراه API probe پس از commit جاری در انتظار Actions است.
+
+**شواهد/شناسه:** PR #262؛ run ورود موفق `44696617415`؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** probe فقط GET روی host ثابت و بدون redirect-follow انجام می‌دهد؛ token فقط در حافظه نگهداری می‌شود. اگر endpointی دادهٔ خام برگرداند، فقط schema نام‌فیلدها ثبت می‌شود و body دور ریخته می‌شود. rollback با revert تغییر probe و تست ممکن است؛ هیچ لینک خرید یا دادهٔ تولیدی تغییر نمی‌کند.
+
+**وضعیت:** ورود پنل و کشف UI موفق؛ probe API در حال اعتبارسنجی است. هنوز گزارش مالی کامل/CSV دانلود نشده و هیچ عددی با پنل تطبیق داده نشده است.
+
+## ۲۰۲۶-۱۱-۲۰ — ثبت مسیرهای واقعی درخواست‌های پنل با مرورگر
+
+**هدف:** کشف endpointهای عملیاتی گزارش افیلیو از طریق مشاهدهٔ XHR/Fetch صفحات عملکرد؛ جلوگیری از حدس‌زدن endpoint بر اساس مسیر UI یا 404های host API.
+
+**تغییر/اقدام:**
+- اسکریپت Playwright با نام `affilio_radar/affilio_panel_network_audit.mjs` ساخته شد. مرورگر headless با استفاده از همان Secretها وارد پنل شده و چهار صفحهٔ performance/overview/links/products را باز می‌کند.
+- listenerها فقط درخواست‌های XHR/Fetch را به دامنه‌های رسمی افیلیو/دیجی‌وایز می‌گیرند؛ فقط method، host/path پاک‌سازی‌شده، status و content-type چاپ می‌شود.
+- query string، header، request/response body، cookie، token، screenshot، trace، HTML خام و report row ثبت یا upload نمی‌شود؛ کد هیچ دکمهٔ نوشتنی را کلیک نمی‌کند.
+- workflow با نصب Chromium/Playwright به‌روزرسانی و concurrency از اجرای هم‌زمان/قدیمی با cancel-in-progress محافظت می‌کند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_network_audit.mjs`، `.github/workflows/affilio-panel-readonly-audit.yml`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`.
+
+**آزمون و نتیجه:** اجرای OIDC/PKCE و parser در run `44696935924` موفق بود؛ probeهای حدسی `api.affilio.ir` همگی 404 دادند. Playwright network audit پس از CI روی نسخهٔ جدید در انتظار است.
+
+**شواهد/شناسه:** PR #262؛ run موفق ورود `44696935924`؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** فقط navigation به صفحات read-only و interception فرادادهٔ XHR/Fetch انجام می‌شود؛ body/headers/credentials ثبت نمی‌شوند. در صورت login challenge یا از دست‌رفتن session، run متوقف می‌شود. rollback با revert اسکریپت browser و workflow است.
+
+**وضعیت:** اسکریپت و workflow browser در شاخهٔ PR ایجاد شدند؛ endpointهای واقعی هنوز شناسایی نشده‌اند و منتظر CI هستند.
+
+## ۲۰۲۶-۱۱-۲۰ — ثبت schema پاسخ‌های API بدون ذخیرهٔ مقادیر
+
+**هدف:** شناسایی فیلدهای واقعی پاسخ endpointهای گزارش افیلیو برای طراحی import مالی، بدون ثبت مقدارهای سفارش/کمیسیون در log یا repository.
+
+**تغییر/اقدام:**
+- اولین browser network audit در run `44697387470` موفق شد؛ ۱۳ درخواست XHR/Fetch در چهار صفحهٔ عملکرد دیده شد.
+- مسیرهای مهم کشف‌شده شامل `/api/v1/dashboard/summary-statistics`، `/api/v1/dashboard/revenue-trend`، `/api/v1/dashboard/revenue-basket`، `/api/v1/dashboard/clicks-trend`، `/api/v1/dashboard/top-categories`، `/api/v1/dashboard/top-links`، `/api/v1/dashboard/performance-by-link-type`، `/api/v1/links/analytics` و `/api/v1/users/me/wallet-summary` هستند.
+- برخی پاسخ‌ها در snapshot اول pending بودند؛ نسخهٔ بعدی Playwright زمان انتظار networkidle را افزایش می‌دهد و در صورت JSON بودن پاسخ فقط نام کلیدها و نوع دادهٔ هر فیلد را در عمق محدود گزارش می‌کند. body فقط در حافظه خوانده و دور ریخته می‌شود؛ هیچ مقدار، تعداد ردیف، شناسهٔ مشتری، مبلغ سفارش یا payout چاپ نمی‌شود.
+- رویداد `requestfailed` نیز فقط status کلی `network_failed` می‌دهد؛ متن خطا، URL query، header و body ثبت نمی‌شوند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_network_audit.mjs`، `.github/workflows/affilio-panel-readonly-audit.yml`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`.
+
+**آزمون و نتیجه:** run `44697387470` با موفقیت login و capture مسیرها را انجام داد؛ endpointها و statusهای مشاهده‌شده ثبت شدند. نسخهٔ schema-only در commit `be5edfb6a55e467c17bf1027664da4989e93b996` آماده شده و اجرای CI آن در انتظار است.
+
+**شواهد/شناسه:** PR #262؛ run `44697387470`؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** خواندن response JSON می‌تواند شامل دادهٔ مالی باشد؛ در این پیاده‌سازی مقدارها فقط در حافظه parse می‌شوند و تابع `describeSchema` صرفاً کلیدها و نوع‌ها را بازمی‌گرداند. هیچ response body در log یا فایل نوشته نمی‌شود. rollback با revert همین تغییر Playwright انجام می‌شود.
+
+**وضعیت:** endpointهای اصلی UI شناسایی شده‌اند؛ schema-only response inspection پیاده‌سازی شده و منتظر CI است. هنوز هیچ فایل مالی یا گزارش خام دانلود نشده و محاسبهٔ درآمد آغاز نشده است.
+
+## ۲۰۲۶-۱۱-۲۰ — عمیق‌ترشدن schema inspection پاسخ‌های مالی
+
+**هدف:** شناسایی نام و نوع فیلدهای nested در breakdownهای درآمد/تبدیل/لینک و تشخیص درخواست‌های XHR ناموفق، بدون افشای مقدارها.
+
+**تغییر/اقدام:**
+- عمق پیمایش schema از ۳ به ۶ سطح افزایش یافت تا ساختار فیلدهای breakdown داخل آرایه‌ها (برای مثال revenue/clicks/conversions) نیز قابل مشاهده باشد.
+- رویداد `requestfailed` اضافه شد؛ فقط status عمومی `network_failed` ثبت می‌شود و URL query، متن خطا، header یا body چاپ نمی‌شود.
+- پاسخ JSON صرفاً در حافظه parse شده و نام کلیدها/نوع داده‌ها گزارش می‌شود؛ هیچ مقدار عددی، متن یا رکورد در خروجی قرار نمی‌گیرد.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_network_audit.mjs`، workflow `.github/workflows/affilio-panel-readonly-audit.yml`، Handbook، Changelog و راهنمای دسترسی افیلیو.
+
+**آزمون و نتیجه:** browser audit قبلی در run `44697687310` موفق شد و schema سطح بالا را ثبت کرد؛ نسخهٔ افزایش‌عمق در commit `1f6abde5411882a5fd1b5aed77cc49b95149d541` ثبت شد و نتیجهٔ اجرای تازهٔ CI در انتظار است.
+
+**شواهد/شناسه:** PR #262؛ run موفق `44697687310`؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** schema ممکن است نام فیلدهای جدید یا حساس را نشان دهد، اما مقدار فیلدها نشان داده نمی‌شود. در صورت نیاز می‌توان فیلتر کلیدها را محدودتر کرد؛ هیچ body یا artifact خام ذخیره نمی‌شود. rollback با revert تغییر browser script انجام می‌شود.
+
+**وضعیت:** schema سطح بالا و endpointهای عملکرد شناسایی شده‌اند؛ schema عمیق‌تر و تشخیص درخواست‌های ناموفق در انتظار اجرای مجدد است. import مالی هنوز فعال نشده است.
+
+## ۲۰۲۶-۱۱-۲۰ — ثبت کلیدهای query و همگام‌سازی کامل schema response
+
+**هدف:** تعیین پارامترهای فیلتر/صفحه‌بندی endpointهای Performance و جلوگیری از ناقص‌ماندن schema به‌علت listenerهای asynchronous.
+
+**تغییر/اقدام:**
+- فقط نام پارامترهای query (مانند کلیدهای احتمالی تاریخ/صفحه‌بندی/media) ثبت می‌شود؛ مقدارهای query به‌هیچ‌وجه خوانده یا چاپ نمی‌شوند.
+- schema parser پیش از پایان job منتظر تمام taskهای response JSON می‌ماند تا نام کلیدهای nested حذف نشوند.
+- listener تکراری `requestfailed` حذف شد؛ failure فقط با status عمومی ثبت می‌شود.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_network_audit.mjs`، workflow ممیزی پنل، Handbook، Changelog و `AFFILIO_REPORTING_ACCESS.md`.
+
+**آزمون و نتیجه:** نسخهٔ عمیق قبلی در run `44698048743` موفق بود؛ کلیدهای query و انتظار response در commit `51322b5a8636dd256eaa825cb760b9355f49d96a` افزوده شد. نتیجهٔ CI بعدی در انتظار است.
+
+**شواهد/شناسه:** PR #262؛ run موفق browser audit `44698048743`؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** فقط نام query keyها و schema ساختاری ثبت می‌شوند؛ هیچ مقدار، header، body، cookie یا token در log نوشته نمی‌شود. rollback با revert اسکریپت انجام می‌شود.
+
+**وضعیت:** در انتظار اجرای نهایی برای شناسایی پارامترهای فیلتر و صفحه‌بندی.
+
+## ۲۰۲۶-۱۱-۲۰ — آشکارسازی محدود metadata تاریخ و صفحه‌بندی
+
+**هدف:** شناخت بازهٔ زمانی و pagination گزارش‌های Affilio بدون افشای مقادیر query حساس یا شناسه‌های حساب/رسانه.
+
+**تغییر/اقدام:**
+- برای query keyهای `from_` و `to` فقط مقدارهای منطبق با قالب تاریخ/زمان استاندارد ثبت می‌شوند؛ `page` و `page_size` فقط عدد صحیح کوچک؛ `sort_order` فقط enumهای asc/desc/ascending/descending.
+- برای تمام query keyهای دیگر فقط نام پارامتر ثبت می‌شود و مقدار آن حذف می‌ماند؛ header، body، token و شناسه‌ها همچنان ثبت نمی‌شوند.
+- فیلدهای شناسایی‌شده در schema `links/analytics` شامل `click_count`، `conversion_rate`، `income_items_count`، `total_income`، `revenue_share`، `media_uid`، `link_uid`، `advertiser_name` و `first_click_date` هستند؛ معنی مالی هر فیلد قبل از جمع‌بندی باید با تعریف پنل تطبیق داده شود.
+- `performance-by-link-type` دادهٔ تفکیکی clicks/conversions/revenue و `wallet-summary` فیلدهای `finalized_income_amount` و `wallet_balance_amount` ارائه می‌کنند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_network_audit.mjs`، `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md` و `affilio_radar/AFFILIO_REPORTING_ACCESS.md`.
+
+**آزمون و نتیجه:** browser audit عمیق در run `44698880839` موفق شد و schemaهای فوق را بدون چاپ مقدارها ثبت کرد. query metadata محدود در commit `a5a7f60b330704b92c7365be0413e9ebcde4b607` افزوده شده؛ CI اجرای بعدی در انتظار است.
+
+**شواهد/شناسه:** PR #262؛ browser audit run `44698880839`؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** تاریخ/صفحه/ترتیب مجاز برای تشخیص بازه و pagination نمایش داده می‌شود؛ سایر مقدارها مخفی‌اند. هیچ مقدار مالی، دادهٔ مشتری یا ردیف سفارش وارد log نمی‌شود. rollback با revert browser script انجام می‌شود.
+
+**وضعیت:** endpointها و schemaهای پایه شناسایی شده‌اند؛ import کامل و تطبیق اعداد با پنل هنوز انجام نشده است.

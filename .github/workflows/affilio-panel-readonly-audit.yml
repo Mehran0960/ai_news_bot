@@ -1,0 +1,62 @@
+name: Affilio Publisher Panel Read-Only Audit
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "affilio_radar/affilio_panel_audit.py"
+      - "affilio_radar/test_affilio_panel_audit.py"
+      - "affilio_radar/affilio_panel_network_audit.mjs"
+      - ".github/workflows/affilio-panel-readonly-audit.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "affilio_radar/affilio_panel_audit.py"
+      - "affilio_radar/test_affilio_panel_audit.py"
+      - "affilio_radar/affilio_panel_network_audit.mjs"
+      - ".github/workflows/affilio-panel-readonly-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: affilio-panel-readonly-audit
+  cancel-in-progress: true
+
+jobs:
+  readonly-panel-audit:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run parser and URL safety tests
+        run: python -m unittest -v affilio_radar.test_affilio_panel_audit
+
+      - name: Install Playwright browser
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Authenticate and capture read-only panel API routes
+        env:
+          AFFILIO_USER: ${{ secrets.AFFILIO_USER }}
+          AFFILIO_PASS: ${{ secrets.AFFILIO_PASS }}
+        run: node affilio_radar/affilio_panel_network_audit.mjs
+
+      - name: State security boundaries
+        if: always()
+        run: |
+          echo "No panel report rows are printed or uploaded."
+          echo "No browser cookies, SSO tokens, or credentials are persisted."
+          echo "Only authentication status and sanitized same-origin route paths are logged."
