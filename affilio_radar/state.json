@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-20T09:30:45.657358+00:00",
-  "aparat_last_upload_success_at": "2026-11-20T09:30:49.041433+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-20T10:09:44.297935+00:00",
+  "aparat_last_upload_success_at": "2026-11-20T10:09:48.488521+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-20T09:59:50.397956+00:00",
@@ -191416,7 +191416,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-10081270": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-20T10:09:44.297935+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-20T10:09:48.488521+00:00",
+      "aparat_video_hash": "spa9ykd",
+      "aparat_video_record_id": "74308278",
+      "aparat_video_url": "https://www.aparat.com/v/spa9ykd",
+      "aparat_visibility": "public",
       "bale_message_id": 2371,
       "bale_posted_at": "2026-11-20T10:08:40.144717+00:00",
       "brand": "پرایم",
@@ -191540,8 +191546,17 @@
       "telegram_posted_at": "2026-11-20T10:08:39.663739+00:00",
       "title": "ژل لایه بردار پرایم مدل C-Prime Instant Keratolytic Gelحجم 150 میلی لیتر10081270",
       "ts": 1795169314.388651,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-10081270.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-10081270.mp4"
+      },
+      "video_generated_at": "2026-11-20T10:09:37.705410+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-101471": {
       "aparat_skip_reason": "selection_outside_freshness_window",
