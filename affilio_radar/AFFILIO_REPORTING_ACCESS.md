@@ -160,4 +160,14 @@ workflow مستقل `.github/workflows/affilio-panel-readonly-audit.yml` این 
 **محدودیت فعلی:** این ممیزی هنوز خودش گزارش مالی را استخراج نمی‌کند؛ اول باید ورود واقعی و مسیرهای گزارش/فیلتر/خروجی در پنل شناسایی شوند. پس از موفقیت login، مسیر دریافت باید فقط از API/export رسمی یا قابلیت رسمی پنل پیاده‌سازی شود. اگر MFA، CAPTCHA یا تغییر SSO لازم باشد، عملیات امن متوقف می‌شود و نیاز به اقدام مجاز مالک حساب دارد.
 
 مستند عمومی فعلی API افیلیو endpoint گزارش تاریخی کلیک/سفارش/کمیسیون ناشر را معرفی نمی‌کند؛ بنابراین تا مشاهدهٔ مسیر واقعی پنل، endpoint گزارش ساخته یا حدس زده نمی‌شود.
+ 
+### اصلاح روش ورود — ۲۰ نوامبر ۲۰۲۶
 
+در اجرای نخست GitHub Actions، هر دو Secret در دسترس بودند؛ اما GET سادهٔ `publisher.affilio.ir/` در HTML خام runner، فرم ورود را نداشت. برای حذف وابستگی به JavaScript مرورگر، ممیزی به OIDC Authorization Code + PKCE/S256 روی realm رسمی دیجی‌وایز تغییر یافته است:
+- درخواست authorization با state و verifier تازه ساخته می‌شود؛
+- فرم فقط وقتی به مقصد ثابت `sso.digiwise.ir/realms/services/login-actions/authenticate` ارسال می‌شود که host/path دقیقاً مطابق allowlist باشند؛
+- callback فقط با host ثبت‌شدهٔ `publisher.affilio.ir` و state منطبق پذیرفته می‌شود؛
+- token endpoint رسمی با code و verifier فراخوانی می‌شود؛
+- access token، code، cookie و گزارش‌ها در log/artifact/repository قرار نمی‌گیرند.
+
+این تغییر هنوز یک روش ورود در حال آزمون است؛ تا اجرای موفق workflow، احراز هویت یا دسترسی گزارش را تأییدشده تلقی نکن.
