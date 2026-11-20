@@ -42,8 +42,8 @@ KEYWORDS = re.compile(
     r"dashboard|overview|summary|metric|link|product)",
     re.IGNORECASE,
 )
-ROUTE_LITERAL = re.compile(r'''['"`](/[^'"`\\s<>]{1,220})['"`]''')
-ABSOLUTE_URL_LITERAL = re.compile(r'''['"`](https://[^'"`\\s<>]{1,400})['"`]''')
+ROUTE_LITERAL = re.compile(r'''['"\x60](/[^'"\x60\s<>]{1,220})['"\x60]''')
+ABSOLUTE_URL_LITERAL = re.compile(r'''['"\x60](https://[^'"\x60\s<>]{1,400})['"\x60]''')
 REDIRECT_CODES = {301, 302, 303, 307, 308}
 
 
@@ -188,7 +188,7 @@ def normalized_path(raw_url: str, base_url: str) -> str | None:
         "{id}",
         path,
     )
-    path = re.sub(r"(?<=/)\\d{5,}(?=/|$)", "{id}", path)
+    path = re.sub(r"(?<=/)\d{5,}(?=/|$)", "{id}", path)
     normalized = path[:220] if hostname == "publisher.affilio.ir" else f"{hostname}{path[:180]}"
     return normalized
 
