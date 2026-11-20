@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-20T07:53:49.809024+00:00",
+  "generated_at": "2026-11-20T08:07:44.818598+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ادویه‌های ارگانیک": 1,
@@ -116,11 +116,11 @@
       "شلوارک ورزشی مردانه": 1,
       "شوینده ظروف": 1,
       "عطر و ادکلن مردانه": 1,
-      "فیلم سینمایی": 1,
       "قلم لمسی (Stylus)": 1,
       "لوازم جانبی اصلاح": 1,
       "لواشک، برگه و آلوچه": 1,
       "مایو و لباس شنای مردانه": 1,
+      "پرده": 1,
       "پنکیک": 1,
       "چراغ خواب و آباژور": 1,
       "کابینت": 1,
@@ -140,11 +140,10 @@
       "home": 7,
       "lighting": 1,
       "mobile_devices": 1,
-      "other": 4,
+      "other": 5,
       "personal_care": 3,
       "power_backup": 2,
-      "sports_outdoor": 3,
-      "tv_audio_video": 1
+      "sports_outdoor": 3
     },
     "category_share_percent": {
       "beauty_fragrance": 3.2,
@@ -155,18 +154,17 @@
       "home": 22.6,
       "lighting": 3.2,
       "mobile_devices": 3.2,
-      "other": 12.9,
+      "other": 16.1,
       "personal_care": 9.7,
       "power_backup": 6.5,
-      "sports_outdoor": 9.7,
-      "tv_audio_video": 3.2
+      "sports_outdoor": 9.7
     },
     "distinct_catalog_categories": 30,
-    "distinct_categories": 13,
+    "distinct_categories": 12,
     "distinct_families": 31,
     "distinct_retailers": 1,
-    "distinct_use_cases": 13,
-    "known_brand_posts": 20,
+    "distinct_use_cases": 12,
+    "known_brand_posts": 19,
     "posts": 31,
     "repeated_brand_count": 1,
     "repeated_brands": {
@@ -179,14 +177,13 @@
       "digikala": 100.0
     },
     "use_case_post_counts": {
-      "audio_visual": 1,
       "automotive": 1,
       "books_learning": 1,
       "catalog_taxonomy_other": 3,
       "fashion_lifestyle": 4,
       "general": 1,
       "grocery_food": 3,
-      "home_living": 4,
+      "home_living": 5,
       "kitchen_food": 4,
       "lighting_electrical": 1,
       "mobile_productivity": 2,
@@ -350,6 +347,7 @@
       "پتو": 1,
       "پد آرایشی و بیوتی بلندر": 1,
       "پرایمر": 2,
+      "پرده": 1,
       "پنکیک": 1,
       "پنیر محلی": 1,
       "پودر سیر، موسیر و پیاز": 1,
@@ -413,7 +411,7 @@
       "large_appliances": 3,
       "lighting": 2,
       "mobile_devices": 4,
-      "other": 49,
+      "other": 50,
       "personal_care": 35,
       "power_backup": 5,
       "sports_outdoor": 19,
@@ -422,34 +420,34 @@
     },
     "category_share_percent": {
       "audio_wearables": 0.4,
-      "automotive": 1.2,
+      "automotive": 1.1,
       "beauty_fragrance": 0.8,
       "books_stationery": 4.6,
       "computer_network": 1.9,
       "digital_accessories": 2.7,
-      "fashion": 10.4,
-      "gaming": 1.2,
+      "fashion": 10.3,
+      "gaming": 1.1,
       "grocery_food": 14.6,
-      "home": 11.2,
+      "home": 11.1,
       "home_cleaning": 1.5,
       "kids_sports": 3.1,
-      "large_appliances": 1.2,
+      "large_appliances": 1.1,
       "lighting": 0.8,
       "mobile_devices": 1.5,
-      "other": 18.8,
-      "personal_care": 13.5,
+      "other": 19.2,
+      "personal_care": 13.4,
       "power_backup": 1.9,
       "sports_outdoor": 7.3,
       "tools_industrial": 0.4,
-      "tv_audio_video": 1.2
+      "tv_audio_video": 1.1
     },
-    "distinct_catalog_categories": 200,
+    "distinct_catalog_categories": 201,
     "distinct_categories": 21,
-    "distinct_families": 205,
+    "distinct_families": 206,
     "distinct_retailers": 1,
     "distinct_use_cases": 21,
     "known_brand_posts": 115,
-    "posts": 260,
+    "posts": 261,
     "repeated_brand_count": 24,
     "repeated_brands": {
       "arden": 2,
@@ -474,7 +472,7 @@
       "zarin_barakat": 2
     },
     "retailer_post_counts": {
-      "digikala": 260
+      "digikala": 261
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -491,7 +489,7 @@
       "grocery_food": 49,
       "health_wellness": 1,
       "home_cleaning": 4,
-      "home_living": 18,
+      "home_living": 19,
       "kitchen_food": 17,
       "lighting_electrical": 1,
       "mobile_productivity": 17,
@@ -519,31 +517,14 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1632,
+    "all_time_count": 1633,
     "last_7_days_count": 500,
     "reason_counts_in_retained_history": {
-      "brand_repeat": 16,
+      "brand_repeat": 17,
       "family_repeat": 395,
       "similarity_repeat": 498
     },
     "recent_events": [
-      {
-        "at": "2026-11-17T16:06:12.610744+00:00",
-        "brand": "",
-        "catalog_category_id": "11020",
-        "catalog_category_name": "استابیلایزر و گیمبال",
-        "category": "gaming",
-        "compared_to_product_id": "dkp-16045969",
-        "family": "digikala_category:11020",
-        "product_id": "dkp-11401055",
-        "reason": "family_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "similarity_repeat"
-        ],
-        "title": "گیمبال و لرزشگیر مدل L7BPRO",
-        "use_case": "gaming"
-      },
       {
         "at": "2026-11-17T16:12:52.208911+00:00",
         "brand": "brand:ناب_تن",
@@ -858,6 +839,24 @@
       },
       {
         "at": "2026-11-20T07:53:49.809024+00:00",
+        "brand": "brand:زدفون",
+        "catalog_category_id": "6139",
+        "catalog_category_name": "عطر و ادکلن مردانه",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-21090992",
+        "family": "digikala_category:6139",
+        "product_id": "dkp-18333637",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-20T08:07:44.818598+00:00",
         "brand": "brand:زدفون",
         "catalog_category_id": "6139",
         "catalog_category_name": "عطر و ادکلن مردانه",
