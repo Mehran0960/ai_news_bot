@@ -3368,3 +3368,4 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 
 **وضعیت:** مرحلهٔ تصویب سیاست، مستندسازی و گیت رگرسیون در `main` ادغام و آزمون‌شده است. اتصال خودکار پنل Affilio، Postback تولیدی، `aff_sub`، دفتر تبدیل D1، داشبورد درآمد و آزمون واقعی دو اپراتور داخل ایران همچنان باز/مسدود به دسترسی رسمی و شواهد بیرونی هستند.
 
+**فایل‌ها/سامانه‌ها:** `docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md`، `docs/CHANGELOG_FA.md`؛ PR #260 و merge commit `5bca1a18e87a4c20f04c9cea90c302fee28b9fa2`؛ GitHub Actions runs `44693716563`، `44693716564`، `44693716565`، `44693716616`، `44693716562` و `44693161892`.
