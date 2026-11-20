@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-20T02:36:38.844987+00:00",
-  "aparat_last_upload_success_at": "2026-11-20T02:36:43.784353+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-20T03:22:46.801037+00:00",
+  "aparat_last_upload_success_at": "2026-11-20T03:22:49.906669+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-20T02:53:57.214590+00:00",
@@ -196826,7 +196826,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-118219": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-20T03:22:46.801037+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-20T03:22:49.906669+00:00",
+      "aparat_video_hash": "fxfoe30",
+      "aparat_video_record_id": "74303977",
+      "aparat_video_url": "https://www.aparat.com/v/fxfoe30",
+      "aparat_visibility": "public",
       "bale_message_id": 2358,
       "bale_posted_at": "2026-11-20T03:21:48.216869+00:00",
       "brand": "سی گل",
@@ -196950,8 +196956,17 @@
       "telegram_posted_at": "2026-11-20T03:21:47.912638+00:00",
       "title": "اسپری روغن آفتاب سی گل مدل SPF6 حجم 250 میلی لیتر",
       "ts": 1795144903.004956,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-118219.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-118219.mp4"
+      },
+      "video_generated_at": "2026-11-20T03:22:38.979883+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-20T22:48:40.998430+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-11847113": {
       "aparat_skip_reason": "selection_outside_freshness_window",
