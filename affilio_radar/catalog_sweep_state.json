@@ -6477,15 +6477,15 @@
   "last_cycle_unqueryable_category_ids": [],
   "last_error": "",
   "last_error_at": "2026-11-15T05:00:24.184952+00:00",
-  "last_successful_category_id": "6023",
-  "last_successful_category_name": "کیف و کوله سفری",
-  "last_successful_page": 44,
-  "last_successful_page_at": "2026-11-20T03:21:40.091598+00:00",
+  "last_successful_category_id": "76",
+  "last_successful_category_name": "محافظ صفحه نمایش گوشی",
+  "last_successful_page": 47,
+  "last_successful_page_at": "2026-11-20T03:22:56.287604+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 41,
+  "page": 44,
   "parallel_api_route_policy_version": "digikala_discovery_api_v1_trusted_category_taxonomy_v4",
-  "parallel_category_mismatch_rows_rejected": 4678050,
+  "parallel_category_mismatch_rows_rejected": 4678175,
   "parallel_cycle_completed_category_ids": [
     "11",
     "13",
@@ -6499,9 +6499,11 @@
     "64",
     "70",
     "77",
+    "79",
     "81",
     "82",
     "84",
+    "97",
     "98",
     "100",
     "102",
@@ -6513,6 +6515,7 @@
     "193",
     "209",
     "210",
+    "211",
     "219",
     "1271",
     "1272",
@@ -6532,6 +6535,7 @@
     "5867",
     "5871",
     "5903",
+    "5928",
     "5930",
     "5982",
     "5987",
@@ -6543,11 +6547,13 @@
     "6018",
     "6021",
     "6022",
+    "6023",
     "6030",
     "6033",
     "6035",
     "6043",
     "6044",
+    "6055",
     "6059",
     "6081",
     "6083",
@@ -6590,6 +6596,7 @@
     "6292",
     "6294",
     "6295",
+    "6297",
     "6304",
     "6315",
     "6318",
@@ -6632,6 +6639,7 @@
     "6503",
     "6505",
     "6510",
+    "6518",
     "6533",
     "6536",
     "6537",
@@ -6659,6 +6667,7 @@
     "6728",
     "6740",
     "6750",
+    "6757",
     "6759",
     "6765",
     "6768",
@@ -6714,6 +6723,7 @@
     "8349",
     "8350",
     "8354",
+    "8355",
     "8368",
     "8369",
     "8370",
@@ -6722,9 +6732,11 @@
     "8384",
     "8385",
     "8390",
+    "8397",
     "8416",
     "8430",
     "8431",
+    "8432",
     "8433",
     "8468",
     "8499",
@@ -6761,6 +6773,7 @@
     "8948",
     "8996",
     "9004",
+    "9005",
     "9012",
     "9083",
     "9219",
@@ -6821,6 +6834,7 @@
     "9524",
     "9527",
     "9529",
+    "9551",
     "9569",
     "9573",
     "9633",
@@ -6844,6 +6858,7 @@
     "9863",
     "9869",
     "9906",
+    "9908",
     "10011",
     "10040",
     "10053",
@@ -6893,6 +6908,7 @@
     "10558",
     "10559",
     "10560",
+    "10561",
     "10562",
     "10563",
     "10582",
@@ -6900,6 +6916,7 @@
     "10614",
     "10616",
     "10638",
+    "10707",
     "10709",
     "10727",
     "10731",
@@ -7045,8 +7062,8 @@
     "11792",
     "11793"
   ],
-  "parallel_cycle_pages_success": 12455,
-  "parallel_cycle_product_rows_success": 244531,
+  "parallel_cycle_pages_success": 12522,
+  "parallel_cycle_product_rows_success": 245707,
   "parallel_cycle_started_at": "2026-11-20T02:51:25.481209+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -7640,29 +7657,29 @@
     "11792",
     "11793"
   ],
-  "parallel_last_batch_at": "2026-11-20T03:21:40.460231+00:00",
-  "parallel_last_batch_candidate_file_bytes": 7385276,
-  "parallel_last_batch_candidate_write_seconds": 0.154,
+  "parallel_last_batch_at": "2026-11-20T03:22:56.606777+00:00",
+  "parallel_last_batch_candidate_file_bytes": 7385271,
+  "parallel_last_batch_candidate_write_seconds": 0.127,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 1.616,
+  "parallel_last_batch_fetch_seconds": 0.808,
   "parallel_last_batch_http_5xx_retries": 0,
-  "parallel_last_batch_nonempty_product_pages": 34,
-  "parallel_last_batch_pages": 34,
-  "parallel_last_batch_pages_per_second": 21.05,
-  "parallel_last_batch_processing_seconds": 0.251,
-  "parallel_last_batch_product_rows": 635,
+  "parallel_last_batch_nonempty_product_pages": 16,
+  "parallel_last_batch_pages": 16,
+  "parallel_last_batch_pages_per_second": 19.8,
+  "parallel_last_batch_processing_seconds": 0.207,
+  "parallel_last_batch_product_rows": 269,
   "parallel_last_batch_rate_limited": 0,
-  "parallel_last_batch_request_count": 34,
-  "parallel_last_batch_request_max_seconds": 0.881,
-  "parallel_last_batch_request_p50_seconds": 0.294,
-  "parallel_last_batch_request_p95_seconds": 0.745,
+  "parallel_last_batch_request_count": 16,
+  "parallel_last_batch_request_max_seconds": 0.509,
+  "parallel_last_batch_request_p50_seconds": 0.42,
+  "parallel_last_batch_request_p95_seconds": 0.509,
   "parallel_last_batch_retries": 0,
-  "parallel_last_batch_rows_per_second": 314.13,
-  "parallel_last_batch_successes": 34,
+  "parallel_last_batch_rows_per_second": 235.55,
+  "parallel_last_batch_successes": 16,
   "parallel_last_batch_terminals": 0,
   "parallel_last_batch_timeout_retries": 0,
-  "parallel_last_batch_worker_limit_before": 9,
-  "parallel_last_batch_worker_limit_next": 11,
+  "parallel_last_batch_worker_limit_before": 10,
+  "parallel_last_batch_worker_limit_next": 12,
   "parallel_leaf_category_count": 586,
   "parallel_pending_pages": [
     {
@@ -7670,222 +7687,103 @@
       "category_id": "6029",
       "category_name": "بازی فکری",
       "category_query": "اسباب بازی",
-      "page": 41
-    },
-    {
-      "attempts": 0,
-      "category_id": "6055",
-      "category_name": "ماشین بازی",
-      "category_query": "اسباب بازی",
-      "page": 42
-    },
-    {
-      "attempts": 0,
-      "category_id": "79",
-      "category_name": "باتری گوشی",
-      "category_query": "گوشی",
-      "page": 43
-    },
-    {
-      "attempts": 0,
-      "category_id": "5857",
-      "category_name": "سایر لوازم خودرو",
-      "category_query": "ابزار",
-      "page": 43
-    },
-    {
-      "attempts": 0,
-      "category_id": "5928",
-      "category_name": "لوازم جانبی صوتی و تصویری خودرو",
-      "category_query": "خودرو",
-      "page": 43
-    },
-    {
-      "attempts": 0,
-      "category_id": "6297",
-      "category_name": "رومیزی و رانر",
-      "category_query": "لوازم خانگی",
-      "page": 43
-    },
-    {
-      "attempts": 0,
-      "category_id": "6301",
-      "category_name": "ظرف نگهدارنده",
-      "category_query": "مواد غذایی",
-      "page": 43
-    },
-    {
-      "attempts": 0,
-      "category_id": "6518",
-      "category_name": "شامپو مو",
-      "category_query": "مواد غذایی",
-      "page": 43
-    },
-    {
-      "attempts": 0,
-      "category_id": "8397",
-      "category_name": "ابزار و ملزومات هنرهای تجسمی",
-      "category_query": "ابزار",
-      "page": 43
-    },
-    {
-      "attempts": 0,
-      "category_id": "9005",
-      "category_name": "لوازم یدکی خانگی",
-      "category_query": "لوازم خانگی",
-      "page": 43
-    },
-    {
-      "attempts": 0,
-      "category_id": "9551",
-      "category_name": "ورزش",
-      "category_query": "ورزش",
-      "page": 43
-    },
-    {
-      "attempts": 0,
-      "category_id": "10707",
-      "category_name": "ماگ",
-      "category_query": "ورزش",
-      "page": 43
-    },
-    {
-      "attempts": 0,
-      "category_id": "10756",
-      "category_name": "سایر ادویه و چاشنی‌ها",
-      "category_query": "مواد غذایی",
-      "page": 43
+      "page": 44
     },
     {
       "attempts": 0,
       "category_id": "11339",
       "category_name": "آینه های آرایشی",
       "category_query": "آرایشی",
-      "page": 43
+      "page": 45
+    },
+    {
+      "attempts": 0,
+      "category_id": "5857",
+      "category_name": "سایر لوازم خودرو",
+      "category_query": "ابزار",
+      "page": 46
+    },
+    {
+      "attempts": 0,
+      "category_id": "6301",
+      "category_name": "ظرف نگهدارنده",
+      "category_query": "مواد غذایی",
+      "page": 46
+    },
+    {
+      "attempts": 0,
+      "category_id": "10756",
+      "category_name": "سایر ادویه و چاشنی‌ها",
+      "category_query": "مواد غذایی",
+      "page": 46
     },
     {
       "attempts": 0,
       "category_id": "11358",
       "category_name": "قاب، زه و ضربه‌گیر خودرو",
       "category_query": "خودرو",
-      "page": 43
-    },
-    {
-      "attempts": 0,
-      "category_id": "97",
-      "category_name": "کیف و کاور لپ تاپ",
-      "category_query": "لپ تاپ",
-      "page": 44
-    },
-    {
-      "attempts": 0,
-      "category_id": "211",
-      "category_name": "هدفون، هدست و هندزفری",
-      "category_query": "ورزش",
-      "page": 44
-    },
-    {
-      "attempts": 0,
-      "category_id": "6757",
-      "category_name": "لوازم بسته بندی",
-      "category_query": "مواد غذایی",
-      "page": 44
+      "page": 46
     },
     {
       "attempts": 0,
       "category_id": "8157",
       "category_name": "خاک و کود",
       "category_query": "مواد غذایی",
-      "page": 44
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "8270",
       "category_name": "کفپوش خودرو",
       "category_query": "خودرو",
-      "page": 44
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "8286",
       "category_name": "جاسوئیچی وسایل نقلیه",
       "category_query": "خودرو",
-      "page": 44
-    },
-    {
-      "attempts": 0,
-      "category_id": "8355",
-      "category_name": "واکس، پولیش و تمیزکننده خودرو",
-      "category_query": "خودرو",
-      "page": 44
-    },
-    {
-      "attempts": 0,
-      "category_id": "8432",
-      "category_name": "تابلو شاسی",
-      "category_query": "ورزش",
-      "page": 44
-    },
-    {
-      "attempts": 0,
-      "category_id": "9908",
-      "category_name": "کفش روزمره زنانه",
-      "category_query": "کفش",
-      "page": 44
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "10072",
       "category_name": "محافظ لنز گوشی موبایل",
       "category_query": "گوشی",
-      "page": 44
-    },
-    {
-      "attempts": 0,
-      "category_id": "10561",
-      "category_name": "کتاب دینی",
-      "category_query": "کتاب",
-      "page": 44
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "10704",
       "category_name": "آرم و برچسب خودرو",
       "category_query": "خودرو",
-      "page": 44
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "76",
       "category_name": "محافظ صفحه نمایش گوشی",
       "category_query": "گوشی",
-      "page": 45
-    },
-    {
-      "attempts": 0,
-      "category_id": "6023",
-      "category_name": "کیف و کوله سفری",
-      "category_query": "لوازم خانگی",
-      "page": 45
+      "page": 48
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "parallel_worker_limit": 11,
+  "parallel_worker_limit": 12,
   "parallel_worker_ramp_policy_version": "explicit_12_14_16_v1",
-  "parallel_workers_used": 9,
-  "pending_page_count": 29,
+  "parallel_workers_used": 10,
+  "pending_page_count": 12,
   "schema_version": 1,
   "stats": {
-    "api_failures_total": 108475,
-    "catalog_candidate_cards_found_total": 78415930,
+    "api_failures_total": 108476,
+    "catalog_candidate_cards_found_total": 78416981,
     "completed_cycles": 201,
     "cycles_with_gaps_total": 354,
-    "discounted_candidates_found_total": 17146443,
+    "discounted_candidates_found_total": 17146596,
     "empty_product_pages_total": 1776390,
-    "nonempty_product_pages_total": 4214317,
-    "pages_scanned_total": 4251188,
-    "product_rows_scanned_total": 83094020,
+    "nonempty_product_pages_total": 4214384,
+    "pages_scanned_total": 4251255,
+    "product_rows_scanned_total": 83095196,
     "unqueryable_categories_total": 1740482
   },
   "unacknowledged_candidate_count": 3000
