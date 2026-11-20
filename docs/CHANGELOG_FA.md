@@ -3436,3 +3436,24 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** تغییر فقط read-only است. session cookie و access token در runner نگهداری پایدار نمی‌شوند. اگر endpoint رسمی یا وضعیت گزارش از شواهد UI/دادهٔ پاسخ قابل اثبات نباشد، هیچ فراخوانی تولیدی انجام نمی‌شود. rollback با revert اسکریپت و تست‌ها ممکن است؛ Secretها و لینک‌های خرید تغییر نکرده‌اند.
 
 **وضعیت:** ورود واقعی پنل تأییدشده؛ صفحات عملکرد کشف شده؛ API گزارش، دریافت report data و تطبیق اعداد با پنل هنوز انجام نشده و در مرحلهٔ بعدی است.
+
+## ۲۰۲۶-۱۱-۲۰ — اضافه‌شدن probe فقط‌خواندنی API افیلیو با خروجی schema-only
+
+**هدف:** تشخیص اینکه host رسمی API افیلیو کدام مسیرهای گزارش عملکرد را می‌پذیرد، بدون چاپ یا ذخیرهٔ دادهٔ مالی.
+
+**تغییر/اقدام:**
+- workflow موفق ورود پنل `api.affilio.ir` را در bundle پنل شناسایی کرد؛ صفحات UI شامل `/performance`، `/performance/overview`، `/performance/links`، `/performance/products` و مسیرهای مدیریت لینک افیلیت هستند.
+- `affilio_panel_audit.py` اکنون URLهای نسبی و مطلق را فقط روی زیردامنه‌های رسمی `*.affilio.ir` و `*.digiwise.ir` کشف می‌کند؛ query string، شناسهٔ طولانی و دادهٔ متغیر از route output حذف می‌شوند.
+- بعد از OIDC/PKCE موفق، فقط درخواست‌های GET محدود به ریشهٔ API و candidateهای عملکرد به host ثابت `api.affilio.ir` فرستاده می‌شوند. هیچ POST، تغییر وضعیت، ساخت لینک، export یا عملیات نوشتنی انجام نمی‌شود.
+- پاسخ هر probe حداکثر ۱ مگابایت در حافظه خوانده می‌شود؛ فقط status، content-type و نام کلیدهای سطح اول/فیلد `data` گزارش می‌شود. هیچ مبلغ، شناسهٔ سفارش، مقدار payout، نام مشتری یا ردیف خام چاپ/ذخیره نمی‌شود.
+- تست جدید `_json_schema_only` ثابت می‌کند مقادیر عددی نمونه به خروجی راه پیدا نمی‌کنند؛ تست‌های مسیر API نیز query و host خارجی را حذف می‌کنند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_panel_audit.py`، `affilio_radar/test_affilio_panel_audit.py`، `.github/workflows/affilio-panel-readonly-audit.yml`، `affilio_radar/AFFILIO_REPORTING_ACCESS.md`، Handbook و Changelog.
+
+**آزمون و نتیجه:** ورود OIDC/PKCE در run `44696617415` موفق بود و ۱۱ route هم‌مبدأ/رسمی شناسایی شد؛ این run پیش از اضافه‌شدن probe schema-only اجرا شده است. نسخهٔ جدید دارای ۹ تست واحد است؛ نتیجهٔ اجرای کامل همراه API probe پس از commit جاری در انتظار Actions است.
+
+**شواهد/شناسه:** PR #262؛ run ورود موفق `44696617415`؛ branch `feat/affilio-panel-readonly-auth-audit-20261120`.
+
+**ریسک/بازگشت:** probe فقط GET روی host ثابت و بدون redirect-follow انجام می‌دهد؛ token فقط در حافظه نگهداری می‌شود. اگر endpointی دادهٔ خام برگرداند، فقط schema نام‌فیلدها ثبت می‌شود و body دور ریخته می‌شود. rollback با revert تغییر probe و تست ممکن است؛ هیچ لینک خرید یا دادهٔ تولیدی تغییر نمی‌کند.
+
+**وضعیت:** ورود پنل و کشف UI موفق؛ probe API در حال اعتبارسنجی است. هنوز گزارش مالی کامل/CSV دانلود نشده و هیچ عددی با پنل تطبیق داده نشده است.
