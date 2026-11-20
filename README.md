@@ -4,7 +4,9 @@
 
 ## اسناد اصلی
 
-- [منشور هدف، معماری و نقشهٔ راه](docs/PROJECT_CHARTER_FA.md)\n- [گزارش عیب‌یابی توقف صف انتشار چندرسانه‌ای (۱۷ نوامبر ۲۰۲۶)](docs/OFFERCHIN_PUBLICATION_STARVATION_FIX_2026-11-17_FA.md)\n- [سیاست استقلال کامل رسانه‌ها (۱۷ نوامبر ۲۰۲۶)](docs/OFFERCHIN_INDEPENDENT_MEDIA_POLICY_2026-11-17_FA.md)
+- [منشور هدف، معماری و نقشهٔ راه](docs/PROJECT_CHARTER_FA.md)
+- [نقشه‌راه الزام‌آور رشد درآمد و انتساب فروش](docs/OFFERCHIN_REVENUE_GROWTH_ROADMAP_FA.md)
+- [اصل دائمی و غیرقابل‌مذاکرهٔ لینک افیلیت در اینترنت ملی](docs/OFFERCHIN_DOMESTIC_NETWORK_LINK_INVARIANT_FA.md)\n- [گزارش عیب‌یابی توقف صف انتشار چندرسانه‌ای (۱۷ نوامبر ۲۰۲۶)](docs/OFFERCHIN_PUBLICATION_STARVATION_FIX_2026-11-17_FA.md)\n- [سیاست استقلال کامل رسانه‌ها (۱۷ نوامبر ۲۰۲۶)](docs/OFFERCHIN_INDEPENDENT_MEDIA_POLICY_2026-11-17_FA.md)
 - [راهنمای فنی و نقطهٔ بازیابی](docs/OFFERCHIN_PROJECT_HANDBOOK_FA.md)
 - [دفتر تغییرات و اقدامات](docs/CHANGELOG_FA.md)
 - [سیاست کشف چندمنبعی RSS و تحریریهٔ تصمیم‌یار خرید](docs/OFFERCHIN_DIGIKALA_MAG_SOURCE_POLICY_FA.md)
