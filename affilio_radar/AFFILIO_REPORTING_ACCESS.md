@@ -187,3 +187,8 @@ GitHub Actions run `44696134790` ورود OIDC/PKCE را با هر دو Secret (
 پس از ورود موفق، اسکریپت candidateهای performance و routeهای مرتبط را فقط با GET روی host ثابت `api.affilio.ir` probe می‌کند. body پاسخ در حافظه و با سقف ۱MB خوانده می‌شود تا status و content-type و نام کلیدهای JSON استخراج شوند. مقادیر، تعداد رکوردها، مبلغ فروش، payout و شناسه‌های سفارش هرگز در log/artifact/file ثبت نمی‌شوند. redirect دنبال نمی‌شود و token به host دیگری ارسال نمی‌شود.
 
 این مرحله فقط endpointهای احتمالی و schema را شناسایی می‌کند؛ تا زمانی که semantics هر فیلد و وضعیت سفارش با پنل رسمی تأیید نشود، دادهٔ پاسخ به‌عنوان درآمد یا فروش قطعی تفسیر نمی‌شود.
+ 
+### ممیزی شبکهٔ مرورگر پنل — ۲۰ نوامبر ۲۰۲۶
+
+برای کشف endpoint واقعی، workflow از Playwright/Chromium استفاده می‌کند و صفحات `/performance`، `/performance/overview`، `/performance/links` و `/performance/products` را پس از ورود باز می‌کند. فقط متادیتای XHR/Fetch (method، host/path پاک‌سازی‌شده، status و content-type) در log می‌آید. query string، header، body، cookie، token، screenshot، trace، ردیف سفارش و مبالغ مالی ذخیره یا چاپ نمی‌شوند. در workflow فعلی، تغییرات اسکریپت `affilio_panel_network_audit.mjs` هم در pull_request و هم در push روی main trigger محسوب می‌شود.
+
