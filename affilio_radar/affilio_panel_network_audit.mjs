@@ -40,7 +40,7 @@ function describeSchema(value, depth = 0) {
     return "array<" + describeSchema(value[0], depth + 1) + ">";
   }
   if (typeof value === "object") {
-    if (depth >= 3) return "object";
+    if (depth >= 6) return "object";
     const keys = Object.keys(value).sort().slice(0, 24);
     return "{" + keys.map((key) => key + ":" + describeSchema(value[key], depth + 1)).join(",") + "}";
   }
@@ -71,6 +71,16 @@ async function main() {
     const method = request.method().toUpperCase();
     const key = method + " " + route;
     if (!observed.has(key)) observed.set(key, { method, route, status: "pending", contentType: "unknown" });
+  });
+
+  page.on("requestfailed", (request) => {
+    const kind = request.resourceType();
+    if (kind !== "xhr" && kind !== "fetch") return;
+    const route = safeRoute(request.url());
+    if (!route) return;
+    const key = request.method().toUpperCase() + " " + route;
+    const record = observed.get(key);
+    if (record && record.status === "pending") record.status = "network_failed";
   });
 
   page.on("response", async (response) => {
