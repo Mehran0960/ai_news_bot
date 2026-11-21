@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-21T01:42:32.196265+00:00",
+  "generated_at": "2026-11-21T02:07:29.733927+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ارگانایزر آشپزخانه": 1,
@@ -115,7 +115,6 @@
       "ست زیرپوش و شورت مردانه": 1,
       "شامپو بدن": 1,
       "شلوار ورزشی مردانه": 1,
-      "شلوارک ورزشی مردانه": 1,
       "شورت پسرانه": 1,
       "عطر و ادکلن مردانه": 1,
       "غذای مادر و کودک": 1,
@@ -142,33 +141,33 @@
       "kids_sports": 3,
       "other": 10,
       "personal_care": 6,
-      "sports_outdoor": 3,
+      "sports_outdoor": 2,
       "tv_audio_video": 1
     },
     "category_share_percent": {
-      "beauty_fragrance": 3.1,
-      "books_stationery": 6.2,
-      "computer_network": 3.1,
-      "fashion": 6.2,
-      "grocery_food": 3.1,
-      "home": 6.2,
-      "kids_sports": 9.4,
-      "other": 31.2,
-      "personal_care": 18.8,
-      "sports_outdoor": 9.4,
-      "tv_audio_video": 3.1
+      "beauty_fragrance": 3.2,
+      "books_stationery": 6.5,
+      "computer_network": 3.2,
+      "fashion": 6.5,
+      "grocery_food": 3.2,
+      "home": 6.5,
+      "kids_sports": 9.7,
+      "other": 32.3,
+      "personal_care": 19.4,
+      "sports_outdoor": 6.5,
+      "tv_audio_video": 3.2
     },
-    "distinct_catalog_categories": 31,
+    "distinct_catalog_categories": 30,
     "distinct_categories": 11,
-    "distinct_families": 32,
+    "distinct_families": 31,
     "distinct_retailers": 1,
     "distinct_use_cases": 13,
     "known_brand_posts": 20,
-    "posts": 32,
+    "posts": 31,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 32
+      "digikala": 31
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -186,7 +185,7 @@
       "kitchen_food": 2,
       "mobile_productivity": 1,
       "personal_care": 6,
-      "sports_fitness": 3
+      "sports_fitness": 2
     }
   },
   "last_7_days": {
@@ -510,32 +509,14 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1675,
-    "last_7_days_count": 460,
+    "all_time_count": 1676,
+    "last_7_days_count": 459,
     "reason_counts_in_retained_history": {
-      "brand_repeat": 59,
+      "brand_repeat": 60,
       "family_repeat": 402,
       "similarity_repeat": 498
     },
     "recent_events": [
-      {
-        "at": "2026-11-20T18:04:41.649047+00:00",
-        "brand": "brand:زدفون",
-        "catalog_category_id": "6139",
-        "catalog_category_name": "عطر و ادکلن مردانه",
-        "category": "beauty_fragrance",
-        "compared_to_product_id": "dkp-21090992",
-        "family": "digikala_category:6139",
-        "product_id": "dkp-18333637",
-        "reason": "family_repeat,brand_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "brand_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-20T18:09:50.393331+00:00",
         "brand": "brand:زدفون",
@@ -862,6 +843,24 @@
       },
       {
         "at": "2026-11-21T01:42:32.196265+00:00",
+        "brand": "brand:زدفون",
+        "catalog_category_id": "6139",
+        "catalog_category_name": "عطر و ادکلن مردانه",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-21090992",
+        "family": "digikala_category:6139",
+        "product_id": "dkp-18333637",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-21T02:07:29.733927+00:00",
         "brand": "brand:زدفون",
         "catalog_category_id": "6139",
         "catalog_category_name": "عطر و ادکلن مردانه",
