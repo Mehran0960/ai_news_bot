@@ -3796,187 +3796,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 1,
-      "content_id": "dkp-22962866",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-16T21:15:41.106599+00:00",
-      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
-      "next_attempt_at": "2026-11-16T21:14:24.925977+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22962866%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "10152",
-        "catalog_best_selling_category_name": "روکش توالت فرنگی",
-        "catalog_best_selling_rank": 7,
-        "catalog_best_selling_ranks_by_category": {
-          "10152": {
-            "category_name": "روکش توالت فرنگی",
-            "observed_at": "2026-11-16T19:34:15.956082+00:00",
-            "rank": 7,
-            "rank_history": [
-              {
-                "category_name": "روکش توالت فرنگی",
-                "observed_at": "2026-11-16T19:34:15.956082+00:00",
-                "rank": 7
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T20:12:33.932599+00:00",
-        "catalog_cycle_snapshot_rank": 44,
-        "catalog_rank_observed_at": "2026-11-16T19:34:15.956082+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-16T20:37:28.072777+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22962866",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 249000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 62.35,
-        "discount_percent": 55,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T20:38:10.659979+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 249000,
-        "history_low_toman": 249000,
-        "history_median_toman": 249000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/3e56103e6416a5b54034ef1a6ee50ae75ca69165_1791828459.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 36.72,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 62.35,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 99.02,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T20:38:10.661706+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "original_price": 550000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-22962866",
-        "product_url": "https://www.digikala.com/product/dkp-22962866/",
-        "promo_score": 39,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.0,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "savings_toman": 301000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 7,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 36.72,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 62.35,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 99.02,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T20:38:10.661706+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1393,
-        "title": "روکش یکبارمصرف توالت فرنگی ایلکا مدل کاوری کد m66 بسته 20 عددی",
-        "variant_label": "بی رنگ"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-16T21:15:41.106599+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T21:16:11.709115+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "credentials_not_configured",
-          "status": "not_connected",
-          "updated_at": "2026-11-16T21:15:41.106599+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-16T21:15:41.106599+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T21:16:23.166137+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-16T21:15:41.106599+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T21:16:06.048505+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22962866",
-      "product_plan_cycle_id": "2026-11-16T20:48:49.768494+00:00",
-      "scheduled_at": "2026-11-16T21:14:24.925977+00:00",
-      "selected_at": "2026-11-16T20:38:18.110746+00:00",
-      "sequence_number": 1393,
-      "status": "published",
-      "updated_at": "2026-11-16T21:16:24.370870+00:00"
-    },
-    {
-      "attempt_count": 1,
       "content_id": "dkp-22182003",
       "content_type": "product",
       "last_attempt_at": "2026-11-16T21:21:45.694924+00:00",
@@ -40186,6 +40005,203 @@
       "sequence_number": 1661,
       "status": "published",
       "updated_at": "2026-11-21T07:50:03.445537+00:00"
+    },
+    {
+      "attempt_count": 0,
+      "content_id": "dkp-22002875",
+      "content_type": "product",
+      "last_detail": "recent_product_family_or_brand_cooldown",
+      "next_attempt_at": "2026-11-21T08:26:03.444686+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22002875%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "مومیا",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "6139",
+        "catalog_best_selling_category_name": "عطر و ادکلن مردانه",
+        "catalog_best_selling_rank": 1,
+        "catalog_best_selling_ranks_by_category": {
+          "6139": {
+            "category_name": "عطر و ادکلن مردانه",
+            "observed_at": "2026-11-21T04:51:37.780901+00:00",
+            "rank": 1,
+            "rank_history": [
+              {
+                "category_name": "عطر و ادکلن مردانه",
+                "observed_at": "2026-11-21T04:51:37.780901+00:00",
+                "rank": 1
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-21T05:19:25.825570+00:00",
+        "catalog_cycle_snapshot_rank": 13,
+        "catalog_rank_observed_at": "2026-11-21T04:51:37.780901+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "other",
+        "checked_at": "2026-11-21T05:24:17.158252+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-22002875",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 2271500,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 69.46,
+        "discount_percent": 60,
+        "discount_vs_30d_median_pct": 3,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 79500,
+        "history_checked_at": "2026-11-21T05:24:48.723724+00:00",
+        "history_days": 3,
+        "history_end_day": "2026-11-21",
+        "history_high_toman": 2451000,
+        "history_low_toman": 2271500,
+        "history_median_toman": 2351000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": 2351000,
+        "history_start_day": "2026-11-16",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/86369d8068a93315f58fe01dbcc6e7addf4c555e_1791823617.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_error": "no_sufficiently_similar_in_stock_product",
+        "market_match_score": 0,
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_query": "اکسترا پرفیوم مردانه مومیا مدل Bvlgari Tygar با رایحه خنک و تلخ حجم 35 میلی لیتر",
+        "market_search_candidates": [
+          {
+            "match_score": 0,
+            "name": "عطر بولگاری تایگار - یک گرم تضمینی Bvlgari Tygar اسانس و خالص با کیفیت عالی و ماندگاری بالا",
+            "price_toman": 61000,
+            "url": "https://torob.com/p/8499e749-ad92-4087-a7ad-c253ac9e0fcf/"
+          },
+          {
+            "match_score": 0,
+            "name": "عطر بولگاری تایگر - برند جیوادان Lcv (اکسترا پرفیوم ) - جنسیت مردانه - 1 میل",
+            "price_toman": 94000,
+            "url": "https://torob.com/p/54b0d33f-8662-4a2a-b294-65fd1cedb7df/"
+          },
+          {
+            "match_score": 0,
+            "name": "عطر بولگاری تایگر - برند جیوادان Lcv (اکسترا پرفیوم ) - جنسیت مردانه - 1 میل",
+            "price_toman": 113000,
+            "url": "https://torob.com/p/b4f38a51-3775-45ef-9c93-b50ec9f36739/"
+          }
+        ],
+        "market_status": "no_confident_match",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 83.77,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 69.46,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 99.49,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-21T05:25:09.728540+00:00",
+          "weakest_factor_score": 69.46
+        },
+        "original_price": 5750000,
+        "pct_above_stable_low": -3,
+        "product_id": "dkp-22002875",
+        "product_url": "https://www.digikala.com/product/dkp-22002875/",
+        "promo_score": 50,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 3.1,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 107,
+        "savings_toman": 3478500,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 1,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 83.77,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 69.46,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 99.49,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-21T05:25:09.728540+00:00",
+          "weakest_factor_score": 69.46
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1662,
+        "title": "اکسترا پرفیوم مردانه مومیا مدل Bvlgari Tygar با رایحه خنک و تلخ حجم 35 میلی لیتر"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-22002875",
+      "product_plan_cycle_id": "2026-11-21T08:03:47.352063+00:00",
+      "scheduled_at": "2026-11-21T08:26:03.444686+00:00",
+      "selected_at": "2026-11-21T05:25:12.798267+00:00",
+      "sequence_number": 1662,
+      "status": "stale_selection",
+      "updated_at": "2026-11-21T08:26:33.652128+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -40888,201 +40904,6 @@
       "scheduled_at": "2026-11-21T09:45:03.444686+00:00",
       "selected_at": "2026-11-21T07:49:51.415521+00:00",
       "sequence_number": 1664,
-      "status": "queued"
-    },
-    "dkp-22002875": {
-      "attempt_count": 0,
-      "content_id": "dkp-22002875",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-21T08:26:03.444686+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22002875%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "مومیا",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "6139",
-        "catalog_best_selling_category_name": "عطر و ادکلن مردانه",
-        "catalog_best_selling_rank": 1,
-        "catalog_best_selling_ranks_by_category": {
-          "6139": {
-            "category_name": "عطر و ادکلن مردانه",
-            "observed_at": "2026-11-21T04:51:37.780901+00:00",
-            "rank": 1,
-            "rank_history": [
-              {
-                "category_name": "عطر و ادکلن مردانه",
-                "observed_at": "2026-11-21T04:51:37.780901+00:00",
-                "rank": 1
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-21T05:19:25.825570+00:00",
-        "catalog_cycle_snapshot_rank": 13,
-        "catalog_rank_observed_at": "2026-11-21T04:51:37.780901+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-21T05:24:17.158252+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22002875",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 2271500,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 69.46,
-        "discount_percent": 60,
-        "discount_vs_30d_median_pct": 3,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 79500,
-        "history_checked_at": "2026-11-21T05:24:48.723724+00:00",
-        "history_days": 3,
-        "history_end_day": "2026-11-21",
-        "history_high_toman": 2451000,
-        "history_low_toman": 2271500,
-        "history_median_toman": 2351000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 2351000,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/86369d8068a93315f58fe01dbcc6e7addf4c555e_1791823617.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_error": "no_sufficiently_similar_in_stock_product",
-        "market_match_score": 0,
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "اکسترا پرفیوم مردانه مومیا مدل Bvlgari Tygar با رایحه خنک و تلخ حجم 35 میلی لیتر",
-        "market_search_candidates": [
-          {
-            "match_score": 0,
-            "name": "عطر بولگاری تایگار - یک گرم تضمینی Bvlgari Tygar اسانس و خالص با کیفیت عالی و ماندگاری بالا",
-            "price_toman": 61000,
-            "url": "https://torob.com/p/8499e749-ad92-4087-a7ad-c253ac9e0fcf/"
-          },
-          {
-            "match_score": 0,
-            "name": "عطر بولگاری تایگر - برند جیوادان Lcv (اکسترا پرفیوم ) - جنسیت مردانه - 1 میل",
-            "price_toman": 94000,
-            "url": "https://torob.com/p/54b0d33f-8662-4a2a-b294-65fd1cedb7df/"
-          },
-          {
-            "match_score": 0,
-            "name": "عطر بولگاری تایگر - برند جیوادان Lcv (اکسترا پرفیوم ) - جنسیت مردانه - 1 میل",
-            "price_toman": 113000,
-            "url": "https://torob.com/p/b4f38a51-3775-45ef-9c93-b50ec9f36739/"
-          }
-        ],
-        "market_status": "no_confident_match",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 83.77,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 69.46,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.49,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T05:25:09.728540+00:00",
-          "weakest_factor_score": 69.46
-        },
-        "original_price": 5750000,
-        "pct_above_stable_low": -3,
-        "product_id": "dkp-22002875",
-        "product_url": "https://www.digikala.com/product/dkp-22002875/",
-        "promo_score": 50,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 3.1,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 107,
-        "savings_toman": 3478500,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 1,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 83.77,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 69.46,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.49,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T05:25:09.728540+00:00",
-          "weakest_factor_score": 69.46
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1662,
-        "title": "اکسترا پرفیوم مردانه مومیا مدل Bvlgari Tygar با رایحه خنک و تلخ حجم 35 میلی لیتر"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22002875",
-      "product_plan_cycle_id": "2026-11-21T08:03:47.352063+00:00",
-      "scheduled_at": "2026-11-21T08:26:03.444686+00:00",
-      "selected_at": "2026-11-21T05:25:12.798267+00:00",
-      "sequence_number": 1662,
       "status": "queued"
     }
   },
@@ -108195,7 +108016,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.4,
+      "delivery_duration_seconds": 1.5,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -108258,8 +108079,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.4,
-      "delivery_started_at": "2026-11-21T08:07:39.929542+00:00",
+      "delivery_duration_seconds": 1.5,
+      "delivery_started_at": "2026-11-21T08:26:35.337933+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -308753,7 +308574,8 @@
       "aparat_video_record_id": "74316716",
       "aparat_video_url": "https://www.aparat.com/v/znwp59k",
       "aparat_visibility": "public",
-      "bale_expiry_status": "unknown",
+      "bale_expired_deleted_at": "2026-11-21T08:22:36.656688+00:00",
+      "bale_expiry_status": "already_absent",
       "bale_message_id": 2387,
       "bale_posted_at": "2026-11-20T19:38:50.484494+00:00",
       "brand": "آردن سبوما",
@@ -308813,12 +308635,17 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
-      "expires_at": "",
-      "expiry_deadline_verified_directly": false,
+      "expired_deleted_at": "2026-11-21T08:17:42.035637+00:00",
+      "expires_at": "2026-11-21T08:17:39.244179+00:00",
+      "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
-      "expiry_source": "unavailable",
-      "expiry_status": "unknown",
+      "expiry_last_direct_verification_at": "2026-11-21T08:17:39.244179+00:00",
+      "expiry_last_removal_check_at": "2026-11-21T08:17:39.244179+00:00",
+      "expiry_last_removal_check_result": "confirmed",
+      "expiry_reason": "price_mismatch",
+      "expiry_source": "live_product_stock_or_price",
+      "expiry_status": "deleted",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-20T19:41:19.933788+00:00",
@@ -308832,6 +308659,9 @@
       "history_days": 3,
       "history_status": "pending_history",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/bc21c30f24331be3753efe76cf80b3b73bb54e5e_1794490144.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "last_seen_current_price": 810400,
+      "last_seen_in_stock": true,
+      "last_seen_original_price": 1050000,
       "market_price_advantage_pct": null,
       "market_price_checked_at": "",
       "market_reference_kind": "",
@@ -308842,6 +308672,19 @@
       "posted_current_price": 791300,
       "posted_discount_percent": 25,
       "posted_original_price": 1050000,
+      "price_audit_invalidated_at": "2026-11-21T08:17:39.244179+00:00",
+      "price_audit_last_checked_at": "2026-11-21T08:17:39.244179+00:00",
+      "price_audit_live_original_price": 1050000,
+      "price_audit_live_price": 810400,
+      "price_audit_mismatch_fields": [
+        "current_price",
+        "discount_percent"
+      ],
+      "price_audit_next_check_at": "2026-11-21T08:22:39.244179+00:00",
+      "price_audit_posted_original_price": 1050000,
+      "price_audit_posted_price": 791300,
+      "price_audit_reason": "price_mismatch",
+      "price_audit_status": "invalidated",
       "product_url": "https://www.digikala.com/product/dkp-2537890/",
       "promo_score": 20,
       "publication_category": "personal_care",
