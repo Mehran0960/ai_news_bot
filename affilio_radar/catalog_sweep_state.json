@@ -8085,11 +8085,11 @@
   "last_error_at": "2026-11-15T05:00:24.184952+00:00",
   "last_successful_category_id": "9954",
   "last_successful_category_name": "کفش",
-  "last_successful_page": 43,
-  "last_successful_page_at": "2026-11-21T17:01:40.227336+00:00",
+  "last_successful_page": 46,
+  "last_successful_page_at": "2026-11-21T17:02:32.896764+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 42,
+  "page": 45,
   "parallel_api_route_policy_version": "digikala_discovery_api_v1_trusted_category_taxonomy_v4",
   "parallel_category_mismatch_rows_rejected": 6563468,
   "parallel_cycle_completed_category_ids": [
@@ -8852,8 +8852,8 @@
     "11792",
     "11793"
   ],
-  "parallel_cycle_pages_success": 9757,
-  "parallel_cycle_product_rows_success": 186680,
+  "parallel_cycle_pages_success": 9775,
+  "parallel_cycle_product_rows_success": 187040,
   "parallel_cycle_started_at": "2026-11-21T16:23:28.076843+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -9625,24 +9625,24 @@
     "11792",
     "11793"
   ],
-  "parallel_last_batch_at": "2026-11-21T17:01:40.610621+00:00",
-  "parallel_last_batch_candidate_file_bytes": 7466148,
-  "parallel_last_batch_candidate_write_seconds": 0.173,
+  "parallel_last_batch_at": "2026-11-21T17:02:33.235379+00:00",
+  "parallel_last_batch_candidate_file_bytes": 7466101,
+  "parallel_last_batch_candidate_write_seconds": 0.156,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 1.198,
+  "parallel_last_batch_fetch_seconds": 1.1,
   "parallel_last_batch_http_5xx_retries": 0,
   "parallel_last_batch_nonempty_product_pages": 6,
   "parallel_last_batch_pages": 6,
-  "parallel_last_batch_pages_per_second": 5.01,
-  "parallel_last_batch_processing_seconds": 0.217,
+  "parallel_last_batch_pages_per_second": 5.45,
+  "parallel_last_batch_processing_seconds": 0.189,
   "parallel_last_batch_product_rows": 120,
   "parallel_last_batch_rate_limited": 0,
   "parallel_last_batch_request_count": 6,
-  "parallel_last_batch_request_max_seconds": 1.19,
-  "parallel_last_batch_request_p50_seconds": 1.034,
-  "parallel_last_batch_request_p95_seconds": 1.19,
+  "parallel_last_batch_request_max_seconds": 1.096,
+  "parallel_last_batch_request_p50_seconds": 0.826,
+  "parallel_last_batch_request_p95_seconds": 1.096,
   "parallel_last_batch_retries": 0,
-  "parallel_last_batch_rows_per_second": 75.54,
+  "parallel_last_batch_rows_per_second": 83.05,
   "parallel_last_batch_successes": 6,
   "parallel_last_batch_terminals": 0,
   "parallel_last_batch_timeout_retries": 0,
@@ -9655,42 +9655,42 @@
       "category_id": "6013",
       "category_name": "اقلام مصرفی لوازم اداری",
       "category_query": "لوازم خانگی",
-      "page": 42
+      "page": 45
     },
     {
       "attempts": 0,
       "category_id": "5962",
       "category_name": "بسته های لوازم تحریر",
       "category_query": "لوازم خانگی",
-      "page": 43
+      "page": 46
     },
     {
       "attempts": 0,
       "category_id": "6675",
       "category_name": "ابزار مهمانی",
       "category_query": "ابزار",
-      "page": 43
+      "page": 46
     },
     {
       "attempts": 0,
       "category_id": "5929",
       "category_name": "لوازم جانبی و مصرفی نوشیدنی‌ساز",
       "category_query": "لوازم خانگی",
-      "page": 44
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "6571",
       "category_name": "لوازم جانبی کمپرسور هوا",
       "category_query": "لوازم خانگی",
-      "page": 44
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "9954",
       "category_name": "کفش",
       "category_query": "کفش",
-      "page": 44
+      "page": 47
     }
   ],
   "parallel_queue_initialized": true,
@@ -9702,14 +9702,14 @@
   "schema_version": 1,
   "stats": {
     "api_failures_total": 127398,
-    "catalog_candidate_cards_found_total": 95001805,
+    "catalog_candidate_cards_found_total": 95002165,
     "completed_cycles": 280,
     "cycles_with_gaps_total": 354,
-    "discounted_candidates_found_total": 21048897,
+    "discounted_candidates_found_total": 21048963,
     "empty_product_pages_total": 1778218,
-    "nonempty_product_pages_total": 5156415,
-    "pages_scanned_total": 5195114,
-    "product_rows_scanned_total": 101565313,
+    "nonempty_product_pages_total": 5156433,
+    "pages_scanned_total": 5195132,
+    "product_rows_scanned_total": 101565673,
     "unqueryable_categories_total": 1740482
   },
   "unacknowledged_candidate_count": 3000
