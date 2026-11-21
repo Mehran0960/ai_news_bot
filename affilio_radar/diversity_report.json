@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-20T23:51:03.878162+00:00",
+  "generated_at": "2026-11-21T00:13:21.591132+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ادویه‌های ارگانیک": 1,
@@ -125,6 +125,7 @@
       "لوازم جانبی اتو": 1,
       "لوازم جانبی اصلاح": 1,
       "پرده": 1,
+      "پسته": 1,
       "کتاب رمان و ادبیات داستانی و نمایشی": 1,
       "کتاب موفقیت و رشد فردی": 1,
       "کرم آبرسان و مرطوب کننده": 1,
@@ -139,34 +140,34 @@
       "grocery_food": 2,
       "home": 2,
       "kids_sports": 3,
-      "other": 9,
+      "other": 10,
       "personal_care": 6,
       "sports_outdoor": 3,
       "tv_audio_video": 1
     },
     "category_share_percent": {
-      "beauty_fragrance": 3.1,
-      "books_stationery": 6.2,
-      "fashion": 9.4,
-      "grocery_food": 6.2,
-      "home": 6.2,
-      "kids_sports": 9.4,
-      "other": 28.1,
-      "personal_care": 18.8,
-      "sports_outdoor": 9.4,
-      "tv_audio_video": 3.1
+      "beauty_fragrance": 3.0,
+      "books_stationery": 6.1,
+      "fashion": 9.1,
+      "grocery_food": 6.1,
+      "home": 6.1,
+      "kids_sports": 9.1,
+      "other": 30.3,
+      "personal_care": 18.2,
+      "sports_outdoor": 9.1,
+      "tv_audio_video": 3.0
     },
-    "distinct_catalog_categories": 31,
+    "distinct_catalog_categories": 32,
     "distinct_categories": 10,
-    "distinct_families": 32,
+    "distinct_families": 33,
     "distinct_retailers": 1,
     "distinct_use_cases": 12,
-    "known_brand_posts": 20,
-    "posts": 32,
+    "known_brand_posts": 21,
+    "posts": 33,
     "repeated_brand_count": 0,
     "repeated_brands": {},
     "retailer_post_counts": {
-      "digikala": 32
+      "digikala": 33
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -176,7 +177,7 @@
       "automotive": 2,
       "baby_care": 1,
       "books_learning": 2,
-      "catalog_taxonomy_other": 6,
+      "catalog_taxonomy_other": 7,
       "fashion_lifestyle": 3,
       "grocery_food": 3,
       "health_wellness": 1,
@@ -337,6 +338,7 @@
       "پد آرایشی و بیوتی بلندر": 1,
       "پرایمر": 1,
       "پرده": 1,
+      "پسته": 1,
       "پنکیک": 1,
       "پنیر محلی": 1,
       "پودر سیر، موسیر و پیاز": 1,
@@ -398,7 +400,7 @@
       "large_appliances": 3,
       "lighting": 2,
       "mobile_devices": 4,
-      "other": 51,
+      "other": 52,
       "personal_care": 33,
       "power_backup": 5,
       "sports_outdoor": 19,
@@ -408,31 +410,31 @@
       "audio_wearables": 0.4,
       "automotive": 1.1,
       "beauty_fragrance": 0.8,
-      "books_stationery": 5.0,
+      "books_stationery": 4.9,
       "computer_network": 1.9,
       "digital_accessories": 2.7,
       "fashion": 10.3,
       "gaming": 1.1,
-      "grocery_food": 14.5,
+      "grocery_food": 14.4,
       "home": 10.3,
       "home_cleaning": 1.5,
       "kids_sports": 4.2,
       "large_appliances": 1.1,
       "lighting": 0.8,
       "mobile_devices": 1.5,
-      "other": 19.5,
-      "personal_care": 12.6,
+      "other": 19.8,
+      "personal_care": 12.5,
       "power_backup": 1.9,
-      "sports_outdoor": 7.3,
+      "sports_outdoor": 7.2,
       "tv_audio_video": 1.5
     },
-    "distinct_catalog_categories": 193,
+    "distinct_catalog_categories": 194,
     "distinct_categories": 20,
-    "distinct_families": 199,
+    "distinct_families": 200,
     "distinct_retailers": 1,
     "distinct_use_cases": 21,
-    "known_brand_posts": 123,
-    "posts": 262,
+    "known_brand_posts": 124,
+    "posts": 263,
     "repeated_brand_count": 26,
     "repeated_brands": {
       "arden": 2,
@@ -460,7 +462,7 @@
       "zarin_barakat": 2
     },
     "retailer_post_counts": {
-      "digikala": 262
+      "digikala": 263
     },
     "retailer_share_percent": {
       "digikala": 100.0
@@ -470,7 +472,7 @@
       "automotive": 8,
       "baby_care": 7,
       "books_learning": 14,
-      "catalog_taxonomy_other": 35,
+      "catalog_taxonomy_other": 36,
       "fashion_lifestyle": 25,
       "gaming": 5,
       "general": 2,
@@ -505,32 +507,14 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1668,
-    "last_7_days_count": 469,
+    "all_time_count": 1669,
+    "last_7_days_count": 466,
     "reason_counts_in_retained_history": {
-      "brand_repeat": 52,
+      "brand_repeat": 53,
       "family_repeat": 401,
       "similarity_repeat": 498
     },
     "recent_events": [
-      {
-        "at": "2026-11-20T14:54:31.290708+00:00",
-        "brand": "brand:زدفون",
-        "catalog_category_id": "6139",
-        "catalog_category_name": "عطر و ادکلن مردانه",
-        "category": "beauty_fragrance",
-        "compared_to_product_id": "dkp-21090992",
-        "family": "digikala_category:6139",
-        "product_id": "dkp-18333637",
-        "reason": "family_repeat,brand_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "brand_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-20T15:24:18.899233+00:00",
         "brand": "brand:زدفون",
@@ -857,6 +841,24 @@
       },
       {
         "at": "2026-11-20T23:51:03.878162+00:00",
+        "brand": "brand:زدفون",
+        "catalog_category_id": "6139",
+        "catalog_category_name": "عطر و ادکلن مردانه",
+        "category": "beauty_fragrance",
+        "compared_to_product_id": "dkp-21090992",
+        "family": "digikala_category:6139",
+        "product_id": "dkp-18333637",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
+        "use_case": "personal_care"
+      },
+      {
+        "at": "2026-11-21T00:13:21.591132+00:00",
         "brand": "brand:زدفون",
         "catalog_category_id": "6139",
         "catalog_category_name": "عطر و ادکلن مردانه",
