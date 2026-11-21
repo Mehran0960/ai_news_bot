@@ -4020,188 +4020,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 1,
-      "content_id": "dkp-12791586",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-16T21:50:39.748940+00:00",
-      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
-      "next_attempt_at": "2026-11-16T21:50:23.234247+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-12791586%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "10140",
-        "catalog_best_selling_category_name": "محافظ و آبگیر کنار سینک",
-        "catalog_best_selling_rank": 1,
-        "catalog_best_selling_ranks_by_category": {
-          "10140": {
-            "category_name": "محافظ و آبگیر کنار سینک",
-            "observed_at": "2026-11-16T20:12:54.791208+00:00",
-            "rank": 1,
-            "rank_history": [
-              {
-                "category_name": "محافظ و آبگیر کنار سینک",
-                "observed_at": "2026-11-16T20:12:54.791208+00:00",
-                "rank": 1
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T20:48:49.768494+00:00",
-        "catalog_cycle_snapshot_rank": 431,
-        "catalog_rank_observed_at": "2026-11-16T20:12:54.791208+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-16T21:26:23.319575+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-12791586",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 496400,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 20.6,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 49.03,
-        "discount_percent": 27,
-        "discount_vs_30d_median_pct": 5,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 25575,
-        "history_checked_at": "2026-11-16T21:26:53.008037+00:00",
-        "history_days": 6,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 580000,
-        "history_low_toman": 496400,
-        "history_median_toman": 521975,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 512000,
-        "history_start_day": "2026-11-10",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/12970813a422245324839945a884cbb7968c822e_1784457633.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 72.5,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 49.03,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 92.0,
-          "generality_group": "kitchen_food",
-          "live_demand": 98.86,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T21:27:12.409636+00:00",
-          "weakest_factor_score": 49.03
-        },
-        "original_price": 680000,
-        "pct_above_stable_low": -3,
-        "product_id": "dkp-12791586",
-        "product_url": "https://www.digikala.com/product/dkp-12791586/",
-        "promo_score": 20,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 3.34,
-        "recent_review_growth_7d": 2,
-        "recent_review_growth_window": 2,
-        "review_count": 710,
-        "savings_toman": 183600,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 1,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 72.5,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 49.03,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 92.0,
-          "generality_group": "kitchen_food",
-          "live_demand": 98.86,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T21:27:12.409636+00:00",
-          "weakest_factor_score": 49.03
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1407,
-        "title": "آبگیر کنار سینک مدل سیلیکونی طرح شیروانی",
-        "variant_label": "مشکی"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-16T21:50:39.748940+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T21:50:50.238835+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "credentials_not_configured",
-          "status": "not_connected",
-          "updated_at": "2026-11-16T21:50:39.748940+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-16T21:50:39.748940+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T21:50:57.841279+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-16T21:50:39.748940+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T21:50:47.004230+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-12791586",
-      "product_plan_cycle_id": "2026-11-16T21:21:40.372612+00:00",
-      "scheduled_at": "2026-11-16T21:50:23.234247+00:00",
-      "selected_at": "2026-11-16T21:27:17.571169+00:00",
-      "sequence_number": 1407,
-      "status": "published",
-      "updated_at": "2026-11-16T21:50:59.084244+00:00"
-    },
-    {
-      "attempt_count": 1,
       "content_id": "dkp-21919310",
       "content_type": "product",
       "last_attempt_at": "2026-11-16T21:53:40.101923+00:00",
@@ -40403,6 +40221,195 @@
       "sequence_number": 1667,
       "status": "published",
       "updated_at": "2026-11-21T11:03:09.956466+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-4545846",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-21T11:40:35.868252+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-21T11:39:09.955107+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-4545846%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "راکوتن",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "A",
+        "catalog_best_selling_category_id": "6489",
+        "catalog_best_selling_category_name": "کرم آبرسان و مرطوب کننده",
+        "catalog_best_selling_rank": 3,
+        "catalog_best_selling_ranks_by_category": {
+          "6489": {
+            "category_name": "کرم آبرسان و مرطوب کننده",
+            "observed_at": "2026-11-21T09:03:37.428192+00:00",
+            "rank": 3,
+            "rank_history": [
+              {
+                "category_name": "کرم آبرسان و مرطوب کننده",
+                "observed_at": "2026-11-21T09:03:37.428192+00:00",
+                "rank": 3
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-21T09:32:28.106865+00:00",
+        "catalog_cycle_snapshot_rank": 134,
+        "catalog_rank_observed_at": "2026-11-21T09:03:37.428192+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "personal_care",
+        "checked_at": "2026-11-21T09:37:58.746116+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-4545846",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 298500,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "fresh_independent_history_or_market",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 77.46,
+        "discount_percent": 50,
+        "discount_vs_30d_median_pct": 20,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": true,
+        "historical_discount_savings_toman": 74070,
+        "history_checked_at": "2026-11-21T09:38:23.487823+00:00",
+        "history_days": 30,
+        "history_end_day": "1405/08/29",
+        "history_high_toman": 396900,
+        "history_last_price_toman": 388050,
+        "history_low_toman": 275000,
+        "history_match_delta_pct": 30,
+        "history_median_toman": 372570,
+        "history_source": "digikala_price_chart",
+        "history_stable_low_toman": 276000,
+        "history_start_day": "1405/07/30",
+        "history_status": "verified",
+        "history_variant": "",
+        "history_variant_match": "closest_price",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/d62215d2ed8d71a057f3242923b51465205326af_1754244443.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_error": "RuntimeError",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_query": "کرم آبرسان راکوتن مدل Prebiotic حجم 50 میلی‌لیتر",
+        "market_status": "unavailable",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 87.4,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 77.46,
+          "discount_evidence": "fresh_independent_history_or_market",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 99.47,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-21T09:38:35.606204+00:00",
+          "weakest_factor_score": 77.46
+        },
+        "original_price": 597000,
+        "pct_above_stable_low": 8,
+        "product_id": "dkp-4545846",
+        "product_url": "https://www.digikala.com/product/dkp-4545846/",
+        "promo_score": 36,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.38,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 15525,
+        "savings_toman": 298500,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 3,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 87.4,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 77.46,
+          "discount_evidence": "fresh_independent_history_or_market",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 99.47,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-21T09:38:35.606204+00:00",
+          "weakest_factor_score": 77.46
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "independently_verified",
+        "sequence_number": 1668,
+        "title": "کرم آبرسان راکوتن مدل Prebiotic حجم 50 میلی‌لیتر"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-21T11:40:35.868252+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-21T11:40:43.548140+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-21T11:40:35.868252+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-21T11:40:35.868252+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-21T11:40:47.982739+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-21T11:40:35.868252+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-21T11:40:42.748791+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-4545846",
+      "product_plan_cycle_id": "2026-11-21T11:22:25.405547+00:00",
+      "scheduled_at": "2026-11-21T11:39:09.955107+00:00",
+      "selected_at": "2026-11-21T09:38:39.176245+00:00",
+      "sequence_number": 1668,
+      "status": "published",
+      "updated_at": "2026-11-21T11:40:48.354764+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -40417,7 +40424,7 @@
       "attempt_count": 0,
       "content_id": "dkp-11801878",
       "content_type": "product",
-      "next_attempt_at": "2026-11-21T12:59:09.955107+00:00",
+      "next_attempt_at": "2026-11-21T13:00:48.353358+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-11801878%2F",
         "availability": "in_stock",
@@ -40589,7 +40596,7 @@
       },
       "product_id": "dkp-11801878",
       "product_plan_cycle_id": "2026-11-21T11:22:25.405547+00:00",
-      "scheduled_at": "2026-11-21T12:59:09.955107+00:00",
+      "scheduled_at": "2026-11-21T13:00:48.353358+00:00",
       "selected_at": "2026-11-21T10:04:39.329505+00:00",
       "sequence_number": 1670,
       "status": "queued"
@@ -40598,7 +40605,7 @@
       "attempt_count": 0,
       "content_id": "dkp-13880901",
       "content_type": "product",
-      "next_attempt_at": "2026-11-21T16:46:09.955107+00:00",
+      "next_attempt_at": "2026-11-21T16:47:48.353358+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-13880901%2F",
         "availability": "in_stock",
@@ -40762,7 +40769,7 @@
       },
       "product_id": "dkp-13880901",
       "product_plan_cycle_id": "2026-11-21T11:22:25.405547+00:00",
-      "scheduled_at": "2026-11-21T16:46:09.955107+00:00",
+      "scheduled_at": "2026-11-21T16:47:48.353358+00:00",
       "selected_at": "2026-11-21T11:28:55.598805+00:00",
       "sequence_number": 1676,
       "status": "queued"
@@ -40771,7 +40778,7 @@
       "attempt_count": 0,
       "content_id": "dkp-13885245",
       "content_type": "product",
-      "next_attempt_at": "2026-11-21T14:21:09.955107+00:00",
+      "next_attempt_at": "2026-11-21T14:22:48.353358+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-13885245%2F",
         "availability": "in_stock",
@@ -40962,7 +40969,7 @@
       },
       "product_id": "dkp-13885245",
       "product_plan_cycle_id": "2026-11-21T11:22:25.405547+00:00",
-      "scheduled_at": "2026-11-21T14:21:09.955107+00:00",
+      "scheduled_at": "2026-11-21T14:22:48.353358+00:00",
       "selected_at": "2026-11-21T11:28:55.598805+00:00",
       "sequence_number": 1672,
       "status": "queued"
@@ -40971,7 +40978,7 @@
       "attempt_count": 0,
       "content_id": "dkp-1552489",
       "content_type": "product",
-      "next_attempt_at": "2026-11-21T12:17:09.955107+00:00",
+      "next_attempt_at": "2026-11-21T12:18:48.353358+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1552489%2F",
         "availability": "in_stock",
@@ -41139,7 +41146,7 @@
       },
       "product_id": "dkp-1552489",
       "product_plan_cycle_id": "2026-11-21T11:22:25.405547+00:00",
-      "scheduled_at": "2026-11-21T12:17:09.955107+00:00",
+      "scheduled_at": "2026-11-21T12:18:48.353358+00:00",
       "selected_at": "2026-11-21T09:38:39.176245+00:00",
       "sequence_number": 1669,
       "status": "queued"
@@ -41148,7 +41155,7 @@
       "attempt_count": 0,
       "content_id": "dkp-16045969",
       "content_type": "product",
-      "next_attempt_at": "2026-11-21T14:55:09.955107+00:00",
+      "next_attempt_at": "2026-11-21T14:56:48.353358+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-16045969%2F",
         "availability": "in_stock",
@@ -41311,7 +41318,7 @@
       },
       "product_id": "dkp-16045969",
       "product_plan_cycle_id": "2026-11-21T11:22:25.405547+00:00",
-      "scheduled_at": "2026-11-21T14:55:09.955107+00:00",
+      "scheduled_at": "2026-11-21T14:56:48.353358+00:00",
       "selected_at": "2026-11-21T11:28:55.598805+00:00",
       "sequence_number": 1673,
       "status": "queued"
@@ -41320,7 +41327,7 @@
       "attempt_count": 0,
       "content_id": "dkp-19647631",
       "content_type": "product",
-      "next_attempt_at": "2026-11-21T16:09:09.955107+00:00",
+      "next_attempt_at": "2026-11-21T16:10:48.353358+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-19647631%2F",
         "availability": "in_stock",
@@ -41484,7 +41491,7 @@
       },
       "product_id": "dkp-19647631",
       "product_plan_cycle_id": "2026-11-21T11:22:25.405547+00:00",
-      "scheduled_at": "2026-11-21T16:09:09.955107+00:00",
+      "scheduled_at": "2026-11-21T16:10:48.353358+00:00",
       "selected_at": "2026-11-21T11:28:55.598805+00:00",
       "sequence_number": 1675,
       "status": "queued"
@@ -41493,7 +41500,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21326014",
       "content_type": "product",
-      "next_attempt_at": "2026-11-21T15:31:09.955107+00:00",
+      "next_attempt_at": "2026-11-21T15:32:48.353358+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21326014%2F",
         "availability": "in_stock",
@@ -41656,7 +41663,7 @@
       },
       "product_id": "dkp-21326014",
       "product_plan_cycle_id": "2026-11-21T11:22:25.405547+00:00",
-      "scheduled_at": "2026-11-21T15:31:09.955107+00:00",
+      "scheduled_at": "2026-11-21T15:32:48.353358+00:00",
       "selected_at": "2026-11-21T11:28:55.598805+00:00",
       "sequence_number": 1674,
       "status": "queued"
@@ -41665,7 +41672,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22927548",
       "content_type": "product",
-      "next_attempt_at": "2026-11-21T18:08:09.955107+00:00",
+      "next_attempt_at": "2026-11-21T18:09:48.353358+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22927548%2F",
         "availability": "in_stock",
@@ -41828,7 +41835,7 @@
       },
       "product_id": "dkp-22927548",
       "product_plan_cycle_id": "2026-11-21T11:22:25.405547+00:00",
-      "scheduled_at": "2026-11-21T18:08:09.955107+00:00",
+      "scheduled_at": "2026-11-21T18:09:48.353358+00:00",
       "selected_at": "2026-11-21T11:28:55.598805+00:00",
       "sequence_number": 1678,
       "status": "queued"
@@ -41837,7 +41844,7 @@
       "attempt_count": 0,
       "content_id": "dkp-3072175",
       "content_type": "product",
-      "next_attempt_at": "2026-11-21T13:42:09.955107+00:00",
+      "next_attempt_at": "2026-11-21T13:43:48.353358+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-3072175%2F",
         "availability": "in_stock",
@@ -42005,194 +42012,16 @@
       },
       "product_id": "dkp-3072175",
       "product_plan_cycle_id": "2026-11-21T11:22:25.405547+00:00",
-      "scheduled_at": "2026-11-21T13:42:09.955107+00:00",
+      "scheduled_at": "2026-11-21T13:43:48.353358+00:00",
       "selected_at": "2026-11-21T11:03:03.561875+00:00",
       "sequence_number": 1671,
-      "status": "queued"
-    },
-    "dkp-4545846": {
-      "attempt_count": 0,
-      "content_id": "dkp-4545846",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-21T11:39:09.955107+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-4545846%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "راکوتن",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "6489",
-        "catalog_best_selling_category_name": "کرم آبرسان و مرطوب کننده",
-        "catalog_best_selling_rank": 3,
-        "catalog_best_selling_ranks_by_category": {
-          "6489": {
-            "category_name": "کرم آبرسان و مرطوب کننده",
-            "observed_at": "2026-11-21T09:03:37.428192+00:00",
-            "rank": 3,
-            "rank_history": [
-              {
-                "category_name": "کرم آبرسان و مرطوب کننده",
-                "observed_at": "2026-11-21T09:03:37.428192+00:00",
-                "rank": 3
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-21T09:32:28.106865+00:00",
-        "catalog_cycle_snapshot_rank": 134,
-        "catalog_rank_observed_at": "2026-11-21T09:03:37.428192+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "personal_care",
-        "checked_at": "2026-11-21T09:37:58.746116+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-4545846",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 298500,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "fresh_independent_history_or_market",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 77.46,
-        "discount_percent": 50,
-        "discount_vs_30d_median_pct": 20,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": true,
-        "historical_discount_savings_toman": 74070,
-        "history_checked_at": "2026-11-21T09:38:23.487823+00:00",
-        "history_days": 30,
-        "history_end_day": "1405/08/29",
-        "history_high_toman": 396900,
-        "history_last_price_toman": 388050,
-        "history_low_toman": 275000,
-        "history_match_delta_pct": 30,
-        "history_median_toman": 372570,
-        "history_source": "digikala_price_chart",
-        "history_stable_low_toman": 276000,
-        "history_start_day": "1405/07/30",
-        "history_status": "verified",
-        "history_variant": "",
-        "history_variant_match": "closest_price",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/d62215d2ed8d71a057f3242923b51465205326af_1754244443.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "کرم آبرسان راکوتن مدل Prebiotic حجم 50 میلی‌لیتر",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 87.4,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 77.46,
-          "discount_evidence": "fresh_independent_history_or_market",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.47,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T09:38:35.606204+00:00",
-          "weakest_factor_score": 77.46
-        },
-        "original_price": 597000,
-        "pct_above_stable_low": 8,
-        "product_id": "dkp-4545846",
-        "product_url": "https://www.digikala.com/product/dkp-4545846/",
-        "promo_score": 36,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.38,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 15525,
-        "savings_toman": 298500,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 3,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 87.4,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 77.46,
-          "discount_evidence": "fresh_independent_history_or_market",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.47,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T09:38:35.606204+00:00",
-          "weakest_factor_score": 77.46
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "independently_verified",
-        "sequence_number": 1668,
-        "title": "کرم آبرسان راکوتن مدل Prebiotic حجم 50 میلی‌لیتر"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-4545846",
-      "product_plan_cycle_id": "2026-11-21T11:22:25.405547+00:00",
-      "scheduled_at": "2026-11-21T11:39:09.955107+00:00",
-      "selected_at": "2026-11-21T09:38:39.176245+00:00",
-      "sequence_number": 1668,
       "status": "queued"
     },
     "dkp-81961": {
       "attempt_count": 0,
       "content_id": "dkp-81961",
       "content_type": "product",
-      "next_attempt_at": "2026-11-21T17:32:09.955107+00:00",
+      "next_attempt_at": "2026-11-21T17:33:48.353358+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-81961%2F",
         "availability": "in_stock",
@@ -42355,7 +42184,7 @@
       },
       "product_id": "dkp-81961",
       "product_plan_cycle_id": "2026-11-21T11:22:25.405547+00:00",
-      "scheduled_at": "2026-11-21T17:32:09.955107+00:00",
+      "scheduled_at": "2026-11-21T17:33:48.353358+00:00",
       "selected_at": "2026-11-21T11:28:55.598805+00:00",
       "sequence_number": 1677,
       "status": "queued"
@@ -113625,7 +113454,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.4,
+      "delivery_duration_seconds": 1.9,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -113688,8 +113517,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.4,
-      "delivery_started_at": "2026-11-21T11:28:56.959657+00:00",
+      "delivery_duration_seconds": 1.9,
+      "delivery_started_at": "2026-11-21T11:40:49.584999+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -114131,13 +113960,13 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-21T11:03:09.955107+00:00",
+  "last_channel_published_at": "2026-11-21T11:40:48.353358+00:00",
   "last_content_selection_at": "2026-11-21T11:28:55.598805+00:00",
   "last_editorial_attempt_at": "2026-11-18T02:10:38.177140+00:00",
   "last_editorial_confirmed_at": "2026-11-18T02:10:49.933296+00:00",
   "last_editorial_empty_bank_check_at": "2026-11-18T01:24:46.585898+00:00",
-  "last_product_channel_published_at": "2026-11-21T11:03:09.955107+00:00",
-  "last_published_at": "2026-11-21T11:03:09.955107+00:00",
+  "last_product_channel_published_at": "2026-11-21T11:40:48.353358+00:00",
+  "last_published_at": "2026-11-21T11:40:48.353358+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -166093,8 +165922,8 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-21T11:28:55.598805+00:00",
-    "candidate_count": 11,
+    "calculated_at": "2026-11-21T11:40:48.353366+00:00",
+    "candidate_count": 10,
     "catalog_cycle_id": "2026-11-21T11:22:25.405547+00:00",
     "current_cycle_started_at": "2026-11-21T11:22:25.849713+00:00",
     "daily_post_limit": 72,
@@ -166106,30 +165935,29 @@
     "interval_seconds": 1860.0,
     "last_clean_cycle_completed_at": "2026-11-21T11:22:25.405547+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-21T11:03:09.955107+00:00",
-    "plan_anchor_kind": "last_product",
-    "planned_product_slots": 11,
+    "plan_anchor_at": "2026-11-21T11:40:48.353358+00:00",
+    "plan_anchor_kind": "last_channel",
+    "planned_product_slots": 10,
     "planned_window_end_at": "2026-11-21T11:49:25.849713+00:00",
-    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes",
+    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
     "scan_eta_is_provisional": false,
     "scan_eta_source": "last_observed_full_cycle_duration",
     "scheduled_product_count": 11,
-    "seconds_from_plan_anchor_to_next_scan": 2775.894606,
-    "seconds_until_estimated_next_clean_scan": 1230.250908
+    "seconds_from_plan_anchor_to_next_scan": 517.496355,
+    "seconds_until_estimated_next_clean_scan": 517.496347
   },
   "product_publication_interval_seconds": 1860.0,
   "product_publication_plan": {
-    "anchor_at": "2026-11-21T11:03:09.955107+00:00",
-    "anchor_kind": "last_product",
+    "anchor_at": "2026-11-21T11:40:48.353358+00:00",
+    "anchor_kind": "last_channel",
     "catalog_cycle_id": "2026-11-21T11:22:25.405547+00:00",
     "first_slot_due_now": false,
     "interval_minutes": 31.0,
     "interval_seconds": 1860.0,
     "maximum_product_interval_seconds": 3420,
     "next_clean_scan_at": "2026-11-21T11:49:25.849713+00:00",
-    "pending_product_count": 11,
+    "pending_product_count": 10,
     "product_ids": [
-      "dkp-4545846",
       "dkp-1552489",
       "dkp-11801878",
       "dkp-3072175",
@@ -166141,11 +165969,11 @@
       "dkp-81961",
       "dkp-22927548"
     ],
-    "scheduled_product_count": 11,
-    "updated_at": "2026-11-21T11:28:55.598805+00:00"
+    "scheduled_product_count": 10,
+    "updated_at": "2026-11-21T11:40:48.353366+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-21T11:03:09.955107+00:00",
-  "product_publication_plan_anchor_kind": "last_product",
+  "product_publication_plan_anchor_at": "2026-11-21T11:40:48.353358+00:00",
+  "product_publication_plan_anchor_kind": "last_channel",
   "product_publication_plan_cycle_id": "2026-11-21T11:22:25.405547+00:00",
   "publication_diversity_fallback_count": 5307,
   "publication_diversity_fallback_events": [
@@ -217371,7 +217199,8 @@
       "aparat_video_record_id": "74287629",
       "aparat_video_url": "https://www.aparat.com/v/jfgfuzj",
       "aparat_visibility": "public",
-      "bale_expiry_status": "unknown",
+      "bale_expired_deleted_at": "2026-11-21T11:37:43.725504+00:00",
+      "bale_expiry_status": "already_absent",
       "bale_message_id": 2308,
       "bale_posted_at": "2026-11-18T23:58:39.878383+00:00",
       "brand": "",
@@ -312707,7 +312536,8 @@
       "aparat_video_record_id": "74301025",
       "aparat_video_url": "https://www.aparat.com/v/xrq87bi",
       "aparat_visibility": "public",
-      "bale_expiry_status": "unknown",
+      "bale_expired_deleted_at": "2026-11-21T11:37:43.725504+00:00",
+      "bale_expiry_status": "already_absent",
       "bale_message_id": 2345,
       "bale_posted_at": "2026-11-19T18:59:46.856025+00:00",
       "brand": "",
@@ -317494,7 +317324,8 @@
       "aparat_video_record_id": "74300009",
       "aparat_video_url": "https://www.aparat.com/v/tgz233z",
       "aparat_visibility": "public",
-      "bale_expiry_status": "unknown",
+      "bale_expired_deleted_at": "2026-11-21T11:37:43.725504+00:00",
+      "bale_expiry_status": "already_absent",
       "bale_message_id": 2342,
       "bale_posted_at": "2026-11-19T17:44:15.219221+00:00",
       "brand": "",
@@ -323529,6 +323360,134 @@
       "youtube_skip_reason": "selection_outside_freshness_window",
       "youtube_skip_recorded_at": "2026-11-18T21:30:04.118953+00:00",
       "youtube_upload_status": "skipped_stale_after_freshness_window"
+    },
+    "dkp-4545846": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2417,
+      "bale_posted_at": "2026-11-21T11:40:43.548140+00:00",
+      "brand": "راکوتن",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "A",
+      "catalog_best_selling_category_id": "6489",
+      "catalog_best_selling_category_name": "کرم آبرسان و مرطوب کننده",
+      "catalog_best_selling_rank": 3,
+      "catalog_best_selling_ranks_by_category": {
+        "6489": {
+          "category_name": "کرم آبرسان و مرطوب کننده",
+          "observed_at": "2026-11-21T09:03:37.428192+00:00",
+          "rank": 3,
+          "rank_history": [
+            {
+              "category_name": "کرم آبرسان و مرطوب کننده",
+              "observed_at": "2026-11-21T09:03:37.428192+00:00",
+              "rank": 3
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-21T09:32:28.106865+00:00",
+      "catalog_cycle_snapshot_rank": 134,
+      "catalog_rank_observed_at": "2026-11-21T09:03:37.428192+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-4545846",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "A",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-21T11:40:47.982761+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 20,
+      "distribution_queue_id": "dkp-4545846:2026-11-21T09:38:39.176245+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": true,
+      "history_checked_at": "2026-11-21T09:38:23.487823+00:00",
+      "history_days": 30,
+      "history_status": "verified",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/d62215d2ed8d71a057f3242923b51465205326af_1754244443.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "unavailable",
+      "platform_message_ids": {
+        "rubika": "1978646854734588651"
+      },
+      "posted_current_price": 298500,
+      "posted_discount_percent": 50,
+      "posted_original_price": 597000,
+      "product_url": "https://www.digikala.com/product/dkp-4545846/",
+      "promo_score": 36,
+      "publication_category": "personal_care",
+      "publication_family": "digikala_category:6489",
+      "publication_use_case": "personal_care",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 0.0,
+      "rubika_posted_at": "2026-11-21T11:40:47.982739+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 3,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 87.4,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 77.46,
+        "discount_evidence": "fresh_independent_history_or_market",
+        "generality": 88.0,
+        "generality_group": "personal_care",
+        "live_demand": 99.47,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-21T09:38:35.606204+00:00",
+        "weakest_factor_score": 77.46
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1668,
+      "telegram_message_id": 1794,
+      "telegram_posted_at": "2026-11-21T11:40:42.748791+00:00",
+      "title": "کرم آبرسان راکوتن مدل Prebiotic حجم 50 میلی‌لیتر",
+      "ts": 1795261235.868252,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
     },
     "dkp-460768": {
       "aparat_skip_reason": "selection_outside_freshness_window",
