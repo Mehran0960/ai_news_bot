@@ -8085,11 +8085,11 @@
   "last_error_at": "2026-11-15T05:00:24.184952+00:00",
   "last_successful_category_id": "10357",
   "last_successful_category_name": "لواشک، برگه و آلوچه خانگی",
-  "last_successful_page": 10,
-  "last_successful_page_at": "2026-11-21T16:50:15.304889+00:00",
+  "last_successful_page": 13,
+  "last_successful_page_at": "2026-11-21T16:51:54.455055+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 10,
+  "page": 13,
   "parallel_api_route_policy_version": "digikala_discovery_api_v1_trusted_category_taxonomy_v4",
   "parallel_category_mismatch_rows_rejected": 6563468,
   "parallel_cycle_completed_category_ids": [
@@ -8140,6 +8140,7 @@
     "1345",
     "2401",
     "2402",
+    "2403",
     "2404",
     "2406",
     "2407",
@@ -8621,6 +8622,7 @@
     "10140",
     "10143",
     "10152",
+    "10252",
     "10256",
     "10291",
     "10306",
@@ -8635,6 +8637,7 @@
     "10334",
     "10335",
     "10337",
+    "10338",
     "10339",
     "10343",
     "10347",
@@ -8837,8 +8840,8 @@
     "11792",
     "11793"
   ],
-  "parallel_cycle_pages_success": 9416,
-  "parallel_cycle_product_rows_success": 180014,
+  "parallel_cycle_pages_success": 9472,
+  "parallel_cycle_product_rows_success": 181091,
   "parallel_cycle_started_at": "2026-11-21T16:23:28.076843+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -9610,196 +9613,175 @@
     "11792",
     "11793"
   ],
-  "parallel_last_batch_at": "2026-11-21T16:50:15.626555+00:00",
-  "parallel_last_batch_candidate_file_bytes": 7465947,
-  "parallel_last_batch_candidate_write_seconds": 0.128,
+  "parallel_last_batch_at": "2026-11-21T16:51:54.942621+00:00",
+  "parallel_last_batch_candidate_file_bytes": 7466108,
+  "parallel_last_batch_candidate_write_seconds": 0.2,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 1.381,
+  "parallel_last_batch_fetch_seconds": 1.579,
   "parallel_last_batch_http_5xx_retries": 0,
-  "parallel_last_batch_nonempty_product_pages": 22,
-  "parallel_last_batch_pages": 22,
-  "parallel_last_batch_pages_per_second": 15.93,
-  "parallel_last_batch_processing_seconds": 0.217,
-  "parallel_last_batch_product_rows": 423,
+  "parallel_last_batch_nonempty_product_pages": 18,
+  "parallel_last_batch_pages": 18,
+  "parallel_last_batch_pages_per_second": 11.4,
+  "parallel_last_batch_processing_seconds": 0.32,
+  "parallel_last_batch_product_rows": 360,
   "parallel_last_batch_rate_limited": 0,
-  "parallel_last_batch_request_count": 22,
-  "parallel_last_batch_request_max_seconds": 0.971,
-  "parallel_last_batch_request_p50_seconds": 0.382,
-  "parallel_last_batch_request_p95_seconds": 0.506,
+  "parallel_last_batch_request_count": 18,
+  "parallel_last_batch_request_max_seconds": 1.256,
+  "parallel_last_batch_request_p50_seconds": 1.021,
+  "parallel_last_batch_request_p95_seconds": 1.256,
   "parallel_last_batch_retries": 0,
-  "parallel_last_batch_rows_per_second": 245.0,
-  "parallel_last_batch_successes": 22,
+  "parallel_last_batch_rows_per_second": 171.55,
+  "parallel_last_batch_successes": 18,
   "parallel_last_batch_terminals": 0,
   "parallel_last_batch_timeout_retries": 0,
-  "parallel_last_batch_worker_limit_before": 9,
-  "parallel_last_batch_worker_limit_next": 11,
+  "parallel_last_batch_worker_limit_before": 10,
+  "parallel_last_batch_worker_limit_next": 12,
   "parallel_leaf_category_count": 764,
   "parallel_pending_pages": [
+    {
+      "attempts": 0,
+      "category_id": "5962",
+      "category_name": "بسته های لوازم تحریر",
+      "category_query": "لوازم خانگی",
+      "page": 13
+    },
     {
       "attempts": 0,
       "category_id": "6013",
       "category_name": "اقلام مصرفی لوازم اداری",
       "category_query": "لوازم خانگی",
-      "page": 10
+      "page": 13
     },
     {
       "attempts": 0,
       "category_id": "6362",
       "category_name": "قیچی آشپزخانه",
       "category_query": "خانه",
-      "page": 10
+      "page": 13
     },
     {
       "attempts": 0,
       "category_id": "6675",
       "category_name": "ابزار مهمانی",
       "category_query": "ابزار",
-      "page": 10
+      "page": 13
     },
     {
       "attempts": 0,
       "category_id": "8240",
       "category_name": "ابزار دوچرخه",
       "category_query": "ابزار",
-      "page": 10
+      "page": 13
     },
     {
       "attempts": 0,
       "category_id": "10099",
       "category_name": "لوازم جانبی تصفیه‌آب و آبسردکن",
       "category_query": "لوازم خانگی",
-      "page": 10
-    },
-    {
-      "attempts": 0,
-      "category_id": "2403",
-      "category_name": "تصفیه کننده آب",
-      "category_query": "لوازم خانگی",
-      "page": 11
+      "page": 13
     },
     {
       "attempts": 0,
       "category_id": "5929",
       "category_name": "لوازم جانبی و مصرفی نوشیدنی‌ساز",
       "category_query": "لوازم خانگی",
-      "page": 11
-    },
-    {
-      "attempts": 0,
-      "category_id": "5962",
-      "category_name": "بسته های لوازم تحریر",
-      "category_query": "لوازم خانگی",
-      "page": 11
+      "page": 14
     },
     {
       "attempts": 0,
       "category_id": "6019",
       "category_name": "مجموعه لوازم اداری",
       "category_query": "لوازم خانگی",
-      "page": 11
+      "page": 14
     },
     {
       "attempts": 0,
       "category_id": "6276",
       "category_name": "پیش بند",
       "category_query": "خانه",
-      "page": 11
+      "page": 14
     },
     {
       "attempts": 0,
       "category_id": "6571",
       "category_name": "لوازم جانبی کمپرسور هوا",
       "category_query": "لوازم خانگی",
-      "page": 11
+      "page": 14
     },
     {
       "attempts": 0,
       "category_id": "6808",
       "category_name": "ساک لوازم کودک و نوزاد",
       "category_query": "لوازم خانگی",
-      "page": 11
+      "page": 14
     },
     {
       "attempts": 0,
       "category_id": "8147",
       "category_name": "آویز و جاسوییچی کودک",
       "category_query": "خانه",
-      "page": 11
+      "page": 14
     },
     {
       "attempts": 0,
       "category_id": "8673",
       "category_name": "لوازم ترمز",
       "category_query": "لوازم خانگی",
-      "page": 11
+      "page": 14
     },
     {
       "attempts": 0,
       "category_id": "8689",
       "category_name": "لوازم جانبی کارواش",
       "category_query": "لوازم خانگی",
-      "page": 11
+      "page": 14
     },
     {
       "attempts": 0,
       "category_id": "9007",
       "category_name": "لوازم یدکی ابزار برقی",
       "category_query": "ابزار",
-      "page": 11
+      "page": 14
     },
     {
       "attempts": 0,
       "category_id": "9954",
       "category_name": "کفش",
       "category_query": "کفش",
-      "page": 11
-    },
-    {
-      "attempts": 0,
-      "category_id": "10252",
-      "category_name": "لیوان سنتی",
-      "category_query": "خانه",
-      "page": 11
+      "page": 14
     },
     {
       "attempts": 0,
       "category_id": "10333",
       "category_name": "انواع رب و چاشنی‌های ترش خانگی",
       "category_query": "لوازم خانگی",
-      "page": 11
-    },
-    {
-      "attempts": 0,
-      "category_id": "10338",
-      "category_name": "خیارشور و ترشیجات خانگی",
-      "category_query": "لوازم خانگی",
-      "page": 11
+      "page": 14
     },
     {
       "attempts": 0,
       "category_id": "10357",
       "category_name": "لواشک، برگه و آلوچه خانگی",
       "category_query": "لوازم خانگی",
-      "page": 11
+      "page": 14
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "parallel_worker_limit": 11,
+  "parallel_worker_limit": 12,
   "parallel_worker_ramp_policy_version": "explicit_12_14_16_v1",
-  "parallel_workers_used": 9,
-  "pending_page_count": 21,
+  "parallel_workers_used": 10,
+  "pending_page_count": 18,
   "schema_version": 1,
   "stats": {
-    "api_failures_total": 127393,
-    "catalog_candidate_cards_found_total": 94995139,
+    "api_failures_total": 127394,
+    "catalog_candidate_cards_found_total": 94996216,
     "completed_cycles": 280,
     "cycles_with_gaps_total": 354,
-    "discounted_candidates_found_total": 21047417,
+    "discounted_candidates_found_total": 21047610,
     "empty_product_pages_total": 1778218,
-    "nonempty_product_pages_total": 5156074,
-    "pages_scanned_total": 5194773,
-    "product_rows_scanned_total": 101558647,
+    "nonempty_product_pages_total": 5156130,
+    "pages_scanned_total": 5194829,
+    "product_rows_scanned_total": 101559724,
     "unqueryable_categories_total": 1740482
   },
   "unacknowledged_candidate_count": 3000
