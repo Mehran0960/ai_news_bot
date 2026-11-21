@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-21T05:18:45.675825+00:00",
-  "aparat_last_upload_success_at": "2026-11-21T05:18:48.978645+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-21T05:57:54.765384+00:00",
+  "aparat_last_upload_success_at": "2026-11-21T05:57:57.857092+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-21T05:47:56.308211+00:00",
@@ -292731,7 +292731,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22691089": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-21T05:57:54.765384+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-21T05:57:57.857092+00:00",
+      "aparat_video_hash": "fbqyq50",
+      "aparat_video_record_id": "74320161",
+      "aparat_video_url": "https://www.aparat.com/v/fbqyq50",
+      "aparat_visibility": "public",
       "bale_message_id": 2409,
       "bale_posted_at": "2026-11-21T05:56:48.450523+00:00",
       "brand": "",
@@ -292855,8 +292861,17 @@
       "telegram_posted_at": "2026-11-21T05:56:47.363814+00:00",
       "title": "سرهمی مجلسی زنانه مدل ماهور",
       "ts": 1795240600.344976,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22691089.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22691089.mp4"
+      },
+      "video_generated_at": "2026-11-21T05:57:46.746490+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-21T23:36:10.301962+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22697893": {
       "aparat_skip_reason": "selection_outside_freshness_window",
