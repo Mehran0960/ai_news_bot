@@ -4568,188 +4568,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 1,
-      "content_id": "dkp-22690552",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-16T23:55:49.959538+00:00",
-      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
-      "next_attempt_at": "2026-11-16T23:55:19.236892+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22690552%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "9286",
-        "catalog_best_selling_category_name": "ست رسمی زنانه",
-        "catalog_best_selling_rank": 8,
-        "catalog_best_selling_ranks_by_category": {
-          "9286": {
-            "category_name": "ست رسمی زنانه",
-            "observed_at": "2026-11-16T22:04:59.749425+00:00",
-            "rank": 8,
-            "rank_history": [
-              {
-                "category_name": "ست رسمی زنانه",
-                "observed_at": "2026-11-16T22:04:59.749425+00:00",
-                "rank": 8
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T22:44:40.746589+00:00",
-        "catalog_cycle_snapshot_rank": 702,
-        "catalog_rank_observed_at": "2026-11-16T22:04:59.749425+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "fashion",
-        "checked_at": "2026-11-16T23:23:10.656535+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22690552",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 8900000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 59.7,
-        "discount_percent": 32,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T23:23:42.297950+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 8900000,
-        "history_low_toman": 8900000,
-        "history_median_toman": 8900000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/6b19474ba0e59fd499712e39678be6a327688b0b_1788861880.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 70.59,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 59.7,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 64.0,
-          "generality_group": "fashion_lifestyle",
-          "live_demand": 98.8,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T23:23:42.300634+00:00",
-          "weakest_factor_score": 59.7
-        },
-        "original_price": 13000000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-22690552",
-        "product_url": "https://www.digikala.com/product/dkp-22690552/",
-        "promo_score": 31,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.75,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 4,
-        "savings_toman": 4100000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 8,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 70.59,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 59.7,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 64.0,
-          "generality_group": "fashion_lifestyle",
-          "live_demand": 98.8,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T23:23:42.300634+00:00",
-          "weakest_factor_score": 59.7
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1448,
-        "title": "کت و شلوار زنانه مدل آرشال",
-        "variant_label": "قهوه ای 40"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-16T23:55:49.959538+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T23:56:18.158804+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "credentials_not_configured",
-          "status": "not_connected",
-          "updated_at": "2026-11-16T23:55:49.959538+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-16T23:55:49.959538+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T23:56:26.786421+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-16T23:55:49.959538+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T23:56:14.718941+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22690552",
-      "product_plan_cycle_id": "2026-11-16T23:22:31.379757+00:00",
-      "scheduled_at": "2026-11-16T23:55:19.236892+00:00",
-      "selected_at": "2026-11-16T23:23:53.538513+00:00",
-      "sequence_number": 1448,
-      "status": "published",
-      "updated_at": "2026-11-16T23:56:28.039627+00:00"
-    },
-    {
-      "attempt_count": 1,
       "content_id": "dkp-7461447",
       "content_type": "product",
       "last_attempt_at": "2026-11-16T23:57:38.401578+00:00",
@@ -41015,6 +40833,181 @@
       "sequence_number": 1685,
       "status": "published",
       "updated_at": "2026-11-21T22:08:50.452037+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-20936234",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-21T22:54:49.742827+00:00",
+      "last_detail": "selected_price_stale_selected=979000_live=980000",
+      "next_attempt_at": "2026-11-21T22:53:50.450420+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-20936234%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "A",
+        "catalog_best_selling_category_id": "9486",
+        "catalog_best_selling_category_name": "کفش ورزشی مردانه",
+        "catalog_best_selling_rank": 7,
+        "catalog_best_selling_ranks_by_category": {
+          "9486": {
+            "category_name": "کفش ورزشی مردانه",
+            "observed_at": "2026-11-21T13:13:49.888625+00:00",
+            "rank": 7,
+            "rank_history": [
+              {
+                "category_name": "کفش ورزشی مردانه",
+                "observed_at": "2026-11-21T13:13:49.888625+00:00",
+                "rank": 7
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-21T13:37:44.954253+00:00",
+        "catalog_cycle_snapshot_rank": 359,
+        "catalog_rank_observed_at": "2026-11-21T13:13:49.888625+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "fashion",
+        "checked_at": "2026-11-21T13:45:30.593513+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-20936234",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 979000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 64.48,
+        "discount_percent": 51,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-21T13:46:01.610643+00:00",
+        "history_days": 2,
+        "history_end_day": "2026-11-21",
+        "history_high_toman": 979000,
+        "history_low_toman": 979000,
+        "history_median_toman": 979000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": 979000,
+        "history_start_day": "2026-11-16",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/b56842800d4f461eb9650a4851780bfdfce2ba75_1794431992.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 69.1,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 64.48,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 56.0,
+          "generality_group": "sports_fitness",
+          "live_demand": 99.5,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-21T13:46:01.612654+00:00",
+          "weakest_factor_score": 56.0
+        },
+        "original_price": 2000000,
+        "pct_above_stable_low": 0,
+        "product_id": "dkp-20936234",
+        "product_url": "https://www.digikala.com/product/dkp-20936234/",
+        "promo_score": 40,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 3.9,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 35,
+        "savings_toman": 1021000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 7,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 69.1,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 64.48,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 56.0,
+          "generality_group": "sports_fitness",
+          "live_demand": 99.5,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-21T13:46:01.612654+00:00",
+          "weakest_factor_score": 56.0
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1686,
+        "title": "کفش فوتبال مردانه مدل استوک ریز کد MESH5000",
+        "variant_label": "مشکی 36"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-20936234",
+      "product_plan_cycle_id": "2026-11-21T22:38:32.988128+00:00",
+      "scheduled_at": "2026-11-21T22:53:50.450420+00:00",
+      "selected_at": "2026-11-21T13:46:04.768349+00:00",
+      "sequence_number": 1686,
+      "status": "stale_selection",
+      "updated_at": "2026-11-21T22:54:49.742827+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -42622,178 +42615,6 @@
       "scheduled_at": "2026-11-22T03:45:50.450420+00:00",
       "selected_at": "2026-11-21T17:11:40.539279+00:00",
       "sequence_number": 1694,
-      "status": "queued"
-    },
-    "dkp-20936234": {
-      "attempt_count": 0,
-      "content_id": "dkp-20936234",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-21T22:53:50.450420+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-20936234%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "9486",
-        "catalog_best_selling_category_name": "کفش ورزشی مردانه",
-        "catalog_best_selling_rank": 7,
-        "catalog_best_selling_ranks_by_category": {
-          "9486": {
-            "category_name": "کفش ورزشی مردانه",
-            "observed_at": "2026-11-21T13:13:49.888625+00:00",
-            "rank": 7,
-            "rank_history": [
-              {
-                "category_name": "کفش ورزشی مردانه",
-                "observed_at": "2026-11-21T13:13:49.888625+00:00",
-                "rank": 7
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-21T13:37:44.954253+00:00",
-        "catalog_cycle_snapshot_rank": 359,
-        "catalog_rank_observed_at": "2026-11-21T13:13:49.888625+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "fashion",
-        "checked_at": "2026-11-21T13:45:30.593513+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-20936234",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 979000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 64.48,
-        "discount_percent": 51,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-21T13:46:01.610643+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-21",
-        "history_high_toman": 979000,
-        "history_low_toman": 979000,
-        "history_median_toman": 979000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 979000,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/b56842800d4f461eb9650a4851780bfdfce2ba75_1794431992.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 69.1,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 64.48,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 56.0,
-          "generality_group": "sports_fitness",
-          "live_demand": 99.5,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T13:46:01.612654+00:00",
-          "weakest_factor_score": 56.0
-        },
-        "original_price": 2000000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-20936234",
-        "product_url": "https://www.digikala.com/product/dkp-20936234/",
-        "promo_score": 40,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 3.9,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 35,
-        "savings_toman": 1021000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 7,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 69.1,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 64.48,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 56.0,
-          "generality_group": "sports_fitness",
-          "live_demand": 99.5,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T13:46:01.612654+00:00",
-          "weakest_factor_score": 56.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1686,
-        "title": "کفش فوتبال مردانه مدل استوک ریز کد MESH5000",
-        "variant_label": "مشکی 36"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-20936234",
-      "product_plan_cycle_id": "2026-11-21T22:38:32.988128+00:00",
-      "scheduled_at": "2026-11-21T22:53:50.450420+00:00",
-      "selected_at": "2026-11-21T13:46:04.768349+00:00",
-      "sequence_number": 1686,
       "status": "queued"
     },
     "dkp-21182736": {
@@ -124241,7 +124062,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.5,
+      "delivery_duration_seconds": 1.3,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -124304,8 +124125,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.5,
-      "delivery_started_at": "2026-11-21T22:45:08.452166+00:00",
+      "delivery_duration_seconds": 1.3,
+      "delivery_started_at": "2026-11-21T22:54:51.996075+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -232036,6 +231857,7 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
+      "expired_deleted_at": "2026-11-21T22:53:06.798229+00:00",
       "expires_at": "2026-11-21T21:57:41.881129+00:00",
       "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
@@ -232045,7 +231867,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "already_absent",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-20T03:23:51.642333+00:00",
@@ -242646,7 +242468,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "delete_unavailable",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-15T18:34:34.197667+00:00",
@@ -242726,6 +242548,7 @@
       },
       "selection_review_growth_evidence": "none",
       "sequence_number": 124,
+      "telegram_expiry_last_delete_error": "RuntimeError: Bad Request: message can't be deleted",
       "telegram_message_id": 1500,
       "telegram_posted_at": "2026-11-15T18:31:11.108127+00:00",
       "title": "روغن زیتون تصفیه توسکا - 450 گرم",
@@ -256358,7 +256181,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "delete_unavailable",
       "filo_last_error": "filo_video_file_input_missing",
       "filo_skip_reason": "retry_budget_exhausted",
       "filo_upload_attempts": 3,
@@ -256434,6 +256257,7 @@
       },
       "selection_review_growth_evidence": "none",
       "sequence_number": 1526,
+      "telegram_expiry_last_delete_error": "RuntimeError: Bad Request: message can't be deleted",
       "telegram_message_id": 1700,
       "telegram_posted_at": "2026-11-18T08:07:38.851079+00:00",
       "title": "کیسه بهداشتی پوشک وی کر مدل Nappy Bags بسته 24 عددی",
@@ -270621,7 +270445,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "delete_unavailable",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-17T22:38:14.427400+00:00",
@@ -270700,6 +270524,7 @@
       },
       "selection_review_growth_evidence": "none",
       "sequence_number": 1347,
+      "telegram_expiry_last_delete_error": "RuntimeError: Bad Request: message can't be deleted",
       "telegram_message_id": 1582,
       "telegram_posted_at": "2026-11-16T15:11:53.562871+00:00",
       "title": "پودر شیر خشک بزرگسال کایلا - 900 گرم",
@@ -355323,7 +355148,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "delete_unavailable",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-17T20:45:41.846242+00:00",
@@ -355402,6 +355227,7 @@
       },
       "selection_review_growth_evidence": "none",
       "sequence_number": 1311,
+      "telegram_expiry_last_delete_error": "RuntimeError: Bad Request: message can't be deleted",
       "telegram_message_id": 1556,
       "title": "ساعت دیواری مدل فلزی کد D460",
       "ts": 1794832899.149858,
@@ -372127,6 +371953,13 @@
       "reason": "selected_price_stale_selected=1313600_live=1311500",
       "rejected_at": "2026-11-20T13:57:34.572762+00:00",
       "retry_after": "2026-11-20T14:17:34.572762+00:00"
+    },
+    "dkp-20936234": {
+      "current_price": 979000,
+      "original_price": 2000000,
+      "reason": "selected_price_stale_selected=979000_live=980000",
+      "rejected_at": "2026-11-21T22:54:49.742827+00:00",
+      "retry_after": "2026-11-21T23:14:49.742827+00:00"
     },
     "dkp-21250205": {
       "current_price": 94900000,
