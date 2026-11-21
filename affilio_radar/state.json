@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-21T10:34:46.667636+00:00",
-  "aparat_last_upload_success_at": "2026-11-21T10:34:50.189596+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-21T11:41:39.448811+00:00",
+  "aparat_last_upload_success_at": "2026-11-21T11:41:42.489454+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-21T11:24:59.615767+00:00",
@@ -323362,7 +323362,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-4545846": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-21T11:41:39.448811+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-21T11:41:42.489454+00:00",
+      "aparat_video_hash": "gcdf74n",
+      "aparat_video_record_id": "74325279",
+      "aparat_video_url": "https://www.aparat.com/v/gcdf74n",
+      "aparat_visibility": "public",
       "bale_message_id": 2417,
       "bale_posted_at": "2026-11-21T11:40:43.548140+00:00",
       "brand": "راکوتن",
@@ -323486,8 +323492,17 @@
       "telegram_posted_at": "2026-11-21T11:40:42.748791+00:00",
       "title": "کرم آبرسان راکوتن مدل Prebiotic حجم 50 میلی‌لیتر",
       "ts": 1795261235.868252,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-4545846.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-4545846.mp4"
+      },
+      "video_generated_at": "2026-11-21T11:41:31.843251+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-21T23:36:10.301962+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-460768": {
       "aparat_skip_reason": "selection_outside_freshness_window",
