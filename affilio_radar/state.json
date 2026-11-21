@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-21T17:49:55.835702+00:00",
-  "aparat_last_upload_success_at": "2026-11-21T17:49:59.451907+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-21T18:22:51.289734+00:00",
+  "aparat_last_upload_success_at": "2026-11-21T18:22:54.746254+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-21T18:01:39.142748+00:00",
@@ -349004,7 +349004,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-921444": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-21T18:22:51.289734+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-21T18:22:54.746254+00:00",
+      "aparat_video_hash": "ewed1pf",
+      "aparat_video_record_id": "74331222",
+      "aparat_video_url": "https://www.aparat.com/v/ewed1pf",
+      "aparat_visibility": "public",
       "bale_message_id": 2430,
       "bale_posted_at": "2026-11-21T18:21:42.258027+00:00",
       "brand": "نالینو",
@@ -349128,8 +349134,17 @@
       "telegram_posted_at": "2026-11-21T18:21:41.527194+00:00",
       "title": "تابه چدن نالینو مدل Pancake سایز 30",
       "ts": 1795285295.482376,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-921444.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-921444.mp4"
+      },
+      "video_generated_at": "2026-11-21T18:22:45.953496+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-21T23:36:10.301962+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-931275": {
       "aparat_skip_reason": "selection_outside_freshness_window",
