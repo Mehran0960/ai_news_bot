@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-21T04:42:52.491899+00:00",
-  "aparat_last_upload_success_at": "2026-11-21T04:42:56.440023+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-21T05:18:45.675825+00:00",
+  "aparat_last_upload_success_at": "2026-11-21T05:18:48.978645+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-21T04:53:45.718152+00:00",
@@ -323196,7 +323196,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-6897604": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-21T05:18:45.675825+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-21T05:18:48.978645+00:00",
+      "aparat_video_hash": "dayk43a",
+      "aparat_video_record_id": "74319729",
+      "aparat_video_url": "https://www.aparat.com/v/dayk43a",
+      "aparat_visibility": "public",
       "bale_message_id": 2408,
       "bale_posted_at": "2026-11-21T05:17:43.615258+00:00",
       "brand": "",
@@ -323320,8 +323326,17 @@
       "telegram_posted_at": "2026-11-21T05:17:43.197786+00:00",
       "title": "قفل درب کابینت آراز مدل کودک بسته 4 عددی",
       "ts": 1795238258.001196,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-6897604.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-6897604.mp4"
+      },
+      "video_generated_at": "2026-11-21T05:18:37.902828+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-21T23:36:10.301962+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-6901981": {
       "aparat_upload_status": "uploaded",
