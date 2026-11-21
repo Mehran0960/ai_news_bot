@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-21T02:09:00.195858+00:00",
-  "aparat_last_upload_success_at": "2026-11-21T02:09:03.491118+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-21T02:41:54.992019+00:00",
+  "aparat_last_upload_success_at": "2026-11-21T02:41:58.561553+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-21T02:33:40.951662+00:00",
@@ -286855,7 +286855,13 @@
       "youtube_video_url": "https://www.youtube.com/shorts/HqmgvRHNJD8"
     },
     "dkp-22469487": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-21T02:41:54.992019+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-21T02:41:58.561553+00:00",
+      "aparat_video_hash": "ntyutx4",
+      "aparat_video_record_id": "74318905",
+      "aparat_video_url": "https://www.aparat.com/v/ntyutx4",
+      "aparat_visibility": "public",
       "bale_message_id": 2402,
       "bale_posted_at": "2026-11-21T02:40:43.458984+00:00",
       "brand": "دیفکتو",
@@ -286979,8 +286985,17 @@
       "telegram_posted_at": "2026-11-21T02:40:42.813347+00:00",
       "title": "تی شرت راحتی مردانه دیفکتو مدل 8684582204913",
       "ts": 1795228836.540284,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22469487.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22469487.mp4"
+      },
+      "video_generated_at": "2026-11-21T02:41:46.637376+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-21T23:36:10.301962+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22475245": {
       "aparat_upload_attempts": 1,
