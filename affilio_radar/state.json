@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-20T23:24:55.589697+00:00",
-  "aparat_last_upload_success_at": "2026-11-20T23:25:00.036918+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-21T00:06:47.474347+00:00",
+  "aparat_last_upload_success_at": "2026-11-21T00:06:52.734634+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-20T23:47:40.300663+00:00",
@@ -313564,7 +313564,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-6594594": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-21T00:06:47.474347+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-21T00:06:52.734634+00:00",
+      "aparat_video_hash": "lkz3710",
+      "aparat_video_record_id": "74318472",
+      "aparat_video_url": "https://www.aparat.com/v/lkz3710",
+      "aparat_visibility": "public",
       "bale_message_id": 2397,
       "bale_posted_at": "2026-11-21T00:05:41.912703+00:00",
       "brand": "اکبر راستگو",
@@ -313688,8 +313694,17 @@
       "telegram_posted_at": "2026-11-21T00:05:41.410258+00:00",
       "title": "پسته خام احمدآقایی اکبر راستگو -520 گرم",
       "ts": 1795219535.462228,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-6594594.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-6594594.mp4"
+      },
+      "video_generated_at": "2026-11-21T00:06:42.049326+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-21T23:36:10.301962+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-6705171": {
       "aparat_upload_started_at": "2026-11-17T20:21:41.026084+00:00",
