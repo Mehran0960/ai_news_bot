@@ -4208,190 +4208,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 1,
-      "content_id": "dkp-3677732",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-16T23:23:54.457348+00:00",
-      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
-      "next_attempt_at": "2026-11-16T22:51:20.676488+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-3677732%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "82",
-        "catalog_best_selling_category_name": "قطعات جانبی موبایل و تبلت و هدفون",
-        "catalog_best_selling_rank": 13,
-        "catalog_best_selling_ranks_by_category": {
-          "82": {
-            "category_name": "قطعات جانبی موبایل و تبلت و هدفون",
-            "observed_at": "2026-11-16T22:04:59.355087+00:00",
-            "rank": 13,
-            "rank_history": [
-              {
-                "category_name": "قطعات جانبی موبایل و تبلت و هدفون",
-                "observed_at": "2026-11-16T22:04:59.355087+00:00",
-                "rank": 13
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T22:44:40.746589+00:00",
-        "catalog_cycle_snapshot_rank": 320,
-        "catalog_rank_observed_at": "2026-11-16T22:04:59.355087+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "digital_accessories",
-        "checked_at": "2026-11-16T23:11:49.628706+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-3677732",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 40000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 59.85,
-        "discount_percent": 60,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T23:12:11.359142+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 40000,
-        "history_low_toman": 40000,
-        "history_median_toman": 40000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/3801c0a39b577934de58e67aeeb13ae77890a526_1787419287.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "محافظ کابل شارژ مدل SFP-36 مجموعه 4 عددی",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 74.58,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 59.85,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 86.0,
-          "generality_group": "mobile_productivity",
-          "live_demand": 84.13,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T23:12:29.040782+00:00",
-          "weakest_factor_score": 59.85
-        },
-        "original_price": 100000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-3677732",
-        "product_url": "https://www.digikala.com/product/dkp-3677732/",
-        "promo_score": 40,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 3.96,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 9440,
-        "savings_toman": 60000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 13,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 74.58,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 59.85,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 86.0,
-          "generality_group": "mobile_productivity",
-          "live_demand": 84.13,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T23:12:29.040782+00:00",
-          "weakest_factor_score": 59.85
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1438,
-        "title": "محافظ کابل شارژ مدل SFP-36 مجموعه 4 عددی",
-        "variant_label": "مشکی"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-16T23:23:54.457348+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T23:24:47.961638+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "credentials_not_configured",
-          "status": "not_connected",
-          "updated_at": "2026-11-16T23:23:54.457348+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-16T23:23:54.457348+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T23:24:56.975131+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-16T23:23:54.457348+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T23:24:26.850225+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-3677732",
-      "product_plan_cycle_id": "2026-11-16T22:44:40.746589+00:00",
-      "scheduled_at": "2026-11-16T22:51:20.676488+00:00",
-      "selected_at": "2026-11-16T23:12:39.019416+00:00",
-      "sequence_number": 1438,
-      "status": "published",
-      "updated_at": "2026-11-16T23:24:58.185237+00:00"
-    },
-    {
-      "attempt_count": 1,
       "content_id": "dkp-21706371",
       "content_type": "product",
       "last_attempt_at": "2026-11-16T23:32:18.568333+00:00",
@@ -40637,6 +40453,181 @@
       "sequence_number": 1676,
       "status": "published",
       "updated_at": "2026-11-21T16:04:01.124848+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-81961",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-21T16:50:50.598401+00:00",
+      "last_detail": "selected_price_stale_selected=591300_live=589000",
+      "next_attempt_at": "2026-11-21T16:50:01.123494+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-81961%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "شون",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "A",
+        "catalog_best_selling_category_id": "6556",
+        "catalog_best_selling_category_name": "لایه بردار پوست و اسکراب",
+        "catalog_best_selling_rank": 5,
+        "catalog_best_selling_ranks_by_category": {
+          "6556": {
+            "category_name": "لایه بردار پوست و اسکراب",
+            "observed_at": "2026-11-21T10:55:37.366221+00:00",
+            "rank": 5,
+            "rank_history": [
+              {
+                "category_name": "لایه بردار پوست و اسکراب",
+                "observed_at": "2026-11-21T10:55:37.366221+00:00",
+                "rank": 5
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-21T11:22:25.405547+00:00",
+        "catalog_cycle_snapshot_rank": 229,
+        "catalog_rank_observed_at": "2026-11-21T10:55:37.366221+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "personal_care",
+        "checked_at": "2026-11-21T11:28:18.112348+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-81961",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 591300,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 53.92,
+        "discount_percent": 33,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-21T11:28:37.575577+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-21",
+        "history_high_toman": 591300,
+        "history_low_toman": 591300,
+        "history_median_toman": 591300,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-21",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/fc9b2529da578155b09c3ffd4c2d31b15889f253_1788951818.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 75.08,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 53.92,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 99.5,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-21T11:28:51.713481+00:00",
+          "weakest_factor_score": 53.92
+        },
+        "original_price": 885950,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-81961",
+        "product_url": "https://www.digikala.com/product/dkp-81961/",
+        "promo_score": 25,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.31,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 8384,
+        "savings_toman": 294650,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 5,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 75.08,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 53.92,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 99.5,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-21T11:28:51.713481+00:00",
+          "weakest_factor_score": 53.92
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1677,
+        "title": "اسکراب صورت شون مدل عصاره گردو حجم 150 میلی لیتر"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-81961",
+      "product_plan_cycle_id": "2026-11-21T16:23:27.569991+00:00",
+      "scheduled_at": "2026-11-21T16:50:01.123494+00:00",
+      "selected_at": "2026-11-21T11:28:55.598805+00:00",
+      "sequence_number": 1677,
+      "status": "stale_selection",
+      "updated_at": "2026-11-21T16:50:50.598401+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -42903,178 +42894,6 @@
       "scheduled_at": "2026-11-21T19:21:01.123494+00:00",
       "selected_at": "2026-11-21T11:55:08.368974+00:00",
       "sequence_number": 1681,
-      "status": "queued"
-    },
-    "dkp-81961": {
-      "attempt_count": 0,
-      "content_id": "dkp-81961",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-21T16:50:01.123494+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-81961%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "شون",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "6556",
-        "catalog_best_selling_category_name": "لایه بردار پوست و اسکراب",
-        "catalog_best_selling_rank": 5,
-        "catalog_best_selling_ranks_by_category": {
-          "6556": {
-            "category_name": "لایه بردار پوست و اسکراب",
-            "observed_at": "2026-11-21T10:55:37.366221+00:00",
-            "rank": 5,
-            "rank_history": [
-              {
-                "category_name": "لایه بردار پوست و اسکراب",
-                "observed_at": "2026-11-21T10:55:37.366221+00:00",
-                "rank": 5
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-21T11:22:25.405547+00:00",
-        "catalog_cycle_snapshot_rank": 229,
-        "catalog_rank_observed_at": "2026-11-21T10:55:37.366221+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "personal_care",
-        "checked_at": "2026-11-21T11:28:18.112348+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-81961",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 591300,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 53.92,
-        "discount_percent": 33,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-21T11:28:37.575577+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-21",
-        "history_high_toman": 591300,
-        "history_low_toman": 591300,
-        "history_median_toman": 591300,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-21",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/fc9b2529da578155b09c3ffd4c2d31b15889f253_1788951818.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 75.08,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 53.92,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.5,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T11:28:51.713481+00:00",
-          "weakest_factor_score": 53.92
-        },
-        "original_price": 885950,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-81961",
-        "product_url": "https://www.digikala.com/product/dkp-81961/",
-        "promo_score": 25,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.31,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 8384,
-        "savings_toman": 294650,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 5,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 75.08,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 53.92,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.5,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T11:28:51.713481+00:00",
-          "weakest_factor_score": 53.92
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1677,
-        "title": "اسکراب صورت شون مدل عصاره گردو حجم 150 میلی لیتر"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-81961",
-      "product_plan_cycle_id": "2026-11-21T16:23:27.569991+00:00",
-      "scheduled_at": "2026-11-21T16:50:01.123494+00:00",
-      "selected_at": "2026-11-21T11:28:55.598805+00:00",
-      "sequence_number": 1677,
       "status": "queued"
     },
     "dkp-921444": {
@@ -119357,7 +119176,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.3,
+      "delivery_duration_seconds": 1.4,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -119420,8 +119239,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.3,
-      "delivery_started_at": "2026-11-21T16:29:50.858443+00:00",
+      "delivery_duration_seconds": 1.4,
+      "delivery_started_at": "2026-11-21T16:50:52.828955+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -364525,6 +364344,13 @@
       "reason": "selected_price_stale_selected=208700_live=208100",
       "rejected_at": "2026-11-03T01:04:48.727103+00:00",
       "retry_after": "2026-11-03T01:24:48.727103+00:00"
+    },
+    "dkp-81961": {
+      "current_price": 591300,
+      "original_price": 885950,
+      "reason": "selected_price_stale_selected=591300_live=589000",
+      "rejected_at": "2026-11-21T16:50:50.598401+00:00",
+      "retry_after": "2026-11-21T17:10:50.598401+00:00"
     },
     "dkp-81997": {
       "current_price": 391800,
