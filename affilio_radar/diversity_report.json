@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-21T12:24:29.089750+00:00",
+  "generated_at": "2026-11-21T12:52:18.612079+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "ابزار ایمنی کودک و نوزاد": 1,
@@ -106,7 +106,6 @@
       "تاپ و تی شرت راحتی مردانه": 1,
       "دستمال مرطوب": 1,
       "دوربین عکاسی": 1,
-      "دوربین فیلم برداری": 1,
       "روغن آفتاب": 1,
       "رومیزی و رانر": 1,
       "روکش داخل کابینت": 1,
@@ -123,6 +122,7 @@
       "لوازم جانبی اتو": 1,
       "لپ تاپ و الترابوک": 1,
       "نودل": 1,
+      "هدفون، هدست و هندزفری": 1,
       "پسته": 1,
       "کتاب موفقیت و رشد فردی": 1,
       "کرم آبرسان و مرطوب کننده": 1,
@@ -131,6 +131,7 @@
       "گوشی موبایل": 1
     },
     "category_post_counts": {
+      "audio_wearables": 1,
       "beauty_fragrance": 1,
       "books_stationery": 1,
       "computer_network": 1,
@@ -141,10 +142,10 @@
       "mobile_devices": 1,
       "other": 8,
       "personal_care": 5,
-      "sports_outdoor": 1,
       "tv_audio_video": 1
     },
     "category_share_percent": {
+      "audio_wearables": 3.2,
       "beauty_fragrance": 3.2,
       "books_stationery": 3.2,
       "computer_network": 3.2,
@@ -155,14 +156,13 @@
       "mobile_devices": 3.2,
       "other": 25.8,
       "personal_care": 16.1,
-      "sports_outdoor": 3.2,
       "tv_audio_video": 3.2
     },
     "distinct_catalog_categories": 29,
     "distinct_categories": 12,
     "distinct_families": 31,
     "distinct_retailers": 1,
-    "distinct_use_cases": 11,
+    "distinct_use_cases": 10,
     "known_brand_posts": 21,
     "posts": 31,
     "repeated_brand_count": 1,
@@ -176,7 +176,7 @@
       "digikala": 100.0
     },
     "use_case_post_counts": {
-      "audio_visual": 1,
+      "audio_visual": 2,
       "automotive": 2,
       "baby_care": 2,
       "books_learning": 1,
@@ -185,8 +185,7 @@
       "grocery_food": 2,
       "kitchen_food": 1,
       "mobile_productivity": 2,
-      "personal_care": 5,
-      "sports_fitness": 1
+      "personal_care": 5
     }
   },
   "last_7_days": {
@@ -334,6 +333,7 @@
       "نمک": 1,
       "نودل": 4,
       "هدفون حرفه‌ای": 1,
+      "هدفون، هدست و هندزفری": 1,
       "پا رکابی": 1,
       "پارچه": 1,
       "پاستا": 1,
@@ -393,7 +393,7 @@
       "گوشی موبایل": 1
     },
     "category_post_counts": {
-      "audio_wearables": 1,
+      "audio_wearables": 2,
       "automotive": 3,
       "beauty_fragrance": 3,
       "books_stationery": 13,
@@ -415,13 +415,13 @@
       "tv_audio_video": 4
     },
     "category_share_percent": {
-      "audio_wearables": 0.4,
+      "audio_wearables": 0.7,
       "automotive": 1.1,
       "beauty_fragrance": 1.1,
       "books_stationery": 4.7,
       "computer_network": 2.2,
       "digital_accessories": 2.5,
-      "fashion": 11.2,
+      "fashion": 11.1,
       "gaming": 1.1,
       "grocery_food": 14.0,
       "home": 9.7,
@@ -430,19 +430,19 @@
       "large_appliances": 1.1,
       "lighting": 0.7,
       "mobile_devices": 1.8,
-      "other": 19.8,
+      "other": 19.7,
       "personal_care": 12.9,
       "power_backup": 1.8,
       "sports_outdoor": 6.8,
       "tv_audio_video": 1.4
     },
-    "distinct_catalog_categories": 200,
+    "distinct_catalog_categories": 201,
     "distinct_categories": 20,
-    "distinct_families": 206,
+    "distinct_families": 207,
     "distinct_retailers": 1,
     "distinct_use_cases": 21,
-    "known_brand_posts": 134,
-    "posts": 278,
+    "known_brand_posts": 135,
+    "posts": 279,
     "repeated_brand_count": 30,
     "repeated_brands": {
       "arden": 2,
@@ -472,13 +472,13 @@
       "zarin_barakat": 2
     },
     "retailer_post_counts": {
-      "digikala": 278
+      "digikala": 279
     },
     "retailer_share_percent": {
       "digikala": 100.0
     },
     "use_case_post_counts": {
-      "audio_visual": 4,
+      "audio_visual": 5,
       "automotive": 8,
       "baby_care": 8,
       "books_learning": 14,
@@ -518,7 +518,7 @@
   },
   "repeat_guard_rejections": {
     "all_time_count": 1680,
-    "last_7_days_count": 388,
+    "last_7_days_count": 382,
     "reason_counts_in_retained_history": {
       "brand_repeat": 64,
       "family_repeat": 403,
