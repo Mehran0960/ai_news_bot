@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-21T04:08:00.189237+00:00",
-  "aparat_last_upload_success_at": "2026-11-21T04:08:04.165890+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-21T04:42:52.491899+00:00",
+  "aparat_last_upload_success_at": "2026-11-21T04:42:56.440023+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-21T04:25:42.425089+00:00",
@@ -248759,7 +248759,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-20135132": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-21T04:42:52.491899+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-21T04:42:56.440023+00:00",
+      "aparat_video_hash": "haaj6ld",
+      "aparat_video_record_id": "74319439",
+      "aparat_video_url": "https://www.aparat.com/v/haaj6ld",
+      "aparat_visibility": "public",
       "bale_message_id": 2406,
       "bale_posted_at": "2026-11-21T04:41:43.522219+00:00",
       "brand": "سامسونگ",
@@ -248883,8 +248889,17 @@
       "telegram_posted_at": "2026-11-21T04:41:43.082815+00:00",
       "title": "گوشی موبایل سامسونگ مدل Galaxy S25 FE دو سیم کارت ظرفیت 256 گیگابایت و رم 8 گیگابایت - ویتنام",
       "ts": 1795236096.556387,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-20135132.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-20135132.mp4"
+      },
+      "video_generated_at": "2026-11-21T04:42:44.207445+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-21T23:36:10.301962+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-20166583": {
       "aparat_skip_reason": "selection_outside_freshness_window",
