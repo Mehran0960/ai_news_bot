@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-21T12:25:59.213921+00:00",
-  "aparat_last_upload_success_at": "2026-11-21T12:26:04.885957+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-21T13:09:43.527725+00:00",
+  "aparat_last_upload_success_at": "2026-11-21T13:09:47.578374+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-21T12:48:44.986152+00:00",
@@ -318202,7 +318202,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-3072175": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-21T13:09:43.527725+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-21T13:09:47.578374+00:00",
+      "aparat_video_hash": "unf657c",
+      "aparat_video_record_id": "74326675",
+      "aparat_video_url": "https://www.aparat.com/v/unf657c",
+      "aparat_visibility": "public",
       "bale_message_id": 2420,
       "bale_posted_at": "2026-11-21T13:08:44.016049+00:00",
       "brand": "سیمین پتو",
@@ -318326,8 +318332,17 @@
       "telegram_posted_at": "2026-11-21T13:08:43.342621+00:00",
       "title": "پتو مسافرتی 1 نفره سیمین پتو مدل هلیا سایز 220x150x0.2 سانتی‌متر",
       "ts": 1795266517.637207,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-3072175.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-3072175.mp4"
+      },
+      "video_generated_at": "2026-11-21T13:09:38.307378+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-21T23:36:10.301962+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-3116893": {
       "aparat_skip_reason": "selection_outside_freshness_window",
