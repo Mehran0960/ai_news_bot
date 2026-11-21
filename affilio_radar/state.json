@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-21T18:22:51.289734+00:00",
-  "aparat_last_upload_success_at": "2026-11-21T18:22:54.746254+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-21T19:10:50.126038+00:00",
+  "aparat_last_upload_success_at": "2026-11-21T19:10:53.490909+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-21T18:57:42.434291+00:00",
@@ -333633,7 +333633,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-4934765": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-21T19:10:50.126038+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-21T19:10:53.490909+00:00",
+      "aparat_video_hash": "bfb36f0",
+      "aparat_video_record_id": "74331833",
+      "aparat_video_url": "https://www.aparat.com/v/bfb36f0",
+      "aparat_visibility": "public",
       "bale_message_id": 2431,
       "bale_posted_at": "2026-11-21T19:09:48.211783+00:00",
       "brand": "پرووان",
@@ -333757,8 +333763,17 @@
       "telegram_posted_at": "2026-11-21T19:09:40.428949+00:00",
       "title": "دانگل HDMI پرووان مدل PDH80",
       "ts": 1795288174.684037,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-4934765.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-4934765.mp4"
+      },
+      "video_generated_at": "2026-11-21T19:10:41.776703+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-21T23:36:10.301962+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-4998206": {
       "aparat_upload_started_at": "2026-11-17T19:59:41.673547+00:00",
