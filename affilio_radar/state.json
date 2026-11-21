@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-21T06:42:47.041395+00:00",
-  "aparat_last_upload_success_at": "2026-11-21T06:42:50.816858+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-21T07:50:55.148839+00:00",
+  "aparat_last_upload_success_at": "2026-11-21T07:50:58.602142+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-21T07:46:40.770478+00:00",
@@ -241452,7 +241452,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-18333637": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-21T07:50:55.148839+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-21T07:50:58.602142+00:00",
+      "aparat_video_hash": "iztis2p",
+      "aparat_video_record_id": "74321648",
+      "aparat_video_url": "https://www.aparat.com/v/iztis2p",
+      "aparat_visibility": "public",
       "bale_message_id": 2411,
       "bale_posted_at": "2026-11-21T07:49:57.859215+00:00",
       "brand": "زدفون",
@@ -241576,8 +241582,17 @@
       "telegram_posted_at": "2026-11-21T07:49:56.985318+00:00",
       "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
       "ts": 1795247391.911994,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-18333637.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-18333637.mp4"
+      },
+      "video_generated_at": "2026-11-21T07:50:49.937894+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-21T23:36:10.301962+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-18358700": {
       "aparat_skip_reason": "selection_outside_freshness_window",
