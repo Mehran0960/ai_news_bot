@@ -21,11 +21,11 @@
     {
       "depth": 0,
       "id": "18",
-      "name": "لپ تاپ و الترابوک",
+      "name": "لپ تاپ",
       "parent_id": "",
       "query": "لپ تاپ",
-      "slug": "notebook-netbook-ultrabook",
-      "source": "digikala_discovery_api_v1_search_taxonomy"
+      "slug": "",
+      "source": "digikala_discovery_api_v1_query_categories"
     },
     {
       "depth": 0,
@@ -34,6 +34,24 @@
       "parent_id": "",
       "query": "لپ تاپ",
       "slug": "all-in-pc",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "25",
+      "name": "اسپیکر (بلندگو)",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "speaker",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "34",
+      "name": "پرینتر",
+      "parent_id": "",
+      "query": "گوشی",
+      "slug": "printer",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -83,10 +101,37 @@
     },
     {
       "depth": 0,
+      "id": "53",
+      "name": "سینمای خانگی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "home-theatre",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "54",
+      "name": "سیستم صوتی خانگی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "home-audio-systems",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "58",
+      "name": "پخش کننده خانگی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "home-multimedia-player",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "64",
       "name": "فلش مموری",
       "parent_id": "",
-      "query": "گوشی",
+      "query": "خانه",
       "slug": "usb-flash-memory",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -113,7 +158,7 @@
       "id": "77",
       "name": "کیف و کاور گوشی",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "مواد غذایی",
       "slug": "cell-phone-pouch-cover",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -124,6 +169,15 @@
       "parent_id": "",
       "query": "گوشی",
       "slug": "cell-phone-battery",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "80",
+      "name": "کابل شارژ و مبدل",
+      "parent_id": "",
+      "query": "گوشی",
+      "slug": "cell-phone-data-cable",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -151,6 +205,15 @@
       "parent_id": "",
       "query": "گوشی",
       "slug": "stylus",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "91",
+      "name": "کیت تمیز کننده",
+      "parent_id": "",
+      "query": "گوشی",
+      "slug": "cleaner-kit",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -200,6 +263,15 @@
     },
     {
       "depth": 0,
+      "id": "107",
+      "name": "سه پایه و تک پایه",
+      "parent_id": "",
+      "query": "گوشی",
+      "slug": "tripod-monopod",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "150",
       "name": "فیلم سینمایی",
       "parent_id": "",
@@ -212,7 +284,7 @@
       "id": "151",
       "name": "موسیقی با کلام",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "زیبایی",
       "slug": "vocal-music",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -239,8 +311,17 @@
       "id": "193",
       "name": "مودم - روتر 3G و 4G و 5G",
       "parent_id": "",
-      "query": "گوشی",
+      "query": "لوازم خانگی",
       "slug": "3g-4g-and-5g-modem-router",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "204",
+      "name": "دوربین های امنیتی و نظارتی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "network-cam",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -275,7 +356,7 @@
       "id": "219",
       "name": "لوازم جانبی کنسول بازی",
       "parent_id": "",
-      "query": "خودرو",
+      "query": "مواد غذایی",
       "slug": "gaming-console-accessories",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -302,8 +383,62 @@
       "id": "1289",
       "name": "چندراهی برق و محافظ ولتاژ",
       "parent_id": "",
-      "query": "لوازم خانگی",
+      "query": "خانه",
       "slug": "power-strip",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "1291",
+      "name": "دسته بازی",
+      "parent_id": "",
+      "query": "گوشی",
+      "slug": "gamepad",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "1345",
+      "name": "لوازم جانبی دوربین های ورزشی",
+      "parent_id": "",
+      "query": "گوشی",
+      "slug": "gopro-accessories",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "2401",
+      "name": "سشوار",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "hair-drier",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "2402",
+      "name": "تصفیه کننده هوا",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "air-purifier",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "2403",
+      "name": "تصفیه کننده آب",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "water-filters",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "2404",
+      "name": "دستگاه بخور و رطوبت ساز",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "humidifiers",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -313,6 +448,15 @@
       "parent_id": "",
       "query": "لوازم خانگی",
       "slug": "imac-accessories",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "2407",
+      "name": "فشارسنج",
+      "parent_id": "",
+      "query": "گوشی",
+      "slug": "digital-sphygmomanometer",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -329,8 +473,17 @@
       "id": "5695",
       "name": "مجموعه آموزشی",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "ابزار",
       "slug": "learning-collection",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "5697",
+      "name": "پالس اکسیمتر",
+      "parent_id": "",
+      "query": "گوشی",
+      "slug": "pulse-oximeter",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -347,7 +500,7 @@
       "id": "5725",
       "name": "مانیکور و پدیکور",
       "parent_id": "",
-      "query": "زیبایی",
+      "query": "ابزار",
       "slug": "manicure-pedicure",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -362,11 +515,38 @@
     },
     {
       "depth": 0,
+      "id": "5745",
+      "name": "مسواک برقی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "electric-brusher",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "5751",
       "name": "دستگاه پخش خودرو",
       "parent_id": "",
       "query": "خودرو",
       "slug": "car-player",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "5774",
+      "name": "جارو شارژی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "handheld-vacuum",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "5779",
+      "name": "اسپرسو ساز",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "espresso-makers",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -380,11 +560,56 @@
     },
     {
       "depth": 0,
+      "id": "5793",
+      "name": "گریل و باربیکیو",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "grill-barbecue",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "5797",
+      "name": "تجهیزات تلفن سانترال",
+      "parent_id": "",
+      "query": "گوشی",
+      "slug": "telephone-system-accesories",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "5798",
+      "name": "باتری تلفن",
+      "parent_id": "",
+      "query": "گوشی",
+      "slug": "battery",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "5803",
+      "name": "یخچال فریزر",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "refrigerator-freezer",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "5804",
       "name": "ماشین لباسشویی",
       "parent_id": "",
       "query": "گوشی",
       "slug": "washing-machines",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "5814",
+      "name": "سرخ کن",
+      "parent_id": "",
+      "query": "گوشی",
+      "slug": "airfryer",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -401,7 +626,7 @@
       "id": "5857",
       "name": "سایر لوازم خودرو",
       "parent_id": "",
-      "query": "ابزار",
+      "query": "خودرو",
       "slug": "in-car-accessories",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -461,11 +686,38 @@
     },
     {
       "depth": 0,
+      "id": "5929",
+      "name": "لوازم جانبی و مصرفی نوشیدنی‌ساز",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "beverage-maker-accessories",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "5930",
       "name": "سایر لوازم جانبی تلفن",
       "parent_id": "",
       "query": "گوشی",
       "slug": "additional-phone",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "5962",
+      "name": "بسته های لوازم تحریر",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "stationerybundles",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "5980",
+      "name": "خودکار و روان نویس",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "pen",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -488,10 +740,19 @@
     },
     {
       "depth": 0,
+      "id": "5988",
+      "name": "چسب",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "glue",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6000",
       "name": "جامدادی",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "ابزار",
       "slug": "pencilcase",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -515,6 +776,15 @@
     },
     {
       "depth": 0,
+      "id": "6013",
+      "name": "اقلام مصرفی لوازم اداری",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "office-consumable-items",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6014",
       "name": "لوازم اداری رومیزی",
       "parent_id": "",
@@ -533,6 +803,15 @@
     },
     {
       "depth": 0,
+      "id": "6017",
+      "name": "کیف و کوله مدرسه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "bags",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6018",
       "name": "کاتر",
       "parent_id": "",
@@ -542,10 +821,19 @@
     },
     {
       "depth": 0,
+      "id": "6019",
+      "name": "مجموعه لوازم اداری",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "office-supply-bundles",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6021",
       "name": "چمدان",
       "parent_id": "",
-      "query": "لوازم خانگی",
+      "query": "آرایشی",
       "slug": "trolley-case-and-luggage",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -572,7 +860,7 @@
       "id": "6029",
       "name": "بازی فکری",
       "parent_id": "",
-      "query": "اسباب بازی",
+      "query": "خانه",
       "slug": "intellectual-game",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -617,7 +905,7 @@
       "id": "6044",
       "name": "آشنایی با فنون",
       "parent_id": "",
-      "query": "ابزار",
+      "query": "آرایشی",
       "slug": "doll-house",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -635,8 +923,17 @@
       "id": "6059",
       "name": "ایفای نقش",
       "parent_id": "",
-      "query": "پوشاک",
+      "query": "ابزار",
       "slug": "characters",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6074",
+      "name": "ابزارهای اندازه گیری دیجیتالی و لیزری",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "distance-measurer",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -653,7 +950,7 @@
       "id": "6083",
       "name": "ابزار شوخی",
       "parent_id": "",
-      "query": "اسباب بازی",
+      "query": "ابزار",
       "slug": "humor-toy",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -743,7 +1040,7 @@
       "id": "6129",
       "name": "تجهیزات جانبی سفر و کمپینگ",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "ابزار",
       "slug": "travel-accessories",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -770,7 +1067,7 @@
       "id": "6141",
       "name": "ابزار بایگانی",
       "parent_id": "",
-      "query": "کتاب",
+      "query": "ابزار",
       "slug": "archivetolols",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -779,7 +1076,7 @@
       "id": "6148",
       "name": "چسب صنعتی",
       "parent_id": "",
-      "query": "خانه",
+      "query": "ابزار",
       "slug": "industrial-glue",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -866,11 +1163,56 @@
     },
     {
       "depth": 0,
+      "id": "6178",
+      "name": "دریل",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "drill",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6184",
+      "name": "کارواش",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "carwash",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6190",
       "name": "اره",
       "parent_id": "",
       "query": "ابزار",
       "slug": "saw",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6195",
+      "name": "دستگاه جوش",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "welder",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6210",
+      "name": "سرامیک شوی و فرش شوی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "hard-floor-carpet-cleaner",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6228",
+      "name": "ظروف پخت و پز",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "cookware",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -884,6 +1226,24 @@
     },
     {
       "depth": 0,
+      "id": "6243",
+      "name": "پمپ سیالات",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "water-pump",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6244",
+      "name": "دستگاه جوش لوله پلیمری",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "polymer-pipe-welder",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6247",
       "name": "ابزار آشپزی",
       "parent_id": "",
@@ -893,10 +1253,19 @@
     },
     {
       "depth": 0,
+      "id": "6255",
+      "name": "سرویس پخت و پز",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "cookwareset",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6265",
       "name": "کوسن",
       "parent_id": "",
-      "query": "خودرو",
+      "query": "هدفون",
       "slug": "cushion",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -905,7 +1274,7 @@
       "id": "6266",
       "name": "پتو",
       "parent_id": "",
-      "query": "پوشاک",
+      "query": "خانه",
       "slug": "blankets",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -932,7 +1301,7 @@
       "id": "6273",
       "name": "روقوری",
       "parent_id": "",
-      "query": "لوازم خانگی",
+      "query": "خانه",
       "slug": "teapotcover",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -941,8 +1310,26 @@
       "id": "6275",
       "name": "دستگیره",
       "parent_id": "",
-      "query": "لوازم خانگی",
+      "query": "خانه",
       "slug": "hand-kerchief",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6276",
+      "name": "پیش بند",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "apron",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6277",
+      "name": "لوازم جانبی هویه",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "soldering-accessorries",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -968,7 +1355,7 @@
       "id": "6283",
       "name": "ابزار تهیه کیک و دسر",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "ابزار",
       "slug": "pastrytools",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -986,7 +1373,7 @@
       "id": "6292",
       "name": "اسکیت کفشی و اسکیت بورد",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "لوازم خانگی",
       "slug": "roller-skate",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1013,8 +1400,26 @@
       "id": "6297",
       "name": "رومیزی و رانر",
       "parent_id": "",
-      "query": "لوازم خانگی",
+      "query": "خانه",
       "slug": "tablecloths",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6298",
+      "name": "دم کنی",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "ricecookerblankcet",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6299",
+      "name": "زیر قابلمه‌ای و زیربشقابی",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "panmate",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -1046,11 +1451,29 @@
     },
     {
       "depth": 0,
+      "id": "6316",
+      "name": "بانکه و ظروف بنشن",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "legumecontainer",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6318",
       "name": "سطل",
       "parent_id": "",
-      "query": "آرایشی",
+      "query": "لوازم خانگی",
       "slug": "bucket",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6323",
+      "name": "دمپایی",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "slippers",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -1058,7 +1481,7 @@
       "id": "6328",
       "name": "ملحفه",
       "parent_id": "",
-      "query": "لوازم خانگی",
+      "query": "خانه",
       "slug": "sheet",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1076,7 +1499,7 @@
       "id": "6330",
       "name": "گل و گلدان",
       "parent_id": "",
-      "query": "خانه",
+      "query": "ابزار",
       "slug": "flower-pot",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1085,7 +1508,7 @@
       "id": "6332",
       "name": "زیر لیوانی",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "مواد غذایی",
       "slug": "coasters",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1109,6 +1532,15 @@
     },
     {
       "depth": 0,
+      "id": "6341",
+      "name": "جارو و خاک‌انداز",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "broom",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6346",
       "name": "سرویس و ست لوازم پارچه ای آشپزخانه",
       "parent_id": "",
@@ -1121,8 +1553,26 @@
       "id": "6347",
       "name": "سبد آشپزخانه",
       "parent_id": "",
-      "query": "لوازم خانگی",
+      "query": "خانه",
       "slug": "kitchenbasket",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6350",
+      "name": "ظرف و قالب یخ",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "icetray",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6351",
+      "name": "ظرف مربا و عسل",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "jarjam",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -1148,8 +1598,17 @@
       "id": "6359",
       "name": "سایر ظروف",
       "parent_id": "",
-      "query": "لوازم خانگی",
+      "query": "خانه",
       "slug": "othercookwares",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6362",
+      "name": "قیچی آشپزخانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "kitchenscissor",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -1157,7 +1616,7 @@
       "id": "6367",
       "name": "ارگانایزر آشپزخانه",
       "parent_id": "",
-      "query": "مواد غذایی",
+      "query": "ابزار",
       "slug": "organizer",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1193,7 +1652,7 @@
       "id": "6413",
       "name": "سایر لوازم تزئینی",
       "parent_id": "",
-      "query": "زیبایی",
+      "query": "ابزار",
       "slug": "other-decorative",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1211,8 +1670,17 @@
       "id": "6420",
       "name": "دستکش نظافت",
       "parent_id": "",
-      "query": "خانه",
+      "query": "لوازم خانگی",
       "slug": "glove",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6421",
+      "name": "بند رخت",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "clothesline",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -1229,7 +1697,7 @@
       "id": "6423",
       "name": "کاور پوشاک",
       "parent_id": "",
-      "query": "لوازم خانگی",
+      "query": "پوشاک",
       "slug": "gramentbag",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1249,6 +1717,15 @@
       "parent_id": "",
       "query": "ورزش",
       "slug": "cover-and-safety-equipment",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6439",
+      "name": "چتر",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "umbrella-1",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -1276,6 +1753,15 @@
       "parent_id": "",
       "query": "لوازم خانگی",
       "slug": "home-appliances-cover",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6455",
+      "name": "پالت رنگ",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "palet-color",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -1316,10 +1802,19 @@
     },
     {
       "depth": 0,
+      "id": "6472",
+      "name": "رژ لب مایع و لیپ گلاس",
+      "parent_id": "",
+      "query": "آرایشی",
+      "slug": "lip-gloss",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6475",
       "name": "بالم لب",
       "parent_id": "",
-      "query": "مواد غذایی",
+      "query": "خانه",
       "slug": "lip-cream",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1337,7 +1832,7 @@
       "id": "6482",
       "name": "رژ گونه",
       "parent_id": "",
-      "query": "آرایشی",
+      "query": "زیبایی",
       "slug": "blush",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1382,7 +1877,7 @@
       "id": "6489",
       "name": "کرم آبرسان و مرطوب کننده",
       "parent_id": "",
-      "query": "آرایشی",
+      "query": "لوازم خانگی",
       "slug": "moisturizing-cream",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1487,6 +1982,15 @@
     },
     {
       "depth": 0,
+      "id": "6571",
+      "name": "لوازم جانبی کمپرسور هوا",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "air-compressor-accessorries",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6574",
       "name": "کاغذ کادو",
       "parent_id": "",
@@ -1501,6 +2005,15 @@
       "parent_id": "",
       "query": "لوازم خانگی",
       "slug": "brazierbarbecue",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6577",
+      "name": "قیف",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "funnel",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -1526,7 +2039,7 @@
       "id": "6596",
       "name": "ابزار حمام",
       "parent_id": "",
-      "query": "خانه",
+      "query": "ابزار",
       "slug": "bathtools",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1571,7 +2084,7 @@
       "id": "6625",
       "name": "کمد لباس و ارگانایزر",
       "parent_id": "",
-      "query": "ابزار",
+      "query": "آرایشی",
       "slug": "storagedresser",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1589,7 +2102,7 @@
       "id": "6658",
       "name": "لوازم جانبی اپل واچ",
       "parent_id": "",
-      "query": "آرایشی",
+      "query": "لوازم خانگی",
       "slug": "apple-watch-cover",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1631,6 +2144,15 @@
     },
     {
       "depth": 0,
+      "id": "6675",
+      "name": "ابزار مهمانی",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "party-tools",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6727",
       "name": "مچ بند هوشمند",
       "parent_id": "",
@@ -1649,11 +2171,29 @@
     },
     {
       "depth": 0,
+      "id": "6739",
+      "name": "نردبان",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "ladders",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6740",
       "name": "ابزار نقاشی ساختمان",
       "parent_id": "",
       "query": "ابزار",
       "slug": "painting-tools",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6748",
+      "name": "لوازم آبیاری",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "watering-accessories",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -1679,7 +2219,7 @@
       "id": "6759",
       "name": "ابزار ایمنی کودک و نوزاد",
       "parent_id": "",
-      "query": "لوازم خانگی",
+      "query": "ابزار",
       "slug": "safety-tools-for-children-and-babies",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1739,10 +2279,19 @@
     },
     {
       "depth": 0,
+      "id": "6808",
+      "name": "ساک لوازم کودک و نوزاد",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "diaper-bag",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6810",
       "name": "استیکر و تابلو کودک و نوزاد",
       "parent_id": "",
-      "query": "اسباب بازی",
+      "query": "مواد غذایی",
       "slug": "sticker",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1757,11 +2306,38 @@
     },
     {
       "depth": 0,
+      "id": "6840",
+      "name": "پتو کودک و نوزاد",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "blanket",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6845",
       "name": "پوشک بزرگسال (پوشینه بزرگسال)",
       "parent_id": "",
       "query": "پوشاک",
       "slug": "adult-protective-diaper",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6852",
+      "name": "پد و کیسه آب گرم",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "tot-water-bag",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6853",
+      "name": "قمقمه و فلاسک کودک و نوزاد",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "baby-thermos-flask",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -1775,11 +2351,38 @@
     },
     {
       "depth": 0,
+      "id": "6869",
+      "name": "شامپو کودک و نوزاد",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "baby-shampoo",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6870",
+      "name": "تزئینات اتاق کودک",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "children-room-decorating",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6902",
       "name": "نرم افزارهای حسابداری",
       "parent_id": "",
-      "query": "زیبایی",
+      "query": "پوشاک",
       "slug": "accounting-software",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6903",
+      "name": "تجهیزات کارگاهی",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "workshop-equipment",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -1796,8 +2399,17 @@
       "id": "6906",
       "name": "فیگور",
       "parent_id": "",
-      "query": "اسباب بازی",
+      "query": "خانه",
       "slug": "figure",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6909",
+      "name": "طبقه و قفسه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "class-and-shelves",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -1820,10 +2432,19 @@
     },
     {
       "depth": 0,
+      "id": "6917",
+      "name": "لوازم جانبی عکاسی و فیلمبرداری",
+      "parent_id": "",
+      "query": "گوشی",
+      "slug": "recording-accessories",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "6920",
       "name": "شوینده ظروف",
       "parent_id": "",
-      "query": "مواد غذایی",
+      "query": "لوازم خانگی",
       "slug": "dishes-detergents",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1834,6 +2455,24 @@
       "parent_id": "",
       "query": "خانه",
       "slug": "surface-cleaner",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6928",
+      "name": "پودر و ژل سفید کننده",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "whitening-toothpowder",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "6942",
+      "name": "ماشین آشپزخانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "kitchen-machine",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -1850,7 +2489,7 @@
       "id": "6946",
       "name": "تابلو",
       "parent_id": "",
-      "query": "ابزار",
+      "query": "ورزش",
       "slug": "decorative-board",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1877,7 +2516,7 @@
       "id": "6959",
       "name": "مجموعه لوازم جانبی",
       "parent_id": "",
-      "query": "ابزار",
+      "query": "لوازم خانگی",
       "slug": "accessories-set",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -1919,6 +2558,15 @@
     },
     {
       "depth": 0,
+      "id": "8105",
+      "name": "چرخ خیاطی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "sewing-machine",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "8110",
       "name": "سه‌چرخه موتور و ماشین بازی",
       "parent_id": "",
@@ -1942,6 +2590,24 @@
       "parent_id": "",
       "query": "خودرو",
       "slug": "car-security-system",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8145",
+      "name": "سمپاش",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "sprayer",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8147",
+      "name": "آویز و جاسوییچی کودک",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "keychain-and-pendent",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -1973,11 +2639,29 @@
     },
     {
       "depth": 0,
+      "id": "8179",
+      "name": "قالب بستنی",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "ice-cream-maker-and-tools-",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "8185",
       "name": "روکش صندلی خودرو",
       "parent_id": "",
       "query": "خودرو",
       "slug": "car-chair-covers",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8187",
+      "name": "شمع خودرو",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "car-pile",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -1991,10 +2675,19 @@
     },
     {
       "depth": 0,
+      "id": "8191",
+      "name": "میکروفون استودیویی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "studio-microphone",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "8200",
       "name": "ابزار مراقبت از پوست",
       "parent_id": "",
-      "query": "زیبایی",
+      "query": "ابزار",
       "slug": "skin-care-accessories",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -2027,10 +2720,19 @@
     },
     {
       "depth": 0,
+      "id": "8240",
+      "name": "ابزار دوچرخه",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "tools-accessory",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "8246",
       "name": "علائم ایمنی و نشانه‌ها",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "مواد غذایی",
       "slug": "safety-signs",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -2050,6 +2752,15 @@
       "parent_id": "",
       "query": "گوشی",
       "slug": "ear-protection",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8255",
+      "name": "کپسول آتش‌نشانی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "fire-extinguishers",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -2077,6 +2788,24 @@
       "parent_id": "",
       "query": "خودرو",
       "slug": "head-gear",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8282",
+      "name": "هود",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "hood",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8283",
+      "name": "گاز صفحه ای",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "built-in-stove",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -2120,7 +2849,7 @@
       "id": "8303",
       "name": "کتابخانه",
       "parent_id": "",
-      "query": "خانه",
+      "query": "کتاب",
       "slug": "home-library",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -2131,6 +2860,15 @@
       "parent_id": "",
       "query": "لوازم خانگی",
       "slug": "bicycle-parts",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8308",
+      "name": "هواکش",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "exhaust-fans",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -2207,6 +2945,24 @@
     },
     {
       "depth": 0,
+      "id": "8358",
+      "name": "حشره کش و سوسک کش",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "insecticide",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8359",
+      "name": "چادر بازی کودک",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "kids-play-tent",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "8368",
       "name": "صندلی",
       "parent_id": "",
@@ -2219,7 +2975,7 @@
       "id": "8369",
       "name": "تجهیزات نظم دهنده داخل خودرو",
       "parent_id": "",
-      "query": "خودرو",
+      "query": "ابزار",
       "slug": "car-organizer-equipment",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -2239,6 +2995,15 @@
       "parent_id": "",
       "query": "ابزار",
       "slug": "tools-box",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8372",
+      "name": "تردمیل",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "treadmill",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -2266,6 +3031,15 @@
       "parent_id": "",
       "query": "خودرو",
       "slug": "fm-player",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8387",
+      "name": "فرش ماشینی",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "machine-made-carpet",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -2333,6 +3107,15 @@
     },
     {
       "depth": 0,
+      "id": "8448",
+      "name": "کمد فایل و قفسه اداری",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "office-file-cabinet-and-shelves",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "8468",
       "name": "تجهیزات کنترل محیط و آزمایشگاه",
       "parent_id": "",
@@ -2342,11 +3125,47 @@
     },
     {
       "depth": 0,
+      "id": "8472",
+      "name": "تختخواب کودک و نوزاد",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "baby-bed",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8484",
+      "name": "اینترنت اشیا",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "internet-of-things",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8488",
+      "name": "کاشی کاری",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "art-tiling",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "8499",
       "name": "بلبرینگ",
       "parent_id": "",
       "query": "مواد غذایی",
       "slug": "ball-bearing",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8583",
+      "name": "تجهیزات پخت نان",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "bakery-equipment",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -2369,11 +3188,65 @@
     },
     {
       "depth": 0,
+      "id": "8612",
+      "name": "لوازم جانبی فندک و زیر سیگاری",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "burner-and-lighter-accessories",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8619",
+      "name": "فرغون",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "wheelbarrow",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8624",
+      "name": "رادیاتور آب",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "water-radiator",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8637",
+      "name": "تجهیزات بیمارستانی",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "hospital-accessories",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "8640",
       "name": "پارچه",
       "parent_id": "",
-      "query": "زیبایی",
+      "query": "خانه",
       "slug": "textile",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8655",
+      "name": "قفل خودرو",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "car-lock",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8662",
+      "name": "ترازوی فروشگاهی",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "price-computing-scale",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -2387,11 +3260,38 @@
     },
     {
       "depth": 0,
+      "id": "8673",
+      "name": "لوازم ترمز",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "brake-accessories",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8677",
+      "name": "دیوارپوش ساختمان",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "stone-wall",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "8687",
       "name": "فیجت و اسپینر",
       "parent_id": "",
       "query": "اسباب بازی",
       "slug": "fidget-and-spinner",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8689",
+      "name": "لوازم جانبی کارواش",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "carwash-accessories",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -2426,7 +3326,7 @@
       "id": "8721",
       "name": "بهداشت، مراقبت و نگهداری حیوانات",
       "parent_id": "",
-      "query": "پوشاک",
+      "query": "ابزار",
       "slug": "health-and-care",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -2453,7 +3353,7 @@
       "id": "8725",
       "name": "تابلوی LED",
       "parent_id": "",
-      "query": "زیبایی",
+      "query": "پوشاک",
       "slug": "led-system-board",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -2468,11 +3368,29 @@
     },
     {
       "depth": 0,
+      "id": "8738",
+      "name": "ملزومات فرش",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "carpet-accessories",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "8748",
       "name": "سایر لوازم اداری",
       "parent_id": "",
       "query": "لوازم خانگی",
       "slug": "other-office-accessories",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "8801",
+      "name": "دستکش موتورسیکلت",
+      "parent_id": "",
+      "query": "گوشی",
+      "slug": "motorbike-gloves",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -2633,7 +3551,7 @@
       "id": "8996",
       "name": "چرخ خیاطی دستی و ملزومات خیاطی",
       "parent_id": "",
-      "query": "مواد غذایی",
+      "query": "ابزار",
       "slug": "sewing-accessories",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -2642,7 +3560,7 @@
       "id": "9004",
       "name": "تجهیزات تعمیرگاهی",
       "parent_id": "",
-      "query": "خودرو",
+      "query": "ابزار",
       "slug": "fixing-tools",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -2657,6 +3575,15 @@
     },
     {
       "depth": 0,
+      "id": "9007",
+      "name": "لوازم یدکی ابزار برقی",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "tools-electric-accessories",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "9012",
       "name": "در باز کن",
       "parent_id": "",
@@ -2666,11 +3593,29 @@
     },
     {
       "depth": 0,
+      "id": "9020",
+      "name": "لوله بازکن",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "pipe-opener",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "9083",
       "name": "لوازم ماهیگیری",
       "parent_id": "",
-      "query": "ابزار",
+      "query": "لوازم خانگی",
       "slug": "fishing-equipment",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9194",
+      "name": "لوله و اتصالات",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "pipe-and-extensions",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -2738,6 +3683,15 @@
     },
     {
       "depth": 0,
+      "id": "9241",
+      "name": "عسل",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "honey",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "9253",
       "name": "سایر لوازم جانبی پرینتر",
       "parent_id": "",
@@ -2750,8 +3704,17 @@
       "id": "9258",
       "name": "سایر لوازم جانبی لپ تاپ",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "مواد غذایی",
       "slug": "laptop-other-accessories",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9263",
+      "name": "آداپتور برق",
+      "parent_id": "",
+      "query": "گوشی",
+      "slug": "power-adapters",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -2774,11 +3737,56 @@
     },
     {
       "depth": 0,
+      "id": "9279",
+      "name": "سفره",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "table-cloth",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9280",
+      "name": "سایر لوازم جانبی موتور سیکلت",
+      "parent_id": "",
+      "query": "گوشی",
+      "slug": "motorcycle-accessories",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9281",
+      "name": "تجهیزات جانبی اسکیت و هاکی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "skate-hockey-equipment",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "9286",
       "name": "ست رسمی زنانه",
       "parent_id": "",
       "query": "پوشاک",
       "slug": "women-suits-and-sets",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9289",
+      "name": "جلیقه رسمی زنانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "women-vest--",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9291",
+      "name": "کت رسمی زنانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "women-jacket-",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -2801,11 +3809,29 @@
     },
     {
       "depth": 0,
+      "id": "9299",
+      "name": "شلوار راحتی زنانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "women-homewear-bottom",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "9308",
       "name": "تی شرت و پولوشرت بارداری",
       "parent_id": "",
       "query": "پوشاک",
       "slug": "women-maternity-t-shirts-and-polos",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9316",
+      "name": "پالتو زنانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "women-coat-",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -2819,11 +3845,29 @@
     },
     {
       "depth": 0,
+      "id": "9325",
+      "name": "شومیز زنانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "women-shirt",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "9326",
       "name": "تاپ و نیم تنه زنانه",
       "parent_id": "",
       "query": "هدفون",
       "slug": "women-tops-and-croptops",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9330",
+      "name": "دامن زنانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "women-skirts",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -2894,7 +3938,7 @@
       "id": "9369",
       "name": "کفش تخت زنانه",
       "parent_id": "",
-      "query": "کفش",
+      "query": "خانه",
       "slug": "women-flat-shoes",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -2909,10 +3953,19 @@
     },
     {
       "depth": 0,
+      "id": "9376",
+      "name": "دمپایی زنانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "women-slippers",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "9378",
       "name": "کفش ورزشی زنانه",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "کفش",
       "slug": "women-sport-shoes-",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -2957,8 +4010,17 @@
       "id": "9403",
       "name": "گل سینه زنانه",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "مواد غذایی",
       "slug": "women-brooch",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9408",
+      "name": "جاکلیدی زنانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "women-keyring-and-keychain",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -2968,6 +4030,15 @@
       "parent_id": "",
       "query": "ورزش",
       "slug": "women-watch-pendant",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9415",
+      "name": "شال و روسری زنانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "women-scarves",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -3011,7 +4082,7 @@
       "id": "9454",
       "name": "پیراهن مردانه",
       "parent_id": "",
-      "query": "پوشاک",
+      "query": "لوازم خانگی",
       "slug": "men-shirts",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -3074,7 +4145,7 @@
       "id": "9465",
       "name": "مجموعه هودی مردانه",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "هدفون",
       "slug": "men-hoodies-collection",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -3164,7 +4235,7 @@
       "id": "9489",
       "name": "کیف مردانه",
       "parent_id": "",
-      "query": "آرایشی",
+      "query": "لوازم خانگی",
       "slug": "men-bags",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -3215,10 +4286,19 @@
     },
     {
       "depth": 0,
+      "id": "9566",
+      "name": "کت پاییزه و زمستانی نوزاد",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "kids-jacket",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "9569",
       "name": "ست لباس راحتی نوزاد",
       "parent_id": "",
-      "query": "پوشاک",
+      "query": "خانه",
       "slug": "kids-homewear-sets",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -3227,8 +4307,44 @@
       "id": "9573",
       "name": "ست نوزاد",
       "parent_id": "",
-      "query": "پوشاک",
+      "query": "خانه",
       "slug": "kids-kids-suits",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9588",
+      "name": "جوراب نوزاد",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "kids-socks-",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9607",
+      "name": "سرهمی نوزاد",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "kids-jumpsuits",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9614",
+      "name": "کفش تخت نوزاد",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "kids-flat-shoes",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9631",
+      "name": "پیراهن دخترانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "girls-dresses",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -3236,7 +4352,7 @@
       "id": "9633",
       "name": "ست لباس راحتی دخترانه",
       "parent_id": "",
-      "query": "اسباب بازی",
+      "query": "خانه",
       "slug": "girls-homewear-sets",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -3247,6 +4363,33 @@
       "parent_id": "",
       "query": "هدفون",
       "slug": "girls-girls-suits",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9639",
+      "name": "ژاکت و پلیور دخترانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "girls-knitwear",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9645",
+      "name": "کاپشن دخترانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "girls-warm-jacket",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9652",
+      "name": "دامن دخترانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "girls-skirts",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -3272,8 +4415,62 @@
       "id": "9672",
       "name": "تی شرت دخترانه",
       "parent_id": "",
-      "query": "اسباب بازی",
+      "query": "هدفون",
       "slug": "girls-tee-shirts",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9678",
+      "name": "سوتین دخترانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "girls-bra",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9679",
+      "name": "شورت دخترانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "girls-underwear-bottom",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9684",
+      "name": "کفش تخت دخترانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "girls-flat-shoes",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9693",
+      "name": "کوله پشتی دخترانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "girls-backpacks",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9711",
+      "name": "زیور آلات مو دخترانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "girls-hair-accessories",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9721",
+      "name": "جاکلیدی دخترانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "girls-keyring-and-keychain",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -3281,8 +4478,17 @@
       "id": "9744",
       "name": "کیف پول و کیف لوازم آرایش دخترانه",
       "parent_id": "",
-      "query": "آرایشی",
+      "query": "زیبایی",
       "slug": "girls-wallets-and-cosmetic-bags",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9746",
+      "name": "ساعت عقربه ای دخترانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "girls-analouge-watches",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -3290,7 +4496,7 @@
       "id": "9754",
       "name": "ست لباس راحتی پسرانه",
       "parent_id": "",
-      "query": "اسباب بازی",
+      "query": "هدفون",
       "slug": "boys-homewear-sets",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -3317,7 +4523,7 @@
       "id": "9779",
       "name": "سویشرت و هودی پسرانه",
       "parent_id": "",
-      "query": "خودرو",
+      "query": "مواد غذایی",
       "slug": "boys-hoodies",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -3326,7 +4532,7 @@
       "id": "9783",
       "name": "تی شرت پسرانه",
       "parent_id": "",
-      "query": "خودرو",
+      "query": "هدفون",
       "slug": "boys-tee-shirts",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -3371,7 +4577,7 @@
       "id": "9841",
       "name": "جوراب زنانه",
       "parent_id": "",
-      "query": "پوشاک",
+      "query": "خانه",
       "slug": "women-socks-",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -3413,6 +4619,42 @@
     },
     {
       "depth": 0,
+      "id": "9886",
+      "name": "ست جهیزیه عروس",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "brides-dowry",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9888",
+      "name": "کیف چرمی دست دوز",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "leatherbag",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9900",
+      "name": "لوازم جانبی ساعت عقربه ای و دیجیتال",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "watch-accessories",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "9903",
+      "name": "پالت",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "pallet",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "9906",
       "name": "کفش روزمره مردانه",
       "parent_id": "",
@@ -3431,6 +4673,15 @@
     },
     {
       "depth": 0,
+      "id": "9954",
+      "name": "کفش",
+      "parent_id": "",
+      "query": "کفش",
+      "slug": "",
+      "source": "digikala_discovery_api_v1_query_categories"
+    },
+    {
+      "depth": 0,
       "id": "10011",
       "name": "تابلو و برچسب ایمنی و راهنما",
       "parent_id": "",
@@ -3445,6 +4696,15 @@
       "parent_id": "",
       "query": "ابزار",
       "slug": "prefabricated-tool",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "10042",
+      "name": "لیف کودک و نوزاد",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "baby-bath-loofah",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -3470,7 +4730,7 @@
       "id": "10064",
       "name": "کابینت",
       "parent_id": "",
-      "query": "لوازم خانگی",
+      "query": "خانه",
       "slug": "cabinets",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -3521,11 +4781,47 @@
     },
     {
       "depth": 0,
+      "id": "10084",
+      "name": "دستگاه شست‌وشوی دهان و دندان",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "oral-irrigator",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "10094",
+      "name": "سموم گیاهی و جانوری",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "plant-and-animal-pesticides",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "10099",
+      "name": "لوازم جانبی تصفیه‌آب و آبسردکن",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "water-purifier-accessories",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "10116",
       "name": "برچسب پوششی گوشی موبایل",
       "parent_id": "",
-      "query": "اسباب بازی",
+      "query": "گوشی",
       "slug": "cover-sticker",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "10117",
+      "name": "تجهیزات ضدعفونی کننده",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "sanitizing-devices",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -3575,10 +4871,19 @@
     },
     {
       "depth": 0,
+      "id": "10139",
+      "name": "کنترلر گاز",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "gas-controller",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "10140",
       "name": "محافظ و آبگیر کنار سینک",
       "parent_id": "",
-      "query": "لوازم خانگی",
+      "query": "خانه",
       "slug": "sink-cover",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -3602,11 +4907,38 @@
     },
     {
       "depth": 0,
+      "id": "10252",
+      "name": "لیوان سنتی",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "rural-glass",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "10256",
+      "name": "اردور خوری سنتی",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "rural-ordove",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "10291",
       "name": "سرهمی مردانه",
       "parent_id": "",
       "query": "پوشاک",
       "slug": "men-jumpsuits",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "10306",
+      "name": "مجموعه سویشرت زنانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "women-sweatshirts-collection",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -3674,6 +5006,24 @@
     },
     {
       "depth": 0,
+      "id": "10332",
+      "name": "رب گوجه خانگی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "homemade-tomato-paste",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "10333",
+      "name": "انواع رب و چاشنی‌های ترش خانگی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "homemade-liquid-condiments",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "10334",
       "name": "غلات ارگانیک",
       "parent_id": "",
@@ -3701,6 +5051,15 @@
     },
     {
       "depth": 0,
+      "id": "10338",
+      "name": "خیارشور و ترشیجات خانگی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "homemade-pickles",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "10339",
       "name": "نان محلی",
       "parent_id": "",
@@ -3722,7 +5081,7 @@
       "id": "10347",
       "name": "کیک و شیرینی خانگی",
       "parent_id": "",
-      "query": "مواد غذایی",
+      "query": "لوازم خانگی",
       "slug": "homemade-sweets",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -3733,6 +5092,15 @@
       "parent_id": "",
       "query": "مواد غذایی",
       "slug": "rural-date",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "10350",
+      "name": "شکلات خانگی",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "homemade-chocolate",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -3764,6 +5132,24 @@
     },
     {
       "depth": 0,
+      "id": "10357",
+      "name": "لواشک، برگه و آلوچه خانگی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "organic-fruit-leather-and-dried-fruit",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "10359",
+      "name": "مربا خانگی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "homemade-jam",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "10360",
       "name": "حلوا شکری، ارده و کنجد سنتی",
       "parent_id": "",
@@ -3773,11 +5159,38 @@
     },
     {
       "depth": 0,
+      "id": "10361",
+      "name": "عسل طبیعی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "rural-honey",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "10397",
+      "name": "تل مو دست ساز زنانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "traditional-women-hair-band",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "10406",
       "name": "شال دست‌دوز مردانه",
       "parent_id": "",
       "query": "پوشاک",
       "slug": "men-traditional-shawl",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "10472",
+      "name": "فیلتر تصفیه کننده آب",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "water-purifier-filter",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -3821,7 +5234,7 @@
       "id": "10553",
       "name": "کتاب دانش نامه و دایره المعارف",
       "parent_id": "",
-      "query": "خودرو",
+      "query": "کتاب",
       "slug": "printed-book-of-biography-and-encyclopedia",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -3848,7 +5261,7 @@
       "id": "10557",
       "name": "کتاب روانشناسی",
       "parent_id": "",
-      "query": "خودرو",
+      "query": "کتاب",
       "slug": "printed-book-of-philosophy-and-psychology",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -3902,7 +5315,7 @@
       "id": "10563",
       "name": "کتاب رمان و ادبیات داستانی و نمایشی",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "مواد غذایی",
       "slug": "printed-book-of-poetry-and-literature",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -3944,6 +5357,15 @@
     },
     {
       "depth": 0,
+      "id": "10632",
+      "name": "بادکنک و لوازم جانبی",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "balloon",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "10638",
       "name": "قابلمه و تابه",
       "parent_id": "",
@@ -3971,10 +5393,19 @@
     },
     {
       "depth": 0,
+      "id": "10708",
+      "name": "لحاف",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "coverlet",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "10709",
       "name": "روکش لحاف",
       "parent_id": "",
-      "query": "لوازم خانگی",
+      "query": "خانه",
       "slug": "quilt-cover",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -4118,7 +5549,7 @@
       "id": "10759",
       "name": "شکلات",
       "parent_id": "",
-      "query": "مواد غذایی",
+      "query": "خانه",
       "slug": "chocolates",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -4412,6 +5843,15 @@
     },
     {
       "depth": 0,
+      "id": "10922",
+      "name": "تینت لب",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "lip-tint",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "10925",
       "name": "تجهیزات آرایشگاه",
       "parent_id": "",
@@ -4460,8 +5900,17 @@
       "id": "10941",
       "name": "عطر و ادکلن زنانه",
       "parent_id": "",
-      "query": "گوشی",
+      "query": "زیبایی",
       "slug": "women-perfume",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "10943",
+      "name": "عطر و ادکلن کودکان",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "kids-perfume",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -4493,6 +5942,15 @@
     },
     {
       "depth": 0,
+      "id": "10970",
+      "name": "لوازم پزشکی مصرفی عمومی",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "medical-supplies-for-general-use",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "10987",
       "name": "چاقو",
       "parent_id": "",
@@ -4505,7 +5963,7 @@
       "id": "10991",
       "name": "شلوارک راحتی مردانه",
       "parent_id": "",
-      "query": "پوشاک",
+      "query": "خانه",
       "slug": "mens-comfort-shorts",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -4538,11 +5996,29 @@
     },
     {
       "depth": 0,
+      "id": "11055",
+      "name": "قلک",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "piggy-bank",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "11059",
       "name": "روغن های مراقبت پوست",
       "parent_id": "",
       "query": "زیبایی",
       "slug": "skin-care-oils",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "11072",
+      "name": "ماساژور دستی",
+      "parent_id": "",
+      "query": "ابزار",
+      "slug": "manual-massager",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -4624,6 +6100,24 @@
       "parent_id": "",
       "query": "مواد غذایی",
       "slug": "dog-dry-food",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "11098",
+      "name": "مکمل و داروی سگ",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "dog-supplements",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "11127",
+      "name": "کیف و کاور هدفون",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "headphone-cover",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -4712,7 +6206,7 @@
       "id": "11211",
       "name": "مکمل پوست، مو و ناخن",
       "parent_id": "",
-      "query": "زیبایی",
+      "query": "مواد غذایی",
       "slug": "supplement-skin-hair-nails",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -4730,7 +6224,7 @@
       "id": "11230",
       "name": "اندروید باکس",
       "parent_id": "",
-      "query": "گوشی",
+      "query": "لوازم خانگی",
       "slug": "android-box",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -4748,8 +6242,17 @@
       "id": "11240",
       "name": "برچسب",
       "parent_id": "",
-      "query": "خودرو",
+      "query": "آرایشی",
       "slug": "paper-sticker",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "11255",
+      "name": "تجهیزات کمک تنفسی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "respiratory-support-equipment",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -4757,8 +6260,17 @@
       "id": "11258",
       "name": "دستگاه تنس",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "لوازم خانگی",
       "slug": "tens",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "11265",
+      "name": "گوشی پزشکی",
+      "parent_id": "",
+      "query": "گوشی",
+      "slug": "stethoscope",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -4766,7 +6278,7 @@
       "id": "11299",
       "name": "ملحفه یکبار مصرف",
       "parent_id": "",
-      "query": "لوازم خانگی",
+      "query": "ابزار",
       "slug": "disposable-sheets",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -4795,6 +6307,24 @@
       "parent_id": "",
       "query": "لوازم خانگی",
       "slug": "sleeve-cover",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "11320",
+      "name": "نگاتوسکوپ",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "negatoscope",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "11323",
+      "name": "دستگاه های عمومی پزشکی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "general-medical-devices",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -4937,7 +6467,7 @@
       "id": "11384",
       "name": "هودی چاپی مردانه",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "هدفون",
       "slug": "men-print-hoodie",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -4946,7 +6476,7 @@
       "id": "11385",
       "name": "سویشرت چاپی مردانه",
       "parent_id": "",
-      "query": "خودرو",
+      "query": "هدفون",
       "slug": "men-print-sweatshirt",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -4966,6 +6496,15 @@
       "parent_id": "",
       "query": "زیبایی",
       "slug": "women-print-sweatshirt",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "11411",
+      "name": "کیف نوار بهداشتی",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "sanitary-napkin-bag",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -5099,7 +6638,7 @@
       "id": "11599",
       "name": "کتاب موفقیت و رشد فردی",
       "parent_id": "",
-      "query": "ورزش",
+      "query": "کتاب",
       "slug": "development-book",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -5162,7 +6701,7 @@
       "id": "11606",
       "name": "کتاب علوم مهندسی",
       "parent_id": "",
-      "query": "ابزار",
+      "query": "مواد غذایی",
       "slug": "engineering-science-book",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -5171,7 +6710,7 @@
       "id": "11607",
       "name": "کتاب آشپزی",
       "parent_id": "",
-      "query": "مواد غذایی",
+      "query": "خانه",
       "slug": "cooking-book",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
@@ -5222,6 +6761,15 @@
     },
     {
       "depth": 0,
+      "id": "11638",
+      "name": "ناخن گیر سگ و گربه",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "dog-and-cat-nail-clipper",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "11648",
       "name": "لوازم جانبی ماشین اصلاح",
       "parent_id": "",
@@ -5240,11 +6788,47 @@
     },
     {
       "depth": 0,
+      "id": "11679",
+      "name": "لباس مجلسی زنانه",
+      "parent_id": "",
+      "query": "خانه",
+      "slug": "women's-evening-dress",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
       "id": "11682",
       "name": "ست زیرپوش و شورت مردانه",
       "parent_id": "",
       "query": "پوشاک",
       "slug": "men’s-undershirt-and-underwear-set",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "11725",
+      "name": "دستگاه لیزر خانگی",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "home-use-laser",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "11730",
+      "name": "لوازم بهداشتی و درمانی سگ و گربه",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "dog-and-cat-health-and-medical-supplies",
+      "source": "digikala_discovery_api_v1_search_taxonomy"
+    },
+    {
+      "depth": 0,
+      "id": "11738",
+      "name": "میکرودرم",
+      "parent_id": "",
+      "query": "لوازم خانگی",
+      "slug": "mecroderma",
       "source": "digikala_discovery_api_v1_search_taxonomy"
     },
     {
@@ -5293,10 +6877,10 @@
       "source": "digikala_discovery_api_v1_search_taxonomy"
     }
   ],
-  "categories_refreshed_at": "2026-11-20T16:46:30.768632+00:00",
-  "category_count": 588,
+  "categories_refreshed_at": "2026-11-21T16:46:36.456808+00:00",
+  "category_count": 764,
   "category_discovery_fallback_used": false,
-  "category_ids_hash": "-109027148856626383",
+  "category_ids_hash": "54057708928125466",
   "category_index": 0,
   "category_taxonomy_policy_version": "discovery_explicit_category_roots_v2",
   "completed_cycles": 280,
@@ -6501,25 +8085,29 @@
   "last_error_at": "2026-11-15T05:00:24.184952+00:00",
   "last_successful_category_id": "9005",
   "last_successful_category_name": "لوازم یدکی خانگی",
-  "last_successful_page": 45,
-  "last_successful_page_at": "2026-11-21T16:45:08.695366+00:00",
+  "last_successful_page": 48,
+  "last_successful_page_at": "2026-11-21T16:46:46.290063+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 42,
+  "page": 2,
   "parallel_api_route_policy_version": "digikala_discovery_api_v1_trusted_category_taxonomy_v4",
-  "parallel_category_mismatch_rows_rejected": 6562110,
+  "parallel_category_mismatch_rows_rejected": 6562702,
   "parallel_cycle_completed_category_ids": [
     "11",
     "13",
     "20",
+    "25",
+    "34",
     "39",
     "40",
     "41",
     "48",
     "49",
+    "53",
     "64",
     "70",
     "77",
+    "80",
     "81",
     "82",
     "84",
@@ -6527,38 +8115,56 @@
     "100",
     "102",
     "103",
+    "107",
     "150",
     "151",
     "156",
     "174",
     "193",
+    "204",
     "209",
     "210",
+    "211",
     "219",
     "1272",
     "1289",
+    "1291",
+    "1345",
+    "2404",
     "2406",
+    "2407",
     "5604",
     "5695",
+    "5697",
     "5699",
     "5725",
     "5738",
+    "5745",
     "5751",
+    "5774",
     "5790",
+    "5793",
+    "5797",
+    "5798",
+    "5803",
     "5804",
+    "5814",
     "5848",
     "5857",
     "5859",
     "5865",
     "5903",
     "5930",
+    "5980",
     "5982",
     "5987",
+    "5988",
     "6000",
     "6004",
     "6005",
     "6014",
     "6016",
+    "6017",
     "6018",
     "6021",
     "6022",
@@ -6569,6 +8175,7 @@
     "6043",
     "6044",
     "6059",
+    "6074",
     "6081",
     "6083",
     "6084",
@@ -6591,8 +8198,16 @@
     "6169",
     "6172",
     "6173",
+    "6178",
+    "6184",
     "6190",
+    "6195",
+    "6210",
+    "6228",
     "6236",
+    "6243",
+    "6244",
+    "6255",
     "6265",
     "6266",
     "6268",
@@ -6606,8 +8221,12 @@
     "6292",
     "6294",
     "6297",
+    "6298",
+    "6299",
+    "6301",
     "6304",
     "6315",
+    "6316",
     "6318",
     "6328",
     "6329",
@@ -6615,8 +8234,11 @@
     "6332",
     "6333",
     "6336",
+    "6341",
     "6346",
     "6347",
+    "6350",
+    "6351",
     "6356",
     "6357",
     "6359",
@@ -6627,16 +8249,19 @@
     "6413",
     "6417",
     "6420",
+    "6421",
     "6422",
     "6423",
     "6430",
     "6432",
+    "6439",
     "6440",
     "6441",
     "6457",
     "6462",
     "6463",
     "6467",
+    "6472",
     "6475",
     "6480",
     "6482",
@@ -6647,6 +8272,7 @@
     "6489",
     "6503",
     "6505",
+    "6518",
     "6533",
     "6536",
     "6545",
@@ -6655,6 +8281,7 @@
     "6560",
     "6574",
     "6576",
+    "6577",
     "6578",
     "6584",
     "6596",
@@ -6671,7 +8298,10 @@
     "6665",
     "6727",
     "6728",
+    "6739",
+    "6748",
     "6750",
+    "6757",
     "6759",
     "6765",
     "6768",
@@ -6681,14 +8311,23 @@
     "6807",
     "6810",
     "6825",
+    "6840",
     "6845",
+    "6852",
     "6864",
+    "6869",
+    "6870",
     "6902",
+    "6903",
     "6906",
+    "6909",
     "6910",
     "6911",
+    "6917",
     "6920",
     "6924",
+    "6928",
+    "6942",
     "6944",
     "6946",
     "6951",
@@ -6697,12 +8336,18 @@
     "6977",
     "6978",
     "8018",
+    "8105",
     "8110",
     "8123",
     "8135",
+    "8145",
+    "8157",
     "8170",
     "8172",
+    "8179",
+    "8187",
     "8190",
+    "8191",
     "8200",
     "8222",
     "8227",
@@ -6710,8 +8355,11 @@
     "8246",
     "8248",
     "8249",
+    "8255",
     "8265",
     "8273",
+    "8282",
+    "8283",
     "8285",
     "8301",
     "8302",
@@ -6720,9 +8368,12 @@
     "8341",
     "8349",
     "8350",
+    "8358",
+    "8359",
     "8368",
     "8370",
     "8371",
+    "8372",
     "8375",
     "8384",
     "8385",
@@ -6730,12 +8381,22 @@
     "8430",
     "8431",
     "8433",
+    "8448",
     "8468",
+    "8472",
+    "8484",
+    "8488",
     "8499",
+    "8583",
     "8594",
     "8607",
+    "8612",
+    "8619",
+    "8624",
+    "8637",
     "8640",
     "8666",
+    "8677",
     "8687",
     "8693",
     "8716",
@@ -6744,6 +8405,9 @@
     "8723",
     "8725",
     "8733",
+    "8738",
+    "8748",
+    "8801",
     "8900",
     "8901",
     "8903",
@@ -6764,6 +8428,7 @@
     "8996",
     "9004",
     "9012",
+    "9020",
     "9083",
     "9219",
     "9220",
@@ -6772,13 +8437,17 @@
     "9227",
     "9233",
     "9237",
+    "9241",
     "9253",
     "9258",
+    "9263",
     "9267",
     "9286",
+    "9289",
     "9297",
     "9298",
     "9308",
+    "9316",
     "9324",
     "9326",
     "9335",
@@ -6789,6 +8458,7 @@
     "9358",
     "9363",
     "9369",
+    "9376",
     "9378",
     "9381",
     "9388",
@@ -6821,14 +8491,23 @@
     "9524",
     "9527",
     "9529",
+    "9551",
+    "9566",
     "9569",
     "9573",
+    "9607",
+    "9614",
     "9633",
     "9638",
+    "9639",
+    "9645",
     "9666",
     "9668",
     "9672",
+    "9684",
+    "9693",
     "9744",
+    "9746",
     "9754",
     "9760",
     "9773",
@@ -6843,6 +8522,8 @@
     "9850",
     "9863",
     "9869",
+    "9888",
+    "9903",
     "9906",
     "10011",
     "10040",
@@ -6852,16 +8533,21 @@
     "10067",
     "10068",
     "10082",
+    "10084",
+    "10094",
     "10116",
     "10122",
     "10123",
     "10124",
     "10130",
     "10132",
+    "10139",
     "10140",
     "10143",
     "10152",
+    "10256",
     "10291",
+    "10306",
     "10310",
     "10311",
     "10313",
@@ -6876,10 +8562,12 @@
     "10343",
     "10347",
     "10348",
+    "10350",
     "10353",
     "10354",
     "10355",
     "10360",
+    "10361",
     "10406",
     "10487",
     "10490",
@@ -6889,14 +8577,19 @@
     "10556",
     "10557",
     "10558",
+    "10559",
     "10560",
+    "10561",
     "10562",
     "10563",
     "10582",
     "10595",
     "10614",
     "10616",
+    "10632",
     "10638",
+    "10707",
+    "10708",
     "10709",
     "10727",
     "10731",
@@ -6945,20 +8638,25 @@
     "10887",
     "10895",
     "10921",
+    "10922",
     "10925",
     "10926",
     "10930",
     "10932",
     "10940",
     "10941",
+    "10943",
     "10962",
     "10965",
     "10966",
+    "10970",
     "10991",
     "11020",
     "11044",
     "11053",
+    "11055",
     "11059",
+    "11072",
     "11078",
     "11079",
     "11080",
@@ -6968,6 +8666,7 @@
     "11089",
     "11091",
     "11096",
+    "11098",
     "11137",
     "11149",
     "11150",
@@ -6982,11 +8681,14 @@
     "11230",
     "11236",
     "11240",
+    "11255",
     "11258",
     "11299",
     "11302",
     "11304",
     "11306",
+    "11320",
+    "11323",
     "11331",
     "11333",
     "11338",
@@ -7002,6 +8704,8 @@
     "11385",
     "11392",
     "11395",
+    "11411",
+    "11539",
     "11541",
     "11542",
     "11543",
@@ -7025,17 +8729,21 @@
     "11609",
     "11610",
     "11625",
+    "11638",
     "11648",
     "11672",
+    "11679",
     "11682",
+    "11730",
+    "11738",
     "11743",
     "11766",
     "11785",
     "11792",
     "11793"
   ],
-  "parallel_cycle_pages_success": 8622,
-  "parallel_cycle_product_rows_success": 166454,
+  "parallel_cycle_pages_success": 8941,
+  "parallel_cycle_product_rows_success": 171110,
   "parallel_cycle_started_at": "2026-11-21T16:23:28.076843+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -7046,29 +8754,38 @@
     "13",
     "18",
     "20",
+    "25",
+    "34",
     "39",
     "40",
     "41",
     "48",
     "49",
+    "53",
+    "54",
+    "58",
     "64",
     "70",
     "76",
     "77",
     "79",
+    "80",
     "81",
     "82",
     "84",
+    "91",
     "97",
     "98",
     "100",
     "102",
     "103",
+    "107",
     "150",
     "151",
     "156",
     "174",
     "193",
+    "204",
     "209",
     "210",
     "211",
@@ -7076,15 +8793,31 @@
     "1271",
     "1272",
     "1289",
+    "1291",
+    "1345",
+    "2401",
+    "2402",
+    "2403",
+    "2404",
     "2406",
+    "2407",
     "5604",
     "5695",
+    "5697",
     "5699",
     "5725",
     "5738",
+    "5745",
     "5751",
+    "5774",
+    "5779",
     "5790",
+    "5793",
+    "5797",
+    "5798",
+    "5803",
     "5804",
+    "5814",
     "5848",
     "5857",
     "5859",
@@ -7093,15 +8826,22 @@
     "5871",
     "5903",
     "5928",
+    "5929",
     "5930",
+    "5962",
+    "5980",
     "5982",
     "5987",
+    "5988",
     "6000",
     "6004",
     "6005",
+    "6013",
     "6014",
     "6016",
+    "6017",
     "6018",
+    "6019",
     "6021",
     "6022",
     "6023",
@@ -7113,6 +8853,7 @@
     "6044",
     "6055",
     "6059",
+    "6074",
     "6081",
     "6083",
     "6084",
@@ -7138,15 +8879,25 @@
     "6169",
     "6172",
     "6173",
+    "6178",
+    "6184",
     "6190",
+    "6195",
+    "6210",
+    "6228",
     "6236",
+    "6243",
+    "6244",
     "6247",
+    "6255",
     "6265",
     "6266",
     "6268",
     "6269",
     "6273",
     "6275",
+    "6276",
+    "6277",
     "6280",
     "6282",
     "6283",
@@ -7155,21 +8906,29 @@
     "6294",
     "6295",
     "6297",
+    "6298",
+    "6299",
     "6301",
     "6304",
     "6315",
+    "6316",
     "6318",
+    "6323",
     "6328",
     "6329",
     "6330",
     "6332",
     "6333",
     "6336",
+    "6341",
     "6346",
     "6347",
+    "6350",
+    "6351",
     "6356",
     "6357",
     "6359",
+    "6362",
     "6367",
     "6369",
     "6400",
@@ -7177,17 +8936,21 @@
     "6413",
     "6417",
     "6420",
+    "6421",
     "6422",
     "6423",
     "6430",
     "6432",
+    "6439",
     "6440",
     "6441",
     "6444",
+    "6455",
     "6457",
     "6462",
     "6463",
     "6467",
+    "6472",
     "6475",
     "6480",
     "6482",
@@ -7207,8 +8970,10 @@
     "6556",
     "6557",
     "6560",
+    "6571",
     "6574",
     "6576",
+    "6577",
     "6578",
     "6584",
     "6596",
@@ -7223,9 +8988,12 @@
     "6663",
     "6664",
     "6665",
+    "6675",
     "6727",
     "6728",
+    "6739",
     "6740",
+    "6748",
     "6750",
     "6757",
     "6759",
@@ -7235,17 +9003,28 @@
     "6802",
     "6805",
     "6807",
+    "6808",
     "6810",
     "6825",
+    "6840",
     "6845",
+    "6852",
+    "6853",
     "6864",
+    "6869",
+    "6870",
     "6902",
+    "6903",
     "6904",
     "6906",
+    "6909",
     "6910",
     "6911",
+    "6917",
     "6920",
     "6924",
+    "6928",
+    "6942",
     "6944",
     "6946",
     "6951",
@@ -7255,30 +9034,41 @@
     "6977",
     "6978",
     "8018",
+    "8105",
     "8110",
     "8123",
     "8135",
+    "8145",
+    "8147",
     "8157",
     "8170",
     "8172",
+    "8179",
     "8185",
+    "8187",
     "8190",
+    "8191",
     "8200",
     "8222",
     "8227",
     "8233",
+    "8240",
     "8246",
     "8248",
     "8249",
+    "8255",
     "8265",
     "8270",
     "8273",
+    "8282",
+    "8283",
     "8285",
     "8286",
     "8301",
     "8302",
     "8303",
     "8306",
+    "8308",
     "8331",
     "8332",
     "8341",
@@ -7287,13 +9077,17 @@
     "8350",
     "8354",
     "8355",
+    "8358",
+    "8359",
     "8368",
     "8369",
     "8370",
     "8371",
+    "8372",
     "8375",
     "8384",
     "8385",
+    "8387",
     "8390",
     "8397",
     "8416",
@@ -7301,13 +9095,27 @@
     "8431",
     "8432",
     "8433",
+    "8448",
     "8468",
+    "8472",
+    "8484",
+    "8488",
     "8499",
+    "8583",
     "8594",
     "8607",
+    "8612",
+    "8619",
+    "8624",
+    "8637",
     "8640",
+    "8655",
+    "8662",
     "8666",
+    "8673",
+    "8677",
     "8687",
+    "8689",
     "8693",
     "8716",
     "8718",
@@ -7316,7 +9124,9 @@
     "8723",
     "8725",
     "8733",
+    "8738",
     "8748",
+    "8801",
     "8900",
     "8901",
     "8903",
@@ -7337,8 +9147,11 @@
     "8996",
     "9004",
     "9005",
+    "9007",
     "9012",
+    "9020",
     "9083",
+    "9194",
     "9219",
     "9220",
     "9222",
@@ -7346,16 +9159,27 @@
     "9227",
     "9233",
     "9237",
+    "9241",
     "9253",
     "9258",
+    "9263",
     "9267",
     "9268",
+    "9279",
+    "9280",
+    "9281",
     "9286",
+    "9289",
+    "9291",
     "9297",
     "9298",
+    "9299",
     "9308",
+    "9316",
     "9324",
+    "9325",
     "9326",
+    "9330",
     "9335",
     "9344",
     "9345",
@@ -7365,13 +9189,16 @@
     "9363",
     "9369",
     "9371",
+    "9376",
     "9378",
     "9381",
     "9388",
     "9393",
     "9398",
     "9403",
+    "9408",
     "9413",
+    "9415",
     "9428",
     "9431",
     "9443",
@@ -7399,14 +9226,29 @@
     "9527",
     "9529",
     "9551",
+    "9566",
     "9569",
     "9573",
+    "9588",
+    "9607",
+    "9614",
+    "9631",
     "9633",
     "9638",
+    "9639",
+    "9645",
+    "9652",
     "9666",
     "9668",
     "9672",
+    "9678",
+    "9679",
+    "9684",
+    "9693",
+    "9711",
+    "9721",
     "9744",
+    "9746",
     "9754",
     "9760",
     "9773",
@@ -7421,10 +9263,16 @@
     "9850",
     "9863",
     "9869",
+    "9886",
+    "9888",
+    "9900",
+    "9903",
     "9906",
     "9908",
+    "9954",
     "10011",
     "10040",
+    "10042",
     "10053",
     "10056",
     "10064",
@@ -7433,16 +9281,24 @@
     "10072",
     "10073",
     "10082",
+    "10084",
+    "10094",
+    "10099",
     "10116",
+    "10117",
     "10122",
     "10123",
     "10124",
     "10130",
     "10132",
+    "10139",
     "10140",
     "10143",
     "10152",
+    "10252",
+    "10256",
     "10291",
+    "10306",
     "10310",
     "10311",
     "10313",
@@ -7450,18 +9306,27 @@
     "10329",
     "10330",
     "10331",
+    "10332",
+    "10333",
     "10334",
     "10335",
     "10337",
+    "10338",
     "10339",
     "10343",
     "10347",
     "10348",
+    "10350",
     "10353",
     "10354",
     "10355",
+    "10357",
+    "10359",
     "10360",
+    "10361",
+    "10397",
     "10406",
+    "10472",
     "10481",
     "10487",
     "10490",
@@ -7480,9 +9345,11 @@
     "10595",
     "10614",
     "10616",
+    "10632",
     "10638",
     "10704",
     "10707",
+    "10708",
     "10709",
     "10727",
     "10731",
@@ -7532,21 +9399,26 @@
     "10887",
     "10895",
     "10921",
+    "10922",
     "10925",
     "10926",
     "10930",
     "10932",
     "10940",
     "10941",
+    "10943",
     "10962",
     "10965",
     "10966",
+    "10970",
     "10987",
     "10991",
     "11020",
     "11044",
     "11053",
+    "11055",
     "11059",
+    "11072",
     "11078",
     "11079",
     "11080",
@@ -7556,6 +9428,8 @@
     "11089",
     "11091",
     "11096",
+    "11098",
+    "11127",
     "11137",
     "11149",
     "11150",
@@ -7570,11 +9444,15 @@
     "11230",
     "11236",
     "11240",
+    "11255",
     "11258",
+    "11265",
     "11299",
     "11302",
     "11304",
     "11306",
+    "11320",
+    "11323",
     "11331",
     "11333",
     "11338",
@@ -7594,6 +9472,7 @@
     "11385",
     "11392",
     "11395",
+    "11411",
     "11419",
     "11539",
     "11541",
@@ -7622,506 +9501,910 @@
     "11610",
     "11621",
     "11625",
+    "11638",
     "11648",
     "11672",
+    "11679",
     "11682",
+    "11725",
+    "11730",
+    "11738",
     "11743",
     "11766",
     "11785",
     "11792",
     "11793"
   ],
-  "parallel_last_batch_at": "2026-11-21T16:45:08.951202+00:00",
-  "parallel_last_batch_candidate_file_bytes": 7468315,
-  "parallel_last_batch_candidate_write_seconds": 0.107,
+  "parallel_last_batch_at": "2026-11-21T16:46:46.810489+00:00",
+  "parallel_last_batch_candidate_file_bytes": 7467971,
+  "parallel_last_batch_candidate_write_seconds": 0.195,
   "parallel_last_batch_empty_product_pages": 0,
-  "parallel_last_batch_fetch_seconds": 2.452,
+  "parallel_last_batch_fetch_seconds": 4.366,
   "parallel_last_batch_http_5xx_retries": 0,
-  "parallel_last_batch_nonempty_product_pages": 67,
-  "parallel_last_batch_pages": 67,
-  "parallel_last_batch_pages_per_second": 27.32,
-  "parallel_last_batch_processing_seconds": 0.197,
-  "parallel_last_batch_product_rows": 1315,
-  "parallel_last_batch_rate_limited": 0,
-  "parallel_last_batch_request_count": 67,
-  "parallel_last_batch_request_max_seconds": 0.842,
-  "parallel_last_batch_request_p50_seconds": 0.237,
-  "parallel_last_batch_request_p95_seconds": 0.755,
-  "parallel_last_batch_retries": 0,
-  "parallel_last_batch_rows_per_second": 477.07,
-  "parallel_last_batch_successes": 67,
+  "parallel_last_batch_nonempty_product_pages": 196,
+  "parallel_last_batch_pages": 231,
+  "parallel_last_batch_pages_per_second": 52.91,
+  "parallel_last_batch_processing_seconds": 0.533,
+  "parallel_last_batch_product_rows": 2256,
+  "parallel_last_batch_rate_limited": 35,
+  "parallel_last_batch_request_count": 231,
+  "parallel_last_batch_request_max_seconds": 0.846,
+  "parallel_last_batch_request_p50_seconds": 0.24,
+  "parallel_last_batch_request_p95_seconds": 0.664,
+  "parallel_last_batch_retries": 35,
+  "parallel_last_batch_rows_per_second": 442.86,
+  "parallel_last_batch_successes": 196,
   "parallel_last_batch_terminals": 0,
   "parallel_last_batch_timeout_retries": 0,
-  "parallel_last_batch_worker_limit_before": 9,
-  "parallel_last_batch_worker_limit_next": 11,
-  "parallel_leaf_category_count": 588,
+  "parallel_last_batch_worker_limit_before": 14,
+  "parallel_last_batch_worker_limit_next": 7,
+  "parallel_leaf_category_count": 764,
   "parallel_pending_pages": [
     {
       "attempts": 0,
+      "category_id": "54",
+      "category_name": "سیستم صوتی خانگی",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 1,
+      "category_id": "58",
+      "category_name": "پخش کننده خانگی",
+      "category_query": "لوازم خانگی",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 0,
+      "category_id": "91",
+      "category_name": "کیت تمیز کننده",
+      "category_query": "گوشی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "2401",
+      "category_name": "سشوار",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "2402",
+      "category_name": "تصفیه کننده هوا",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "2403",
+      "category_name": "تصفیه کننده آب",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "5779",
+      "category_name": "اسپرسو ساز",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "5929",
+      "category_name": "لوازم جانبی و مصرفی نوشیدنی‌ساز",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "5962",
+      "category_name": "بسته های لوازم تحریر",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "6013",
+      "category_name": "اقلام مصرفی لوازم اداری",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "6019",
+      "category_name": "مجموعه لوازم اداری",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "6276",
+      "category_name": "پیش بند",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "6277",
+      "category_name": "لوازم جانبی هویه",
+      "category_query": "ابزار",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "6323",
+      "category_name": "دمپایی",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "6362",
+      "category_name": "قیچی آشپزخانه",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "6455",
+      "category_name": "پالت رنگ",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "6571",
+      "category_name": "لوازم جانبی کمپرسور هوا",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "6675",
+      "category_name": "ابزار مهمانی",
+      "category_query": "ابزار",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "6808",
+      "category_name": "ساک لوازم کودک و نوزاد",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "6853",
+      "category_name": "قمقمه و فلاسک کودک و نوزاد",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "8147",
+      "category_name": "آویز و جاسوییچی کودک",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "8240",
+      "category_name": "ابزار دوچرخه",
+      "category_query": "ابزار",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "8308",
+      "category_name": "هواکش",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "8387",
+      "category_name": "فرش ماشینی",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "8655",
+      "category_name": "قفل خودرو",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 1,
+      "category_id": "8662",
+      "category_name": "ترازوی فروشگاهی",
+      "category_query": "ابزار",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 0,
+      "category_id": "8673",
+      "category_name": "لوازم ترمز",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "8689",
+      "category_name": "لوازم جانبی کارواش",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "9007",
+      "category_name": "لوازم یدکی ابزار برقی",
+      "category_query": "ابزار",
+      "page": 2
+    },
+    {
+      "attempts": 1,
+      "category_id": "9194",
+      "category_name": "لوله و اتصالات",
+      "category_query": "لوازم خانگی",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 0,
+      "category_id": "9279",
+      "category_name": "سفره",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 1,
+      "category_id": "9280",
+      "category_name": "سایر لوازم جانبی موتور سیکلت",
+      "category_query": "گوشی",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 0,
+      "category_id": "9281",
+      "category_name": "تجهیزات جانبی اسکیت و هاکی",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 1,
+      "category_id": "9291",
+      "category_name": "کت رسمی زنانه",
+      "category_query": "خانه",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 0,
+      "category_id": "9299",
+      "category_name": "شلوار راحتی زنانه",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "9325",
+      "category_name": "شومیز زنانه",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "9330",
+      "category_name": "دامن زنانه",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 1,
+      "category_id": "9408",
+      "category_name": "جاکلیدی زنانه",
+      "category_query": "خانه",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 0,
+      "category_id": "9415",
+      "category_name": "شال و روسری زنانه",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 1,
+      "category_id": "9588",
+      "category_name": "جوراب نوزاد",
+      "category_query": "خانه",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 0,
+      "category_id": "9631",
+      "category_name": "پیراهن دخترانه",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 1,
+      "category_id": "9652",
+      "category_name": "دامن دخترانه",
+      "category_query": "خانه",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 1,
+      "category_id": "9678",
+      "category_name": "سوتین دخترانه",
+      "category_query": "خانه",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 0,
+      "category_id": "9679",
+      "category_name": "شورت دخترانه",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "9711",
+      "category_name": "زیور آلات مو دخترانه",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 1,
+      "category_id": "9721",
+      "category_name": "جاکلیدی دخترانه",
+      "category_query": "خانه",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 1,
+      "category_id": "9886",
+      "category_name": "ست جهیزیه عروس",
+      "category_query": "خانه",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 0,
+      "category_id": "9900",
+      "category_name": "لوازم جانبی ساعت عقربه ای و دیجیتال",
+      "category_query": "ابزار",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "9954",
+      "category_name": "کفش",
+      "category_query": "کفش",
+      "page": 2
+    },
+    {
+      "attempts": 1,
+      "category_id": "10042",
+      "category_name": "لیف کودک و نوزاد",
+      "category_query": "خانه",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 1,
+      "category_id": "10099",
+      "category_name": "لوازم جانبی تصفیه‌آب و آبسردکن",
+      "category_query": "لوازم خانگی",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 1,
+      "category_id": "10117",
+      "category_name": "تجهیزات ضدعفونی کننده",
+      "category_query": "ابزار",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 0,
+      "category_id": "10252",
+      "category_name": "لیوان سنتی",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 1,
+      "category_id": "10332",
+      "category_name": "رب گوجه خانگی",
+      "category_query": "لوازم خانگی",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 0,
+      "category_id": "10333",
+      "category_name": "انواع رب و چاشنی‌های ترش خانگی",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "10338",
+      "category_name": "خیارشور و ترشیجات خانگی",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "10357",
+      "category_name": "لواشک، برگه و آلوچه خانگی",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "10359",
+      "category_name": "مربا خانگی",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 1,
+      "category_id": "10397",
+      "category_name": "تل مو دست ساز زنانه",
+      "category_query": "خانه",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 0,
+      "category_id": "10472",
+      "category_name": "فیلتر تصفیه کننده آب",
+      "category_query": "لوازم خانگی",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "11127",
+      "category_name": "کیف و کاور هدفون",
+      "category_query": "خانه",
+      "page": 2
+    },
+    {
+      "attempts": 0,
+      "category_id": "11265",
+      "category_name": "گوشی پزشکی",
+      "category_query": "گوشی",
+      "page": 2
+    },
+    {
+      "attempts": 1,
+      "category_id": "11725",
+      "category_name": "دستگاه لیزر خانگی",
+      "category_query": "لوازم خانگی",
+      "last_error": "rate_limited",
+      "page": 1
+    },
+    {
+      "attempts": 1,
       "category_id": "8397",
       "category_name": "ابزار و ملزومات هنرهای تجسمی",
       "category_query": "ابزار",
-      "page": 42
+      "last_error": "rate_limited",
+      "page": 44
     },
     {
       "attempts": 0,
       "category_id": "8432",
       "category_name": "تابلو شاسی",
       "category_query": "ورزش",
-      "page": 42
+      "page": 45
     },
     {
       "attempts": 0,
       "category_id": "10756",
       "category_name": "سایر ادویه و چاشنی‌ها",
       "category_query": "مواد غذایی",
-      "page": 42
+      "page": 45
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "18",
       "category_name": "لپ تاپ و الترابوک",
       "category_query": "لپ تاپ",
-      "page": 43
+      "last_error": "rate_limited",
+      "page": 45
     },
     {
       "attempts": 0,
       "category_id": "8303",
       "category_name": "کتابخانه",
       "category_query": "خانه",
-      "page": 43
-    },
-    {
-      "attempts": 0,
-      "category_id": "9551",
-      "category_name": "ورزش",
-      "category_query": "ورزش",
-      "page": 43
-    },
-    {
-      "attempts": 0,
-      "category_id": "10559",
-      "category_name": "کتاب زبان خارجی",
-      "category_query": "کتاب",
-      "page": 43
-    },
-    {
-      "attempts": 0,
-      "category_id": "10561",
-      "category_name": "کتاب دینی",
-      "category_query": "کتاب",
-      "page": 43
-    },
-    {
-      "attempts": 0,
-      "category_id": "10707",
-      "category_name": "ماگ",
-      "category_query": "ورزش",
-      "page": 43
+      "page": 46
     },
     {
       "attempts": 0,
       "category_id": "9481",
       "category_name": "کفش رسمی مردانه",
       "category_query": "کفش",
-      "page": 44
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "10073",
       "category_name": "قطعات یدکی موبایل و تبلت",
       "category_query": "گوشی",
-      "page": 44
+      "page": 47
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "10481",
       "category_name": "دستمال نظافت خانه و آشپزخانه",
       "category_query": "خانه",
-      "page": 44
+      "last_error": "rate_limited",
+      "page": 46
     },
     {
       "attempts": 0,
       "category_id": "10987",
       "category_name": "چاقو",
       "category_query": "خانه",
-      "page": 44
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "11339",
       "category_name": "آینه های آرایشی",
       "category_query": "آرایشی",
-      "page": 44
+      "page": 47
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "11351",
       "category_name": "کمربند ایمنی خودرو و لوازم جانبی کمربند",
       "category_query": "خودرو",
-      "page": 44
+      "last_error": "rate_limited",
+      "page": 46
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "11353",
       "category_name": "آویز تزئینی خودرو",
       "category_query": "خودرو",
-      "page": 44
+      "last_error": "rate_limited",
+      "page": 46
     },
     {
       "attempts": 0,
       "category_id": "11419",
       "category_name": "براش‌های آرایشی",
       "category_query": "آرایشی",
-      "page": 44
-    },
-    {
-      "attempts": 0,
-      "category_id": "11539",
-      "category_name": "کابل اتصال باتری به باتری خودرو",
-      "category_query": "خودرو",
-      "page": 44
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "11576",
       "category_name": "پوشاک گربه",
       "category_query": "پوشاک",
-      "page": 44
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "76",
       "category_name": "محافظ صفحه نمایش گوشی",
       "category_query": "گوشی",
-      "page": 45
+      "page": 48
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "79",
       "category_name": "باتری گوشی",
       "category_query": "گوشی",
-      "page": 45
-    },
-    {
-      "attempts": 0,
-      "category_id": "211",
-      "category_name": "هدفون، هدست و هندزفری",
-      "category_query": "ورزش",
-      "page": 45
+      "last_error": "rate_limited",
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "1271",
       "category_name": "شارژر تبلت و موبایل",
       "category_query": "گوشی",
-      "page": 45
+      "page": 48
     },
     {
       "attempts": 0,
       "category_id": "5867",
       "category_name": "لوازم جانبی جاروبرقی و بخار شو",
       "category_query": "لوازم خانگی",
-      "page": 45
+      "page": 48
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "5871",
       "category_name": "لوازم جانبی قطعات کامپیوتر",
       "category_query": "لوازم خانگی",
-      "page": 45
+      "last_error": "rate_limited",
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "5928",
       "category_name": "لوازم جانبی صوتی و تصویری خودرو",
       "category_query": "خودرو",
-      "page": 45
+      "page": 48
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "6029",
       "category_name": "بازی فکری",
       "category_query": "اسباب بازی",
-      "page": 45
+      "last_error": "rate_limited",
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "6055",
       "category_name": "ماشین بازی",
       "category_query": "اسباب بازی",
-      "page": 45
+      "page": 48
     },
     {
       "attempts": 0,
       "category_id": "6133",
       "category_name": "اسباب بازی زینتی",
       "category_query": "اسباب بازی",
-      "page": 45
+      "page": 48
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "6166",
       "category_name": "قیچی‌، چاقو و ابزار باغبانی",
       "category_query": "ابزار",
-      "page": 45
+      "last_error": "rate_limited",
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "6167",
       "category_name": "جعبه و کیف ابزار",
       "category_query": "ابزار",
-      "page": 45
+      "page": 48
     },
     {
       "attempts": 0,
       "category_id": "6247",
       "category_name": "ابزار آشپزی",
       "category_query": "ابزار",
-      "page": 45
+      "page": 48
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "6295",
       "category_name": "پادری",
       "category_query": "خانه",
-      "page": 45
-    },
-    {
-      "attempts": 0,
-      "category_id": "6301",
-      "category_name": "ظرف نگهدارنده",
-      "category_query": "مواد غذایی",
-      "page": 45
+      "last_error": "rate_limited",
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "6444",
       "category_name": "کاور لوازم خانگی",
       "category_query": "لوازم خانگی",
-      "page": 45
+      "page": 48
     },
     {
-      "attempts": 0,
-      "category_id": "6518",
-      "category_name": "شامپو مو",
-      "category_query": "مواد غذایی",
-      "page": 45
-    },
-    {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "6537",
       "category_name": "لوسیون و روغن بدن",
       "category_query": "مواد غذایی",
-      "page": 45
-    },
-    {
-      "attempts": 0,
-      "category_id": "6757",
-      "category_name": "لوازم بسته بندی",
-      "category_query": "مواد غذایی",
-      "page": 45
+      "last_error": "rate_limited",
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "6904",
       "category_name": "پد آرایشی و بیوتی بلندر",
       "category_query": "آرایشی",
-      "page": 45
+      "page": 48
     },
     {
       "attempts": 0,
       "category_id": "6975",
       "category_name": "لوازم جانبی نور و روشنایی",
       "category_query": "لوازم خانگی",
-      "page": 45
+      "page": 48
     },
     {
       "attempts": 0,
       "category_id": "8185",
       "category_name": "روکش صندلی خودرو",
       "category_query": "خودرو",
-      "page": 45
+      "page": 48
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "8270",
       "category_name": "کفپوش خودرو",
       "category_query": "خودرو",
-      "page": 45
+      "last_error": "rate_limited",
+      "page": 47
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "8286",
       "category_name": "جاسوئیچی وسایل نقلیه",
       "category_query": "خودرو",
-      "page": 45
+      "last_error": "rate_limited",
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "8331",
       "category_name": "روکش و تزئینات داشبورد خودرو",
       "category_query": "خودرو",
-      "page": 45
+      "page": 48
     },
     {
       "attempts": 0,
       "category_id": "8347",
       "category_name": "خوشبوکننده و تصفیه کننده هوای خودرو",
       "category_query": "خودرو",
-      "page": 45
+      "page": 48
     },
     {
       "attempts": 0,
       "category_id": "8354",
       "category_name": "پد و دستمال نظافت خودرو",
       "category_query": "خودرو",
-      "page": 45
+      "page": 48
     },
     {
       "attempts": 0,
       "category_id": "8355",
       "category_name": "واکس، پولیش و تمیزکننده خودرو",
       "category_query": "خودرو",
-      "page": 45
+      "page": 48
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "8390",
       "category_name": "آفتابگیر خودرو",
       "category_query": "خودرو",
-      "page": 45
+      "last_error": "rate_limited",
+      "page": 47
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "8722",
       "category_name": "آموزش، سرگرمی و اکسسوری حیوانات",
       "category_query": "اسباب بازی",
-      "page": 45
-    },
-    {
-      "attempts": 0,
-      "category_id": "8748",
-      "category_name": "سایر لوازم اداری",
-      "category_query": "لوازم خانگی",
-      "page": 45
+      "last_error": "rate_limited",
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "9268",
       "category_name": "ابزار و یراق آلات چرم دوزی",
       "category_query": "ابزار",
-      "page": 45
+      "page": 48
     },
     {
       "attempts": 0,
       "category_id": "9371",
       "category_name": "کفش پاشنه دار زنانه",
       "category_query": "کفش",
-      "page": 45
+      "page": 48
     },
     {
       "attempts": 0,
       "category_id": "9908",
       "category_name": "کفش روزمره زنانه",
       "category_query": "کفش",
-      "page": 45
+      "page": 48
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "10072",
       "category_name": "محافظ لنز گوشی موبایل",
       "category_query": "گوشی",
-      "page": 45
+      "last_error": "rate_limited",
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "10704",
       "category_name": "آرم و برچسب خودرو",
       "category_query": "خودرو",
-      "page": 45
+      "page": 48
     },
     {
       "attempts": 0,
       "category_id": "11358",
       "category_name": "قاب، زه و ضربه‌گیر خودرو",
       "category_query": "خودرو",
-      "page": 45
+      "page": 48
     },
     {
       "attempts": 0,
       "category_id": "11554",
       "category_name": "پوشاک سگ",
       "category_query": "پوشاک",
-      "page": 45
+      "page": 48
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "11621",
       "category_name": "پوشاک سگ و گربه",
       "category_query": "پوشاک",
-      "page": 45
+      "last_error": "rate_limited",
+      "page": 47
     },
     {
       "attempts": 0,
       "category_id": "97",
       "category_name": "کیف و کاور لپ تاپ",
       "category_query": "لپ تاپ",
-      "page": 46
+      "page": 49
     },
     {
-      "attempts": 0,
+      "attempts": 1,
       "category_id": "6510",
       "category_name": "تجهیزات آرایشی چشم و ابرو",
       "category_query": "آرایشی",
-      "page": 46
+      "last_error": "rate_limited",
+      "page": 48
     },
     {
       "attempts": 0,
       "category_id": "6740",
       "category_name": "ابزار نقاشی ساختمان",
       "category_query": "ابزار",
-      "page": 46
-    },
-    {
-      "attempts": 0,
-      "category_id": "8157",
-      "category_name": "خاک و کود",
-      "category_query": "مواد غذایی",
-      "page": 46
+      "page": 49
     },
     {
       "attempts": 0,
       "category_id": "8369",
       "category_name": "تجهیزات نظم دهنده داخل خودرو",
       "category_query": "خودرو",
-      "page": 46
+      "page": 49
     },
     {
       "attempts": 0,
       "category_id": "9005",
       "category_name": "لوازم یدکی خانگی",
       "category_query": "لوازم خانگی",
-      "page": 46
+      "page": 49
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "parallel_worker_limit": 11,
+  "parallel_worker_limit": 7,
   "parallel_worker_ramp_policy_version": "explicit_12_14_16_v1",
-  "parallel_workers_used": 9,
-  "pending_page_count": 64,
+  "parallel_workers_used": 14,
+  "pending_page_count": 116,
   "schema_version": 1,
   "stats": {
-    "api_failures_total": 127354,
-    "catalog_candidate_cards_found_total": 94982937,
+    "api_failures_total": 127389,
+    "catalog_candidate_cards_found_total": 94987001,
     "completed_cycles": 280,
     "cycles_with_gaps_total": 354,
-    "discounted_candidates_found_total": 21044891,
+    "discounted_candidates_found_total": 21045664,
     "empty_product_pages_total": 1778218,
-    "nonempty_product_pages_total": 5155280,
-    "pages_scanned_total": 5193979,
-    "product_rows_scanned_total": 101545087,
+    "nonempty_product_pages_total": 5155599,
+    "pages_scanned_total": 5194298,
+    "product_rows_scanned_total": 101549743,
     "unqueryable_categories_total": 1740482
   },
   "unacknowledged_candidate_count": 3000
