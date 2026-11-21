@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-21T14:10:54.847915+00:00",
-  "aparat_last_upload_success_at": "2026-11-21T14:11:00.073611+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-21T14:47:57.195236+00:00",
+  "aparat_last_upload_success_at": "2026-11-21T14:48:01.798003+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-21T14:33:43.244048+00:00",
@@ -277165,7 +277165,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-21326014": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-21T14:47:57.195236+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-21T14:48:01.798003+00:00",
+      "aparat_video_hash": "tvuv670",
+      "aparat_video_record_id": "74328116",
+      "aparat_video_url": "https://www.aparat.com/v/tvuv670",
+      "aparat_visibility": "public",
       "bale_message_id": 2423,
       "bale_posted_at": "2026-11-21T14:46:43.386691+00:00",
       "brand": "",
@@ -277289,8 +277295,17 @@
       "telegram_posted_at": "2026-11-21T14:46:42.992074+00:00",
       "title": "پنکه رومیزی مدل Hw-2 استند موبایل ظرفیت 2500 میلی آمپر ساعت",
       "ts": 1795272397.252514,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-21326014.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-21326014.mp4"
+      },
+      "video_generated_at": "2026-11-21T14:47:52.140612+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-21T23:36:10.301962+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-21329866": {
       "aparat_skip_reason": "selection_outside_freshness_window",
