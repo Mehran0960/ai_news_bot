@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-21T11:41:39.448811+00:00",
-  "aparat_last_upload_success_at": "2026-11-21T11:41:42.489454+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-21T12:25:59.213921+00:00",
+  "aparat_last_upload_success_at": "2026-11-21T12:26:04.885957+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-21T12:20:56.692747+00:00",
@@ -220272,7 +220272,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-11801878": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-21T12:25:59.213921+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-21T12:26:04.885957+00:00",
+      "aparat_video_hash": "ekkvx9o",
+      "aparat_video_record_id": "74325990",
+      "aparat_video_url": "https://www.aparat.com/v/ekkvx9o",
+      "aparat_visibility": "public",
       "bale_message_id": 2418,
       "bale_posted_at": "2026-11-21T12:24:38.239101+00:00",
       "brand": "انکر",
@@ -220490,8 +220496,17 @@
       "telegram_posted_at": "2026-11-21T12:24:38.079782+00:00",
       "title": "هدفون بلوتوثی انکر مدل SoundCore R50i A3949 بدون قابلیت نویز کنسلینگ، درگاه شارژ USB Type-C، دارای فناوری AI-Enhanced Calls برای کاهش نویز و بهبود مکالمات، مقاوم در برابر رطوبت و ع",
       "ts": 1795263872.817332,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-11801878.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-11801878.mp4"
+      },
+      "video_generated_at": "2026-11-21T12:25:51.641325+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-21T23:36:10.301962+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-11811922": {
       "aparat_skip_reason": "selection_outside_freshness_window",
