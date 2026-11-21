@@ -3744,189 +3744,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 1,
-      "content_id": "dkp-22592705",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-16T20:05:35.812189+00:00",
-      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
-      "next_attempt_at": "2026-11-16T20:04:15.242956+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22592705%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "علیکسین",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "11743",
-        "catalog_best_selling_category_name": "کاور مبل",
-        "catalog_best_selling_rank": 3,
-        "catalog_best_selling_ranks_by_category": {
-          "11743": {
-            "category_name": "کاور مبل",
-            "observed_at": "2026-11-16T18:13:28.408348+00:00",
-            "rank": 3,
-            "rank_history": [
-              {
-                "category_name": "کاور مبل",
-                "observed_at": "2026-11-16T18:13:28.408348+00:00",
-                "rank": 3
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T18:58:51.066294+00:00",
-        "catalog_cycle_snapshot_rank": 154,
-        "catalog_rank_observed_at": "2026-11-16T18:13:28.408348+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "home",
-        "checked_at": "2026-11-16T19:43:30.426628+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22592705",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 7152070,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 56.52,
-        "discount_percent": 28,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T19:43:49.555525+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 7152070,
-        "history_low_toman": 7152070,
-        "history_median_toman": 7152070,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/e3f1c2223f5fbc2a1f3ea5aec7e7919fcb998c8d_1788009197.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 75.5,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 56.52,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 84.0,
-          "generality_group": "home_living",
-          "live_demand": 98.62,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T19:44:03.586968+00:00",
-          "weakest_factor_score": 56.52
-        },
-        "original_price": 10000000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-22592705",
-        "product_url": "https://www.digikala.com/product/dkp-22592705/",
-        "promo_score": 28,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.33,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 8,
-        "savings_toman": 2847930,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 3,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 75.5,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 56.52,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 84.0,
-          "generality_group": "home_living",
-          "live_demand": 98.62,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T19:44:03.586968+00:00",
-          "weakest_factor_score": 56.52
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1381,
-        "title": "روکش مبل سه نفره علیکسین مدل مربع برجسته کد D1",
-        "variant_label": "سرمه ای"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-16T20:05:35.812189+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T20:06:25.906027+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "credentials_not_configured",
-          "status": "not_connected",
-          "updated_at": "2026-11-16T20:05:35.812189+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-16T20:05:35.812189+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T20:06:41.263892+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-16T20:05:35.812189+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-16T20:06:15.852655+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22592705",
-      "product_plan_cycle_id": "2026-11-16T19:33:45.328901+00:00",
-      "scheduled_at": "2026-11-16T20:04:15.242956+00:00",
-      "selected_at": "2026-11-16T19:44:12.436659+00:00",
-      "sequence_number": 1381,
-      "status": "published",
-      "updated_at": "2026-11-16T20:06:42.505456+00:00"
-    },
-    {
-      "attempt_count": 1,
       "content_id": "dkp-20317737",
       "content_type": "product",
       "last_attempt_at": "2026-11-16T20:08:47.933369+00:00",
@@ -40174,20 +39991,13 @@
       "sequence_number": 1649,
       "status": "published",
       "updated_at": "2026-11-21T01:13:51.613573+00:00"
-    }
-  ],
-  "content_delivery_last_enqueue_summary": {
-    "added": 9,
-    "at": "2026-11-21T01:05:28.954755+00:00",
-    "queue_evicted": 0,
-    "queue_size": 11,
-    "skipped": 0
-  },
-  "content_delivery_queue": {
-    "dkp-1518091": {
-      "attempt_count": 0,
+    },
+    {
+      "attempt_count": 1,
       "content_id": "dkp-1518091",
       "content_type": "product",
+      "last_attempt_at": "2026-11-21T01:55:43.405288+00:00",
+      "last_detail": "selected_price_stale_selected=346100_live=345700",
       "next_attempt_at": "2026-11-21T01:54:51.612371+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1518091%2F",
@@ -40354,8 +40164,18 @@
       "scheduled_at": "2026-11-21T01:54:51.612371+00:00",
       "selected_at": "2026-11-21T01:05:28.954755+00:00",
       "sequence_number": 1650,
-      "status": "queued"
-    },
+      "status": "stale_selection",
+      "updated_at": "2026-11-21T01:55:43.405288+00:00"
+    }
+  ],
+  "content_delivery_last_enqueue_summary": {
+    "added": 9,
+    "at": "2026-11-21T01:05:28.954755+00:00",
+    "queue_evicted": 0,
+    "queue_size": 11,
+    "skipped": 0
+  },
+  "content_delivery_queue": {
     "dkp-16660804": {
       "attempt_count": 0,
       "content_id": "dkp-16660804",
@@ -108642,7 +108462,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.4,
+      "delivery_duration_seconds": 1.6,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -108705,8 +108525,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.4,
-      "delivery_started_at": "2026-11-21T01:42:35.866132+00:00",
+      "delivery_duration_seconds": 1.6,
+      "delivery_started_at": "2026-11-21T01:55:46.453417+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -349125,6 +348945,13 @@
       "reason": "selected_price_stale_selected=59200_live=107530",
       "rejected_at": "2026-11-02T00:08:45.695043+00:00",
       "retry_after": "2026-11-02T00:28:45.695043+00:00"
+    },
+    "dkp-1518091": {
+      "current_price": 346100,
+      "original_price": 568500,
+      "reason": "selected_price_stale_selected=346100_live=345700",
+      "rejected_at": "2026-11-21T01:55:43.405288+00:00",
+      "retry_after": "2026-11-21T02:15:43.405288+00:00"
     },
     "dkp-15381113": {
       "current_price": 2500000,
