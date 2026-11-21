@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-21T21:23:45.998481+00:00",
-  "aparat_last_upload_success_at": "2026-11-21T21:23:49.790878+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-21T22:09:39.914080+00:00",
+  "aparat_last_upload_success_at": "2026-11-21T22:09:43.056421+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-21T21:43:52.057087+00:00",
@@ -233512,7 +233512,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-12303009": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-21T22:09:39.914080+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-21T22:09:43.056421+00:00",
+      "aparat_video_hash": "vatms36",
+      "aparat_video_record_id": "74333297",
+      "aparat_video_url": "https://www.aparat.com/v/vatms36",
+      "aparat_visibility": "public",
       "bale_message_id": 2437,
       "bale_posted_at": "2026-11-21T22:08:44.320316+00:00",
       "brand": "کفش شتاب",
@@ -233636,8 +233642,17 @@
       "telegram_posted_at": "2026-11-21T22:08:43.507656+00:00",
       "title": "کفش روزمره زنانه شتاب طبی چرم طبیعی با کفی قابل تعویض مدل 00145t-k",
       "ts": 1795298915.803529,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-12303009.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-12303009.mp4"
+      },
+      "video_generated_at": "2026-11-21T22:09:33.522444+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-21T23:36:10.301962+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-12325607": {
       "aparat_upload_started_at": "2026-11-18T23:25:47.898641+00:00",
