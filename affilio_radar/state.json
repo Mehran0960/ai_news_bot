@@ -3403,182 +3403,6 @@
   },
   "content_delivery_history": [
     {
-      "attempt_count": 0,
-      "content_id": "dkp-22112327",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "next_attempt_at": "2026-11-16T18:58:16.708212+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22112327%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "هارلینگن",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "10941",
-        "catalog_best_selling_category_name": "عطر و ادکلن زنانه",
-        "catalog_best_selling_rank": 1,
-        "catalog_best_selling_ranks_by_category": {
-          "10941": {
-            "category_name": "عطر و ادکلن زنانه",
-            "observed_at": "2026-11-16T17:22:49.216735+00:00",
-            "rank": 1,
-            "rank_history": [
-              {
-                "category_name": "عطر و ادکلن زنانه",
-                "observed_at": "2026-11-16T17:22:49.216735+00:00",
-                "rank": 1
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-16T18:12:48.333976+00:00",
-        "catalog_cycle_snapshot_rank": 55,
-        "catalog_rank_observed_at": "2026-11-16T17:22:49.216735+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "beauty_fragrance",
-        "checked_at": "2026-11-16T18:20:35.063329+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22112327",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 499000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 65.31,
-        "discount_percent": 58,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-16T18:21:26.183508+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-16",
-        "history_high_toman": 499000,
-        "history_low_toman": 499000,
-        "history_median_toman": 499000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-16",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/3711bce5d8e7bf5030e613696b871ac63f21581e_1782654093.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_check_cached": true,
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "ادوپرفیوم زنانه هارلینگن مدل بیلی آیلیش با رایحه گرم حجم 35 میلی‌لیتر",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 81.6,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 65.31,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.1,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T18:21:38.054785+00:00",
-          "weakest_factor_score": 65.31
-        },
-        "original_price": 1200000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-22112327",
-        "product_url": "https://www.digikala.com/product/dkp-22112327/",
-        "promo_score": 43,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 3.85,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 134,
-        "savings_toman": 701000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 1,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 81.6,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 65.31,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.1,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-16T18:21:38.054785+00:00",
-          "weakest_factor_score": 65.31
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1374,
-        "title": "ادوپرفیوم زنانه هارلینگن مدل بیلی آیلیش با رایحه گرم حجم 35 میلی‌لیتر"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22112327",
-      "product_plan_cycle_id": "2026-11-16T18:12:48.333976+00:00",
-      "scheduled_at": "2026-11-16T18:58:16.708212+00:00",
-      "selected_at": "2026-11-16T18:21:45.859046+00:00",
-      "sequence_number": 1374,
-      "status": "stale_selection",
-      "updated_at": "2026-11-16T19:34:58.878537+00:00"
-    },
-    {
       "attempt_count": 1,
       "content_id": "dkp-19005437",
       "content_type": "product",
@@ -39849,6 +39673,184 @@
       "sequence_number": 1645,
       "status": "published",
       "updated_at": "2026-11-21T00:05:45.493189+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-21723566",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-21T00:50:34.640367+00:00",
+      "last_detail": "selected_price_stale_selected=349494900_live=350312000",
+      "next_attempt_at": "2026-11-21T00:49:45.492083+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21723566%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "اپل",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "18",
+        "catalog_best_selling_category_name": "لپ تاپ و الترابوک",
+        "catalog_best_selling_rank": 8,
+        "catalog_best_selling_ranks_by_category": {
+          "18": {
+            "category_name": "لپ تاپ و الترابوک",
+            "observed_at": "2026-11-20T19:03:48.222241+00:00",
+            "rank": 8,
+            "rank_history": [
+              {
+                "category_name": "لپ تاپ و الترابوک",
+                "observed_at": "2026-11-20T19:03:48.222241+00:00",
+                "rank": 8
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-20T19:32:30.498943+00:00",
+        "catalog_cycle_snapshot_rank": 193,
+        "catalog_rank_observed_at": "2026-11-20T19:03:48.222241+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "computer_network",
+        "checked_at": "2026-11-20T19:37:53.687853+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-21723566",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 349494900,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 59.62,
+        "discount_percent": 25,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-20T19:38:20.557848+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-20",
+        "history_high_toman": 349494900,
+        "history_low_toman": 349494900,
+        "history_median_toman": 349494900,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-20",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/38e75de680cdb33546435539584f284033dc63d5_1777384263.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_error": "RuntimeError",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_query": "لپ‌تاپ اپل مدل MacBook Air MDHE4 2026 LLA",
+        "market_status": "unavailable",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 78.02,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 59.62,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 86.0,
+          "generality_group": "mobile_productivity",
+          "live_demand": 99.47,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-20T19:38:31.678172+00:00",
+          "weakest_factor_score": 59.62
+        },
+        "original_price": 468310000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-21723566",
+        "product_url": "https://www.digikala.com/product/dkp-21723566/",
+        "promo_score": 36,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.62,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 23,
+        "savings_toman": 118815100,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 8,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 78.02,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 59.62,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 86.0,
+          "generality_group": "mobile_productivity",
+          "live_demand": 99.47,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-20T19:38:31.678172+00:00",
+          "weakest_factor_score": 59.62
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1646,
+        "title": "لپ‌تاپ اپل مدل MacBook Air MDHE4 2026 LLA، پردازنده Apple M5 با 10 هسته، رم 16GB Unified، حافظه 512GB SSD، نمایشگر 13.6 اینچی Liquid Retina با وضوح 2560×1664 پیکسل، شارژدهی تا 18 س",
+        "variant_label": "سرمه ای"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-21723566",
+      "product_plan_cycle_id": "2026-11-21T00:42:27.548749+00:00",
+      "scheduled_at": "2026-11-21T00:49:45.492083+00:00",
+      "selected_at": "2026-11-20T19:38:35.987872+00:00",
+      "sequence_number": 1646,
+      "status": "stale_selection",
+      "updated_at": "2026-11-21T00:50:34.640367+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -40208,181 +40210,6 @@
       "scheduled_at": "2026-11-21T01:23:45.492083+00:00",
       "selected_at": "2026-11-20T19:38:35.987872+00:00",
       "sequence_number": 1647,
-      "status": "queued"
-    },
-    "dkp-21723566": {
-      "attempt_count": 0,
-      "content_id": "dkp-21723566",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-21T00:49:45.492083+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21723566%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "اپل",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "18",
-        "catalog_best_selling_category_name": "لپ تاپ و الترابوک",
-        "catalog_best_selling_rank": 8,
-        "catalog_best_selling_ranks_by_category": {
-          "18": {
-            "category_name": "لپ تاپ و الترابوک",
-            "observed_at": "2026-11-20T19:03:48.222241+00:00",
-            "rank": 8,
-            "rank_history": [
-              {
-                "category_name": "لپ تاپ و الترابوک",
-                "observed_at": "2026-11-20T19:03:48.222241+00:00",
-                "rank": 8
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-20T19:32:30.498943+00:00",
-        "catalog_cycle_snapshot_rank": 193,
-        "catalog_rank_observed_at": "2026-11-20T19:03:48.222241+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "computer_network",
-        "checked_at": "2026-11-20T19:37:53.687853+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-21723566",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 349494900,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 59.62,
-        "discount_percent": 25,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-20T19:38:20.557848+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-20",
-        "history_high_toman": 349494900,
-        "history_low_toman": 349494900,
-        "history_median_toman": 349494900,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-20",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/38e75de680cdb33546435539584f284033dc63d5_1777384263.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "لپ‌تاپ اپل مدل MacBook Air MDHE4 2026 LLA",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 78.02,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 59.62,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 86.0,
-          "generality_group": "mobile_productivity",
-          "live_demand": 99.47,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-20T19:38:31.678172+00:00",
-          "weakest_factor_score": 59.62
-        },
-        "original_price": 468310000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-21723566",
-        "product_url": "https://www.digikala.com/product/dkp-21723566/",
-        "promo_score": 36,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.62,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 23,
-        "savings_toman": 118815100,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 8,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 78.02,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 59.62,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 86.0,
-          "generality_group": "mobile_productivity",
-          "live_demand": 99.47,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-20T19:38:31.678172+00:00",
-          "weakest_factor_score": 59.62
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1646,
-        "title": "لپ‌تاپ اپل مدل MacBook Air MDHE4 2026 LLA، پردازنده Apple M5 با 10 هسته، رم 16GB Unified، حافظه 512GB SSD، نمایشگر 13.6 اینچی Liquid Retina با وضوح 2560×1664 پیکسل، شارژدهی تا 18 س",
-        "variant_label": "سرمه ای"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-21723566",
-      "product_plan_cycle_id": "2026-11-21T00:42:27.548749+00:00",
-      "scheduled_at": "2026-11-21T00:49:45.492083+00:00",
-      "selected_at": "2026-11-20T19:38:35.987872+00:00",
-      "sequence_number": 1646,
       "status": "queued"
     }
   },
@@ -101456,7 +101283,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.9,
+      "delivery_duration_seconds": 1.5,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -101519,8 +101346,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.9,
-      "delivery_started_at": "2026-11-21T00:47:58.342353+00:00",
+      "delivery_duration_seconds": 1.5,
+      "delivery_started_at": "2026-11-21T00:50:37.326942+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -240413,7 +240240,8 @@
       "aparat_video_record_id": "74271486",
       "aparat_video_url": "https://www.aparat.com/v/zutcloq",
       "aparat_visibility": "public",
-      "bale_expiry_status": "unknown",
+      "bale_expired_deleted_at": "2026-11-21T00:47:48.947112+00:00",
+      "bale_expiry_status": "already_absent",
       "bale_message_id": 2243,
       "bale_posted_at": "2026-11-17T17:01:18.139615+00:00",
       "brand": "پاد آفرین",
@@ -341798,6 +341626,13 @@
       "reason": "selected_price_stale_selected=33072200_live=33261100",
       "rejected_at": "2026-11-03T13:02:14.516777+00:00",
       "retry_after": "2026-11-03T13:22:14.516777+00:00"
+    },
+    "dkp-21723566": {
+      "current_price": 349494900,
+      "original_price": 468310000,
+      "reason": "selected_price_stale_selected=349494900_live=350312000",
+      "rejected_at": "2026-11-21T00:50:34.640367+00:00",
+      "retry_after": "2026-11-21T01:10:34.640367+00:00"
     },
     "dkp-22281401": {
       "current_price": 175000,
