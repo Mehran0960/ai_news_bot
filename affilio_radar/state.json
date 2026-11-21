@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-21T16:04:42.749170+00:00",
-  "aparat_last_upload_success_at": "2026-11-21T16:04:46.074358+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-21T17:12:48.783079+00:00",
+  "aparat_last_upload_success_at": "2026-11-21T17:12:51.901843+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-21T17:07:39.383523+00:00",
@@ -317581,7 +317581,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22927548": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-21T17:12:48.783079+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-21T17:12:51.901843+00:00",
+      "aparat_video_hash": "lzx5332",
+      "aparat_video_record_id": "74330262",
+      "aparat_video_url": "https://www.aparat.com/v/lzx5332",
+      "aparat_visibility": "public",
       "bale_message_id": 2428,
       "bale_posted_at": "2026-11-21T17:11:48.836342+00:00",
       "brand": "",
@@ -317705,8 +317711,17 @@
       "telegram_posted_at": "2026-11-21T17:11:48.178280+00:00",
       "title": "قیچی باغبانی شارژی روکو مدل Brushless 25mm با تیغه SK5، نمایشگر LED، قفل و 2 باتری 21 ولت 2 آمپر ساعت همراه با شارژر",
       "ts": 1795281101.405491,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22927548.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22927548.mp4"
+      },
+      "video_generated_at": "2026-11-21T17:12:40.912952+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-21T23:36:10.301962+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22930181": {
       "aparat_skip_reason": "selection_outside_freshness_window",
