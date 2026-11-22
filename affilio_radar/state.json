@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-22T17:06:50.348399+00:00",
-  "aparat_last_upload_success_at": "2026-11-22T17:06:54.618097+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-22T17:53:43.787156+00:00",
+  "aparat_last_upload_success_at": "2026-11-22T17:53:47.075058+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-22T17:34:49.385859+00:00",
@@ -228657,7 +228657,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-20444568": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-22T17:53:43.787156+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-22T17:53:47.075058+00:00",
+      "aparat_video_hash": "iil53k5",
+      "aparat_video_record_id": "74345496",
+      "aparat_video_url": "https://www.aparat.com/v/iil53k5",
+      "aparat_visibility": "public",
       "bale_message_id": 2468,
       "bale_posted_at": "2026-11-22T17:52:44.992170+00:00",
       "brand": "",
@@ -228793,8 +228799,17 @@
       "telegram_posted_at": "2026-11-22T17:52:44.028040+00:00",
       "title": "لوبیا کشاورزی پرگولا - 900 گرم",
       "ts": 1795369956.886984,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-20444568.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-20444568.mp4"
+      },
+      "video_generated_at": "2026-11-22T17:53:36.903359+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-23T00:26:15.015053+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-20449025": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -299076,6 +299091,7 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
+      "expired_deleted_at": "2026-11-22T17:52:32.122587+00:00",
       "expires_at": "2026-11-22T17:37:40.345446+00:00",
       "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
@@ -299085,7 +299101,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "already_absent",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-21T19:12:16.443066+00:00",
