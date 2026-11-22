@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-22T17:53:43.787156+00:00",
-  "aparat_last_upload_success_at": "2026-11-22T17:53:47.075058+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-22T19:04:49.209655+00:00",
+  "aparat_last_upload_success_at": "2026-11-22T19:04:53.217337+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-22T19:00:41.822729+00:00",
@@ -269852,7 +269852,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-22595072": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-22T19:04:49.209655+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-22T19:04:53.217337+00:00",
+      "aparat_video_hash": "lrqr03m",
+      "aparat_video_record_id": "74346446",
+      "aparat_video_url": "https://www.aparat.com/v/lrqr03m",
+      "aparat_visibility": "public",
       "bale_message_id": 2469,
       "bale_posted_at": "2026-11-22T19:03:35.663737+00:00",
       "brand": "لومیز",
@@ -269976,8 +269982,17 @@
       "telegram_posted_at": "2026-11-22T19:03:35.492040+00:00",
       "title": "ست مسافرتی آرایشی لومیز مدل 4in1 bottle ، قابل حمل و قابل پرکردن مجدد، مجموعه 4 عددی",
       "ts": 1795374208.395222,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22595072.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22595072.mp4"
+      },
+      "video_generated_at": "2026-11-22T19:04:41.140586+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-23T00:26:15.015053+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22597598": {
       "aparat_skip_reason": "selection_outside_freshness_window",
