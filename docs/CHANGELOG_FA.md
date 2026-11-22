@@ -3408,3 +3408,19 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** این سیاست حداکثر سه تلاش خودکار را در ۲۴ ساعت محدود می‌کند، اما آپلود دستی یا سامانهٔ دیگری که همان کانال را تغذیه کند در state پروژه ثبت نمی‌شود؛ سقف حساب/کانال با سهمیهٔ API متفاوت است و باید جداگانه کنترل شود. بازگشت فقط با revert کردن PR؛ state آپلود و شناسه‌های ویدئو نباید reset شوند.
 
 **وضعیت:** پیاده‌سازی روی branch انجام شده؛ بررسی PR و نتیجهٔ CI در انتظار.
+
+## ۲۰۲۶-۱۱-۲۲ — تأیید نهایی و deploy زمان‌بند جدید یوتیوب
+
+**هدف:** ثبت شواهد واقعی ادغام، عبور از regressionها و فعال‌شدن زمان‌بندی سراسری یوتیوب در production.
+
+**تغییر/اقدام:** PR شمارهٔ ۲۶۴ با روش squash در شاخهٔ `main` ادغام شد. اجرای پس از ادغام، Worker زمان‌بند را با موفقیت به Cloudflare deploy کرد؛ فاصلهٔ ۸ ساعت و ۱۵ دقیقه برای همهٔ تلاش‌های خودکار یوتیوب و صف مشترک محصول/تحریریه فعال است. سقف زمانی اتوماسیون سه تلاش در هر پنجرهٔ شناور ۲۴ساعته است. آپارات و فیلو مستقل باقی ماندند.
+
+**فایل‌ها/سامانه‌ها:** همهٔ فایل‌های ثبت‌شده در ورودی قبلی؛ GitHub Actions و Cloudflare Worker با نام `affilio-minute-dispatcher`.
+
+**آزمون و نتیجه:** ۹ بررسی PR روی commit نهایی همگی موفق شدند؛ شامل Unified Video Fan-out Validation، Four-Factor Ranking، Platform Logo Regression، Top-100/DigiPay، Catalog Sweep Regression، Messenger Adapter Tests، Editorial Contract Tests، Documentation Gate و اعتبارسنجی/deploy Worker. پس از ادغام، اجرای `Affilio Product Radar`، `OfferChin Four-Factor Ranking`، `OfferChin Editorial Contract Tests` و `OfferChin Documentation Gate` نیز موفق بود.
+
+**شواهد/شناسه:** PR #264؛ merge commit `2ad883dcc65f206aa1d8392fff8bd846fa994557`؛ Worker deploy run `45067681654` با نتیجهٔ success؛ Cloudflare Version ID `82389f56-104a-44df-9d5c-92546fa5527f`؛ Video Fan-out Validation run `45067566520` با نتیجهٔ success.
+
+**ریسک/بازگشت:** آپلود دستی یا سامانهٔ دیگری که همان کانال یوتیوب را تغذیه کند در state پروژه ثبت نمی‌شود و می‌تواند از سقف کانال استفاده کند. بازگشت با revert کردن merge commit یا نسخهٔ Worker ممکن است؛ state آپلود و شناسه‌های ویدئو نباید reset شوند.
+
+**وضعیت:** ادغام‌شده، آزمون‌شده و deploy‌شده در production.
