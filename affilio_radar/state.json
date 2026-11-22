@@ -4592,179 +4592,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 0,
-      "content_id": "dkp-22850165",
-      "content_type": "product",
-      "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
-      "next_attempt_at": "2026-11-17T01:38:35.339516+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22850165%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "10925",
-        "catalog_best_selling_category_name": "تجهیزات آرایشگاه",
-        "catalog_best_selling_rank": 26,
-        "catalog_best_selling_ranks_by_category": {
-          "10925": {
-            "category_name": "تجهیزات آرایشگاه",
-            "observed_at": "2026-11-17T00:33:20.506108+00:00",
-            "rank": 26,
-            "rank_history": [
-              {
-                "category_name": "تجهیزات آرایشگاه",
-                "observed_at": "2026-11-17T00:33:20.506108+00:00",
-                "rank": 26
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-17T01:06:31.293899+00:00",
-        "catalog_cycle_snapshot_rank": 310,
-        "catalog_rank_observed_at": "2026-11-17T00:33:20.506108+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "personal_care",
-        "checked_at": "2026-11-17T01:33:46.587460+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22850165",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 299000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 59.22,
-        "discount_percent": 46,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-17T01:34:07.340755+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-17",
-        "history_high_toman": 299000,
-        "history_low_toman": 299000,
-        "history_median_toman": 299000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-17",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/91823286dc766493cc63562af4d1939d51317bfe_1790753309.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 74.77,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 59.22,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 84.21,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T01:34:07.342462+00:00",
-          "weakest_factor_score": 59.22
-        },
-        "original_price": 550000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-22850165",
-        "product_url": "https://www.digikala.com/product/dkp-22850165/",
-        "promo_score": 33,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 2.2,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 2,
-        "savings_toman": 251000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 26,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 74.77,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 59.22,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 84.21,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T01:34:07.342462+00:00",
-          "weakest_factor_score": 59.22
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1479,
-        "title": "پیش‌بند آرایشگری ایلکا مدل یکبار مصرف بسته ۳۶ عددی",
-        "variant_label": "چند رنگ"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22850165",
-      "product_plan_cycle_id": "2026-11-17T01:06:31.293899+00:00",
-      "scheduled_at": "2026-11-17T01:38:35.339516+00:00",
-      "selected_at": "2026-11-17T01:34:12.591535+00:00",
-      "sequence_number": 1479,
-      "status": "stale_selection",
-      "updated_at": "2026-11-17T01:56:37.908728+00:00"
-    },
-    {
-      "attempt_count": 0,
       "content_id": "dkp-23039449",
       "content_type": "product",
       "last_detail": "stale_due_unpublished_selection_replaced_by_live_scan",
@@ -41019,6 +40846,183 @@
       "sequence_number": 1698,
       "status": "published",
       "updated_at": "2026-11-22T05:06:33.915702+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-21182736",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-22T05:47:36.739631+00:00",
+      "last_detail": "selected_price_stale_selected=239000_live=239900",
+      "next_attempt_at": "2026-11-22T05:46:33.914327+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21182736%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "A",
+        "catalog_best_selling_category_id": "6350",
+        "catalog_best_selling_category_name": "ظرف و قالب یخ",
+        "catalog_best_selling_rank": 1,
+        "catalog_best_selling_ranks_by_category": {
+          "6350": {
+            "category_name": "ظرف و قالب یخ",
+            "observed_at": "2026-11-21T17:34:32.358858+00:00",
+            "rank": 1,
+            "rank_history": [
+              {
+                "category_name": "ظرف و قالب یخ",
+                "observed_at": "2026-11-21T17:34:32.358858+00:00",
+                "rank": 1
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-21T18:00:35.648816+00:00",
+        "catalog_cycle_snapshot_rank": 37,
+        "catalog_rank_observed_at": "2026-11-21T17:34:32.358858+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "home",
+        "checked_at": "2026-11-21T18:04:18.547899+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-21182736",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 239000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 63.98,
+        "discount_percent": 60,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-21T18:04:43.182291+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-21",
+        "history_high_toman": 239000,
+        "history_low_toman": 239000,
+        "history_median_toman": 239000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-21",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/92b9d19e0fb6cf0638220d2f63a1fee421f862ff_1766998613.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_error": "RuntimeError",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_query": "قالب یخ کارین مدل 18 خانه الماس",
+        "market_status": "unavailable",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 79.83,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 63.98,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 84.0,
+          "generality_group": "home_living",
+          "live_demand": 99.53,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-21T18:04:53.811905+00:00",
+          "weakest_factor_score": 63.98
+        },
+        "original_price": 600000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-21182736",
+        "product_url": "https://www.digikala.com/product/dkp-21182736/",
+        "promo_score": 44,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.8,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 2,
+        "savings_toman": 361000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 1,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 79.83,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 63.98,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 84.0,
+          "generality_group": "home_living",
+          "live_demand": 99.53,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-21T18:04:53.811905+00:00",
+          "weakest_factor_score": 63.98
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1699,
+        "title": "قالب یخ کارین مدل 18 خانه الماس",
+        "variant_label": "نسکافه ای"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-21182736",
+      "product_plan_cycle_id": "2026-11-22T05:30:35.007261+00:00",
+      "scheduled_at": "2026-11-22T05:46:33.914327+00:00",
+      "selected_at": "2026-11-21T18:04:58.281965+00:00",
+      "sequence_number": 1699,
+      "status": "stale_selection",
+      "updated_at": "2026-11-22T05:47:36.739631+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -41582,180 +41586,6 @@
       "scheduled_at": "2026-11-22T08:15:33.914327+00:00",
       "selected_at": "2026-11-21T19:01:47.293688+00:00",
       "sequence_number": 1703,
-      "status": "queued"
-    },
-    "dkp-21182736": {
-      "attempt_count": 0,
-      "content_id": "dkp-21182736",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-22T05:46:33.914327+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21182736%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "6350",
-        "catalog_best_selling_category_name": "ظرف و قالب یخ",
-        "catalog_best_selling_rank": 1,
-        "catalog_best_selling_ranks_by_category": {
-          "6350": {
-            "category_name": "ظرف و قالب یخ",
-            "observed_at": "2026-11-21T17:34:32.358858+00:00",
-            "rank": 1,
-            "rank_history": [
-              {
-                "category_name": "ظرف و قالب یخ",
-                "observed_at": "2026-11-21T17:34:32.358858+00:00",
-                "rank": 1
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-21T18:00:35.648816+00:00",
-        "catalog_cycle_snapshot_rank": 37,
-        "catalog_rank_observed_at": "2026-11-21T17:34:32.358858+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "home",
-        "checked_at": "2026-11-21T18:04:18.547899+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-21182736",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 239000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 63.98,
-        "discount_percent": 60,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-21T18:04:43.182291+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-21",
-        "history_high_toman": 239000,
-        "history_low_toman": 239000,
-        "history_median_toman": 239000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-21",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/92b9d19e0fb6cf0638220d2f63a1fee421f862ff_1766998613.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "قالب یخ کارین مدل 18 خانه الماس",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 79.83,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 63.98,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 84.0,
-          "generality_group": "home_living",
-          "live_demand": 99.53,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T18:04:53.811905+00:00",
-          "weakest_factor_score": 63.98
-        },
-        "original_price": 600000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-21182736",
-        "product_url": "https://www.digikala.com/product/dkp-21182736/",
-        "promo_score": 44,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.8,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 2,
-        "savings_toman": 361000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 1,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 79.83,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 63.98,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 84.0,
-          "generality_group": "home_living",
-          "live_demand": 99.53,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T18:04:53.811905+00:00",
-          "weakest_factor_score": 63.98
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1699,
-        "title": "قالب یخ کارین مدل 18 خانه الماس",
-        "variant_label": "نسکافه ای"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-21182736",
-      "product_plan_cycle_id": "2026-11-22T05:30:35.007261+00:00",
-      "scheduled_at": "2026-11-22T05:46:33.914327+00:00",
-      "selected_at": "2026-11-21T18:04:58.281965+00:00",
-      "sequence_number": 1699,
       "status": "queued"
     },
     "dkp-21473432": {
@@ -113707,7 +113537,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.6,
+      "delivery_duration_seconds": 1.9,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -113770,8 +113600,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.6,
-      "delivery_started_at": "2026-11-22T05:36:36.815808+00:00",
+      "delivery_duration_seconds": 1.9,
+      "delivery_started_at": "2026-11-22T05:47:40.188391+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -239835,7 +239665,8 @@
       "aparat_video_record_id": "74312941",
       "aparat_video_url": "https://www.aparat.com/v/nsraqzj",
       "aparat_visibility": "public",
-      "bale_expiry_status": "unknown",
+      "bale_expired_deleted_at": "2026-11-22T05:32:42.370062+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 2379,
       "bale_posted_at": "2026-11-20T15:16:45.258865+00:00",
       "brand": "پنبینه",
@@ -239895,11 +239726,15 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
-      "expires_at": "",
-      "expiry_deadline_verified_directly": false,
+      "expires_at": "2026-11-22T05:32:39.754733+00:00",
+      "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
-      "expiry_source": "unavailable",
+      "expiry_last_direct_verification_at": "2026-11-22T05:32:39.754733+00:00",
+      "expiry_last_removal_check_at": "2026-11-22T05:32:39.754733+00:00",
+      "expiry_last_removal_check_result": "confirmed",
+      "expiry_reason": "price_mismatch",
+      "expiry_source": "live_product_stock_or_price",
       "expiry_status": "unknown",
       "filo_last_error": "",
       "filo_review_required": false,
@@ -239914,6 +239749,8 @@
       "history_days": 2,
       "history_status": "pending_history",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/da725e875beff495cf4bdfa5563ca7a752248f0c_1719814854.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "last_seen_current_price": 4841000,
+      "last_seen_in_stock": true,
       "market_price_advantage_pct": null,
       "market_price_checked_at": "",
       "market_reference_kind": "",
@@ -239924,6 +239761,17 @@
       "posted_current_price": 1719000,
       "posted_discount_percent": 64,
       "posted_original_price": 4841000,
+      "price_audit_invalidated_at": "2026-11-22T05:32:39.754733+00:00",
+      "price_audit_last_checked_at": "2026-11-22T05:32:39.754733+00:00",
+      "price_audit_live_price": 4841000,
+      "price_audit_mismatch_fields": [
+        "current_price"
+      ],
+      "price_audit_next_check_at": "2026-11-22T05:37:39.754733+00:00",
+      "price_audit_posted_original_price": 4841000,
+      "price_audit_posted_price": 1719000,
+      "price_audit_reason": "price_mismatch",
+      "price_audit_status": "invalidated",
       "product_url": "https://www.digikala.com/product/dkp-15951525/",
       "promo_score": 51,
       "publication_category": "fashion",
@@ -363666,6 +363514,13 @@
       "reason": "selected_price_stale_selected=979000_live=980000",
       "rejected_at": "2026-11-21T22:54:49.742827+00:00",
       "retry_after": "2026-11-21T23:14:49.742827+00:00"
+    },
+    "dkp-21182736": {
+      "current_price": 239000,
+      "original_price": 600000,
+      "reason": "selected_price_stale_selected=239000_live=239900",
+      "rejected_at": "2026-11-22T05:47:36.739631+00:00",
+      "retry_after": "2026-11-22T06:07:36.739631+00:00"
     },
     "dkp-21250205": {
       "current_price": 94900000,
