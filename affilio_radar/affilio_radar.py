@@ -154,7 +154,13 @@ MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2
 MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", str(DEFAULT_DAILY_CHANNEL_POST_LIMIT)))))
 # All video destinations are event-driven; platform quotas and eligibility checks still apply.
 # Zero is retained for legacy imports and workflow environment compatibility.
-YOUTUBE_UPLOAD_INTERVAL_HOURS = 0
+# One shared YouTube upload slot across product and editorial videos. The 8h15m
+# minimum creates an even cadence and caps this automation at three uploads in
+# any rolling 24-hour window. YouTube's channel-level cap remains account-specific.
+YOUTUBE_UPLOAD_INTERVAL_HOURS = max(
+    8.25, min(24.0, float(os.getenv("AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS", "8.25")))
+)
+YOUTUBE_UPLOAD_INTERVAL_SECONDS = int(round(YOUTUBE_UPLOAD_INTERVAL_HOURS * 3600))
 APARAT_UPLOAD_INTERVAL_HOURS = 0
 FILO_UPLOAD_INTERVAL_HOURS = 0.0
 FILO_UPLOAD_INTERVAL_POLICY_VERSION = 3
@@ -5196,7 +5202,8 @@ def build_video_upload_dispatch_state(state: dict, now: datetime | None = None) 
         current = current.replace(tzinfo=timezone.utc)
     current = current.astimezone(timezone.utc)
     if isinstance(state, dict):
-        # Delete legacy interval state before projecting the age-free FIFO to Cloudflare.
+        # Persist the global YouTube slot into the compact dispatcher sidecar.
+        _youtube_next_upload_slot_at(state, now=current)
         _initialize_filo_upload_slot(state)
     last_channel_at = (
         _parse_utc_datetime(state.get("last_channel_published_at"))
@@ -10295,6 +10302,54 @@ def _next_youtube_daily_upload_retry_at(now: datetime | None = None) -> datetime
     return current.astimezone(timezone.utc) + timedelta(hours=24, minutes=15)
 
 
+def _youtube_next_upload_slot_at(
+    state: dict, now: datetime | None = None
+) -> datetime | None:
+    """Return the next global YouTube upload slot from persisted success/unknown receipts."""
+    if not isinstance(state, dict):
+        return None
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    current = current.astimezone(timezone.utc)
+
+    activity_times = [
+        _parse_utc_datetime(state.get("youtube_last_upload_success_at")),
+        _parse_utc_datetime(state.get("youtube_last_upload_outcome_unknown_at")),
+    ]
+    published = state.get("published")
+    if isinstance(published, dict):
+        for record in published.values():
+            if not isinstance(record, dict):
+                continue
+            uploaded_at = _parse_utc_datetime(record.get("youtube_uploaded_at"))
+            if uploaded_at is not None:
+                activity_times.append(uploaded_at)
+            if str(record.get("youtube_upload_status") or "") == "upload_result_unknown":
+                unknown_at = _parse_utc_datetime(record.get("youtube_upload_started_at"))
+                if unknown_at is not None:
+                    activity_times.append(unknown_at)
+
+    latest_activity = max(
+        (stamp for stamp in activity_times if stamp is not None),
+        default=None,
+    )
+    stored_slot = _parse_utc_datetime(state.get("youtube_next_upload_at"))
+    calculated_slot = (
+        latest_activity + timedelta(seconds=YOUTUBE_UPLOAD_INTERVAL_SECONDS)
+        if latest_activity is not None else None
+    )
+    candidates = [stamp for stamp in (stored_slot, calculated_slot) if stamp is not None]
+    next_slot = max(candidates) if candidates else None
+
+    if next_slot is not None and next_slot > current:
+        state["youtube_next_upload_at"] = next_slot.isoformat()
+        return next_slot
+
+    state.pop("youtube_next_upload_at", None)
+    return None
+
+
 def _initialize_aparat_upload_slot(state: dict) -> datetime | None:
     """Remove legacy Aparat pacing state; publication is event-driven."""
     state.pop("aparat_next_upload_at", None)
@@ -10648,14 +10703,21 @@ def process_pending_short_video(
                 queued_record.pop("youtube_next_attempt_at", None)
                 state_changed = True
 
-    # Delete old per-platform pacing fields. No artificial delay is applied between
-    # uploads; only YouTube's actual platform quota response can pause YouTube itself.
-    for legacy_slot in ("youtube_next_upload_at", "aparat_next_upload_at", "filo_next_upload_at"):
+    # Aparat and Filo remain event-driven; YouTube now retains its independent
+    # global upload slot instead of deleting it on every dispatcher run.
+    for legacy_slot in ("aparat_next_upload_at", "filo_next_upload_at"):
         if state.pop(legacy_slot, None) is not None:
             state_changed = True
 
+    youtube_next_upload_at = _youtube_next_upload_slot_at(state, now=current)
     youtube_pause_active = bool(youtube_pause_until and current < youtube_pause_until)
-    youtube_upload_due = youtube_ready and not youtube_pause_active
+    youtube_slot_active = bool(youtube_next_upload_at and current < youtube_next_upload_at)
+    youtube_upload_due = youtube_ready and not youtube_pause_active and not youtube_slot_active
+    if youtube_slot_active:
+        print(
+            f"YOUTUBE_UPLOAD_SLOT_WAIT until={youtube_next_upload_at.isoformat()} "
+            f"interval_hours={YOUTUBE_UPLOAD_INTERVAL_HOURS:g} max_per_24h=3"
+        )
     aparat_upload_due = bool(aparat_ready)
     filo_upload_due = bool(filo_ready)
     if youtube_pause_active:
@@ -11456,7 +11518,9 @@ def process_pending_short_video(
             uploaded_at = datetime.now(timezone.utc)
             record["youtube_uploaded_at"] = uploaded_at.isoformat()
             state["youtube_last_upload_success_at"] = uploaded_at.isoformat()
-            state.pop("youtube_next_upload_at", None)
+            state["youtube_next_upload_at"] = (
+                uploaded_at + timedelta(seconds=YOUTUBE_UPLOAD_INTERVAL_SECONDS)
+            ).isoformat()
             record["youtube_description_version"] = YOUTUBE_DESCRIPTION_VERSION
             record["youtube_video_renderer_version"] = PERSIAN_TEXT_RENDERER_VERSION
             record["youtube_visual_repair_completed_at"] = datetime.now(timezone.utc).isoformat() if record.get("youtube_previous_video_id") else record.get("youtube_visual_repair_completed_at", "")
@@ -11474,7 +11538,9 @@ def process_pending_short_video(
                 record["youtube_last_error"] = type(exc).__name__
                 unknown_at = datetime.now(timezone.utc)
                 state["youtube_last_upload_outcome_unknown_at"] = unknown_at.isoformat()
-                state.pop("youtube_next_upload_at", None)
+                state["youtube_next_upload_at"] = (
+                    unknown_at + timedelta(seconds=YOUTUBE_UPLOAD_INTERVAL_SECONDS)
+                ).isoformat()
                 print(
                     f"YOUTUBE_UPLOAD_RESULT_UNKNOWN id={pid} error={type(exc).__name__}; "
                     "no automatic duplicate retry"
@@ -11505,6 +11571,7 @@ def process_pending_short_video(
                 if daily_upload_limit:
                     next_attempt = _next_youtube_daily_upload_retry_at(failure_time)
                     state["youtube_uploads_paused_until"] = next_attempt.isoformat()
+                    state["youtube_next_upload_at"] = next_attempt.isoformat()
                     state["youtube_upload_pause_reason"] = "daily_upload_limit"
                     state["youtube_upload_pause_diagnostic_migrated"] = True
                     youtube_pause_until = next_attempt
@@ -11529,6 +11596,9 @@ def process_pending_short_video(
                     record["youtube_skip_reason"] = "youtube_http_429_rate_limited"
                     record["youtube_next_attempt_at"] = (
                         failure_time + timedelta(minutes=15)
+                    ).isoformat()
+                    state["youtube_next_upload_at"] = (
+                        failure_time + timedelta(hours=1)
                     ).isoformat()
                 elif attempts >= MAX_VIDEO_UPLOAD_ATTEMPTS:
                     record["youtube_upload_status"] = "skipped_after_retries"
