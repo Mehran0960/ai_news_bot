@@ -11595,21 +11595,23 @@ def process_pending_short_video(
                             queued_record["youtube_skip_reason"] = "youtube_daily_quota_pause"
                             queued_record["youtube_next_attempt_at"] = next_attempt.isoformat()
                 elif http_status == 429:
+                    next_attempt = failure_time + timedelta(seconds=YOUTUBE_UPLOAD_INTERVAL_SECONDS)
                     record["youtube_upload_status"] = "retry"
                     record["youtube_skip_reason"] = "youtube_http_429_rate_limited"
-                    record["youtube_next_attempt_at"] = (
-                        failure_time + timedelta(minutes=15)
-                    ).isoformat()
-                    state["youtube_next_upload_at"] = (
-                        failure_time + timedelta(hours=1)
-                    ).isoformat()
+                    record["youtube_next_attempt_at"] = next_attempt.isoformat()
+                    state["youtube_next_upload_at"] = next_attempt.isoformat()
                 elif attempts >= MAX_VIDEO_UPLOAD_ATTEMPTS:
                     record["youtube_upload_status"] = "skipped_after_retries"
                     record["youtube_skip_reason"] = "retry_budget_exhausted"
                     record.pop("youtube_next_attempt_at", None)
+                    state["youtube_next_upload_at"] = (
+                        failure_time + timedelta(seconds=YOUTUBE_UPLOAD_INTERVAL_SECONDS)
+                    ).isoformat()
                 else:
+                    next_attempt = failure_time + timedelta(seconds=YOUTUBE_UPLOAD_INTERVAL_SECONDS)
                     record["youtube_upload_status"] = "retry"
-                    record["youtube_next_attempt_at"] = failure_time.isoformat()
+                    record["youtube_next_attempt_at"] = next_attempt.isoformat()
+                    state["youtube_next_upload_at"] = next_attempt.isoformat()
                 print(
                     f"YOUTUBE_UPLOAD_FAILED id={pid} error={type(exc).__name__} "
                     f"http_status={http_status or 'unknown'} detail={error_detail!r} "
