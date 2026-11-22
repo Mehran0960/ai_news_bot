@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-22T04:12:55.488567+00:00",
-  "aparat_last_upload_success_at": "2026-11-22T04:12:59.902336+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-22T05:07:44.395787+00:00",
+  "aparat_last_upload_success_at": "2026-11-22T05:07:48.024343+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-22T05:02:39.337032+00:00",
@@ -230368,6 +230368,7 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
+      "expired_deleted_at": "2026-11-22T05:02:48.937575+00:00",
       "expires_at": "2026-11-22T04:57:33.837371+00:00",
       "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
@@ -230377,7 +230378,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "already_absent",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-22T00:30:00.592077+00:00",
@@ -255693,7 +255694,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-19301122": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-22T05:07:44.395787+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-22T05:07:48.024343+00:00",
+      "aparat_video_hash": "yakiuh4",
+      "aparat_video_record_id": "74334958",
+      "aparat_video_url": "https://www.aparat.com/v/yakiuh4",
+      "aparat_visibility": "public",
       "bale_message_id": 2447,
       "bale_posted_at": "2026-11-22T05:06:29.340321+00:00",
       "brand": "",
@@ -255817,8 +255824,17 @@
       "telegram_posted_at": "2026-11-22T05:06:28.630567+00:00",
       "title": "براش آرایشی مدل سیلیکونی 840",
       "ts": 1795323982.007711,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-19301122.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-19301122.mp4"
+      },
+      "video_generated_at": "2026-11-22T05:07:37.408869+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-23T00:26:15.015053+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-19304930": {
       "aparat_expiry_attempts": 49,
