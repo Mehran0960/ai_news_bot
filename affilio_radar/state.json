@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-22T15:48:54.280497+00:00",
-  "aparat_last_upload_success_at": "2026-11-22T15:48:58.592156+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-22T17:06:50.348399+00:00",
+  "aparat_last_upload_success_at": "2026-11-22T17:06:54.618097+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-22T17:02:41.620693+00:00",
@@ -287373,7 +287373,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-23028580": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-22T17:06:50.348399+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-22T17:06:54.618097+00:00",
+      "aparat_video_hash": "duatz81",
+      "aparat_video_record_id": "74344868",
+      "aparat_video_url": "https://www.aparat.com/v/duatz81",
+      "aparat_visibility": "public",
       "bale_message_id": 2466,
       "bale_posted_at": "2026-11-22T17:05:21.751271+00:00",
       "brand": "یوکی",
@@ -287497,8 +287503,17 @@
       "telegram_posted_at": "2026-11-22T17:05:20.954954+00:00",
       "title": "دوربین مداربسته تحت شبکه باتری دار یوکی مدل S320 با رزولوشن 2.5K، اتصال Wi-Fi، با زاویه دید 150 درجه ای، تشخیص انسان و حیوان خانگی",
       "ts": 1795367113.732763,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-23028580.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-23028580.mp4"
+      },
+      "video_generated_at": "2026-11-22T17:06:42.656803+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-23T00:26:15.015053+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-23030047": {
       "aparat_skip_reason": "selection_outside_freshness_window",
