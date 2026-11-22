@@ -10983,6 +10983,10 @@ def process_pending_short_video(
                 record["youtube_upload_status"] = "upload_result_unknown"
                 record["youtube_review_required"] = True
                 record["youtube_last_error"] = "runner_interrupted_during_upload"
+                state["youtube_last_upload_outcome_unknown_at"] = started.isoformat()
+                state["youtube_next_upload_at"] = (
+                    started + timedelta(seconds=YOUTUBE_UPLOAD_INTERVAL_SECONDS)
+                ).isoformat()
                 upload_status = "upload_result_unknown"
                 state_changed = True
             else:
