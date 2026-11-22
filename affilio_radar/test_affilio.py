@@ -1811,7 +1811,8 @@ class AffilioRadarTests(unittest.TestCase):
             compact["next_editorial_planning_at"],
             "2026-11-05T13:30:00+00:00",
         )
-        self.assertEqual(compact["youtube_next_upload_at"], state["youtube_next_upload_at"])
+        self.assertIsNone(compact["youtube_next_upload_at"])
+        self.assertNotIn("youtube_next_upload_at", state)
         self.assertEqual(compact["aparat_next_upload_at"], state["aparat_next_upload_at"])
         self.assertIn("dkp-video-ready", compact["published"])
         self.assertNotIn("dkp-not-delivered", compact["published"])
