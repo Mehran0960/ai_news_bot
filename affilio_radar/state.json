@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-22T23:17:49.215719+00:00",
-  "aparat_last_upload_success_at": "2026-11-22T23:17:53.523343+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-22T23:59:51.284472+00:00",
+  "aparat_last_upload_success_at": "2026-11-22T23:59:54.192065+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-22T23:39:41.844883+00:00",
@@ -245451,7 +245451,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-2188656": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-22T23:59:51.284472+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-22T23:59:54.192065+00:00",
+      "aparat_video_hash": "irik2mx",
+      "aparat_video_record_id": "74348498",
+      "aparat_video_url": "https://www.aparat.com/v/irik2mx",
+      "aparat_visibility": "public",
       "bale_message_id": 2479,
       "bale_posted_at": "2026-11-22T23:58:50.884179+00:00",
       "brand": "",
@@ -245575,8 +245581,17 @@
       "telegram_posted_at": "2026-11-22T23:58:50.410849+00:00",
       "title": "ترازو آشپزخانه مدل PS-O11",
       "ts": 1795391923.682766,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-2188656.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-2188656.mp4"
+      },
+      "video_generated_at": "2026-11-22T23:59:43.626652+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-23T00:26:15.015053+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-21887319": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
