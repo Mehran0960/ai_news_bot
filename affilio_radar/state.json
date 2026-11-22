@@ -233682,7 +233682,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-23T00:26:15.015053+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-12325607": {
       "aparat_upload_started_at": "2026-11-18T23:25:47.898641+00:00",
@@ -239919,7 +239921,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-23T00:26:15.015053+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-13904998": {
       "aparat_upload_started_at": "2026-11-20T08:01:39.286826+00:00",
@@ -273277,7 +273281,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-23T00:26:15.015053+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-20605095": {
       "aparat_upload_started_at": "2026-11-19T04:30:39.075686+00:00",
@@ -301805,7 +301811,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "delete_unavailable",
       "filo_last_error": "filo_publish_not_accepted",
       "filo_review_required": true,
       "filo_upload_started_at": "2026-11-19T12:42:21.766178+00:00",
@@ -301883,6 +301889,7 @@
       },
       "selection_review_growth_evidence": "none",
       "sequence_number": 1582,
+      "telegram_expiry_last_delete_error": "RuntimeError: Bad Request: message can't be deleted",
       "telegram_message_id": 1735,
       "telegram_posted_at": "2026-11-19T12:40:39.087661+00:00",
       "title": "قلم لمسی یونیک مدل Universal با قابلیت شارژ سازگار با موبایل، تبلت و لپ تاپ به همراه دو عدد سری اضافه",
@@ -328149,13 +328156,18 @@
       "video_file_name": "offerchin-dkp-23273790.mp4",
       "video_file_names": {
         "aparat": "offerchin-dkp-23273790.mp4",
-        "filo": "offerchin-dkp-23273790.mp4"
+        "filo": "offerchin-dkp-23273790.mp4",
+        "youtube": "offerchin-dkp-23273790.mp4"
       },
-      "video_generated_at": "2026-11-21T17:50:44.098719+00:00",
+      "video_generated_at": "2026-11-22T00:11:05.597523+00:00",
       "video_generation_status": "generated",
       "video_style_version": 7,
-      "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_last_error": "HTTPError: YouTube resumable upload initialization HTTP 400 reason=uploadLimitExceeded message=The user has exceeded the number of videos they may upload.",
+      "youtube_next_attempt_at": "2026-11-23T00:26:15.015053+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_attempts": 1,
+      "youtube_upload_started_at": "2026-11-22T00:11:13.302117+00:00",
+      "youtube_upload_status": "retry"
     },
     "dkp-2441353": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -338719,7 +338731,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-23T00:26:15.015053+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-4998206": {
       "aparat_upload_started_at": "2026-11-17T19:59:41.673547+00:00",
@@ -343950,9 +343964,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_next_attempt_at": "2026-11-21T23:36:10.301962+00:00",
-      "youtube_skip_reason": "credentials_not_configured",
-      "youtube_upload_status": "skipped_unavailable"
+      "youtube_skip_reason": "selection_outside_freshness_window",
+      "youtube_skip_recorded_at": "2026-11-22T00:11:03.354417+00:00",
+      "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-6705171": {
       "aparat_upload_started_at": "2026-11-17T20:21:41.026084+00:00",
@@ -354863,7 +354877,9 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_next_attempt_at": "2026-11-23T00:26:15.015053+00:00",
+      "youtube_skip_reason": "youtube_daily_quota_pause",
+      "youtube_upload_status": "retry"
     },
     "dkp-931275": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -372113,5 +372129,7 @@
   "snappshop_consecutive_failures": 24,
   "snappshop_retry_after": "2026-11-22T20:50:00.185072+00:00",
   "youtube_last_upload_success_at": "2026-11-22T00:05:21.879572+00:00",
-  "youtube_upload_pause_diagnostic_migrated": true
+  "youtube_upload_pause_diagnostic_migrated": true,
+  "youtube_upload_pause_reason": "daily_upload_limit",
+  "youtube_uploads_paused_until": "2026-11-23T00:26:15.015053+00:00"
 }
