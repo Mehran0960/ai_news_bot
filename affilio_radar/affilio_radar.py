@@ -152,8 +152,8 @@ SNAPPSHOP_QUERIES_PER_SCAN = max(1, min(8, int(os.getenv("AFFILIO_SNAPPSHOP_QUER
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2"))))
 # Independent Telegram/Bale volume guard, counted by Iran's calendar day; never reserve or gate channel posts on YouTube API quota.
 MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", str(DEFAULT_DAILY_CHANNEL_POST_LIMIT)))))
-# All video destinations are event-driven; platform quotas and eligibility checks still apply.
-# Zero is retained for legacy imports and workflow environment compatibility.
+# YouTube uses one global 8h15m slot (max three automated uploads per rolling 24h).
+# Aparat and Filo remain event-driven and are not held by YouTube's quota or cadence.
 # One shared YouTube upload slot across product and editorial videos. The 8h15m
 # minimum creates an even cadence and caps this automation at three uploads in
 # any rolling 24-hour window. YouTube's channel-level cap remains account-specific.
@@ -10709,7 +10709,10 @@ def process_pending_short_video(
         if state.pop(legacy_slot, None) is not None:
             state_changed = True
 
+    previous_youtube_slot = state.get("youtube_next_upload_at")
     youtube_next_upload_at = _youtube_next_upload_slot_at(state, now=current)
+    if state.get("youtube_next_upload_at") != previous_youtube_slot:
+        state_changed = True
     youtube_pause_active = bool(youtube_pause_until and current < youtube_pause_until)
     youtube_slot_active = bool(youtube_next_upload_at and current < youtube_next_upload_at)
     youtube_upload_due = youtube_ready and not youtube_pause_active and not youtube_slot_active
