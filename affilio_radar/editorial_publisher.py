@@ -1406,7 +1406,7 @@ def _handle_video_destination(
         detail = _safe_error(exc).lower()
         http_status = getattr(getattr(exc, "response", None), "status_code", None)
         if destination == "youtube" and http_status == 429:
-            retry_at = _now() + timedelta(hours=1)
+            retry_at = _now() + timedelta(seconds=radar.YOUTUBE_UPLOAD_INTERVAL_SECONDS)
             target["status"] = "retry"
             target["next_attempt_at"] = retry_at.isoformat()
             target["last_error"] = "youtube_http_429_rate_limited"
@@ -1424,7 +1424,13 @@ def _handle_video_destination(
             state["youtube_upload_pause_reason"] = "daily_upload_limit"
             target["updated_at"] = _now().isoformat()
         else:
-            _record_failure(entry, destination, exc, _now())
+            failed_at = _now()
+            _record_failure(entry, destination, exc, failed_at)
+            if destination == "youtube":
+                retry_at = failed_at + timedelta(seconds=radar.YOUTUBE_UPLOAD_INTERVAL_SECONDS)
+                state["youtube_next_upload_at"] = retry_at.isoformat()
+                if target.get("status") == "failed":
+                    target["next_attempt_at"] = retry_at.isoformat()
         _save(state)
         print(
             f"EDITORIAL_VIDEO_FAILED content_id={entry['content_id']} "
