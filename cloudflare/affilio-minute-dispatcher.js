@@ -646,6 +646,8 @@ export function hasDueVideoRecord(state, platform, now = Date.now()) {
   if (platform === "youtube") {
     const pauseUntil = dateValue(state && state.youtube_uploads_paused_until);
     if (pauseUntil !== null && pauseUntil > now) return false;
+    const nextUploadAt = dateValue(state && state.youtube_next_upload_at);
+    if (nextUploadAt !== null && nextUploadAt > now) return false;
   }
   const published = state && state.published && typeof state.published === "object"
     ? state.published : {};
