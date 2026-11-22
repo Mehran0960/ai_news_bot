@@ -152,11 +152,9 @@ SNAPPSHOP_QUERIES_PER_SCAN = max(1, min(8, int(os.getenv("AFFILIO_SNAPPSHOP_QUER
 MAX_POSTS_PER_RUN = max(1, min(10, int(os.getenv("AFFILIO_MAX_POSTS_PER_RUN", "2"))))
 # Independent Telegram/Bale volume guard, counted by Iran's calendar day; never reserve or gate channel posts on YouTube API quota.
 MAX_DAILY_CHANNEL_POSTS = max(1, min(90, int(os.getenv("AFFILIO_MAX_DAILY_CHANNEL_POSTS", str(DEFAULT_DAILY_CHANNEL_POST_LIMIT)))))
-# YouTube uses one global 8h15m slot (max three automated uploads per rolling 24h).
-# Aparat and Filo remain event-driven and are not held by YouTube's quota or cadence.
-# One shared YouTube upload slot across product and editorial videos. The 8h15m
-# minimum creates an even cadence and caps this automation at three uploads in
-# any rolling 24-hour window. YouTube's channel-level cap remains account-specific.
+# One shared YouTube upload slot for product and editorial videos: at least 8h15m,
+# limiting this automation to three attempts in any rolling 24-hour window.
+# Aparat and Filo keep independent event-driven queues; channel caps remain account-specific.
 YOUTUBE_UPLOAD_INTERVAL_HOURS = max(
     8.25, min(24.0, float(os.getenv("AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS", "8.25")))
 )
