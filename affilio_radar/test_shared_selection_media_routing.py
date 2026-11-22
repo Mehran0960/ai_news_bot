@@ -1,4 +1,5 @@
 import unittest
+import re
 from pathlib import Path
 from unittest.mock import patch
 from datetime import datetime, timedelta, timezone
@@ -167,6 +168,55 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
             "expiry_estimated": False,
         }
         self.assertTrue(radar._has_pending_video_destination(record, {"youtube"}, now=now))
+
+    def test_youtube_upload_workflows_share_global_lock_and_interval(self):
+        root = Path(__file__).resolve().parents[1]
+        workflow_paths = (
+            root / ".github" / "workflows" / "youtube-video-upload.yml",
+            root / ".github" / "workflows" / "offerchin-video-publisher.yml",
+        )
+        groups = []
+        for workflow_path in workflow_paths:
+            source = workflow_path.read_text(encoding="utf-8")
+            match = re.search(r"(?m)^\s*group:\s*([^\s#]+)", source)
+            self.assertIsNotNone(match, workflow_path.name)
+            groups.append(match.group(1))
+            self.assertIn('AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "8.25"', source)
+        self.assertEqual(len(set(groups)), 1)
+        self.assertEqual(groups[0], "offerchin-youtube-global-upload")
+
+    def test_youtube_upload_interval_has_a_three_per_rolling_day_floor(self):
+        self.assertEqual(radar.YOUTUBE_UPLOAD_INTERVAL_HOURS, 8.25)
+        self.assertEqual(radar.YOUTUBE_UPLOAD_INTERVAL_SECONDS, 8 * 3600 + 15 * 60)
+
+    def test_youtube_global_upload_slot_enforces_even_rolling_24h_cadence(self):
+        now = datetime(2026, 11, 22, 12, 0, tzinfo=timezone.utc)
+        state = {"youtube_last_upload_success_at": now.isoformat()}
+        expected = now + timedelta(hours=8, minutes=15)
+
+        slot = radar._youtube_next_upload_slot_at(state, now=now)
+        self.assertEqual(slot, expected)
+        self.assertEqual(state["youtube_next_upload_at"], expected.isoformat())
+
+        # The next upload is blocked for the full 8h15m gap.
+        self.assertEqual(
+            radar._youtube_next_upload_slot_at(
+                state, now=now + timedelta(hours=8, minutes=14, seconds=59)
+            ),
+            expected,
+        )
+        # At the exact saved slot it becomes due; the expired slot is cleared.
+        self.assertIsNone(
+            radar._youtube_next_upload_slot_at(state, now=expected)
+        )
+        self.assertNotIn("youtube_next_upload_at", state)
+
+    def test_video_dispatch_projection_carries_youtube_global_slot(self):
+        now = datetime(2026, 11, 22, 12, 0, tzinfo=timezone.utc)
+        expected = now + timedelta(hours=8, minutes=15)
+        state = {"youtube_last_upload_success_at": now.isoformat()}
+        sidecar = radar.build_video_upload_dispatch_state(state, now=now)
+        self.assertEqual(sidecar["youtube_next_upload_at"], expected.isoformat())
 
     def test_youtube_daily_quota_skip_remains_pending_in_dispatch_projection(self):
         now = datetime(2026, 11, 17, 18, 0, tzinfo=timezone.utc)

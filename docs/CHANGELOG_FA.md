@@ -3392,3 +3392,19 @@ affilio_radar/editorial_publisher.py، affilio_radar/test_editorial_publisher.py
 **ریسک/بازگشت:** تغییر صرفاً مستنداتی است. هیچ workflow، زمان‌بندی یک‌دقیقه‌ای، Worker، Secret، صف انتشار یا state ledger دستکاری نشده است. در صورت اشکال متنی، با یک ورودی append-only جدید اصلاح شود؛ سابقهٔ قبلی بازنویسی یا حذف نشود.
 
 **وضعیت:** اصلاح handbook و changelog در PR ثبت شده است؛ تأیید نهایی Documentation Gate پس از اجرا بررسی خواهد شد.
+
+## ۲۰۲۶-۱۱-۲۲ — یکسان‌سازی فاصلهٔ آپلود یوتیوب در پنجرهٔ شناور ۲۴ساعته
+
+**هدف:** انتشار یکنواخت ویدئوهای محصول و تحریریه در یوتیوب و جلوگیری از برخورد اتوماسیون OfferChin با سقف روزانه؛ بدون ایجاد وقفه برای آپارات یا فیلو.
+
+**تغییر/اقدام:** فاصلهٔ سراسری یوتیوب به حداقل ۸ ساعت و ۱۵ دقیقه تنظیم شد تا اتوماسیون حداکثر سه تلاش آپلود در هر پنجرهٔ شناور ۲۴ساعته انجام دهد. ساعت واحد در state پایدار ذخیره و به sidecar کلادفلر منتقل می‌شود؛ dispatch زودهنگام مسدود می‌شود؛ آپلودهای محصول و تحریریه از همین ساعت مشترک استفاده می‌کنند؛ هر دو workflow آپلود یوتیوب و unified legacy به concurrency group مشترک منتقل شدند. خطای 429 نیز تلاش بعدی را دست‌کم به اندازهٔ فاصلهٔ مصوب عقب می‌اندازد و خطای سقف روزانه توقف ۲۴ ساعت و ۱۵ دقیقه‌ای ایجاد می‌کند. آپارات و فیلو مستقل باقی می‌مانند.
+
+**فایل‌ها/سامانه‌ها:** `affilio_radar/affilio_radar.py`، `affilio_radar/editorial_publisher.py`، `cloudflare/affilio-minute-dispatcher.js`، `cloudflare/affilio-minute-dispatcher.test.mjs`، `affilio_radar/test_shared_selection_media_routing.py`، `.github/workflows/youtube-video-upload.yml`، `.github/workflows/offerchin-video-publisher.yml`، `docs/YOUTUBE_UPLOAD_CADENCE_FA.md`، `README.md`.
+
+**آزمون و نتیجه:** آزمون‌های واحد Python و JavaScript برای مرز ۸:۱۵، انتقال زمان به sidecar، استقلال سایر رسانه‌ها و اشتراک قفل دو workflow اضافه شده‌اند؛ نتیجهٔ GitHub Actions پس از ایجاد PR ثبت می‌شود.
+
+**شواهد/شناسه:** شاخهٔ `fix/youtube-rolling-24h-cadence-2026-11-22`. PR و SHA نهایی پس از ایجاد و تأیید CI ثبت می‌شوند.
+
+**ریسک/بازگشت:** این سیاست حداکثر سه تلاش خودکار را در ۲۴ ساعت محدود می‌کند، اما آپلود دستی یا سامانهٔ دیگری که همان کانال را تغذیه کند در state پروژه ثبت نمی‌شود؛ سقف حساب/کانال با سهمیهٔ API متفاوت است و باید جداگانه کنترل شود. بازگشت فقط با revert کردن PR؛ state آپلود و شناسه‌های ویدئو نباید reset شوند.
+
+**وضعیت:** پیاده‌سازی روی branch انجام شده؛ بررسی PR و نتیجهٔ CI در انتظار.

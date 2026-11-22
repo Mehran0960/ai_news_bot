@@ -1811,7 +1811,8 @@ class AffilioRadarTests(unittest.TestCase):
             compact["next_editorial_planning_at"],
             "2026-11-05T13:30:00+00:00",
         )
-        self.assertEqual(compact["youtube_next_upload_at"], state["youtube_next_upload_at"])
+        self.assertIsNone(compact["youtube_next_upload_at"])
+        self.assertNotIn("youtube_next_upload_at", state)
         self.assertEqual(compact["aparat_next_upload_at"], state["aparat_next_upload_at"])
         self.assertIn("dkp-video-ready", compact["published"])
         self.assertNotIn("dkp-not-delivered", compact["published"])
@@ -6612,8 +6613,12 @@ class AffilioRadarTests(unittest.TestCase):
             self.assertEqual(record["youtube_video_id"], "yt_test_123")
             self.assertEqual(record["youtube_video_url"], "https://www.youtube.com/shorts/yt_test_123")
             uploaded_at = datetime.fromisoformat(record["youtube_uploaded_at"])
-            self.assertNotIn("youtube_next_upload_at", state)
-            self.assertEqual(YOUTUBE_UPLOAD_INTERVAL_HOURS, 0)
+            next_upload_at = datetime.fromisoformat(state["youtube_next_upload_at"])
+            self.assertEqual(YOUTUBE_UPLOAD_INTERVAL_HOURS, 8.25)
+            self.assertEqual(
+                next_upload_at,
+                uploaded_at + timedelta(hours=8, minutes=15),
+            )
             self.assertEqual(state["youtube_last_upload_success_at"], record["youtube_uploaded_at"])
             self.assertGreaterEqual(uploaded_at, now)
 
@@ -6916,7 +6921,7 @@ class AffilioRadarTests(unittest.TestCase):
         self.assertEqual(no_timer["video_generation_status"], "generated")
         self.assertEqual(verified_lower_demand["aparat_upload_status"], "pending")
 
-    def test_youtube_upload_waits_three_hours_after_previous_success_and_selects_late(self):
+    def test_youtube_upload_waits_8h15_after_previous_success_and_retries_when_due(self):
         now = datetime.now(timezone.utc)
         prior_uploaded_at = now - timedelta(hours=1)
         prior_id = "dkp-previous-youtube-success"
@@ -6936,7 +6941,7 @@ class AffilioRadarTests(unittest.TestCase):
             "title": "پیشنهاد بهتر برای اسلات بعدی",
             "product_url": f"https://www.digikala.com/product/{pending_id}/",
             "image_url": "https://dkstatics-public.digikala.com/digikala-products/sample.jpg",
-            "expires_at": (now + timedelta(hours=4)).isoformat(),
+            "expires_at": (now + timedelta(hours=20)).isoformat(),
             "expiry_source": "digikala_live_deals_feed",
             "expiry_deadline_verified_directly": True,
             "expiry_estimated": False,
@@ -6960,10 +6965,18 @@ class AffilioRadarTests(unittest.TestCase):
                 "video_id": "yt_now_123", "url": "https://www.youtube.com/shorts/yt_now_123"
             }) as upload,
         ):
-            self.assertTrue(process_pending_short_video(state, now=now, output_dir=output_dir))
+            # A recent success blocks YouTube, but must not be counted as a failure.
+            self.assertFalse(process_pending_short_video(state, now=now, output_dir=output_dir))
+            upload.assert_not_called()
+            self.assertEqual(pending["youtube_upload_status"], "pending")
+            next_slot = datetime.fromisoformat(state["youtube_next_upload_at"])
+            self.assertEqual(next_slot, prior_uploaded_at + timedelta(hours=8, minutes=15))
 
-        self.assertNotIn("youtube_next_upload_at", state)
-        self.assertEqual(YOUTUBE_UPLOAD_INTERVAL_HOURS, 0)
+            # The exact slot is eligible and the oldest pending product may now upload.
+            self.assertTrue(
+                process_pending_short_video(state, now=next_slot, output_dir=output_dir)
+            )
+
         render.assert_called_once()
         upload.assert_called_once()
         self.assertEqual(pending["youtube_upload_status"], "uploaded")

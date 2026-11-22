@@ -1287,6 +1287,29 @@ def _handle_video_destination(
     state: dict, entry: dict, destination: str, video_path: Path, now: datetime
 ) -> None:
     target = _target(entry, destination)
+    if destination == "youtube":
+        # Product and editorial videos share one global upload clock.
+        pause_at = _utc(state.get("youtube_uploads_paused_until"))
+        slot_at = radar._youtube_next_upload_slot_at(state, now=now)
+        wait_until = max(
+            (stamp for stamp in (pause_at, slot_at) if stamp is not None),
+            default=None,
+        )
+        if wait_until is not None and wait_until > now:
+            target["status"] = "retry"
+            target["next_attempt_at"] = wait_until.isoformat()
+            target["last_error"] = (
+                "youtube_daily_quota_pause"
+                if pause_at is not None and pause_at >= wait_until
+                else "youtube_upload_interval_wait"
+            )
+            target["updated_at"] = now.isoformat()
+            _save(state)
+            print(
+                f"EDITORIAL_YOUTUBE_SLOT_WAIT content_id={entry.get('content_id')} "
+                f"until={wait_until.isoformat()}"
+            )
+            return
     ready, unavailable_reason = _destination_ready(destination, state, now)
     if target.get("status") == "not_connected" and ready:
         target.update({"status": "pending"})
@@ -1303,6 +1326,12 @@ def _handle_video_destination(
         target["status"] = "manual_review"
         target["last_error"] = "interrupted_during_upload_outcome_unknown"
         target["updated_at"] = now.isoformat()
+        if destination == "youtube":
+            started_at = _utc(target.get("attempt_started_at")) or now
+            state["youtube_last_upload_outcome_unknown_at"] = started_at.isoformat()
+            state["youtube_next_upload_at"] = (
+                started_at + timedelta(seconds=radar.YOUTUBE_UPLOAD_INTERVAL_SECONDS)
+            ).isoformat()
         _save(state)
         return
     retry_at = _utc(target.get("next_attempt_at"))
@@ -1366,9 +1395,13 @@ def _handle_video_destination(
             receipt = {"message_id": result.get("video_code"), "url": result.get("public_url")}
         if not receipt.get("message_id"):
             raise RuntimeError("video_destination_receipt_missing")
-        _record_success(state, entry, destination, receipt, _now())
+        completed_at = _now()
+        _record_success(state, entry, destination, receipt, completed_at)
         if destination == "youtube":
-            state["youtube_last_upload_success_at"] = _now().isoformat()
+            state["youtube_last_upload_success_at"] = completed_at.isoformat()
+            state["youtube_next_upload_at"] = (
+                completed_at + timedelta(seconds=radar.YOUTUBE_UPLOAD_INTERVAL_SECONDS)
+            ).isoformat()
         elif destination == "aparat":
             state["aparat_last_upload_success_at"] = _now().isoformat()
         _save(state)
@@ -1377,7 +1410,15 @@ def _handle_video_destination(
         # The existing product pipeline treats a lost upload response as uncertain;
         # editorial uploads follow the same no-blind-duplicate rule.
         detail = _safe_error(exc).lower()
-        if destination == "youtube" and any(token in detail for token in (
+        http_status = getattr(getattr(exc, "response", None), "status_code", None)
+        if destination == "youtube" and http_status == 429:
+            retry_at = _now() + timedelta(seconds=radar.YOUTUBE_UPLOAD_INTERVAL_SECONDS)
+            target["status"] = "retry"
+            target["next_attempt_at"] = retry_at.isoformat()
+            target["last_error"] = "youtube_http_429_rate_limited"
+            state["youtube_next_upload_at"] = retry_at.isoformat()
+            target["updated_at"] = _now().isoformat()
+        elif destination == "youtube" and any(token in detail for token in (
             "uploadlimitexceeded", "video uploads per day", "daily video upload limit"
         )):
             retry_at = radar._next_youtube_daily_upload_retry_at(_now())
@@ -1385,10 +1426,17 @@ def _handle_video_destination(
             target["next_attempt_at"] = retry_at.isoformat()
             target["last_error"] = "youtube_daily_quota_exceeded"
             state["youtube_uploads_paused_until"] = retry_at.isoformat()
+            state["youtube_next_upload_at"] = retry_at.isoformat()
             state["youtube_upload_pause_reason"] = "daily_upload_limit"
             target["updated_at"] = _now().isoformat()
         else:
-            _record_failure(entry, destination, exc, _now())
+            failed_at = _now()
+            _record_failure(entry, destination, exc, failed_at)
+            if destination == "youtube":
+                retry_at = failed_at + timedelta(seconds=radar.YOUTUBE_UPLOAD_INTERVAL_SECONDS)
+                state["youtube_next_upload_at"] = retry_at.isoformat()
+                if target.get("status") == "failed":
+                    target["next_attempt_at"] = retry_at.isoformat()
         _save(state)
         print(
             f"EDITORIAL_VIDEO_FAILED content_id={entry['content_id']} "
