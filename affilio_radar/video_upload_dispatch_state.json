@@ -24,15 +24,15 @@
   "filo_login_verified_at": "2026-11-22T05:11:10.408570+00:00",
   "filo_next_upload_at": null,
   "filo_upload_interval_policy_version": 3,
-  "generated_at": "2026-11-22T05:47:42.440537+00:00",
-  "last_channel_published_at": "2026-11-22T05:06:33.914327+00:00",
-  "last_product_channel_published_at": "2026-11-22T05:06:33.914327+00:00",
-  "next_channel_content_due_at": "2026-11-22T06:26:33.914327+00:00",
+  "generated_at": "2026-11-22T06:03:57.067876+00:00",
+  "last_channel_published_at": "2026-11-22T06:03:54.675367+00:00",
+  "last_product_channel_published_at": "2026-11-22T06:03:54.675367+00:00",
+  "next_channel_content_due_at": "2026-11-22T06:38:54.675367+00:00",
   "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
-  "pending_product_queue_count": 14,
-  "product_publication_cadence_cycle_id": "2026-11-22T05:30:35.007261+00:00",
+  "pending_product_queue_count": 15,
+  "product_publication_cadence_cycle_id": "2026-11-22T05:58:27.565540+00:00",
   "product_publication_interval_seconds": 1860.0,
-  "product_publication_plan_cycle_id": "2026-11-22T05:30:35.007261+00:00",
+  "product_publication_plan_cycle_id": "2026-11-22T05:58:27.565540+00:00",
   "published": {
     "dkp-12303009": {
       "aparat_upload_status": "uploaded",
@@ -123,6 +123,30 @@
       "video_generation_status": "generated",
       "youtube_next_attempt_at": "2026-11-23T00:26:15.015053+00:00",
       "youtube_upload_status": "retry"
+    },
+    "dkp-23098849": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2449,
+      "content_id": "dkp-23098849",
+      "content_type": "product",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "distribution_queue_id": "dkp-23098849:2026-11-21T18:04:58.281965+00:00",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "sequence_number": 1700,
+      "telegram_message_id": 1816,
+      "ts": 1795327423.629743,
+      "video_dispatch_eligible": true,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
     },
     "dkp-23273790": {
       "aparat_upload_status": "uploaded",
