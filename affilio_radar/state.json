@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-22T05:07:44.395787+00:00",
-  "aparat_last_upload_success_at": "2026-11-22T05:07:48.024343+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-22T06:04:46.496877+00:00",
+  "aparat_last_upload_success_at": "2026-11-22T06:04:50.292657+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-22T06:00:42.107046+00:00",
@@ -319103,7 +319103,13 @@
       "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-23098849": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-22T06:04:46.496877+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-22T06:04:50.292657+00:00",
+      "aparat_video_hash": "nqyk984",
+      "aparat_video_record_id": "74335511",
+      "aparat_video_url": "https://www.aparat.com/v/nqyk984",
+      "aparat_visibility": "public",
       "bale_message_id": 2449,
       "bale_posted_at": "2026-11-22T06:03:49.857445+00:00",
       "brand": "",
@@ -319227,8 +319233,17 @@
       "telegram_posted_at": "2026-11-22T06:03:49.385563+00:00",
       "title": "کراپ کت رسمی زنانه چهارخانه مزونی مدل 1233",
       "ts": 1795327423.629743,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-23098849.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-23098849.mp4"
+      },
+      "video_generated_at": "2026-11-22T06:04:39.655409+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-23T00:26:15.015053+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-23111808": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -331587,7 +331602,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "delete_unavailable",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-17T18:41:14.809287+00:00",
@@ -331663,6 +331678,7 @@
       },
       "selection_review_growth_evidence": "none",
       "sequence_number": 1283,
+      "telegram_expiry_last_delete_error": "RuntimeError: Bad Request: message can't be deleted",
       "telegram_message_id": 1532,
       "title": "چاقو آشپزخانه مدل CHR001 بسته 4 عددی",
       "ts": 1794824134.322089,
