@@ -1326,6 +1326,12 @@ def _handle_video_destination(
         target["status"] = "manual_review"
         target["last_error"] = "interrupted_during_upload_outcome_unknown"
         target["updated_at"] = now.isoformat()
+        if destination == "youtube":
+            started_at = _utc(target.get("attempt_started_at")) or now
+            state["youtube_last_upload_outcome_unknown_at"] = started_at.isoformat()
+            state["youtube_next_upload_at"] = (
+                started_at + timedelta(seconds=radar.YOUTUBE_UPLOAD_INTERVAL_SECONDS)
+            ).isoformat()
         _save(state)
         return
     retry_at = _utc(target.get("next_attempt_at"))
