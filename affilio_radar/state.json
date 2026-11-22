@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-22T15:05:47.404639+00:00",
-  "aparat_last_upload_success_at": "2026-11-22T15:05:53.619382+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-22T15:48:54.280497+00:00",
+  "aparat_last_upload_success_at": "2026-11-22T15:48:58.592156+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-22T15:41:46.121130+00:00",
@@ -239430,7 +239430,14 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-20897579": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-22T15:48:54.280497+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-22T15:48:58.592156+00:00",
+      "aparat_video_hash": "dexx827",
+      "aparat_video_record_id": "74343731",
+      "aparat_video_url": "https://www.aparat.com/v/dexx827",
+      "aparat_visibility": "public",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2464,
       "bale_posted_at": "2026-11-22T15:46:52.083778+00:00",
       "brand": "",
@@ -239495,6 +239502,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_upload_status": "pending",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-22T08:51:02.470065+00:00",
@@ -239554,8 +239562,17 @@
       "telegram_posted_at": "2026-11-22T15:46:50.930689+00:00",
       "title": "نگهدارنده گوشی موبایل مدل SX-P05",
       "ts": 1795362404.203798,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-20897579.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-20897579.mp4"
+      },
+      "video_generated_at": "2026-11-22T15:48:47.647041+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-23T00:26:15.015053+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-20901664": {
       "aparat_skip_reason": "selection_outside_freshness_window",
