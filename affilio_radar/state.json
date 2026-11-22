@@ -239754,13 +239754,21 @@
       "video_file_name": "offerchin-dkp-13880901.mp4",
       "video_file_names": {
         "aparat": "offerchin-dkp-13880901.mp4",
-        "filo": "offerchin-dkp-13880901.mp4"
+        "filo": "offerchin-dkp-13880901.mp4",
+        "youtube": "offerchin-dkp-13880901.mp4"
       },
-      "video_generated_at": "2026-11-21T16:05:27.148071+00:00",
+      "video_generated_at": "2026-11-22T00:05:14.665576+00:00",
       "video_generation_status": "generated",
       "video_style_version": 7,
-      "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-22T00:05:20.173672+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-22T00:05:21.879572+00:00",
+      "youtube_video_id": "o8RW0EWvqnM",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/o8RW0EWvqnM",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-13902878": {
       "aparat_upload_started_at": "2026-11-21T20:37:46.236710+00:00",
@@ -249910,13 +249918,21 @@
       "video_file_name": "offerchin-dkp-16045969.mp4",
       "video_file_names": {
         "aparat": "offerchin-dkp-16045969.mp4",
-        "filo": "offerchin-dkp-16045969.mp4"
+        "filo": "offerchin-dkp-16045969.mp4",
+        "youtube": "offerchin-dkp-16045969.mp4"
       },
-      "video_generated_at": "2026-11-21T14:11:22.290755+00:00",
+      "video_generated_at": "2026-11-22T00:05:05.358208+00:00",
       "video_generation_status": "generated",
       "video_style_version": 7,
-      "youtube_last_error": "",
-      "youtube_upload_status": "pending"
+      "youtube_description_version": 5,
+      "youtube_review_required": false,
+      "youtube_upload_started_at": "2026-11-22T00:05:12.193380+00:00",
+      "youtube_upload_status": "uploaded",
+      "youtube_uploaded_at": "2026-11-22T00:05:14.140241+00:00",
+      "youtube_video_id": "LJh_fl-McAo",
+      "youtube_video_renderer_version": 2,
+      "youtube_video_url": "https://www.youtube.com/shorts/LJh_fl-McAo",
+      "youtube_visual_repair_completed_at": ""
     },
     "dkp-16190193": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -301719,7 +301735,8 @@
       "aparat_video_record_id": "74295780",
       "aparat_video_url": "https://www.aparat.com/v/dhicf6a",
       "aparat_visibility": "public",
-      "bale_expiry_status": "unknown",
+      "bale_expired_deleted_at": "2026-11-21T23:57:34.568845+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 2334,
       "bale_posted_at": "2026-11-19T12:40:39.649097+00:00",
       "brand": "یونیک",
@@ -301779,11 +301796,15 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
-      "expires_at": "",
-      "expiry_deadline_verified_directly": false,
+      "expires_at": "2026-11-21T23:57:32.112031+00:00",
+      "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
-      "expiry_source": "unavailable",
+      "expiry_last_direct_verification_at": "2026-11-21T23:57:32.112031+00:00",
+      "expiry_last_removal_check_at": "2026-11-21T23:57:32.112031+00:00",
+      "expiry_last_removal_check_result": "confirmed",
+      "expiry_reason": "price_mismatch",
+      "expiry_source": "live_product_stock_or_price",
       "expiry_status": "unknown",
       "filo_last_error": "filo_publish_not_accepted",
       "filo_review_required": true,
@@ -301797,6 +301818,9 @@
       "history_days": 1,
       "history_status": "pending_history",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/06c78a360f94ef04c8dd011f178ad1944b002f30_1784788610.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "last_seen_current_price": 1990000,
+      "last_seen_in_stock": true,
+      "last_seen_original_price": 7400000,
       "market_price_advantage_pct": null,
       "market_price_checked_at": "",
       "market_reference_kind": "",
@@ -301807,6 +301831,19 @@
       "posted_current_price": 2990000,
       "posted_discount_percent": 60,
       "posted_original_price": 7400000,
+      "price_audit_invalidated_at": "2026-11-21T23:57:32.112031+00:00",
+      "price_audit_last_checked_at": "2026-11-21T23:57:32.112031+00:00",
+      "price_audit_live_original_price": 7400000,
+      "price_audit_live_price": 1990000,
+      "price_audit_mismatch_fields": [
+        "current_price",
+        "discount_percent"
+      ],
+      "price_audit_next_check_at": "2026-11-22T00:02:32.112031+00:00",
+      "price_audit_posted_original_price": 7400000,
+      "price_audit_posted_price": 2990000,
+      "price_audit_reason": "price_mismatch",
+      "price_audit_status": "invalidated",
       "product_url": "https://www.digikala.com/product/dkp-22315227/",
       "promo_score": 50,
       "publication_category": "digital_accessories",
@@ -372075,6 +372112,6 @@
   "snappshop_api_ids": {},
   "snappshop_consecutive_failures": 24,
   "snappshop_retry_after": "2026-11-22T20:50:00.185072+00:00",
-  "youtube_last_upload_success_at": "2026-11-21T23:59:16.605719+00:00",
+  "youtube_last_upload_success_at": "2026-11-22T00:05:21.879572+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
