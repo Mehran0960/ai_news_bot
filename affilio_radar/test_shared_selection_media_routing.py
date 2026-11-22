@@ -168,6 +168,26 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
         }
         self.assertTrue(radar._has_pending_video_destination(record, {"youtube"}, now=now))
 
+    def test_youtube_upload_workflows_share_global_lock_and_interval(self):
+        root = Path(__file__).resolve().parents[1]
+        workflow_paths = (
+            root / ".github" / "workflows" / "youtube-video-upload.yml",
+            root / ".github" / "workflows" / "offerchin-video-publisher.yml",
+        )
+        groups = []
+        for workflow_path in workflow_paths:
+            source = workflow_path.read_text(encoding="utf-8")
+            match = re.search(r"(?m)^\s*group:\s*([^\s#]+)", source)
+            self.assertIsNotNone(match, workflow_path.name)
+            groups.append(match.group(1))
+            self.assertIn('AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "8.25"', source)
+        self.assertEqual(len(set(groups)), 1)
+        self.assertEqual(groups[0], "offerchin-youtube-global-upload")
+
+    def test_youtube_upload_interval_has_a_three_per_rolling_day_floor(self):
+        self.assertEqual(radar.YOUTUBE_UPLOAD_INTERVAL_HOURS, 8.25)
+        self.assertEqual(radar.YOUTUBE_UPLOAD_INTERVAL_SECONDS, 8 * 3600 + 15 * 60)
+
     def test_youtube_global_upload_slot_enforces_even_rolling_24h_cadence(self):
         now = datetime(2026, 11, 22, 12, 0, tzinfo=timezone.utc)
         state = {"youtube_last_upload_success_at": now.isoformat()}
