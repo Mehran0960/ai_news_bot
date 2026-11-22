@@ -4608,195 +4608,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 1,
-      "content_id": "dkp-6705171",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-17T08:09:42.299219+00:00",
-      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
-      "next_attempt_at": "2026-11-17T08:09:41.716853+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-6705171%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "6946",
-        "catalog_best_selling_category_name": "تابلو",
-        "catalog_best_selling_rank": 1,
-        "catalog_best_selling_ranks_by_category": {
-          "6946": {
-            "category_name": "تابلو",
-            "observed_at": "2026-11-17T03:19:51.326909+00:00",
-            "rank": 1,
-            "rank_history": [
-              {
-                "category_name": "تابلو",
-                "observed_at": "2026-11-17T03:19:51.326909+00:00",
-                "rank": 1
-              }
-            ]
-          }
-        },
-        "catalog_category_ids": [
-          "5967",
-          "6249",
-          "6946",
-          "10652"
-        ],
-        "catalog_category_name": "خانه و آشپزخانه",
-        "catalog_cycle_completed_at": "2026-11-17T03:52:30.184476+00:00",
-        "catalog_cycle_snapshot_rank": 503,
-        "catalog_rank_observed_at": "2026-11-17T03:19:51.326909+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-17T04:25:09.509553+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-6705171",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 978000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 19.6,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 51.54,
-        "discount_percent": 28,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-17T04:25:57.899352+00:00",
-        "history_days": 6,
-        "history_end_day": "2026-11-17",
-        "history_high_toman": 978000,
-        "history_low_toman": 978000,
-        "history_median_toman": 978000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 978000,
-        "history_start_day": "2026-11-10",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/1ff91eb4771058f79d77ead4f9963997999b0bda_1787407122.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 35.27,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 51.54,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 98.99,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T04:25:57.901036+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "original_price": 1350000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-6705171",
-        "product_url": "https://www.digikala.com/product/dkp-6705171/",
-        "promo_score": 23,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.32,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 2198,
-        "savings_toman": 372000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 1,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 35.27,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 51.54,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 98.99,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T04:25:57.901036+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1490,
-        "title": "تابلو شنی مدل دایره B",
-        "variant_label": "26 × 27 سانتی‌متر"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-17T08:09:42.299219+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-17T08:09:51.328429+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "credentials_not_configured",
-          "status": "not_connected",
-          "updated_at": "2026-11-17T08:09:42.299219+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-17T08:09:42.299219+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-17T08:10:02.870257+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-17T08:09:42.299219+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-17T08:09:47.083103+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-6705171",
-      "product_plan_cycle_id": "2026-11-17T07:41:37.692784+00:00",
-      "scheduled_at": "2026-11-17T08:09:41.716853+00:00",
-      "selected_at": "2026-11-17T04:26:05.693869+00:00",
-      "sequence_number": 1490,
-      "status": "published",
-      "updated_at": "2026-11-17T08:10:03.738830+00:00"
-    },
-    {
-      "attempt_count": 1,
       "content_id": "dkp-17281919",
       "content_type": "product",
       "last_attempt_at": "2026-11-17T08:47:44.207597+00:00",
@@ -41097,6 +40908,190 @@
       "sequence_number": 1708,
       "status": "published",
       "updated_at": "2026-11-22T10:14:45.180735+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-21473432",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-22T10:46:41.975397+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-22T10:45:45.179573+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21473432%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "A",
+        "catalog_best_selling_category_id": "8488",
+        "catalog_best_selling_category_name": "کاشی کاری",
+        "catalog_best_selling_rank": 1,
+        "catalog_best_selling_ranks_by_category": {
+          "8488": {
+            "category_name": "کاشی کاری",
+            "observed_at": "2026-11-21T21:15:30.631760+00:00",
+            "rank": 1,
+            "rank_history": [
+              {
+                "category_name": "کاشی کاری",
+                "observed_at": "2026-11-21T21:15:30.631760+00:00",
+                "rank": 1
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-21T21:41:30.086284+00:00",
+        "catalog_cycle_snapshot_rank": 91,
+        "catalog_rank_observed_at": "2026-11-21T21:15:30.631760+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "home",
+        "checked_at": "2026-11-21T21:46:58.976090+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-21473432",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 350000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 61.38,
+        "discount_percent": 50,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-21T21:47:37.046935+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-21",
+        "history_high_toman": 350000,
+        "history_low_toman": 350000,
+        "history_median_toman": 350000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-21",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/6890a7da4c5f6edca400c869e1c07e7c1d63d17a_1771251844.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_error": "RuntimeError",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_query": "تابلو کاشی کاری مدل آشپزخانه گل رز کد 10",
+        "market_status": "unavailable",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 80.62,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 61.38,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 92.0,
+          "generality_group": "kitchen_food",
+          "live_demand": 99.5,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-21T21:47:45.882330+00:00",
+          "weakest_factor_score": 61.38
+        },
+        "original_price": 700000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-21473432",
+        "product_url": "https://www.digikala.com/product/dkp-21473432/",
+        "promo_score": 37,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 5.0,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 1,
+        "savings_toman": 350000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 1,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 80.62,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 61.38,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 92.0,
+          "generality_group": "kitchen_food",
+          "live_demand": 99.5,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-21T21:47:45.882330+00:00",
+          "weakest_factor_score": 61.38
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1709,
+        "title": "تابلو کاشی کاری مدل آشپزخانه گل رز کد 10"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-22T10:46:41.975397+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-22T10:46:48.334836+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-22T10:46:41.975397+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-22T10:46:41.975397+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-22T10:46:50.904020+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-22T10:46:41.975397+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-22T10:46:47.864617+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-21473432",
+      "product_plan_cycle_id": "2026-11-22T10:36:23.020949+00:00",
+      "scheduled_at": "2026-11-22T10:45:45.179573+00:00",
+      "selected_at": "2026-11-21T21:47:49.202754+00:00",
+      "sequence_number": 1709,
+      "status": "published",
+      "updated_at": "2026-11-22T10:46:51.153360+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -41111,7 +41106,7 @@
       "attempt_count": 0,
       "content_id": "dkp-17286716",
       "content_type": "product",
-      "next_attempt_at": "2026-11-22T17:25:45.179573+00:00",
+      "next_attempt_at": "2026-11-22T17:26:51.152552+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-17286716%2F",
         "availability": "in_stock",
@@ -41301,7 +41296,7 @@
       },
       "product_id": "dkp-17286716",
       "product_plan_cycle_id": "2026-11-22T10:36:23.020949+00:00",
-      "scheduled_at": "2026-11-22T17:25:45.179573+00:00",
+      "scheduled_at": "2026-11-22T17:26:51.152552+00:00",
       "selected_at": "2026-11-22T09:17:40.117921+00:00",
       "sequence_number": 1719,
       "status": "queued"
@@ -41310,7 +41305,7 @@
       "attempt_count": 0,
       "content_id": "dkp-20897579",
       "content_type": "product",
-      "next_attempt_at": "2026-11-22T16:46:45.179573+00:00",
+      "next_attempt_at": "2026-11-22T16:47:51.152552+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-20897579%2F",
         "availability": "in_stock",
@@ -41473,7 +41468,7 @@
       },
       "product_id": "dkp-20897579",
       "product_plan_cycle_id": "2026-11-22T10:36:23.020949+00:00",
-      "scheduled_at": "2026-11-22T16:46:45.179573+00:00",
+      "scheduled_at": "2026-11-22T16:47:51.152552+00:00",
       "selected_at": "2026-11-22T08:51:17.933587+00:00",
       "sequence_number": 1718,
       "status": "queued"
@@ -41482,7 +41477,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21182736",
       "content_type": "product",
-      "next_attempt_at": "2026-11-22T13:52:45.179573+00:00",
+      "next_attempt_at": "2026-11-22T13:53:51.152552+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21182736%2F",
         "availability": "in_stock",
@@ -41647,189 +41642,16 @@
       },
       "product_id": "dkp-21182736",
       "product_plan_cycle_id": "2026-11-22T10:36:23.020949+00:00",
-      "scheduled_at": "2026-11-22T13:52:45.179573+00:00",
+      "scheduled_at": "2026-11-22T13:53:51.152552+00:00",
       "selected_at": "2026-11-22T06:03:43.059882+00:00",
       "sequence_number": 1714,
-      "status": "queued"
-    },
-    "dkp-21473432": {
-      "attempt_count": 0,
-      "content_id": "dkp-21473432",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-22T10:45:45.179573+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21473432%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "8488",
-        "catalog_best_selling_category_name": "کاشی کاری",
-        "catalog_best_selling_rank": 1,
-        "catalog_best_selling_ranks_by_category": {
-          "8488": {
-            "category_name": "کاشی کاری",
-            "observed_at": "2026-11-21T21:15:30.631760+00:00",
-            "rank": 1,
-            "rank_history": [
-              {
-                "category_name": "کاشی کاری",
-                "observed_at": "2026-11-21T21:15:30.631760+00:00",
-                "rank": 1
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-21T21:41:30.086284+00:00",
-        "catalog_cycle_snapshot_rank": 91,
-        "catalog_rank_observed_at": "2026-11-21T21:15:30.631760+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "home",
-        "checked_at": "2026-11-21T21:46:58.976090+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-21473432",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 350000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 61.38,
-        "discount_percent": 50,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-21T21:47:37.046935+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-21",
-        "history_high_toman": 350000,
-        "history_low_toman": 350000,
-        "history_median_toman": 350000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-21",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/6890a7da4c5f6edca400c869e1c07e7c1d63d17a_1771251844.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "تابلو کاشی کاری مدل آشپزخانه گل رز کد 10",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 80.62,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 61.38,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 92.0,
-          "generality_group": "kitchen_food",
-          "live_demand": 99.5,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T21:47:45.882330+00:00",
-          "weakest_factor_score": 61.38
-        },
-        "original_price": 700000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-21473432",
-        "product_url": "https://www.digikala.com/product/dkp-21473432/",
-        "promo_score": 37,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 5.0,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 1,
-        "savings_toman": 350000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 1,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 80.62,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 61.38,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 92.0,
-          "generality_group": "kitchen_food",
-          "live_demand": 99.5,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T21:47:45.882330+00:00",
-          "weakest_factor_score": 61.38
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1709,
-        "title": "تابلو کاشی کاری مدل آشپزخانه گل رز کد 10"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-21473432",
-      "product_plan_cycle_id": "2026-11-22T10:36:23.020949+00:00",
-      "scheduled_at": "2026-11-22T10:45:45.179573+00:00",
-      "selected_at": "2026-11-21T21:47:49.202754+00:00",
-      "sequence_number": 1709,
       "status": "queued"
     },
     "dkp-22028732": {
       "attempt_count": 0,
       "content_id": "dkp-22028732",
       "content_type": "product",
-      "next_attempt_at": "2026-11-22T16:05:45.179573+00:00",
+      "next_attempt_at": "2026-11-22T16:06:51.152552+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22028732%2F",
         "availability": "in_stock",
@@ -41993,7 +41815,7 @@
       },
       "product_id": "dkp-22028732",
       "product_plan_cycle_id": "2026-11-22T10:36:23.020949+00:00",
-      "scheduled_at": "2026-11-22T16:05:45.179573+00:00",
+      "scheduled_at": "2026-11-22T16:06:51.152552+00:00",
       "selected_at": "2026-11-22T07:55:32.131948+00:00",
       "sequence_number": 1717,
       "status": "queued"
@@ -42002,7 +41824,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22883875",
       "content_type": "product",
-      "next_attempt_at": "2026-11-22T14:36:45.179573+00:00",
+      "next_attempt_at": "2026-11-22T14:37:51.152552+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22883875%2F",
         "availability": "in_stock",
@@ -42164,7 +41986,7 @@
       },
       "product_id": "dkp-22883875",
       "product_plan_cycle_id": "2026-11-22T10:36:23.020949+00:00",
-      "scheduled_at": "2026-11-22T14:36:45.179573+00:00",
+      "scheduled_at": "2026-11-22T14:37:51.152552+00:00",
       "selected_at": "2026-11-22T06:03:43.059882+00:00",
       "sequence_number": 1715,
       "status": "queued"
@@ -42173,7 +41995,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22967116",
       "content_type": "product",
-      "next_attempt_at": "2026-11-22T18:09:45.179573+00:00",
+      "next_attempt_at": "2026-11-22T18:10:51.152552+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22967116%2F",
         "availability": "in_stock",
@@ -42339,7 +42161,7 @@
       },
       "product_id": "dkp-22967116",
       "product_plan_cycle_id": "2026-11-22T10:36:23.020949+00:00",
-      "scheduled_at": "2026-11-22T18:09:45.179573+00:00",
+      "scheduled_at": "2026-11-22T18:10:51.152552+00:00",
       "selected_at": "2026-11-22T09:17:40.117921+00:00",
       "sequence_number": 1720,
       "status": "queued"
@@ -42348,7 +42170,7 @@
       "attempt_count": 0,
       "content_id": "dkp-23028580",
       "content_type": "product",
-      "next_attempt_at": "2026-11-22T18:56:45.179573+00:00",
+      "next_attempt_at": "2026-11-22T18:57:51.152552+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-23028580%2F",
         "availability": "in_stock",
@@ -42509,7 +42331,7 @@
       },
       "product_id": "dkp-23028580",
       "product_plan_cycle_id": "2026-11-22T10:36:23.020949+00:00",
-      "scheduled_at": "2026-11-22T18:56:45.179573+00:00",
+      "scheduled_at": "2026-11-22T18:57:51.152552+00:00",
       "selected_at": "2026-11-22T10:42:06.515135+00:00",
       "sequence_number": 1721,
       "status": "queued"
@@ -42518,7 +42340,7 @@
       "attempt_count": 0,
       "content_id": "dkp-23107919",
       "content_type": "product",
-      "next_attempt_at": "2026-11-22T12:38:45.179573+00:00",
+      "next_attempt_at": "2026-11-22T12:39:51.152552+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-23107919%2F",
         "availability": "in_stock",
@@ -42686,7 +42508,7 @@
       },
       "product_id": "dkp-23107919",
       "product_plan_cycle_id": "2026-11-22T10:36:23.020949+00:00",
-      "scheduled_at": "2026-11-22T12:38:45.179573+00:00",
+      "scheduled_at": "2026-11-22T12:39:51.152552+00:00",
       "selected_at": "2026-11-22T00:27:41.213146+00:00",
       "sequence_number": 1712,
       "status": "queued"
@@ -42695,7 +42517,7 @@
       "attempt_count": 0,
       "content_id": "dkp-23281854",
       "content_type": "product",
-      "next_attempt_at": "2026-11-22T12:06:45.179573+00:00",
+      "next_attempt_at": "2026-11-22T12:07:51.152552+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-23281854%2F",
         "availability": "in_stock",
@@ -42862,7 +42684,7 @@
       },
       "product_id": "dkp-23281854",
       "product_plan_cycle_id": "2026-11-22T10:36:23.020949+00:00",
-      "scheduled_at": "2026-11-22T12:06:45.179573+00:00",
+      "scheduled_at": "2026-11-22T12:07:51.152552+00:00",
       "selected_at": "2026-11-21T23:07:27.744680+00:00",
       "sequence_number": 1711,
       "status": "queued"
@@ -42871,7 +42693,7 @@
       "attempt_count": 0,
       "content_id": "dkp-3836773",
       "content_type": "product",
-      "next_attempt_at": "2026-11-22T13:19:45.179573+00:00",
+      "next_attempt_at": "2026-11-22T13:20:51.152552+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-3836773%2F",
         "availability": "in_stock",
@@ -43039,7 +42861,7 @@
       },
       "product_id": "dkp-3836773",
       "product_plan_cycle_id": "2026-11-22T10:36:23.020949+00:00",
-      "scheduled_at": "2026-11-22T13:19:45.179573+00:00",
+      "scheduled_at": "2026-11-22T13:20:51.152552+00:00",
       "selected_at": "2026-11-22T01:21:41.332664+00:00",
       "sequence_number": 1713,
       "status": "queued"
@@ -43048,7 +42870,7 @@
       "attempt_count": 0,
       "content_id": "dkp-6279765",
       "content_type": "product",
-      "next_attempt_at": "2026-11-22T11:20:45.179573+00:00",
+      "next_attempt_at": "2026-11-22T11:21:51.152552+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-6279765%2F",
         "availability": "in_stock",
@@ -43217,7 +43039,7 @@
       },
       "product_id": "dkp-6279765",
       "product_plan_cycle_id": "2026-11-22T10:36:23.020949+00:00",
-      "scheduled_at": "2026-11-22T11:20:45.179573+00:00",
+      "scheduled_at": "2026-11-22T11:21:51.152552+00:00",
       "selected_at": "2026-11-21T22:45:06.892890+00:00",
       "sequence_number": 1710,
       "status": "queued"
@@ -43226,7 +43048,7 @@
       "attempt_count": 0,
       "content_id": "dkp-9152414",
       "content_type": "product",
-      "next_attempt_at": "2026-11-22T15:21:45.179573+00:00",
+      "next_attempt_at": "2026-11-22T15:22:51.152552+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-9152414%2F",
         "availability": "in_stock",
@@ -43391,7 +43213,7 @@
       },
       "product_id": "dkp-9152414",
       "product_plan_cycle_id": "2026-11-22T10:36:23.020949+00:00",
-      "scheduled_at": "2026-11-22T15:21:45.179573+00:00",
+      "scheduled_at": "2026-11-22T15:22:51.152552+00:00",
       "selected_at": "2026-11-22T07:28:39.522262+00:00",
       "sequence_number": 1716,
       "status": "queued"
@@ -105028,7 +104850,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.9,
+      "delivery_duration_seconds": 1.3,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -105091,8 +104913,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.9,
-      "delivery_started_at": "2026-11-22T10:42:08.152874+00:00",
+      "delivery_duration_seconds": 1.3,
+      "delivery_started_at": "2026-11-22T10:46:52.000942+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -105544,13 +105366,13 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-22T10:14:45.179573+00:00",
+  "last_channel_published_at": "2026-11-22T10:46:51.152552+00:00",
   "last_content_selection_at": "2026-11-22T10:42:06.515135+00:00",
   "last_editorial_attempt_at": "2026-11-18T02:10:38.177140+00:00",
   "last_editorial_confirmed_at": "2026-11-18T02:10:49.933296+00:00",
   "last_editorial_empty_bank_check_at": "2026-11-18T01:24:46.585898+00:00",
-  "last_product_channel_published_at": "2026-11-22T10:14:45.179573+00:00",
-  "last_published_at": "2026-11-22T10:14:45.179573+00:00",
+  "last_product_channel_published_at": "2026-11-22T10:46:51.152552+00:00",
+  "last_published_at": "2026-11-22T10:46:51.152552+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -158304,8 +158126,8 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-22T10:42:06.515135+00:00",
-    "candidate_count": 13,
+    "calculated_at": "2026-11-22T10:46:51.152557+00:00",
+    "candidate_count": 12,
     "catalog_cycle_id": "2026-11-22T10:36:23.020949+00:00",
     "current_cycle_started_at": "2026-11-22T10:36:23.301013+00:00",
     "daily_post_limit": 72,
@@ -158317,30 +158139,29 @@
     "interval_seconds": 1860.0,
     "last_clean_cycle_completed_at": "2026-11-22T10:36:23.020949+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-22T10:14:45.179573+00:00",
-    "plan_anchor_kind": "last_product",
-    "planned_product_slots": 13,
+    "plan_anchor_at": "2026-11-22T10:46:51.152552+00:00",
+    "plan_anchor_kind": "last_channel",
+    "planned_product_slots": 12,
     "planned_window_end_at": "2026-11-22T11:04:12.301013+00:00",
-    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes",
+    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
     "scan_eta_is_provisional": false,
     "scan_eta_source": "last_observed_full_cycle_duration",
     "scheduled_product_count": 13,
-    "seconds_from_plan_anchor_to_next_scan": 2967.12144,
-    "seconds_until_estimated_next_clean_scan": 1325.785878
+    "seconds_from_plan_anchor_to_next_scan": 1041.148461,
+    "seconds_until_estimated_next_clean_scan": 1041.148456
   },
   "product_publication_interval_seconds": 1860.0,
   "product_publication_plan": {
-    "anchor_at": "2026-11-22T10:14:45.179573+00:00",
-    "anchor_kind": "last_product",
+    "anchor_at": "2026-11-22T10:46:51.152552+00:00",
+    "anchor_kind": "last_channel",
     "catalog_cycle_id": "2026-11-22T10:36:23.020949+00:00",
     "first_slot_due_now": false,
     "interval_minutes": 31.0,
     "interval_seconds": 1860.0,
     "maximum_product_interval_seconds": 3420,
     "next_clean_scan_at": "2026-11-22T11:04:12.301013+00:00",
-    "pending_product_count": 13,
+    "pending_product_count": 12,
     "product_ids": [
-      "dkp-21473432",
       "dkp-6279765",
       "dkp-23281854",
       "dkp-23107919",
@@ -158354,11 +158175,11 @@
       "dkp-22967116",
       "dkp-23028580"
     ],
-    "scheduled_product_count": 13,
-    "updated_at": "2026-11-22T10:42:06.515135+00:00"
+    "scheduled_product_count": 12,
+    "updated_at": "2026-11-22T10:46:51.152557+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-22T10:14:45.179573+00:00",
-  "product_publication_plan_anchor_kind": "last_product",
+  "product_publication_plan_anchor_at": "2026-11-22T10:46:51.152552+00:00",
+  "product_publication_plan_anchor_kind": "last_channel",
   "product_publication_plan_cycle_id": "2026-11-22T10:36:23.020949+00:00",
   "publication_diversity_fallback_count": 5307,
   "publication_diversity_fallback_events": [
@@ -227228,7 +227049,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "delete_unavailable",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-17T19:36:02.423766+00:00",
@@ -227308,6 +227129,7 @@
       },
       "selection_review_growth_evidence": "none",
       "sequence_number": 1294,
+      "telegram_expiry_last_delete_error": "RuntimeError: Bad Request: message can't be deleted",
       "telegram_message_id": 1544,
       "telegram_posted_at": "2026-11-16T11:52:57.839966+00:00",
       "title": "کتاب بخش دی اثر فریدا مک‌فادن نشر آذرگون",
@@ -268261,6 +268083,134 @@
       "youtube_skip_recorded_at": "2026-11-18T21:30:04.118953+00:00",
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
+    "dkp-21473432": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2453,
+      "bale_posted_at": "2026-11-22T10:46:48.334836+00:00",
+      "brand": "",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "A",
+      "catalog_best_selling_category_id": "8488",
+      "catalog_best_selling_category_name": "کاشی کاری",
+      "catalog_best_selling_rank": 1,
+      "catalog_best_selling_ranks_by_category": {
+        "8488": {
+          "category_name": "کاشی کاری",
+          "observed_at": "2026-11-21T21:15:30.631760+00:00",
+          "rank": 1,
+          "rank_history": [
+            {
+              "category_name": "کاشی کاری",
+              "observed_at": "2026-11-21T21:15:30.631760+00:00",
+              "rank": 1
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-21T21:41:30.086284+00:00",
+      "catalog_cycle_snapshot_rank": 91,
+      "catalog_rank_observed_at": "2026-11-21T21:15:30.631760+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-21473432",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "B",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-22T10:46:50.904047+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 0,
+      "distribution_queue_id": "dkp-21473432:2026-11-21T21:47:49.202754+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-21T21:47:37.046935+00:00",
+      "history_days": 1,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/6890a7da4c5f6edca400c869e1c07e7c1d63d17a_1771251844.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "unavailable",
+      "platform_message_ids": {
+        "rubika": "1979633329502588651"
+      },
+      "posted_current_price": 350000,
+      "posted_discount_percent": 50,
+      "posted_original_price": 700000,
+      "product_url": "https://www.digikala.com/product/dkp-21473432/",
+      "promo_score": 37,
+      "publication_category": "home",
+      "publication_family": "digikala_category:8488",
+      "publication_use_case": "kitchen_food",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 0.0,
+      "rubika_posted_at": "2026-11-22T10:46:50.904020+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 1,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 80.62,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 61.38,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 92.0,
+        "generality_group": "kitchen_food",
+        "live_demand": 99.5,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-21T21:47:45.882330+00:00",
+        "weakest_factor_score": 61.38
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1709,
+      "telegram_message_id": 1820,
+      "telegram_posted_at": "2026-11-22T10:46:47.864617+00:00",
+      "title": "تابلو کاشی کاری مدل آشپزخانه گل رز کد 10",
+      "ts": 1795344401.975397,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
+    },
     "dkp-21476651": {
       "aparat_skip_reason": "selection_outside_freshness_window",
       "aparat_skip_recorded_at": "2026-11-18T21:25:40.291642+00:00",
@@ -285480,6 +285430,7 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
+      "expired_deleted_at": "2026-11-22T10:42:39.577939+00:00",
       "expires_at": "2026-11-22T10:27:33.204423+00:00",
       "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
@@ -285489,7 +285440,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "already_absent",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-22T01:40:10.674306+00:00",
