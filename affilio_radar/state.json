@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-22T02:43:50.911120+00:00",
-  "aparat_last_upload_success_at": "2026-11-22T02:43:55.752746+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-22T03:29:37.960204+00:00",
+  "aparat_last_upload_success_at": "2026-11-22T03:29:41.234226+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-22T03:05:42.346906+00:00",
@@ -250408,7 +250408,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-18236685": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-22T03:29:37.960204+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-22T03:29:41.234226+00:00",
+      "aparat_video_hash": "vyzzjq0",
+      "aparat_video_record_id": "74334379",
+      "aparat_video_url": "https://www.aparat.com/v/vyzzjq0",
+      "aparat_visibility": "public",
       "bale_message_id": 2444,
       "bale_posted_at": "2026-11-22T03:28:46.438385+00:00",
       "brand": "",
@@ -250532,8 +250538,17 @@
       "telegram_posted_at": "2026-11-22T03:28:45.234677+00:00",
       "title": "کفش پیاده‌روی طرح اسکچرز مدل 1026",
       "ts": 1795318118.865991,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-18236685.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-18236685.mp4"
+      },
+      "video_generated_at": "2026-11-22T03:29:33.262938+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-23T00:26:15.015053+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-18262399": {
       "aparat_skip_reason": "selection_outside_freshness_window",
