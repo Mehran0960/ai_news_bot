@@ -150,7 +150,7 @@ jobs:
           FILO_USER: ${{ secrets.FILO_USER }}
           FILO_PASS: ${{ secrets.FILO_PASS }}
           # Legacy pacing variables are explicitly zero and ignored by the new policy.
-          AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "0"
+          AFFILIO_YOUTUBE_UPLOAD_INTERVAL_HOURS: "8.25"
           AFFILIO_APARAT_UPLOAD_INTERVAL_HOURS: "0"
           AFFILIO_FILO_UPLOAD_INTERVAL_HOURS: "0"
           AFFILIO_VIDEO_UPLOAD_CANDIDATE_LIMIT: "250"
