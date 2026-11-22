@@ -180,7 +180,7 @@ class SharedSelectionMediaRoutingTests(unittest.TestCase):
         # The next upload is blocked for the full 8h15m gap.
         self.assertEqual(
             radar._youtube_next_upload_slot_at(
-                state, now=now + timedelta(hours=8, minutes=14, minutes=59)
+                state, now=now + timedelta(hours=8, minutes=14, seconds=59)
             ),
             expected,
         )
