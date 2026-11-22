@@ -703,6 +703,29 @@ test("YouTube daily quota pause defers only YouTube and automatically resumes", 
   assert.equal(videoRecordDue(legacyQuotaSkip, "youtube", now), true);
 });
 
+test("YouTube global rolling cadence defers only YouTube until the saved upload slot", () => {
+  const now = Date.parse("2026-11-22T12:00:00Z");
+  const base = {
+    ts: now / 1000 - 60,
+    video_dispatch_eligible: true,
+    delivery_status: { telegram: "sent" },
+    video_generation_status: "generated",
+    youtube_upload_status: "pending",
+    aparat_upload_status: "pending",
+  };
+  const deferred = {
+    published: { item: base },
+    youtube_next_upload_at: new Date(now + 8 * 60 * 60_000 + 15 * 60_000).toISOString(),
+  };
+  assert.equal(hasDueVideoRecord(deferred, "youtube", now), false);
+  assert.equal(hasDueVideoRecord(deferred, "aparat", now), true);
+  const due = {
+    ...deferred,
+    youtube_next_upload_at: new Date(now - 1).toISOString(),
+  };
+  assert.equal(hasDueVideoRecord(due, "youtube", now), true);
+});
+
 test("editorial photo channel recovery queue is due per destination", () => {
   const now = Date.now();
   const state = {
