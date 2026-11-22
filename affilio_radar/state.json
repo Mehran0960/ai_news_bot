@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-22T19:04:49.209655+00:00",
-  "aparat_last_upload_success_at": "2026-11-22T19:04:53.217337+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-22T20:32:39.717544+00:00",
+  "aparat_last_upload_success_at": "2026-11-22T20:32:43.765527+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-22T20:28:38.815173+00:00",
@@ -312497,7 +312497,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-9519004": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-22T20:32:39.717544+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-22T20:32:43.765527+00:00",
+      "aparat_video_hash": "aicoqmq",
+      "aparat_video_record_id": "74347411",
+      "aparat_video_url": "https://www.aparat.com/v/aicoqmq",
+      "aparat_visibility": "public",
       "bale_message_id": 2471,
       "bale_posted_at": "2026-11-22T20:31:14.970285+00:00",
       "brand": "اعیان",
@@ -312621,8 +312627,17 @@
       "telegram_posted_at": "2026-11-22T20:31:14.489358+00:00",
       "title": "کابینت آشپزخانه اعیان مدل FH C12 مجموعه 8 عددی",
       "ts": 1795379468.06812,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-9519004.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-9519004.mp4"
+      },
+      "video_generated_at": "2026-11-22T20:32:34.615059+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_next_attempt_at": "2026-11-23T00:26:15.015053+00:00",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-9542793": {
       "aparat_skip_reason": "selection_outside_freshness_window",
