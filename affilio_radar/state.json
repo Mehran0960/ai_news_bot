@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-23T01:53:52.305680+00:00",
-  "aparat_last_upload_success_at": "2026-11-23T01:53:55.645076+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-23T02:36:53.341067+00:00",
+  "aparat_last_upload_success_at": "2026-11-23T02:36:57.957245+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-23T02:27:45.758757+00:00",
@@ -278504,7 +278504,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22974529": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-23T02:36:53.341067+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-23T02:36:57.957245+00:00",
+      "aparat_video_hash": "ynxqw0r",
+      "aparat_video_record_id": "74348727",
+      "aparat_video_url": "https://www.aparat.com/v/ynxqw0r",
+      "aparat_visibility": "public",
       "bale_message_id": 2484,
       "bale_posted_at": "2026-11-23T02:35:52.620317+00:00",
       "brand": "",
@@ -278628,8 +278634,16 @@
       "telegram_posted_at": "2026-11-23T02:35:51.755603+00:00",
       "title": "اسپری گازپاک کن و چربی زدای آشپزخانه رُست مدل Ultra Power حجم 500 میلی لیتر بسته‌ 6 عددی",
       "ts": 1795401344.62758,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22974529.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22974529.mp4"
+      },
+      "video_generated_at": "2026-11-23T02:36:46.626766+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22976207": {
       "aparat_skip_reason": "selection_outside_freshness_window",
