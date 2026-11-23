@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-23T11:15:48.773133+00:00",
-  "aparat_last_upload_success_at": "2026-11-23T11:15:51.532187+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-23T11:49:43.702597+00:00",
+  "aparat_last_upload_success_at": "2026-11-23T11:49:47.254650+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-23T11:42:40.145994+00:00",
@@ -287522,7 +287522,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22726417": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-23T11:49:43.702597+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-23T11:49:47.254650+00:00",
+      "aparat_video_hash": "rmqt9p1",
+      "aparat_video_record_id": "74355045",
+      "aparat_video_url": "https://www.aparat.com/v/rmqt9p1",
+      "aparat_visibility": "public",
       "bale_message_id": 2500,
       "bale_posted_at": "2026-11-23T11:48:47.466319+00:00",
       "brand": "",
@@ -287646,8 +287652,16 @@
       "telegram_posted_at": "2026-11-23T11:48:46.813329+00:00",
       "title": "سرهمی نوزادی پنبه‌ای طرح عروسکی مدل 1020773 به همراه کلاه",
       "ts": 1795434519.576272,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22726417.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22726417.mp4"
+      },
+      "video_generated_at": "2026-11-23T11:49:33.769263+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22732251": {
       "aparat_upload_started_at": "2026-11-18T03:08:28.851918+00:00",
