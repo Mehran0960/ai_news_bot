@@ -39535,12 +39535,12 @@
       "status": "queued"
     },
     "dkp-1487229": {
-      "attempt_count": 2,
+      "attempt_count": 3,
       "content_id": "dkp-1487229",
       "content_type": "product",
-      "last_attempt_at": "2026-11-23T17:53:34.252727+00:00",
+      "last_attempt_at": "2026-11-23T18:04:47.235887+00:00",
       "last_detail": "live_price_unusable",
-      "next_attempt_at": "2026-11-23T17:58:34.252727+00:00",
+      "next_attempt_at": "2026-11-23T18:09:47.235887+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1487229%2F",
         "availability": "in_stock",
@@ -39673,15 +39673,15 @@
       },
       "platforms": {
         "aparat": {
-          "attempts": 2,
+          "attempts": 3,
           "last_error": "live_price_unusable",
-          "next_attempt_at": "2026-11-23T18:03:34.252727+00:00",
+          "next_attempt_at": "2026-11-23T18:24:47.235887+00:00",
           "status": "failed"
         },
         "bale": {
-          "attempts": 2,
+          "attempts": 3,
           "last_error": "live_price_unusable",
-          "next_attempt_at": "2026-11-23T18:03:34.252727+00:00",
+          "next_attempt_at": "2026-11-23T18:24:47.235887+00:00",
           "status": "failed"
         },
         "eitaa": {
@@ -39697,15 +39697,15 @@
           "status": "pending"
         },
         "telegram": {
-          "attempts": 2,
+          "attempts": 3,
           "last_error": "live_price_unusable",
-          "next_attempt_at": "2026-11-23T18:03:34.252727+00:00",
+          "next_attempt_at": "2026-11-23T18:24:47.235887+00:00",
           "status": "failed"
         },
         "youtube": {
-          "attempts": 2,
+          "attempts": 3,
           "last_error": "live_price_unusable",
-          "next_attempt_at": "2026-11-23T18:03:34.252727+00:00",
+          "next_attempt_at": "2026-11-23T18:24:47.235887+00:00",
           "status": "failed"
         }
       },
@@ -94642,7 +94642,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.9,
+      "delivery_duration_seconds": 1.4,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -94705,8 +94705,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.9,
-      "delivery_started_at": "2026-11-23T17:53:38.564741+00:00",
+      "delivery_duration_seconds": 1.4,
+      "delivery_started_at": "2026-11-23T18:04:50.255531+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -229372,7 +229372,8 @@
       "aparat_video_record_id": "74293025",
       "aparat_video_url": "https://www.aparat.com/v/ysmqd34",
       "aparat_visibility": "public",
-      "bale_expiry_status": "unknown",
+      "bale_expired_deleted_at": "2026-11-23T17:57:36.935754+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 2329,
       "bale_posted_at": "2026-11-19T09:57:53.306156+00:00",
       "brand": "انتشارات آیین محمود",
@@ -229432,12 +229433,16 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
-      "expires_at": "",
-      "expiry_deadline_verified_directly": false,
+      "expires_at": "2026-11-23T17:57:33.593931+00:00",
+      "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
-      "expiry_source": "unavailable",
-      "expiry_status": "unknown",
+      "expiry_last_direct_verification_at": "2026-11-23T17:57:33.593931+00:00",
+      "expiry_last_removal_check_at": "2026-11-23T17:57:33.593931+00:00",
+      "expiry_last_removal_check_result": "confirmed",
+      "expiry_reason": "price_mismatch",
+      "expiry_source": "live_product_stock_or_price",
+      "expiry_status": "delete_unavailable",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-19T09:59:54.604494+00:00",
@@ -229451,6 +229456,9 @@
       "history_days": 2,
       "history_status": "pending_history",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/e111534d57d0c961e991d6b22495585b9c53c4cc_1729936999.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "last_seen_current_price": 200500,
+      "last_seen_in_stock": true,
+      "last_seen_original_price": 228990,
       "market_price_advantage_pct": null,
       "market_price_checked_at": "",
       "market_reference_kind": "",
@@ -229461,6 +229469,20 @@
       "posted_current_price": 202000,
       "posted_discount_percent": 56,
       "posted_original_price": 458000,
+      "price_audit_invalidated_at": "2026-11-23T17:57:33.593931+00:00",
+      "price_audit_last_checked_at": "2026-11-23T17:57:33.593931+00:00",
+      "price_audit_live_original_price": 228990,
+      "price_audit_live_price": 200500,
+      "price_audit_mismatch_fields": [
+        "current_price",
+        "original_price",
+        "discount_percent"
+      ],
+      "price_audit_next_check_at": "2026-11-23T18:02:33.593931+00:00",
+      "price_audit_posted_original_price": 458000,
+      "price_audit_posted_price": 202000,
+      "price_audit_reason": "price_mismatch",
+      "price_audit_status": "invalidated",
       "product_url": "https://www.digikala.com/product/dkp-17161677/",
       "promo_score": 40,
       "publication_category": "books_stationery",
@@ -229500,6 +229522,7 @@
       },
       "selection_review_growth_evidence": "none",
       "sequence_number": 1576,
+      "telegram_expiry_last_delete_error": "RuntimeError: Bad Request: message can't be deleted",
       "telegram_message_id": 1732,
       "telegram_posted_at": "2026-11-19T09:57:52.854071+00:00",
       "title": "کتاب من لیاقتم خداحافظی بهتری بود اثر آکرا ترجمه پریسا رجوند انتشارات آیین محمود",
