@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-23T05:03:01.809988+00:00",
-  "aparat_last_upload_success_at": "2026-11-23T05:03:08.024915+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-23T05:45:47.289774+00:00",
+  "aparat_last_upload_success_at": "2026-11-23T05:45:51.055546+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-23T05:36:49.950596+00:00",
@@ -230325,7 +230325,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-1812047": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-23T05:45:47.289774+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-23T05:45:51.055546+00:00",
+      "aparat_video_hash": "vgi0y4a",
+      "aparat_video_record_id": "74349799",
+      "aparat_video_url": "https://www.aparat.com/v/vgi0y4a",
+      "aparat_visibility": "public",
       "bale_message_id": 2490,
       "bale_posted_at": "2026-11-23T05:44:42.198651+00:00",
       "brand": "چرم بارز",
@@ -230449,8 +230455,16 @@
       "telegram_posted_at": "2026-11-23T05:44:41.700377+00:00",
       "title": "کیف لوازم آرایشی زنانه چرم بارز مدل DM29.3",
       "ts": 1795412675.545973,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-1812047.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-1812047.mp4"
+      },
+      "video_generated_at": "2026-11-23T05:45:41.561108+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-18140343": {
       "aparat_skip_reason": "selection_outside_freshness_window",
