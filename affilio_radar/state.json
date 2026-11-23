@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-23T18:18:56.507265+00:00",
-  "aparat_last_upload_success_at": "2026-11-23T18:19:00.425462+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-23T19:05:58.558134+00:00",
+  "aparat_last_upload_success_at": "2026-11-23T19:06:04.783491+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-23T18:44:55.864590+00:00",
@@ -278977,7 +278977,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-22243065": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-23T19:05:58.558134+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-23T19:06:04.783491+00:00",
+      "aparat_video_hash": "wtia9b7",
+      "aparat_video_record_id": "74361430",
+      "aparat_video_url": "https://www.aparat.com/v/wtia9b7",
+      "aparat_visibility": "public",
       "bale_message_id": 2510,
       "bale_posted_at": "2026-11-23T19:04:46.066496+00:00",
       "brand": "",
@@ -279101,8 +279107,16 @@
       "telegram_posted_at": "2026-11-23T19:04:45.334083+00:00",
       "title": "جامپ استارتر و پمپ باد و پاوربانک و چراغ اضطراری خودرو کاوکس مدل چهار کاره کد 16000",
       "ts": 1795460678.233397,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22243065.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22243065.mp4"
+      },
+      "video_generated_at": "2026-11-23T19:05:53.680433+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22248480": {
       "aparat_skip_reason": "selection_outside_freshness_window",
