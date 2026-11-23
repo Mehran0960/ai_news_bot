@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-23T13:38:48.046816+00:00",
-  "aparat_last_upload_success_at": "2026-11-23T13:38:51.464598+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-23T14:22:47.133397+00:00",
+  "aparat_last_upload_success_at": "2026-11-23T14:22:50.552821+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-23T14:00:48.148281+00:00",
@@ -202921,7 +202921,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-12557977": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-23T14:22:47.133397+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-23T14:22:50.552821+00:00",
+      "aparat_video_hash": "zgw4u9a",
+      "aparat_video_record_id": "74357301",
+      "aparat_video_url": "https://www.aparat.com/v/zgw4u9a",
+      "aparat_visibility": "public",
       "bale_message_id": 2505,
       "bale_posted_at": "2026-11-23T14:21:44.559480+00:00",
       "brand": "بلک ولف",
@@ -203045,8 +203051,16 @@
       "telegram_posted_at": "2026-11-23T14:21:43.763758+00:00",
       "title": "نوشابه انرژی زا بلک ولف - 1000 میلی لیتر",
       "ts": 1795443697.252702,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-12557977.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-12557977.mp4"
+      },
+      "video_generated_at": "2026-11-23T14:22:39.614473+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-12606113": {
       "aparat_upload_started_at": "2026-11-18T16:17:47.981062+00:00",
