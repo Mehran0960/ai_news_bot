@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-23T03:20:53.728208+00:00",
-  "aparat_last_upload_success_at": "2026-11-23T03:21:08.974171+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-23T03:53:45.696880+00:00",
+  "aparat_last_upload_success_at": "2026-11-23T03:53:49.740152+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-23T03:46:53.525131+00:00",
@@ -277046,7 +277046,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22949493": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-23T03:53:45.696880+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-23T03:53:49.740152+00:00",
+      "aparat_video_hash": "spj8pty",
+      "aparat_video_record_id": "74348983",
+      "aparat_video_url": "https://www.aparat.com/v/spj8pty",
+      "aparat_visibility": "public",
       "bale_message_id": 2487,
       "bale_posted_at": "2026-11-23T03:52:53.954465+00:00",
       "brand": "",
@@ -277170,8 +277176,16 @@
       "telegram_posted_at": "2026-11-23T03:52:53.409100+00:00",
       "title": "پیش بند آشپزخانه مدل A830",
       "ts": 1795405968.373658,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22949493.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22949493.mp4"
+      },
+      "video_generated_at": "2026-11-23T03:53:39.350258+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22954576": {
       "aparat_skip_reason": "selection_outside_freshness_window",
