@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-23T08:27:48.453703+00:00",
-  "aparat_last_upload_success_at": "2026-11-23T08:28:06.860076+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-23T09:07:51.108643+00:00",
+  "aparat_last_upload_success_at": "2026-11-23T09:07:54.005314+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-23T08:47:52.225676+00:00",
@@ -302940,7 +302940,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-23279682": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-23T09:07:51.108643+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-23T09:07:54.005314+00:00",
+      "aparat_video_hash": "zah4wme",
+      "aparat_video_record_id": "74352660",
+      "aparat_video_url": "https://www.aparat.com/v/zah4wme",
+      "aparat_visibility": "public",
       "bale_message_id": 2496,
       "bale_posted_at": "2026-11-23T09:05:56.101977+00:00",
       "brand": "",
@@ -303064,8 +303070,16 @@
       "telegram_posted_at": "2026-11-23T09:05:54.734555+00:00",
       "title": "پلیور دخترانه کد عروسکی 55378",
       "ts": 1795424746.813117,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-23279682.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-23279682.mp4"
+      },
+      "video_generated_at": "2026-11-23T09:07:44.759146+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-23281854": {
       "aparat_upload_started_at": "2026-11-22T11:37:47.164031+00:00",
