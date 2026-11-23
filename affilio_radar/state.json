@@ -3804,188 +3804,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 1,
-      "content_id": "dkp-22004922",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-18T06:19:34.105394+00:00",
-      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
-      "next_attempt_at": "2026-11-18T06:19:31.230969+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22004922%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "بوقلمون پارس",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "10727",
-        "catalog_best_selling_category_name": "غذای آماده",
-        "catalog_best_selling_rank": 4,
-        "catalog_best_selling_ranks_by_category": {
-          "10727": {
-            "category_name": "غذای آماده",
-            "observed_at": "2026-11-17T15:36:53.638678+00:00",
-            "rank": 4,
-            "rank_history": [
-              {
-                "category_name": "غذای آماده",
-                "observed_at": "2026-11-17T15:36:53.638678+00:00",
-                "rank": 4
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-17T16:08:32.583581+00:00",
-        "catalog_cycle_snapshot_rank": 1201,
-        "catalog_rank_observed_at": "2026-11-17T15:36:53.638678+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "grocery_food",
-        "checked_at": "2026-11-17T17:00:37.226353+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22004922",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 316800,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 21.3,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 41.74,
-        "discount_percent": 20,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-17T17:01:02.031722+00:00",
-        "history_days": 3,
-        "history_end_day": "2026-11-17",
-        "history_high_toman": 316800,
-        "history_low_toman": 316800,
-        "history_median_toman": 316800,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 316800,
-        "history_start_day": "2026-11-15",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/2a492574d8b50aaac16f5252aa5da0f88f468652_1781332658.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 67.08,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 41.74,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 98.72,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T17:01:02.033619+00:00",
-          "weakest_factor_score": 41.74
-        },
-        "original_price": 396000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-22004922",
-        "product_url": "https://www.digikala.com/product/dkp-22004922/",
-        "promo_score": 15,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.44,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 6,
-        "savings_toman": 79200,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 4,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 67.08,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 41.74,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 98.72,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-17T17:01:02.033619+00:00",
-          "weakest_factor_score": 41.74
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1523,
-        "title": "کنسرو گوشت بوقلمون با طعم دودی پارس بوقلمون - 180 گرم"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-18T06:19:34.105394+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-18T06:20:26.169669+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "credentials_not_configured",
-          "status": "not_connected",
-          "updated_at": "2026-11-18T06:19:34.105394+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-18T06:19:34.105394+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-18T06:20:33.280408+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-18T06:19:34.105394+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-18T06:20:25.480473+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22004922",
-      "product_plan_cycle_id": "2026-11-18T02:57:36.425446+00:00",
-      "scheduled_at": "2026-11-18T06:19:31.230969+00:00",
-      "selected_at": "2026-11-17T17:01:09.347424+00:00",
-      "sequence_number": 1523,
-      "status": "published",
-      "updated_at": "2026-11-18T06:20:33.648484+00:00"
-    },
-    {
-      "attempt_count": 1,
       "content_id": "dkp-18294816",
       "content_type": "product",
       "last_attempt_at": "2026-11-18T06:52:41.048286+00:00",
@@ -40369,6 +40187,191 @@
       "sequence_number": 1737,
       "status": "published",
       "updated_at": "2026-11-23T02:35:57.677857+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-21066186",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-23T03:19:41.142031+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-23T03:18:57.676476+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21066186%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "کالیستا",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "A",
+        "catalog_best_selling_category_id": "6485",
+        "catalog_best_selling_category_name": "ریمل",
+        "catalog_best_selling_rank": 29,
+        "catalog_best_selling_ranks_by_category": {
+          "6485": {
+            "category_name": "ریمل",
+            "observed_at": "2026-11-22T16:35:56.613229+00:00",
+            "rank": 29,
+            "rank_history": [
+              {
+                "category_name": "ریمل",
+                "observed_at": "2026-11-22T16:35:56.613229+00:00",
+                "rank": 29
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-22T17:01:34.970848+00:00",
+        "catalog_cycle_snapshot_rank": 235,
+        "catalog_rank_observed_at": "2026-11-22T16:35:56.613229+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "other",
+        "checked_at": "2026-11-22T17:04:36.154792+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-21066186",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 615600,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 62.0,
+        "discount_percent": 48,
+        "discount_vs_30d_median_pct": 19,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 146900,
+        "history_checked_at": "2026-11-22T17:04:57.961534+00:00",
+        "history_days": 4,
+        "history_end_day": "2026-11-22",
+        "history_high_toman": 768900,
+        "history_low_toman": 615600,
+        "history_median_toman": 762500,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": 762500,
+        "history_start_day": "2026-11-15",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/78721977ae44ea6640d266f1ba92b8ffcc20cc51_1765713348.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_error": "RuntimeError",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_query": "ریمل رنگی کالیستا مدل Pastella رنگ قهوه ای",
+        "market_status": "unavailable",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 77.75,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 62.0,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 94.0,
+          "generality_group": "grocery_food",
+          "live_demand": 84.62,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-22T17:05:08.391950+00:00",
+          "weakest_factor_score": 62.0
+        },
+        "original_price": 1172980,
+        "pct_above_stable_low": -19,
+        "product_id": "dkp-21066186",
+        "product_url": "https://www.digikala.com/product/dkp-21066186/",
+        "promo_score": 37,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 3.34,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 170,
+        "savings_toman": 557380,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 29,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 77.75,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 62.0,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 94.0,
+          "generality_group": "grocery_food",
+          "live_demand": 84.62,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-22T17:05:08.391950+00:00",
+          "weakest_factor_score": 62.0
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1738,
+        "title": "ریمل رنگی کالیستا مدل Pastella رنگ قهوه ای"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-23T03:19:41.142031+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-23T03:19:48.267509+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-23T03:19:41.142031+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-23T03:19:41.142031+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-23T03:19:52.384455+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-23T03:19:41.142031+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-23T03:19:47.915944+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-21066186",
+      "product_plan_cycle_id": "2026-11-23T02:52:37.204480+00:00",
+      "scheduled_at": "2026-11-23T03:18:57.676476+00:00",
+      "selected_at": "2026-11-22T17:05:12.891864+00:00",
+      "sequence_number": 1738,
+      "status": "published",
+      "updated_at": "2026-11-23T03:19:52.737992+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -40383,7 +40386,7 @@
       "attempt_count": 0,
       "content_id": "dkp-1812047",
       "content_type": "product",
-      "next_attempt_at": "2026-11-23T05:39:57.676476+00:00",
+      "next_attempt_at": "2026-11-23T05:40:52.736380+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1812047%2F",
         "availability": "in_stock",
@@ -40547,190 +40550,16 @@
       },
       "product_id": "dkp-1812047",
       "product_plan_cycle_id": "2026-11-23T02:52:37.204480+00:00",
-      "scheduled_at": "2026-11-23T05:39:57.676476+00:00",
+      "scheduled_at": "2026-11-23T05:40:52.736380+00:00",
       "selected_at": "2026-11-22T20:58:31.173347+00:00",
       "sequence_number": 1742,
-      "status": "queued"
-    },
-    "dkp-21066186": {
-      "attempt_count": 0,
-      "content_id": "dkp-21066186",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-23T03:18:57.676476+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21066186%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "کالیستا",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "6485",
-        "catalog_best_selling_category_name": "ریمل",
-        "catalog_best_selling_rank": 29,
-        "catalog_best_selling_ranks_by_category": {
-          "6485": {
-            "category_name": "ریمل",
-            "observed_at": "2026-11-22T16:35:56.613229+00:00",
-            "rank": 29,
-            "rank_history": [
-              {
-                "category_name": "ریمل",
-                "observed_at": "2026-11-22T16:35:56.613229+00:00",
-                "rank": 29
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-22T17:01:34.970848+00:00",
-        "catalog_cycle_snapshot_rank": 235,
-        "catalog_rank_observed_at": "2026-11-22T16:35:56.613229+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-22T17:04:36.154792+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-21066186",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 615600,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 62.0,
-        "discount_percent": 48,
-        "discount_vs_30d_median_pct": 19,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 146900,
-        "history_checked_at": "2026-11-22T17:04:57.961534+00:00",
-        "history_days": 4,
-        "history_end_day": "2026-11-22",
-        "history_high_toman": 768900,
-        "history_low_toman": 615600,
-        "history_median_toman": 762500,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 762500,
-        "history_start_day": "2026-11-15",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/78721977ae44ea6640d266f1ba92b8ffcc20cc51_1765713348.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "ریمل رنگی کالیستا مدل Pastella رنگ قهوه ای",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 77.75,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 62.0,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 84.62,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-22T17:05:08.391950+00:00",
-          "weakest_factor_score": 62.0
-        },
-        "original_price": 1172980,
-        "pct_above_stable_low": -19,
-        "product_id": "dkp-21066186",
-        "product_url": "https://www.digikala.com/product/dkp-21066186/",
-        "promo_score": 37,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 3.34,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 170,
-        "savings_toman": 557380,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 29,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 77.75,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 62.0,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 84.62,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-22T17:05:08.391950+00:00",
-          "weakest_factor_score": 62.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1738,
-        "title": "ریمل رنگی کالیستا مدل Pastella رنگ قهوه ای"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-21066186",
-      "product_plan_cycle_id": "2026-11-23T02:52:37.204480+00:00",
-      "scheduled_at": "2026-11-23T03:18:57.676476+00:00",
-      "selected_at": "2026-11-22T17:05:12.891864+00:00",
-      "sequence_number": 1738,
       "status": "queued"
     },
     "dkp-21120566": {
       "attempt_count": 0,
       "content_id": "dkp-21120566",
       "content_type": "product",
-      "next_attempt_at": "2026-11-23T06:44:57.676476+00:00",
+      "next_attempt_at": "2026-11-23T06:45:52.736380+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21120566%2F",
         "availability": "in_stock",
@@ -40897,7 +40726,7 @@
       },
       "product_id": "dkp-21120566",
       "product_plan_cycle_id": "2026-11-23T02:52:37.204480+00:00",
-      "scheduled_at": "2026-11-23T06:44:57.676476+00:00",
+      "scheduled_at": "2026-11-23T06:45:52.736380+00:00",
       "selected_at": "2026-11-23T02:29:57.565357+00:00",
       "sequence_number": 1744,
       "status": "queued"
@@ -40906,7 +40735,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21556848",
       "content_type": "product",
-      "next_attempt_at": "2026-11-23T04:22:57.676476+00:00",
+      "next_attempt_at": "2026-11-23T04:23:52.736380+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21556848%2F",
         "availability": "in_stock",
@@ -41072,7 +40901,7 @@
       },
       "product_id": "dkp-21556848",
       "product_plan_cycle_id": "2026-11-23T02:52:37.204480+00:00",
-      "scheduled_at": "2026-11-23T04:22:57.676476+00:00",
+      "scheduled_at": "2026-11-23T04:23:52.736380+00:00",
       "selected_at": "2026-11-22T20:31:07.274211+00:00",
       "sequence_number": 1740,
       "status": "queued"
@@ -41081,7 +40910,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22949493",
       "content_type": "product",
-      "next_attempt_at": "2026-11-23T03:50:57.676476+00:00",
+      "next_attempt_at": "2026-11-23T03:51:52.736380+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22949493%2F",
         "availability": "in_stock",
@@ -41246,7 +41075,7 @@
       },
       "product_id": "dkp-22949493",
       "product_plan_cycle_id": "2026-11-23T02:52:37.204480+00:00",
-      "scheduled_at": "2026-11-23T03:50:57.676476+00:00",
+      "scheduled_at": "2026-11-23T03:51:52.736380+00:00",
       "selected_at": "2026-11-22T18:05:47.332638+00:00",
       "sequence_number": 1739,
       "status": "queued"
@@ -41255,7 +41084,7 @@
       "attempt_count": 0,
       "content_id": "dkp-23125135",
       "content_type": "product",
-      "next_attempt_at": "2026-11-23T04:57:57.676476+00:00",
+      "next_attempt_at": "2026-11-23T04:58:52.736380+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-23125135%2F",
         "availability": "in_stock",
@@ -41420,7 +41249,7 @@
       },
       "product_id": "dkp-23125135",
       "product_plan_cycle_id": "2026-11-23T02:52:37.204480+00:00",
-      "scheduled_at": "2026-11-23T04:57:57.676476+00:00",
+      "scheduled_at": "2026-11-23T04:58:52.736380+00:00",
       "selected_at": "2026-11-22T20:31:07.274211+00:00",
       "sequence_number": 1741,
       "status": "queued"
@@ -41429,7 +41258,7 @@
       "attempt_count": 0,
       "content_id": "dkp-7987943",
       "content_type": "product",
-      "next_attempt_at": "2026-11-23T06:12:57.676476+00:00",
+      "next_attempt_at": "2026-11-23T06:13:52.736380+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-7987943%2F",
         "availability": "in_stock",
@@ -41594,7 +41423,7 @@
       },
       "product_id": "dkp-7987943",
       "product_plan_cycle_id": "2026-11-23T02:52:37.204480+00:00",
-      "scheduled_at": "2026-11-23T06:12:57.676476+00:00",
+      "scheduled_at": "2026-11-23T06:13:52.736380+00:00",
       "selected_at": "2026-11-22T21:24:33.346603+00:00",
       "sequence_number": 1743,
       "status": "queued"
@@ -72608,7 +72437,7 @@
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
       "delivery_duration_seconds": 1.7,
-      "delivery_started_at": "2026-11-23T02:57:01.753435+00:00",
+      "delivery_started_at": "2026-11-23T03:19:53.935108+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -73070,13 +72899,13 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-23T02:35:57.676476+00:00",
+  "last_channel_published_at": "2026-11-23T03:19:52.736380+00:00",
   "last_content_selection_at": "2026-11-23T02:29:57.565357+00:00",
   "last_editorial_attempt_at": "2026-11-18T02:10:38.177140+00:00",
   "last_editorial_confirmed_at": "2026-11-18T02:10:49.933296+00:00",
   "last_editorial_empty_bank_check_at": "2026-11-18T01:24:46.585898+00:00",
-  "last_product_channel_published_at": "2026-11-23T02:35:57.676476+00:00",
-  "last_published_at": "2026-11-23T02:35:57.676476+00:00",
+  "last_product_channel_published_at": "2026-11-23T03:19:52.736380+00:00",
+  "last_published_at": "2026-11-23T03:19:52.736380+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -126579,43 +126408,42 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-23T02:57:00.097697+00:00",
-    "candidate_count": 7,
+    "calculated_at": "2026-11-23T03:19:52.736390+00:00",
+    "candidate_count": 6,
     "catalog_cycle_id": "2026-11-23T02:52:37.204480+00:00",
     "current_cycle_started_at": "2026-11-23T02:52:37.527639+00:00",
     "daily_post_limit": 72,
     "deferred_product_count": 0,
     "estimated_clean_cycle_seconds": 1629,
-    "estimated_next_clean_scan_at": "2026-11-23T03:19:46.527639+00:00",
+    "estimated_next_clean_scan_at": "",
     "first_slot_due_now": false,
-    "interval_minutes": 31.0,
-    "interval_seconds": 1860.0,
+    "interval_minutes": 57.0,
+    "interval_seconds": 3420.0,
     "last_clean_cycle_completed_at": "2026-11-23T02:52:37.204480+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-23T02:35:57.676476+00:00",
-    "plan_anchor_kind": "last_product",
-    "planned_product_slots": 7,
-    "planned_window_end_at": "2026-11-23T03:19:46.527639+00:00",
-    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes",
-    "scan_eta_is_provisional": false,
-    "scan_eta_source": "last_observed_full_cycle_duration",
+    "plan_anchor_at": "2026-11-23T03:19:52.736380+00:00",
+    "plan_anchor_kind": "last_channel_provisional",
+    "planned_product_slots": 6,
+    "planned_window_end_at": "2026-11-23T09:01:52.736380+00:00",
+    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
+    "scan_eta_is_provisional": true,
+    "scan_eta_source": "provisional_max_interval_after_overdue_or_missing_scan_eta",
     "scheduled_product_count": 7,
-    "seconds_from_plan_anchor_to_next_scan": 2628.851163,
-    "seconds_until_estimated_next_clean_scan": 1366.429942
+    "seconds_from_plan_anchor_to_next_scan": 20520,
+    "seconds_until_estimated_next_clean_scan": 0.0
   },
-  "product_publication_interval_seconds": 1860.0,
+  "product_publication_interval_seconds": 3420.0,
   "product_publication_plan": {
-    "anchor_at": "2026-11-23T02:35:57.676476+00:00",
-    "anchor_kind": "last_product",
+    "anchor_at": "2026-11-23T03:19:52.736380+00:00",
+    "anchor_kind": "last_channel_provisional",
     "catalog_cycle_id": "2026-11-23T02:52:37.204480+00:00",
     "first_slot_due_now": false,
-    "interval_minutes": 31.0,
-    "interval_seconds": 1860.0,
+    "interval_minutes": 57.0,
+    "interval_seconds": 3420.0,
     "maximum_product_interval_seconds": 3420,
-    "next_clean_scan_at": "2026-11-23T03:19:46.527639+00:00",
-    "pending_product_count": 7,
+    "next_clean_scan_at": "",
+    "pending_product_count": 6,
     "product_ids": [
-      "dkp-21066186",
       "dkp-22949493",
       "dkp-21556848",
       "dkp-23125135",
@@ -126623,11 +126451,11 @@
       "dkp-7987943",
       "dkp-21120566"
     ],
-    "scheduled_product_count": 7,
-    "updated_at": "2026-11-23T02:57:00.097697+00:00"
+    "scheduled_product_count": 6,
+    "updated_at": "2026-11-23T03:19:52.736390+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-23T02:35:57.676476+00:00",
-  "product_publication_plan_anchor_kind": "last_product",
+  "product_publication_plan_anchor_at": "2026-11-23T03:19:52.736380+00:00",
+  "product_publication_plan_anchor_kind": "last_channel_provisional",
   "product_publication_plan_cycle_id": "2026-11-23T02:52:37.204480+00:00",
   "publication_diversity_fallback_count": 5307,
   "publication_diversity_fallback_events": [
@@ -231756,6 +231584,134 @@
       "youtube_skip_reason": "selection_outside_freshness_window",
       "youtube_skip_recorded_at": "2026-11-18T21:30:04.118953+00:00",
       "youtube_upload_status": "skipped_stale_after_freshness_window"
+    },
+    "dkp-21066186": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2486,
+      "bale_posted_at": "2026-11-23T03:19:48.267509+00:00",
+      "brand": "کالیستا",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "A",
+      "catalog_best_selling_category_id": "6485",
+      "catalog_best_selling_category_name": "ریمل",
+      "catalog_best_selling_rank": 29,
+      "catalog_best_selling_ranks_by_category": {
+        "6485": {
+          "category_name": "ریمل",
+          "observed_at": "2026-11-22T16:35:56.613229+00:00",
+          "rank": 29,
+          "rank_history": [
+            {
+              "category_name": "ریمل",
+              "observed_at": "2026-11-22T16:35:56.613229+00:00",
+              "rank": 29
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-22T17:01:34.970848+00:00",
+      "catalog_cycle_snapshot_rank": 235,
+      "catalog_rank_observed_at": "2026-11-22T16:35:56.613229+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-21066186",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "A",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-23T03:19:52.384479+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 19,
+      "distribution_queue_id": "dkp-21066186:2026-11-22T17:05:12.891864+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-22T17:04:57.961534+00:00",
+      "history_days": 4,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/78721977ae44ea6640d266f1ba92b8ffcc20cc51_1765713348.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "unavailable",
+      "platform_message_ids": {
+        "rubika": "1980458722203588651"
+      },
+      "posted_current_price": 615600,
+      "posted_discount_percent": 48,
+      "posted_original_price": 1172980,
+      "product_url": "https://www.digikala.com/product/dkp-21066186/",
+      "promo_score": 37,
+      "publication_category": "other",
+      "publication_family": "digikala_category:6485",
+      "publication_use_case": "grocery_food",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 0.0,
+      "rubika_posted_at": "2026-11-23T03:19:52.384455+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 29,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 77.75,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 62.0,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 94.0,
+        "generality_group": "grocery_food",
+        "live_demand": 84.62,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-22T17:05:08.391950+00:00",
+        "weakest_factor_score": 62.0
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1738,
+      "telegram_message_id": 1840,
+      "telegram_posted_at": "2026-11-23T03:19:47.915944+00:00",
+      "title": "ریمل رنگی کالیستا مدل Pastella رنگ قهوه ای",
+      "ts": 1795403981.142031,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
     },
     "dkp-21068265": {
       "aparat_skip_reason": "selection_outside_freshness_window",
