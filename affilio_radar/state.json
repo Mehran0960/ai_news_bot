@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-23T14:22:47.133397+00:00",
-  "aparat_last_upload_success_at": "2026-11-23T14:22:50.552821+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-23T15:03:42.363151+00:00",
+  "aparat_last_upload_success_at": "2026-11-23T15:03:46.246451+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-23T14:58:51.667420+00:00",
@@ -195271,6 +195271,7 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
+      "expired_deleted_at": "2026-11-23T15:02:59.003362+00:00",
       "expires_at": "2026-11-23T14:17:32.078682+00:00",
       "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
@@ -195280,7 +195281,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "already_absent",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-23T11:17:06.930862+00:00",
@@ -215489,6 +215490,7 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
+      "expired_deleted_at": "2026-11-23T15:02:59.003362+00:00",
       "expires_at": "2026-11-23T14:57:47.505821+00:00",
       "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
@@ -215498,7 +215500,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "already_absent",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-22T01:02:57.504387+00:00",
@@ -244909,7 +244911,14 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-20707994": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-23T15:03:42.363151+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-23T15:03:46.246451+00:00",
+      "aparat_video_hash": "mugamai",
+      "aparat_video_record_id": "74357957",
+      "aparat_video_url": "https://www.aparat.com/v/mugamai",
+      "aparat_visibility": "public",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2506,
       "bale_posted_at": "2026-11-23T15:02:01.610530+00:00",
       "brand": "مادر",
@@ -244974,6 +244983,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_upload_status": "pending",
       "historical_deal_eligible": false,
       "history_checked_at": "2026-11-23T05:38:26.151836+00:00",
@@ -245033,8 +245043,16 @@
       "telegram_posted_at": "2026-11-23T15:02:00.934296+00:00",
       "title": "ست هودی و شلوار پسرانه مادر مدل Micky",
       "ts": 1795446113.742691,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-20707994.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-20707994.mp4"
+      },
+      "video_generated_at": "2026-11-23T15:03:36.923892+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-20728272": {
       "aparat_upload_started_at": "2026-11-19T00:46:47.253355+00:00",
