@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-23T22:44:53.011051+00:00",
-  "aparat_last_upload_success_at": "2026-11-23T22:44:57.095330+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-23T23:28:57.973602+00:00",
+  "aparat_last_upload_success_at": "2026-11-23T23:29:01.821278+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-23T23:23:48.771241+00:00",
@@ -231068,7 +231068,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "delete_unavailable",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-18T04:14:55.158542+00:00",
@@ -231148,6 +231148,7 @@
       },
       "selection_review_growth_evidence": "none",
       "sequence_number": 1500,
+      "telegram_expiry_last_delete_error": "RuntimeError: Bad Request: message can't be deleted",
       "telegram_message_id": 1675,
       "telegram_posted_at": "2026-11-17T12:16:14.952057+00:00",
       "title": "برچسب پارکابی خودرو نوین گراف مدل پوششی طرح کربن کد NOVIN-G4033 رول دو متری",
@@ -271136,6 +271137,7 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
+      "expired_deleted_at": "2026-11-23T23:28:06.581029+00:00",
       "expires_at": "2026-11-23T22:32:43.906802+00:00",
       "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
@@ -271145,7 +271147,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "already_absent",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-23T04:28:08.946729+00:00",
@@ -285975,7 +285977,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-22241194": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-23T23:28:57.973602+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-23T23:29:01.821278+00:00",
+      "aparat_video_hash": "klox36k",
+      "aparat_video_record_id": "74363154",
+      "aparat_video_url": "https://www.aparat.com/v/klox36k",
+      "aparat_visibility": "public",
       "bale_message_id": 2520,
       "bale_posted_at": "2026-11-23T23:27:46.616051+00:00",
       "brand": "شیگلم",
@@ -286099,8 +286107,16 @@
       "telegram_posted_at": "2026-11-23T23:27:46.178894+00:00",
       "title": "مجموعه آرایشی شیگلم مدل sweetheart بسته 9 عددی",
       "ts": 1795476459.035772,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22241194.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22241194.mp4"
+      },
+      "video_generated_at": "2026-11-23T23:28:49.743442+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22243065": {
       "aparat_upload_started_at": "2026-11-23T19:05:58.558134+00:00",
