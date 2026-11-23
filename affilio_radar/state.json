@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-23T07:53:57.314454+00:00",
-  "aparat_last_upload_success_at": "2026-11-23T07:54:02.928052+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-23T08:27:48.453703+00:00",
+  "aparat_last_upload_success_at": "2026-11-23T08:28:06.860076+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-23T08:18:41.309579+00:00",
@@ -194044,7 +194044,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-10004400": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-23T08:27:48.453703+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-23T08:28:06.860076+00:00",
+      "aparat_video_hash": "idl699h",
+      "aparat_video_record_id": "74352092",
+      "aparat_video_url": "https://www.aparat.com/v/idl699h",
+      "aparat_visibility": "public",
       "bale_message_id": 2494,
       "bale_posted_at": "2026-11-23T08:26:48.643475+00:00",
       "brand": "انتشارات نگاه آشنا",
@@ -194168,8 +194174,16 @@
       "telegram_posted_at": "2026-11-23T08:26:48.223094+00:00",
       "title": "کتاب هنر رندانه به هیچ گرفتن اثر مارک منسون انتشارات نگاه آشنا",
       "ts": 1795422403.078314,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-10004400.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-10004400.mp4"
+      },
+      "video_generated_at": "2026-11-23T08:27:41.043482+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-1002646": {
       "aparat_skip_reason": "selection_outside_freshness_window",
