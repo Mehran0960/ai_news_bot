@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-23T06:19:43.255473+00:00",
-  "aparat_last_upload_success_at": "2026-11-23T06:20:01.519442+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-23T06:58:50.543889+00:00",
+  "aparat_last_upload_success_at": "2026-11-23T06:58:55.985840+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-23T06:54:36.040494+00:00",
@@ -221077,7 +221077,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-16189615": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-23T06:58:50.543889+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-23T06:58:55.985840+00:00",
+      "aparat_video_hash": "xyak7p5",
+      "aparat_video_record_id": "74350630",
+      "aparat_video_url": "https://www.aparat.com/v/xyak7p5",
+      "aparat_visibility": "public",
       "bale_message_id": 2492,
       "bale_posted_at": "2026-11-23T06:57:19.050488+00:00",
       "brand": "",
@@ -221213,8 +221219,16 @@
       "telegram_posted_at": "2026-11-23T06:57:18.191343+00:00",
       "title": "کفش پیاده روی مدل VZM 213 ANT جورابی",
       "ts": 1795417032.57109,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-16189615.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-16189615.mp4"
+      },
+      "video_generated_at": "2026-11-23T06:58:42.777930+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-16190193": {
       "aparat_skip_reason": "selection_outside_freshness_window",
