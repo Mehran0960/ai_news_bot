@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-23T13:00:52.366913+00:00",
-  "aparat_last_upload_success_at": "2026-11-23T13:00:55.953698+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-23T13:38:48.046816+00:00",
+  "aparat_last_upload_success_at": "2026-11-23T13:38:51.464598+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-23T13:31:54.470614+00:00",
@@ -266737,7 +266737,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22043032": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-23T13:38:48.046816+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-23T13:38:51.464598+00:00",
+      "aparat_video_hash": "phj985t",
+      "aparat_video_record_id": "74356692",
+      "aparat_video_url": "https://www.aparat.com/v/phj985t",
+      "aparat_visibility": "public",
       "bale_message_id": 2504,
       "bale_posted_at": "2026-11-23T13:37:55.882210+00:00",
       "brand": "",
@@ -266861,8 +266867,16 @@
       "telegram_posted_at": "2026-11-23T13:37:55.193869+00:00",
       "title": "بستنی خشک حبه 10 طعم شیمانا - 105 گرم",
       "ts": 1795441068.463018,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22043032.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22043032.mp4"
+      },
+      "video_generated_at": "2026-11-23T13:38:40.292130+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22043100": {
       "aparat_upload_started_at": "2026-11-17T19:15:58.075729+00:00",
