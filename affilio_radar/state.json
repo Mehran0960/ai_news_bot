@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-23T11:49:43.702597+00:00",
-  "aparat_last_upload_success_at": "2026-11-23T11:49:47.254650+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-23T12:27:42.672140+00:00",
+  "aparat_last_upload_success_at": "2026-11-23T12:27:45.954567+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-23T12:06:44.892863+00:00",
@@ -330445,7 +330445,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-9048113": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-23T12:27:42.672140+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-23T12:27:45.954567+00:00",
+      "aparat_video_hash": "piikom5",
+      "aparat_video_record_id": "74355621",
+      "aparat_video_url": "https://www.aparat.com/v/piikom5",
+      "aparat_visibility": "public",
       "bale_message_id": 2501,
       "bale_posted_at": "2026-11-23T12:26:43.429951+00:00",
       "brand": "",
@@ -330569,8 +330575,16 @@
       "telegram_posted_at": "2026-11-23T12:26:42.728777+00:00",
       "title": "شلوارک مردانه ایران مد مدل چهارخانه کد r-20785",
       "ts": 1795436795.289766,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-9048113.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-9048113.mp4"
+      },
+      "video_generated_at": "2026-11-23T12:27:34.875016+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-9152414": {
       "aparat_upload_started_at": "2026-11-22T14:20:38.535757+00:00",
