@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-23T09:38:55.665783+00:00",
-  "aparat_last_upload_success_at": "2026-11-23T09:38:59.753717+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-23T11:15:48.773133+00:00",
+  "aparat_last_upload_success_at": "2026-11-23T11:15:51.532187+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-23T11:10:42.993804+00:00",
@@ -195912,7 +195912,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-10791960": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-23T11:15:48.773133+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-23T11:15:51.532187+00:00",
+      "aparat_video_hash": "detxf05",
+      "aparat_video_record_id": "74354532",
+      "aparat_video_url": "https://www.aparat.com/v/detxf05",
+      "aparat_visibility": "public",
       "bale_message_id": 2499,
       "bale_posted_at": "2026-11-23T11:14:19.598041+00:00",
       "brand": "آردن سبوما",
@@ -196036,8 +196042,16 @@
       "telegram_posted_at": "2026-11-23T11:14:19.040855+00:00",
       "title": "ژل لایه بردار آردن سبوما مدل SEBUGEL حجم 350 میلی لیتر",
       "ts": 1795432451.842996,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-10791960.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-10791960.mp4"
+      },
+      "video_generated_at": "2026-11-23T11:15:43.514475+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-10825536": {
       "aparat_skip_reason": "selection_outside_freshness_window",
