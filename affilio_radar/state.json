@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-23T21:04:43.386408+00:00",
-  "aparat_last_upload_success_at": "2026-11-23T21:04:47.279820+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-23T21:37:58.004569+00:00",
+  "aparat_last_upload_success_at": "2026-11-23T21:38:01.130519+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-23T21:19:48.853744+00:00",
@@ -261734,7 +261734,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-21030584": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-23T21:37:58.004569+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-23T21:38:01.130519+00:00",
+      "aparat_video_hash": "tbtf4t6",
+      "aparat_video_record_id": "74362674",
+      "aparat_video_url": "https://www.aparat.com/v/tbtf4t6",
+      "aparat_visibility": "public",
       "bale_message_id": 2515,
       "bale_posted_at": "2026-11-23T21:36:50.225290+00:00",
       "brand": "",
@@ -261858,8 +261864,16 @@
       "telegram_posted_at": "2026-11-23T21:36:48.989208+00:00",
       "title": "توت فرنگی خشک پفکی شیمانا - 22 گرم",
       "ts": 1795469801.76125,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-21030584.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-21030584.mp4"
+      },
+      "video_generated_at": "2026-11-23T21:37:51.291160+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-21031486": {
       "aparat_upload_started_at": "2026-11-19T06:33:56.948620+00:00",
