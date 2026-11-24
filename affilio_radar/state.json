@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-24T11:02:56.466080+00:00",
-  "aparat_last_upload_success_at": "2026-11-24T11:03:00.905054+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-24T13:19:00.812376+00:00",
+  "aparat_last_upload_success_at": "2026-11-24T13:19:04.119522+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-24T13:14:13.409454+00:00",
@@ -323324,7 +323324,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-3597522": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-24T13:19:00.812376+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-24T13:19:04.119522+00:00",
+      "aparat_video_hash": "ssjv3b2",
+      "aparat_video_record_id": "74371035",
+      "aparat_video_url": "https://www.aparat.com/v/ssjv3b2",
+      "aparat_visibility": "public",
       "bale_message_id": 2543,
       "bale_posted_at": "2026-11-24T13:17:26.648498+00:00",
       "brand": "فلاویا",
@@ -323448,8 +323454,16 @@
       "telegram_posted_at": "2026-11-24T13:17:26.237074+00:00",
       "title": "قهوه‌ساز فلاویا مدل FL_200W، با فیلتر قابل تعویض، دارای صفحه گرم نگهدارنده قهوه",
       "ts": 1795526240.605759,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-3597522.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-3597522.mp4"
+      },
+      "video_generated_at": "2026-11-24T13:18:53.191266+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-3625327": {
       "aparat_skip_reason": "selection_outside_freshness_window",
