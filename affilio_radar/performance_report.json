@@ -1,7 +1,7 @@
 {
   "approved_commission": null,
   "caption_experiment_assignment_active": true,
-  "caption_experiment_assignment_coverage_percent": 26.18,
+  "caption_experiment_assignment_coverage_percent": 26.24,
   "caption_experiment_attribution_active": false,
   "caption_experiment_attribution_supported_by_worker": true,
   "caption_experiment_measurement_status": "blocked_live_cta_bypasses_click_tracker",
@@ -21,7 +21,7 @@
       "clicks_per_published_post": null,
       "ctr": null,
       "orders": null,
-      "published_posts": 184,
+      "published_posts": 185,
       "sales_amount": null,
       "tracked_clicks_30d": null
     }
@@ -34,7 +34,7 @@
       "clicks_per_published_post": null,
       "ctr": null,
       "orders": null,
-      "published_posts": 232,
+      "published_posts": 233,
       "sales_amount": null,
       "tracked_clicks_30d": null
     },
@@ -50,13 +50,13 @@
   },
   "ctr": null,
   "experiment_assignment_active": true,
-  "experiment_assignment_coverage_percent": 33.56,
+  "experiment_assignment_coverage_percent": 33.61,
   "experiment_attribution_active": false,
   "experiment_attribution_available": true,
   "experiment_attribution_supported_by_worker": true,
   "experiment_measurement_status": "blocked_live_cta_bypasses_click_tracker",
   "experiment_publication_status": "partially_assigned",
-  "generated_at": "2026-11-23T23:57:00.903444+00:00",
+  "generated_at": "2026-11-24T00:27:20.237308+00:00",
   "impressions": null,
   "interpretation": "Tracked clicks and clicks per published post are descriptive signals, not CTR or causal lift. Live purchase buttons intentionally use direct Affilio URLs and bypass the Cloudflare click tracker; Worker capability and historical tagged events do not establish attribution for current live CTAs. Official Affilio SubID support or an order/report export is required for verified source attribution. Impressions, orders, sales and commission are not inferred from clicks.",
   "live_purchase_attribution_blocker": "requires_official_affilio_subid_or_report_export",
@@ -64,17 +64,17 @@
   "live_purchase_link_mode": "direct_affilio_link",
   "live_purchase_source_attribution_available": false,
   "orders": null,
-  "published_caption_experiment_posts": 344,
-  "published_experiment_posts": 441,
+  "published_caption_experiment_posts": 345,
+  "published_experiment_posts": 442,
   "published_posts_by_caption_variant": {
     "offerchin-caption-v1:A": 160,
-    "offerchin-caption-v1:B": 184
+    "offerchin-caption-v1:B": 185
   },
   "published_posts_by_platform": {
     "aparat": 41,
-    "bale": 1304,
-    "rubika": 458,
-    "telegram": 1311,
+    "bale": 1305,
+    "rubika": 459,
+    "telegram": 1312,
     "youtube": 197
   },
   "published_posts_by_product": {
@@ -21559,6 +21559,24 @@
       "selection_demand_evidence": "digikala_recent_review_growth_proxy",
       "selection_demand_quality": "indirect_review_growth_proxy_not_sales"
     },
+    "dkp-736874": {
+      "bestseller_category_count": 1,
+      "bestseller_rank": 9,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "B",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "A",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "demand_evidence_scope": "legacy_unknown",
+      "discount_percent": 35,
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold"
+    },
     "dkp-7383737": {
       "bestseller_category_count": 1,
       "bestseller_rank": 1,
@@ -23153,10 +23171,10 @@
     }
   },
   "published_posts_by_variant": {
-    "offerchin-creative-v1:A": 232,
+    "offerchin-creative-v1:A": 233,
     "offerchin-creative-v1:B": 209
   },
-  "published_product_count": 1314,
+  "published_product_count": 1315,
   "sales_amount": null,
   "sales_data_status": "unavailable_until_official_Affilio_report_or_export_is_connected",
   "source_attribution_available": false,
@@ -23170,17 +23188,13 @@
     "dkp-17288007": 3,
     "dkp-17797406": 1,
     "dkp-17869821": 4,
-    "dkp-17997841": 1,
     "dkp-18478960": 1,
     "dkp-18560972": 1,
-    "dkp-18938117": 1,
     "dkp-19655591": 1,
     "dkp-20072945": 3,
-    "dkp-20073107": 1,
     "dkp-20615539": 3,
     "dkp-20917693": 3,
     "dkp-21056927": 1,
-    "dkp-21152067": 1,
     "dkp-21240900": 3,
     "dkp-21809846": 1,
     "dkp-21834821": 3,
@@ -23196,7 +23210,6 @@
     "dkp-22447618": 1,
     "dkp-22455734": 3,
     "dkp-22484527": 3,
-    "dkp-22674386": 1,
     "dkp-22742937": 2,
     "dkp-22862463": 3,
     "dkp-22923665": 1,
@@ -23208,7 +23221,6 @@
     "dkp-23134597": 3,
     "dkp-3365357": 3,
     "dkp-4639315": 3,
-    "dkp-516555": 1,
     "dkp-5927887": 3,
     "dkp-7608527": 1,
     "dkp-8720946": 3
@@ -23237,16 +23249,10 @@
       "bale": 1,
       "youtube": 3
     },
-    "dkp-17997841": {
-      "youtube": 1
-    },
     "dkp-18478960": {
       "bale": 1
     },
     "dkp-18560972": {
-      "youtube": 1
-    },
-    "dkp-18938117": {
       "youtube": 1
     },
     "dkp-19655591": {
@@ -23254,9 +23260,6 @@
     },
     "dkp-20072945": {
       "youtube": 3
-    },
-    "dkp-20073107": {
-      "youtube": 1
     },
     "dkp-20615539": {
       "youtube": 3
@@ -23266,9 +23269,6 @@
     },
     "dkp-21056927": {
       "bale": 1
-    },
-    "dkp-21152067": {
-      "youtube": 1
     },
     "dkp-21240900": {
       "youtube": 3
@@ -23315,9 +23315,6 @@
     "dkp-22484527": {
       "youtube": 3
     },
-    "dkp-22674386": {
-      "youtube": 1
-    },
     "dkp-22742937": {
       "youtube": 2
     },
@@ -23352,9 +23349,6 @@
     "dkp-4639315": {
       "youtube": 3
     },
-    "dkp-516555": {
-      "youtube": 1
-    },
     "dkp-5927887": {
       "youtube": 3
     },
@@ -23368,13 +23362,13 @@
   "tracked_clicks_by_product_variant": {},
   "tracked_clicks_by_source": {
     "bale": 12,
-    "youtube": 93
+    "youtube": 87
   },
-  "tracked_clicks_total": 105,
+  "tracked_clicks_total": 99,
   "tracked_clicks_with_caption_experiment_attribution": 0,
   "tracked_clicks_with_experiment_attribution": 0,
-  "tracked_clicks_without_caption_experiment_attribution": 105,
-  "tracked_clicks_without_experiment_attribution": 105,
+  "tracked_clicks_without_caption_experiment_attribution": 99,
+  "tracked_clicks_without_experiment_attribution": 99,
   "unassigned_caption_experiment_posts": 970,
   "unassigned_published_posts": 873,
   "window_days": 30,
