@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-24T01:54:51.225110+00:00",
-  "aparat_last_upload_success_at": "2026-11-24T01:54:55.091522+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-24T02:34:47.637246+00:00",
+  "aparat_last_upload_success_at": "2026-11-24T02:34:53.241953+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-24T02:13:34.648953+00:00",
@@ -242538,7 +242538,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-18342850": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-24T02:34:47.637246+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-24T02:34:53.241953+00:00",
+      "aparat_video_hash": "rra5d7l",
+      "aparat_video_record_id": "74363541",
+      "aparat_video_url": "https://www.aparat.com/v/rra5d7l",
+      "aparat_visibility": "public",
       "bale_message_id": 2529,
       "bale_posted_at": "2026-11-24T02:33:49.672479+00:00",
       "brand": "پارس استیل",
@@ -242662,8 +242668,16 @@
       "telegram_posted_at": "2026-11-24T02:33:48.196704+00:00",
       "title": "نیم قابلمه پارس استیل مدل ارتفاع کوتاه سایز 28",
       "ts": 1795487620.610808,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-18342850.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-18342850.mp4"
+      },
+      "video_generated_at": "2026-11-24T02:34:39.796060+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-18358700": {
       "aparat_skip_reason": "selection_outside_freshness_window",
