@@ -3072,183 +3072,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 1,
-      "content_id": "dkp-1053744",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-19T17:09:16.086621+00:00",
-      "last_detail": "selected_price_stale_selected=1025800_live=1023100",
-      "next_attempt_at": "2026-11-19T17:06:05.431065+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1053744%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "پرایم",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "6654",
-        "catalog_best_selling_category_name": "سرم پوست",
-        "catalog_best_selling_rank": 8,
-        "catalog_best_selling_ranks_by_category": {
-          "6654": {
-            "category_name": "سرم پوست",
-            "observed_at": "2026-11-19T14:42:46.323521+00:00",
-            "rank": 8,
-            "rank_history": [
-              {
-                "category_name": "سرم پوست",
-                "observed_at": "2026-11-19T14:42:46.323521+00:00",
-                "rank": 8
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-19T15:11:34.654562+00:00",
-        "catalog_cycle_snapshot_rank": 239,
-        "catalog_rank_observed_at": "2026-11-19T14:42:46.323521+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "personal_care",
-        "checked_at": "2026-11-19T15:15:17.495065+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-1053744",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 1025800,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 19.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 56.0,
-        "discount_percent": 34,
-        "discount_vs_30d_median_pct": -5,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-19T15:15:39.094908+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-19",
-        "history_high_toman": 1025800,
-        "history_low_toman": 936000,
-        "history_median_toman": 980900,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 1025800,
-        "history_start_day": "2026-11-18",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/81226493ebc05fca5f780cde956e29f2c4f7435f_1786372385.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "سرم پوست پرایم مدل C_Prime حجم 30 میلی لیتر",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 76.39,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 56.0,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.5,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-19T15:15:49.750102+00:00",
-          "weakest_factor_score": 56.0
-        },
-        "original_price": 1550000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-1053744",
-        "product_url": "https://www.digikala.com/product/dkp-1053744/",
-        "promo_score": 27,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.3,
-        "recent_review_growth_7d": 1,
-        "recent_review_growth_window": 1,
-        "review_count": 6792,
-        "savings_toman": 524200,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 8,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 76.39,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 56.0,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.5,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-19T15:15:49.750102+00:00",
-          "weakest_factor_score": 56.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1590,
-        "title": "سرم پوست پرایم مدل C_Prime حجم 30 میلی لیتر"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-1053744",
-      "product_plan_cycle_id": "2026-11-19T17:02:44.711264+00:00",
-      "scheduled_at": "2026-11-19T17:06:05.431065+00:00",
-      "selected_at": "2026-11-19T15:15:53.392306+00:00",
-      "sequence_number": 1590,
-      "status": "stale_selection",
-      "updated_at": "2026-11-19T17:09:16.086621+00:00"
-    },
-    {
-      "attempt_count": 1,
       "content_id": "dkp-3051794",
       "content_type": "product",
       "last_attempt_at": "2026-11-19T17:44:04.634677+00:00",
@@ -39721,6 +39544,181 @@
       "sequence_number": 1789,
       "status": "published",
       "updated_at": "2026-11-24T09:13:58.207261+00:00"
+    },
+    {
+      "attempt_count": 0,
+      "content_id": "dkp-17361639",
+      "content_type": "product",
+      "last_detail": "recent_product_family_or_brand_cooldown",
+      "next_attempt_at": "2026-11-24T10:00:58.205943+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-17361639%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "شیائومی",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "211",
+        "catalog_best_selling_category_name": "هدفون، هدست و هندزفری",
+        "catalog_best_selling_rank": 7,
+        "catalog_best_selling_ranks_by_category": {
+          "211": {
+            "category_name": "هدفون، هدست و هندزفری",
+            "observed_at": "2026-11-23T17:43:47.218718+00:00",
+            "rank": 7,
+            "rank_history": [
+              {
+                "category_name": "هدفون، هدست و هندزفری",
+                "observed_at": "2026-11-23T17:43:47.218718+00:00",
+                "rank": 7
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-23T18:12:32.449626+00:00",
+        "catalog_cycle_snapshot_rank": 219,
+        "catalog_rank_observed_at": "2026-11-23T17:43:47.218718+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "audio_wearables",
+        "checked_at": "2026-11-23T18:17:06.913632+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-17361639",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 2635000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 9.9,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 65.55,
+        "discount_percent": 48,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-23T18:17:26.192177+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-23",
+        "history_high_toman": 2635000,
+        "history_low_toman": 2635000,
+        "history_median_toman": 2635000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-23",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/136c80ee8c3938e81d5554a95388058fdb399303_1786571886.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 78.68,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 65.55,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 78.0,
+          "generality_group": "audio_visual",
+          "live_demand": 99.48,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-23T18:17:48.190131+00:00",
+          "weakest_factor_score": 65.55
+        },
+        "original_price": 5035300,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-17361639",
+        "product_url": "https://www.digikala.com/product/dkp-17361639/",
+        "promo_score": 41,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.31,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 1857,
+        "savings_toman": 2400300,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 7,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 78.68,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 65.55,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 78.0,
+          "generality_group": "audio_visual",
+          "live_demand": 99.48,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-23T18:17:48.190131+00:00",
+          "weakest_factor_score": 65.55
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1790,
+        "title": "هدفون بلوتوثی شیائومی مدل Redmi Buds 6 Play با نویز کنسلینگ میکروفون (ENC)، درگاه شارژ USB Type-C، با قابلیت اتصال به چند دستگاه، دارای تکنولوژی صدای 360، دارای قابلیت شارژ سریع، م",
+        "variant_label": "سفید"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-17361639",
+      "product_plan_cycle_id": "2026-11-24T09:38:35.255437+00:00",
+      "scheduled_at": "2026-11-24T10:00:58.205943+00:00",
+      "selected_at": "2026-11-23T18:17:52.846629+00:00",
+      "sequence_number": 1790,
+      "status": "stale_selection",
+      "updated_at": "2026-11-24T10:01:45.097721+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -40465,179 +40463,6 @@
       "scheduled_at": "2026-11-25T04:58:58.205943+00:00",
       "selected_at": "2026-11-24T06:50:11.241677+00:00",
       "sequence_number": 1819,
-      "status": "queued"
-    },
-    "dkp-17361639": {
-      "attempt_count": 0,
-      "content_id": "dkp-17361639",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-24T10:00:58.205943+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-17361639%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "شیائومی",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "211",
-        "catalog_best_selling_category_name": "هدفون، هدست و هندزفری",
-        "catalog_best_selling_rank": 7,
-        "catalog_best_selling_ranks_by_category": {
-          "211": {
-            "category_name": "هدفون، هدست و هندزفری",
-            "observed_at": "2026-11-23T17:43:47.218718+00:00",
-            "rank": 7,
-            "rank_history": [
-              {
-                "category_name": "هدفون، هدست و هندزفری",
-                "observed_at": "2026-11-23T17:43:47.218718+00:00",
-                "rank": 7
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-23T18:12:32.449626+00:00",
-        "catalog_cycle_snapshot_rank": 219,
-        "catalog_rank_observed_at": "2026-11-23T17:43:47.218718+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "audio_wearables",
-        "checked_at": "2026-11-23T18:17:06.913632+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-17361639",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 2635000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 9.9,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 65.55,
-        "discount_percent": 48,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-23T18:17:26.192177+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-23",
-        "history_high_toman": 2635000,
-        "history_low_toman": 2635000,
-        "history_median_toman": 2635000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-23",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/136c80ee8c3938e81d5554a95388058fdb399303_1786571886.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 78.68,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 65.55,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 78.0,
-          "generality_group": "audio_visual",
-          "live_demand": 99.48,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-23T18:17:48.190131+00:00",
-          "weakest_factor_score": 65.55
-        },
-        "original_price": 5035300,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-17361639",
-        "product_url": "https://www.digikala.com/product/dkp-17361639/",
-        "promo_score": 41,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.31,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 1857,
-        "savings_toman": 2400300,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 7,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 78.68,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 65.55,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 78.0,
-          "generality_group": "audio_visual",
-          "live_demand": 99.48,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-23T18:17:48.190131+00:00",
-          "weakest_factor_score": 65.55
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1790,
-        "title": "هدفون بلوتوثی شیائومی مدل Redmi Buds 6 Play با نویز کنسلینگ میکروفون (ENC)، درگاه شارژ USB Type-C، با قابلیت اتصال به چند دستگاه، دارای تکنولوژی صدای 360، دارای قابلیت شارژ سریع، م",
-        "variant_label": "سفید"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-17361639",
-      "product_plan_cycle_id": "2026-11-24T09:38:35.255437+00:00",
-      "scheduled_at": "2026-11-24T10:00:58.205943+00:00",
-      "selected_at": "2026-11-23T18:17:52.846629+00:00",
-      "sequence_number": 1790,
       "status": "queued"
     },
     "dkp-17986726": {
@@ -105771,7 +105596,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.9,
+      "delivery_duration_seconds": 2.0,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -105834,8 +105659,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.9,
-      "delivery_started_at": "2026-11-24T09:44:25.408020+00:00",
+      "delivery_duration_seconds": 2.0,
+      "delivery_started_at": "2026-11-24T10:01:47.349221+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
