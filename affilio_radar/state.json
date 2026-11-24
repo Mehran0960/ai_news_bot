@@ -3052,189 +3052,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 1,
-      "content_id": "dkp-22942102",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-20T02:35:34.286945+00:00",
-      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
-      "next_attempt_at": "2026-11-20T02:34:58.595477+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22942102%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "9459",
-        "catalog_best_selling_category_name": "شلوار ورزشی مردانه",
-        "catalog_best_selling_rank": 2,
-        "catalog_best_selling_ranks_by_category": {
-          "9459": {
-            "category_name": "شلوار ورزشی مردانه",
-            "observed_at": "2026-11-19T15:11:49.584839+00:00",
-            "rank": 2,
-            "rank_history": [
-              {
-                "category_name": "شلوار ورزشی مردانه",
-                "observed_at": "2026-11-19T15:11:49.584839+00:00",
-                "rank": 2
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-19T15:37:38.816861+00:00",
-        "catalog_cycle_snapshot_rank": 485,
-        "catalog_rank_observed_at": "2026-11-19T15:11:49.584839+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "sports_outdoor",
-        "checked_at": "2026-11-19T16:07:23.673217+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22942102",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 1450000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 65.04,
-        "discount_percent": 50,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-19T16:07:59.364088+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-19",
-        "history_high_toman": 1450000,
-        "history_low_toman": 1450000,
-        "history_median_toman": 1450000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-19",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/70b41f5c2d312f9eb3feba86582a86ae239f1be7_1791714595.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 69.25,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 65.04,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 56.0,
-          "generality_group": "sports_fitness",
-          "live_demand": 99.14,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-19T16:08:10.129191+00:00",
-          "weakest_factor_score": 56.0
-        },
-        "original_price": 2900000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-22942102",
-        "product_url": "https://www.digikala.com/product/dkp-22942102/",
-        "promo_score": 40,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 3.8,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 9,
-        "savings_toman": 1450000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 2,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 69.25,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 65.04,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 56.0,
-          "generality_group": "sports_fitness",
-          "live_demand": 99.14,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-19T16:08:10.129191+00:00",
-          "weakest_factor_score": 56.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1604,
-        "title": "شلوار ورزشی مردانه ایکس پروداکتس مدل Niki FIX دمپا کش، پارچه آیرو خارجی، کمر کشی",
-        "variant_label": "سرمه ای 3XL"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-20T02:35:34.286945+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-20T02:35:40.491890+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "credentials_not_configured",
-          "status": "not_connected",
-          "updated_at": "2026-11-20T02:35:34.286945+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-20T02:35:34.286945+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-20T02:35:43.743508+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-20T02:35:34.286945+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-20T02:35:40.149239+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22942102",
-      "product_plan_cycle_id": "2026-11-20T02:22:27.022857+00:00",
-      "scheduled_at": "2026-11-20T02:34:58.595477+00:00",
-      "selected_at": "2026-11-19T16:08:14.324804+00:00",
-      "sequence_number": 1604,
-      "status": "published",
-      "updated_at": "2026-11-20T02:35:44.010806+00:00"
-    },
-    {
-      "attempt_count": 1,
       "content_id": "dkp-118219",
       "content_type": "product",
       "last_attempt_at": "2026-11-20T03:21:43.004956+00:00",
@@ -39672,6 +39489,195 @@
       "sequence_number": 1803,
       "status": "published",
       "updated_at": "2026-11-24T17:02:54.786104+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-16449116",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-24T17:44:59.164377+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-24T17:43:54.784893+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-16449116%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "شهدین",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "10727",
+        "catalog_best_selling_category_name": "غذای آماده",
+        "catalog_best_selling_rank": 1,
+        "catalog_best_selling_ranks_by_category": {
+          "10727": {
+            "category_name": "غذای آماده",
+            "observed_at": "2026-11-24T02:40:23.891769+00:00",
+            "rank": 1,
+            "rank_history": [
+              {
+                "category_name": "غذای آماده",
+                "observed_at": "2026-11-24T02:40:23.891769+00:00",
+                "rank": 1
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-24T03:07:31.602143+00:00",
+        "catalog_cycle_snapshot_rank": 34,
+        "catalog_rank_observed_at": "2026-11-24T02:40:23.891769+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "grocery_food",
+        "checked_at": "2026-11-24T03:10:55.519427+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-16449116",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 809730,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "fresh_independent_history_or_market",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 81.98,
+        "discount_percent": 55,
+        "discount_vs_30d_median_pct": 18,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": true,
+        "historical_discount_savings_toman": 179970,
+        "history_checked_at": "2026-11-24T03:11:20.540152+00:00",
+        "history_days": 30,
+        "history_end_day": "1405/09/01",
+        "history_high_toman": 1259580,
+        "history_last_price_toman": 809730,
+        "history_low_toman": 809730,
+        "history_match_delta_pct": 0,
+        "history_median_toman": 989700,
+        "history_source": "digikala_price_chart",
+        "history_stable_low_toman": 899700,
+        "history_start_day": "1405/08/02",
+        "history_status": "verified",
+        "history_variant": "",
+        "history_variant_match": "closest_price",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/f093068a8b77170dde40ebf961d8ff4dd08c5eb9_1733824419.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_error": "RuntimeError",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_query": "کنسرو خورشت قیمه و سیب زمینی با سویا و کنسرو خورشت قورمه سبزی با سویا شهدین - 370 گرم بسته 6 عد",
+        "market_status": "unavailable",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 91.23,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 81.98,
+          "discount_evidence": "fresh_independent_history_or_market",
+          "generality": 94.0,
+          "generality_group": "grocery_food",
+          "live_demand": 99.52,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-24T03:11:31.731471+00:00",
+          "weakest_factor_score": 81.98
+        },
+        "original_price": 1799400,
+        "pct_above_stable_low": -10,
+        "product_id": "dkp-16449116",
+        "product_url": "https://www.digikala.com/product/dkp-16449116/",
+        "promo_score": 42,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.05,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 168,
+        "savings_toman": 989670,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 1,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 91.23,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 81.98,
+          "discount_evidence": "fresh_independent_history_or_market",
+          "generality": 94.0,
+          "generality_group": "grocery_food",
+          "live_demand": 99.52,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-24T03:11:31.731471+00:00",
+          "weakest_factor_score": 81.98
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "independently_verified",
+        "sequence_number": 1804,
+        "title": "کنسرو خورشت قیمه و سیب زمینی با سویا و کنسرو خورشت قورمه سبزی با سویا شهدین - 370 گرم بسته 6 عددی"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-24T17:44:59.164377+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-24T17:45:07.685802+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-24T17:44:59.164377+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-24T17:44:59.164377+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-24T17:45:10.876323+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-24T17:44:59.164377+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-24T17:45:05.585951+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-16449116",
+      "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
+      "scheduled_at": "2026-11-24T17:43:54.784893+00:00",
+      "selected_at": "2026-11-24T03:11:35.366081+00:00",
+      "sequence_number": 1804,
+      "status": "published",
+      "updated_at": "2026-11-24T17:45:11.175704+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -39686,7 +39692,7 @@
       "attempt_count": 0,
       "content_id": "dkp-10345443",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T05:36:54.784893+00:00",
+      "next_attempt_at": "2026-11-25T05:38:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-10345443%2F",
         "availability": "in_stock",
@@ -39851,7 +39857,7 @@
       },
       "product_id": "dkp-10345443",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-25T05:36:54.784893+00:00",
+      "scheduled_at": "2026-11-25T05:38:11.174467+00:00",
       "selected_at": "2026-11-24T10:45:24.044137+00:00",
       "sequence_number": 1822,
       "status": "queued"
@@ -39860,7 +39866,7 @@
       "attempt_count": 0,
       "content_id": "dkp-14915599",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T01:00:54.784893+00:00",
+      "next_attempt_at": "2026-11-25T01:02:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-14915599%2F",
         "availability": "in_stock",
@@ -40023,194 +40029,16 @@
       },
       "product_id": "dkp-14915599",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-25T01:00:54.784893+00:00",
+      "scheduled_at": "2026-11-25T01:02:11.174467+00:00",
       "selected_at": "2026-11-24T04:49:24.551092+00:00",
       "sequence_number": 1815,
-      "status": "queued"
-    },
-    "dkp-16449116": {
-      "attempt_count": 0,
-      "content_id": "dkp-16449116",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-24T17:43:54.784893+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-16449116%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "شهدین",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "10727",
-        "catalog_best_selling_category_name": "غذای آماده",
-        "catalog_best_selling_rank": 1,
-        "catalog_best_selling_ranks_by_category": {
-          "10727": {
-            "category_name": "غذای آماده",
-            "observed_at": "2026-11-24T02:40:23.891769+00:00",
-            "rank": 1,
-            "rank_history": [
-              {
-                "category_name": "غذای آماده",
-                "observed_at": "2026-11-24T02:40:23.891769+00:00",
-                "rank": 1
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-24T03:07:31.602143+00:00",
-        "catalog_cycle_snapshot_rank": 34,
-        "catalog_rank_observed_at": "2026-11-24T02:40:23.891769+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "grocery_food",
-        "checked_at": "2026-11-24T03:10:55.519427+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-16449116",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 809730,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "fresh_independent_history_or_market",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 81.98,
-        "discount_percent": 55,
-        "discount_vs_30d_median_pct": 18,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": true,
-        "historical_discount_savings_toman": 179970,
-        "history_checked_at": "2026-11-24T03:11:20.540152+00:00",
-        "history_days": 30,
-        "history_end_day": "1405/09/01",
-        "history_high_toman": 1259580,
-        "history_last_price_toman": 809730,
-        "history_low_toman": 809730,
-        "history_match_delta_pct": 0,
-        "history_median_toman": 989700,
-        "history_source": "digikala_price_chart",
-        "history_stable_low_toman": 899700,
-        "history_start_day": "1405/08/02",
-        "history_status": "verified",
-        "history_variant": "",
-        "history_variant_match": "closest_price",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/f093068a8b77170dde40ebf961d8ff4dd08c5eb9_1733824419.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "کنسرو خورشت قیمه و سیب زمینی با سویا و کنسرو خورشت قورمه سبزی با سویا شهدین - 370 گرم بسته 6 عد",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 91.23,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 81.98,
-          "discount_evidence": "fresh_independent_history_or_market",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 99.52,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-24T03:11:31.731471+00:00",
-          "weakest_factor_score": 81.98
-        },
-        "original_price": 1799400,
-        "pct_above_stable_low": -10,
-        "product_id": "dkp-16449116",
-        "product_url": "https://www.digikala.com/product/dkp-16449116/",
-        "promo_score": 42,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.05,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 168,
-        "savings_toman": 989670,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 1,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 91.23,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 81.98,
-          "discount_evidence": "fresh_independent_history_or_market",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 99.52,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-24T03:11:31.731471+00:00",
-          "weakest_factor_score": 81.98
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "independently_verified",
-        "sequence_number": 1804,
-        "title": "کنسرو خورشت قیمه و سیب زمینی با سویا و کنسرو خورشت قورمه سبزی با سویا شهدین - 370 گرم بسته 6 عددی"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-16449116",
-      "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-24T17:43:54.784893+00:00",
-      "selected_at": "2026-11-24T03:11:35.366081+00:00",
-      "sequence_number": 1804,
       "status": "queued"
     },
     "dkp-17336104": {
       "attempt_count": 0,
       "content_id": "dkp-17336104",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T03:40:54.784893+00:00",
+      "next_attempt_at": "2026-11-25T03:42:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-17336104%2F",
         "availability": "in_stock",
@@ -40410,7 +40238,7 @@
       },
       "product_id": "dkp-17336104",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-25T03:40:54.784893+00:00",
+      "scheduled_at": "2026-11-25T03:42:11.174467+00:00",
       "selected_at": "2026-11-24T06:50:11.241677+00:00",
       "sequence_number": 1819,
       "status": "queued"
@@ -40419,7 +40247,7 @@
       "attempt_count": 0,
       "content_id": "dkp-17986726",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T01:35:54.784893+00:00",
+      "next_attempt_at": "2026-11-25T01:37:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-17986726%2F",
         "availability": "in_stock",
@@ -40583,7 +40411,7 @@
       },
       "product_id": "dkp-17986726",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-25T01:35:54.784893+00:00",
+      "scheduled_at": "2026-11-25T01:37:11.174467+00:00",
       "selected_at": "2026-11-24T04:49:24.551092+00:00",
       "sequence_number": 1816,
       "status": "queued"
@@ -40592,7 +40420,7 @@
       "attempt_count": 0,
       "content_id": "dkp-18657865",
       "content_type": "product",
-      "next_attempt_at": "2026-11-24T18:55:54.784893+00:00",
+      "next_attempt_at": "2026-11-24T18:57:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-18657865%2F",
         "availability": "in_stock",
@@ -40783,7 +40611,7 @@
       },
       "product_id": "dkp-18657865",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-24T18:55:54.784893+00:00",
+      "scheduled_at": "2026-11-24T18:57:11.174467+00:00",
       "selected_at": "2026-11-24T03:43:14.194916+00:00",
       "sequence_number": 1806,
       "status": "queued"
@@ -40792,7 +40620,7 @@
       "attempt_count": 0,
       "content_id": "dkp-20064037",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T00:13:54.784893+00:00",
+      "next_attempt_at": "2026-11-25T00:15:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-20064037%2F",
         "availability": "in_stock",
@@ -40954,7 +40782,7 @@
       },
       "product_id": "dkp-20064037",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-25T00:13:54.784893+00:00",
+      "scheduled_at": "2026-11-25T00:15:11.174467+00:00",
       "selected_at": "2026-11-24T04:49:24.551092+00:00",
       "sequence_number": 1814,
       "status": "queued"
@@ -40963,7 +40791,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21196802",
       "content_type": "product",
-      "next_attempt_at": "2026-11-24T21:40:54.784893+00:00",
+      "next_attempt_at": "2026-11-24T21:42:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21196802%2F",
         "availability": "in_stock",
@@ -41128,7 +40956,7 @@
       },
       "product_id": "dkp-21196802",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-24T21:40:54.784893+00:00",
+      "scheduled_at": "2026-11-24T21:42:11.174467+00:00",
       "selected_at": "2026-11-24T04:22:47.509813+00:00",
       "sequence_number": 1810,
       "status": "queued"
@@ -41137,7 +40965,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21475615",
       "content_type": "product",
-      "next_attempt_at": "2026-11-24T23:38:54.784893+00:00",
+      "next_attempt_at": "2026-11-24T23:40:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21475615%2F",
         "availability": "in_stock",
@@ -41301,7 +41129,7 @@
       },
       "product_id": "dkp-21475615",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-24T23:38:54.784893+00:00",
+      "scheduled_at": "2026-11-24T23:40:11.174467+00:00",
       "selected_at": "2026-11-24T04:49:24.551092+00:00",
       "sequence_number": 1813,
       "status": "queued"
@@ -41310,7 +41138,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21804910",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T06:14:54.784893+00:00",
+      "next_attempt_at": "2026-11-25T06:16:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21804910%2F",
         "availability": "in_stock",
@@ -41477,7 +41305,7 @@
       },
       "product_id": "dkp-21804910",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-25T06:14:54.784893+00:00",
+      "scheduled_at": "2026-11-25T06:16:11.174467+00:00",
       "selected_at": "2026-11-24T14:50:51.574707+00:00",
       "sequence_number": 1823,
       "status": "queued"
@@ -41486,7 +41314,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22892660",
       "content_type": "product",
-      "next_attempt_at": "2026-11-24T19:41:54.784893+00:00",
+      "next_attempt_at": "2026-11-24T19:43:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22892660%2F",
         "availability": "in_stock",
@@ -41654,7 +41482,7 @@
       },
       "product_id": "dkp-22892660",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-24T19:41:54.784893+00:00",
+      "scheduled_at": "2026-11-24T19:43:11.174467+00:00",
       "selected_at": "2026-11-24T03:43:14.194916+00:00",
       "sequence_number": 1807,
       "status": "queued"
@@ -41663,7 +41491,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22895958",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T04:21:54.784893+00:00",
+      "next_attempt_at": "2026-11-25T04:23:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22895958%2F",
         "availability": "in_stock",
@@ -41828,7 +41656,7 @@
       },
       "product_id": "dkp-22895958",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-25T04:21:54.784893+00:00",
+      "scheduled_at": "2026-11-25T04:23:11.174467+00:00",
       "selected_at": "2026-11-24T07:19:25.910327+00:00",
       "sequence_number": 1820,
       "status": "queued"
@@ -41837,7 +41665,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22957214",
       "content_type": "product",
-      "next_attempt_at": "2026-11-24T23:01:54.784893+00:00",
+      "next_attempt_at": "2026-11-24T23:03:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22957214%2F",
         "availability": "in_stock",
@@ -41999,7 +41827,7 @@
       },
       "product_id": "dkp-22957214",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-24T23:01:54.784893+00:00",
+      "scheduled_at": "2026-11-24T23:03:11.174467+00:00",
       "selected_at": "2026-11-24T04:49:24.551092+00:00",
       "sequence_number": 1812,
       "status": "queued"
@@ -42008,7 +41836,7 @@
       "attempt_count": 0,
       "content_id": "dkp-23019531",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T02:19:54.784893+00:00",
+      "next_attempt_at": "2026-11-25T02:21:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-23019531%2F",
         "availability": "in_stock",
@@ -42169,7 +41997,7 @@
       },
       "product_id": "dkp-23019531",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-25T02:19:54.784893+00:00",
+      "scheduled_at": "2026-11-25T02:21:11.174467+00:00",
       "selected_at": "2026-11-24T04:49:24.551092+00:00",
       "sequence_number": 1817,
       "status": "queued"
@@ -42178,7 +42006,7 @@
       "attempt_count": 0,
       "content_id": "dkp-23019998",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T02:54:54.784893+00:00",
+      "next_attempt_at": "2026-11-25T02:56:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-23019998%2F",
         "availability": "in_stock",
@@ -42340,7 +42168,7 @@
       },
       "product_id": "dkp-23019998",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-25T02:54:54.784893+00:00",
+      "scheduled_at": "2026-11-25T02:56:11.174467+00:00",
       "selected_at": "2026-11-24T04:49:24.551092+00:00",
       "sequence_number": 1818,
       "status": "queued"
@@ -42349,7 +42177,7 @@
       "attempt_count": 0,
       "content_id": "dkp-23033488",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T05:04:54.784893+00:00",
+      "next_attempt_at": "2026-11-25T05:06:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-23033488%2F",
         "availability": "in_stock",
@@ -42514,7 +42342,7 @@
       },
       "product_id": "dkp-23033488",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-25T05:04:54.784893+00:00",
+      "scheduled_at": "2026-11-25T05:06:11.174467+00:00",
       "selected_at": "2026-11-24T08:42:37.296383+00:00",
       "sequence_number": 1821,
       "status": "queued"
@@ -42523,7 +42351,7 @@
       "attempt_count": 0,
       "content_id": "dkp-23188346",
       "content_type": "product",
-      "next_attempt_at": "2026-11-24T20:22:54.784893+00:00",
+      "next_attempt_at": "2026-11-24T20:24:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-23188346%2F",
         "availability": "in_stock",
@@ -42685,7 +42513,7 @@
       },
       "product_id": "dkp-23188346",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-24T20:22:54.784893+00:00",
+      "scheduled_at": "2026-11-24T20:24:11.174467+00:00",
       "selected_at": "2026-11-24T03:43:14.194916+00:00",
       "sequence_number": 1808,
       "status": "queued"
@@ -42694,7 +42522,7 @@
       "attempt_count": 0,
       "content_id": "dkp-511817",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T07:00:54.784893+00:00",
+      "next_attempt_at": "2026-11-25T07:02:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-511817%2F",
         "availability": "in_stock",
@@ -42864,7 +42692,7 @@
       },
       "product_id": "dkp-511817",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-25T07:00:54.784893+00:00",
+      "scheduled_at": "2026-11-25T07:02:11.174467+00:00",
       "selected_at": "2026-11-24T17:33:31.421949+00:00",
       "sequence_number": 1824,
       "status": "queued"
@@ -42873,7 +42701,7 @@
       "attempt_count": 0,
       "content_id": "dkp-616041",
       "content_type": "product",
-      "next_attempt_at": "2026-11-24T22:19:54.784893+00:00",
+      "next_attempt_at": "2026-11-24T22:21:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-616041%2F",
         "availability": "in_stock",
@@ -43037,7 +42865,7 @@
       },
       "product_id": "dkp-616041",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-24T22:19:54.784893+00:00",
+      "scheduled_at": "2026-11-24T22:21:11.174467+00:00",
       "selected_at": "2026-11-24T04:49:24.551092+00:00",
       "sequence_number": 1811,
       "status": "queued"
@@ -43046,7 +42874,7 @@
       "attempt_count": 0,
       "content_id": "dkp-82035",
       "content_type": "product",
-      "next_attempt_at": "2026-11-24T18:15:54.784893+00:00",
+      "next_attempt_at": "2026-11-24T18:17:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-82035%2F",
         "availability": "in_stock",
@@ -43209,7 +43037,7 @@
       },
       "product_id": "dkp-82035",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-24T18:15:54.784893+00:00",
+      "scheduled_at": "2026-11-24T18:17:11.174467+00:00",
       "selected_at": "2026-11-24T03:11:35.366081+00:00",
       "sequence_number": 1805,
       "status": "queued"
@@ -43218,7 +43046,7 @@
       "attempt_count": 0,
       "content_id": "dkp-9520173",
       "content_type": "product",
-      "next_attempt_at": "2026-11-24T21:09:54.784893+00:00",
+      "next_attempt_at": "2026-11-24T21:11:11.174467+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-9520173%2F",
         "availability": "in_stock",
@@ -43379,7 +43207,7 @@
       },
       "product_id": "dkp-9520173",
       "product_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
-      "scheduled_at": "2026-11-24T21:09:54.784893+00:00",
+      "scheduled_at": "2026-11-24T21:11:11.174467+00:00",
       "selected_at": "2026-11-24T03:43:14.194916+00:00",
       "sequence_number": 1809,
       "status": "queued"
@@ -96700,7 +96528,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.9,
+      "delivery_duration_seconds": 1.7,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -96763,8 +96591,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.9,
-      "delivery_started_at": "2026-11-24T17:33:33.140356+00:00",
+      "delivery_duration_seconds": 1.7,
+      "delivery_started_at": "2026-11-24T17:45:12.233341+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -97236,13 +97064,13 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-24T17:02:54.784893+00:00",
+  "last_channel_published_at": "2026-11-24T17:45:11.174467+00:00",
   "last_content_selection_at": "2026-11-24T17:33:31.421949+00:00",
   "last_editorial_attempt_at": "2026-11-18T02:10:38.177140+00:00",
   "last_editorial_confirmed_at": "2026-11-18T02:10:49.933296+00:00",
   "last_editorial_empty_bank_check_at": "2026-11-18T01:24:46.585898+00:00",
-  "last_product_channel_published_at": "2026-11-24T17:02:54.784893+00:00",
-  "last_published_at": "2026-11-24T17:02:54.784893+00:00",
+  "last_product_channel_published_at": "2026-11-24T17:45:11.174467+00:00",
+  "last_published_at": "2026-11-24T17:45:11.174467+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -150499,8 +150327,8 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-24T17:33:31.421949+00:00",
-    "candidate_count": 21,
+    "calculated_at": "2026-11-24T17:45:11.174473+00:00",
+    "candidate_count": 20,
     "catalog_cycle_id": "2026-11-24T17:29:40.621668+00:00",
     "current_cycle_started_at": "2026-11-24T17:29:41.093743+00:00",
     "daily_post_limit": 72,
@@ -150512,30 +150340,29 @@
     "interval_seconds": 1860.0,
     "last_clean_cycle_completed_at": "2026-11-24T17:29:40.621668+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-24T17:02:54.784893+00:00",
-    "plan_anchor_kind": "last_product",
-    "planned_product_slots": 21,
+    "plan_anchor_at": "2026-11-24T17:45:11.174467+00:00",
+    "plan_anchor_kind": "last_channel",
+    "planned_product_slots": 20,
     "planned_window_end_at": "2026-11-24T18:01:51.093743+00:00",
-    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes",
+    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
     "scan_eta_is_provisional": false,
     "scan_eta_source": "last_observed_full_cycle_duration",
     "scheduled_product_count": 21,
-    "seconds_from_plan_anchor_to_next_scan": 3536.30885,
-    "seconds_until_estimated_next_clean_scan": 1699.671794
+    "seconds_from_plan_anchor_to_next_scan": 999.919276,
+    "seconds_until_estimated_next_clean_scan": 999.91927
   },
   "product_publication_interval_seconds": 1860.0,
   "product_publication_plan": {
-    "anchor_at": "2026-11-24T17:02:54.784893+00:00",
-    "anchor_kind": "last_product",
+    "anchor_at": "2026-11-24T17:45:11.174467+00:00",
+    "anchor_kind": "last_channel",
     "catalog_cycle_id": "2026-11-24T17:29:40.621668+00:00",
     "first_slot_due_now": false,
     "interval_minutes": 31.0,
     "interval_seconds": 1860.0,
     "maximum_product_interval_seconds": 3420,
     "next_clean_scan_at": "2026-11-24T18:01:51.093743+00:00",
-    "pending_product_count": 21,
+    "pending_product_count": 20,
     "product_ids": [
-      "dkp-16449116",
       "dkp-82035",
       "dkp-18657865",
       "dkp-22892660",
@@ -150557,11 +150384,11 @@
       "dkp-21804910",
       "dkp-511817"
     ],
-    "scheduled_product_count": 21,
-    "updated_at": "2026-11-24T17:33:31.421949+00:00"
+    "scheduled_product_count": 20,
+    "updated_at": "2026-11-24T17:45:11.174473+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-24T17:02:54.784893+00:00",
-  "product_publication_plan_anchor_kind": "last_product",
+  "product_publication_plan_anchor_at": "2026-11-24T17:45:11.174467+00:00",
+  "product_publication_plan_anchor_kind": "last_channel",
   "product_publication_plan_cycle_id": "2026-11-24T17:29:40.621668+00:00",
   "publication_diversity_fallback_count": 5307,
   "publication_diversity_fallback_events": [
@@ -229565,6 +229392,134 @@
       "youtube_skip_reason": "selection_outside_freshness_window",
       "youtube_skip_recorded_at": "2026-11-18T21:30:04.118953+00:00",
       "youtube_upload_status": "skipped_stale_after_freshness_window"
+    },
+    "dkp-16449116": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2549,
+      "bale_posted_at": "2026-11-24T17:45:07.685802+00:00",
+      "brand": "شهدین",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "B",
+      "catalog_best_selling_category_id": "10727",
+      "catalog_best_selling_category_name": "غذای آماده",
+      "catalog_best_selling_rank": 1,
+      "catalog_best_selling_ranks_by_category": {
+        "10727": {
+          "category_name": "غذای آماده",
+          "observed_at": "2026-11-24T02:40:23.891769+00:00",
+          "rank": 1,
+          "rank_history": [
+            {
+              "category_name": "غذای آماده",
+              "observed_at": "2026-11-24T02:40:23.891769+00:00",
+              "rank": 1
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-24T03:07:31.602143+00:00",
+      "catalog_cycle_snapshot_rank": 34,
+      "catalog_rank_observed_at": "2026-11-24T02:40:23.891769+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-16449116",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "A",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-24T17:45:10.876346+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 18,
+      "distribution_queue_id": "dkp-16449116:2026-11-24T03:11:35.366081+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": true,
+      "history_checked_at": "2026-11-24T03:11:20.540152+00:00",
+      "history_days": 30,
+      "history_status": "verified",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/f093068a8b77170dde40ebf961d8ff4dd08c5eb9_1733824419.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "unavailable",
+      "platform_message_ids": {
+        "rubika": "1982085501040588651"
+      },
+      "posted_current_price": 809730,
+      "posted_discount_percent": 55,
+      "posted_original_price": 1799400,
+      "product_url": "https://www.digikala.com/product/dkp-16449116/",
+      "promo_score": 42,
+      "publication_category": "grocery_food",
+      "publication_family": "digikala_category:10727",
+      "publication_use_case": "grocery_food",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 0.0,
+      "rubika_posted_at": "2026-11-24T17:45:10.876323+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 1,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 91.23,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 81.98,
+        "discount_evidence": "fresh_independent_history_or_market",
+        "generality": 94.0,
+        "generality_group": "grocery_food",
+        "live_demand": 99.52,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-24T03:11:31.731471+00:00",
+        "weakest_factor_score": 81.98
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1804,
+      "telegram_message_id": 1887,
+      "telegram_posted_at": "2026-11-24T17:45:05.585951+00:00",
+      "title": "کنسرو خورشت قیمه و سیب زمینی با سویا و کنسرو خورشت قورمه سبزی با سویا شهدین - 370 گرم بسته 6 عددی",
+      "ts": 1795542299.164377,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
     },
     "dkp-16490910": {
       "aparat_skip_reason": "selection_outside_freshness_window",
