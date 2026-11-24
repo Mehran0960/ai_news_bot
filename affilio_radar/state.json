@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-24T05:58:40.189123+00:00",
-  "aparat_last_upload_success_at": "2026-11-24T05:58:44.049930+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-24T06:51:41.732282+00:00",
+  "aparat_last_upload_success_at": "2026-11-24T06:51:47.258590+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-24T06:46:33.675422+00:00",
@@ -310586,7 +310586,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-22832883": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-24T06:51:41.732282+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-24T06:51:47.258590+00:00",
+      "aparat_video_hash": "qakqkx4",
+      "aparat_video_record_id": "74365400",
+      "aparat_video_url": "https://www.aparat.com/v/qakqkx4",
+      "aparat_visibility": "public",
       "bale_message_id": 2538,
       "bale_posted_at": "2026-11-24T06:50:17.891825+00:00",
       "brand": "هپی کیچن",
@@ -310710,8 +310716,16 @@
       "telegram_posted_at": "2026-11-24T06:50:17.296633+00:00",
       "title": "آبمیوه‌گیری 800 وات هپی کیچن مدل HK-J800",
       "ts": 1795503011.783066,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22832883.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22832883.mp4"
+      },
+      "video_generated_at": "2026-11-24T06:51:34.341542+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22835408": {
       "aparat_skip_reason": "selection_outside_freshness_window",
