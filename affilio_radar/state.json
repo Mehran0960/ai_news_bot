@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-24T03:44:49.711093+00:00",
-  "aparat_last_upload_success_at": "2026-11-24T03:44:53.594604+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-24T04:25:49.869454+00:00",
+  "aparat_last_upload_success_at": "2026-11-24T04:25:53.670752+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-24T04:17:45.447158+00:00",
@@ -260927,7 +260927,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-20810009": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-24T04:25:49.869454+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-24T04:25:53.670752+00:00",
+      "aparat_video_hash": "gta1v7r",
+      "aparat_video_record_id": "74364080",
+      "aparat_video_url": "https://www.aparat.com/v/gta1v7r",
+      "aparat_visibility": "public",
       "bale_message_id": 2532,
       "bale_posted_at": "2026-11-24T04:24:43.483725+00:00",
       "brand": "شیائومی",
@@ -261051,8 +261057,16 @@
       "telegram_posted_at": "2026-11-24T04:24:42.205804+00:00",
       "title": "جارو رباتیک شیائومی مدل S40",
       "ts": 1795494275.635273,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-20810009.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-20810009.mp4"
+      },
+      "video_generated_at": "2026-11-24T04:25:42.250897+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-20829845": {
       "aparat_skip_reason": "selection_outside_freshness_window",
