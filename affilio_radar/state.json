@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-24T01:20:03.073712+00:00",
-  "aparat_last_upload_success_at": "2026-11-24T01:20:07.840512+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-24T01:54:51.225110+00:00",
+  "aparat_last_upload_success_at": "2026-11-24T01:54:55.091522+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-24T01:46:38.730526+00:00",
@@ -280850,7 +280850,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22078530": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-24T01:54:51.225110+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-24T01:54:55.091522+00:00",
+      "aparat_video_hash": "mew0a1x",
+      "aparat_video_record_id": "74363432",
+      "aparat_video_url": "https://www.aparat.com/v/mew0a1x",
+      "aparat_visibility": "public",
       "bale_message_id": 2528,
       "bale_posted_at": "2026-11-24T01:53:49.568779+00:00",
       "brand": "وان بای وان",
@@ -280974,8 +280980,16 @@
       "telegram_posted_at": "2026-11-24T01:53:48.929205+00:00",
       "title": "ست هودی و شلوار نوزاد پسرانه نخ طرح عروسکی مدل خرس قطبی",
       "ts": 1795485221.968257,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22078530.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22078530.mp4"
+      },
+      "video_generated_at": "2026-11-24T01:54:43.562999+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22082746": {
       "aparat_skip_reason": "selection_outside_freshness_window",
