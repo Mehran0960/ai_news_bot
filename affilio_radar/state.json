@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-24T15:29:55.729973+00:00",
-  "aparat_last_upload_success_at": "2026-11-24T15:29:59.974400+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-24T17:03:55.381194+00:00",
+  "aparat_last_upload_success_at": "2026-11-24T17:03:59.563200+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-24T16:59:42.989284+00:00",
@@ -295710,7 +295710,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22630798": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-24T17:03:55.381194+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-24T17:03:59.563200+00:00",
+      "aparat_video_hash": "ccm74n6",
+      "aparat_video_record_id": "74374234",
+      "aparat_video_url": "https://www.aparat.com/v/ccm74n6",
+      "aparat_visibility": "public",
       "bale_message_id": 2548,
       "bale_posted_at": "2026-11-24T17:02:51.206103+00:00",
       "brand": "خانه چرم آنا",
@@ -295834,8 +295840,16 @@
       "telegram_posted_at": "2026-11-24T17:02:50.528343+00:00",
       "title": "کیف دستی مردانه خانه چرم آنا مدل بردیا",
       "ts": 1795539763.702349,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22630798.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22630798.mp4"
+      },
+      "video_generated_at": "2026-11-24T17:03:47.505894+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22631118": {
       "aparat_upload_started_at": "2026-11-17T20:25:55.922944+00:00",
