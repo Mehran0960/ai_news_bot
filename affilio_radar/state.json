@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-24T19:45:49.631263+00:00",
-  "aparat_last_upload_success_at": "2026-11-24T19:45:53.962534+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-24T20:34:09.614607+00:00",
+  "aparat_last_upload_success_at": "2026-11-24T20:34:13.378855+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-24T20:06:41.852782+00:00",
@@ -256691,6 +256691,7 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
+      "expired_deleted_at": "2026-11-24T20:32:50.076072+00:00",
       "expires_at": "2026-11-24T20:27:39.174133+00:00",
       "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
@@ -256700,7 +256701,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "already_absent",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-24T04:26:51.066141+00:00",
@@ -346149,7 +346150,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-9520173": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-24T20:34:09.614607+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-24T20:34:13.378855+00:00",
+      "aparat_video_hash": "sulya0p",
+      "aparat_video_record_id": "74376759",
+      "aparat_video_url": "https://www.aparat.com/v/sulya0p",
+      "aparat_visibility": "public",
       "bale_message_id": 2552,
       "bale_posted_at": "2026-11-24T20:32:53.001207+00:00",
       "brand": "اعیان",
@@ -346273,8 +346280,16 @@
       "telegram_posted_at": "2026-11-24T20:32:52.197499+00:00",
       "title": "کابینت آشپزخانه اعیان مدل FH CM12 مجموعه 8 عددی",
       "ts": 1795552365.734079,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-9520173.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-9520173.mp4"
+      },
+      "video_generated_at": "2026-11-24T20:34:04.652030+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-9542793": {
       "aparat_skip_reason": "selection_outside_freshness_window",
