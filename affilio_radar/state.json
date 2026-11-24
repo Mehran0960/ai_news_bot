@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-24T07:40:02.173298+00:00",
-  "aparat_last_upload_success_at": "2026-11-24T07:40:06.785311+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-24T09:14:46.716265+00:00",
+  "aparat_last_upload_success_at": "2026-11-24T09:14:50.710859+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-24T09:10:45.954988+00:00",
@@ -266596,6 +266596,7 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
+      "expired_deleted_at": "2026-11-24T09:12:47.773898+00:00",
       "expires_at": "2026-11-24T08:27:49.710764+00:00",
       "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
@@ -266605,7 +266606,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "already_absent",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-22T15:50:24.561413+00:00",
@@ -352070,7 +352071,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-9162326": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-24T09:14:46.716265+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-24T09:14:50.710859+00:00",
+      "aparat_video_hash": "jrr58w8",
+      "aparat_video_record_id": "74367437",
+      "aparat_video_url": "https://www.aparat.com/v/jrr58w8",
+      "aparat_visibility": "public",
       "bale_message_id": 2540,
       "bale_posted_at": "2026-11-24T09:13:49.850856+00:00",
       "brand": "عماد آرا",
@@ -352194,8 +352201,16 @@
       "telegram_posted_at": "2026-11-24T09:13:49.271787+00:00",
       "title": "ادو تویلت مردانه عماد آرا مدل Address حجم 100 میلی لیتر به همراه اسپری خوشبو کننده بدن مردانه عماد آرا مدل Adress حجم 200 میلی لیتر",
       "ts": 1795511623.405496,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-9162326.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-9162326.mp4"
+      },
+      "video_generated_at": "2026-11-24T09:14:41.425685+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-921444": {
       "aparat_upload_started_at": "2026-11-21T18:22:51.289734+00:00",
