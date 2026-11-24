@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-24T22:43:04.297457+00:00",
-  "aparat_last_upload_success_at": "2026-11-24T22:43:08.357867+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-24T23:30:54.651377+00:00",
+  "aparat_last_upload_success_at": "2026-11-24T23:31:01.363018+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-24T23:05:56.934424+00:00",
@@ -213186,7 +213186,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-14915599": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-24T23:30:54.651377+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-24T23:31:01.363018+00:00",
+      "aparat_video_hash": "pmo6x09",
+      "aparat_video_record_id": "74377670",
+      "aparat_video_url": "https://www.aparat.com/v/pmo6x09",
+      "aparat_visibility": "public",
       "bale_message_id": 2557,
       "bale_posted_at": "2026-11-24T23:29:56.833309+00:00",
       "brand": "",
@@ -213310,8 +213316,16 @@
       "telegram_posted_at": "2026-11-24T23:29:55.522886+00:00",
       "title": "ژل بازی مدل اسلایم خامه ای کد m01",
       "ts": 1795562988.390611,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-14915599.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-14915599.mp4"
+      },
+      "video_generated_at": "2026-11-24T23:30:47.096005+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-14928173": {
       "aparat_skip_reason": "selection_outside_freshness_window",
