@@ -9680,13 +9680,13 @@
   "last_error_at": "2026-11-15T05:00:24.184952+00:00",
   "last_successful_category_id": "5928",
   "last_successful_category_name": "لوازم جانبی صوتی و تصویری خودرو",
-  "last_successful_page": 50,
-  "last_successful_page_at": "2026-11-24T04:09:05.546435+00:00",
+  "last_successful_page": 52,
+  "last_successful_page_at": "2026-11-24T04:11:07.939482+00:00",
   "legacy_completed_partial_sweeps_before_full_catalog": 9,
   "legacy_last_partial_sweep_at": "2026-11-03T23:41:48.947519+00:00",
-  "page": 49,
+  "page": 51,
   "parallel_api_route_policy_version": "digikala_discovery_api_v1_trusted_category_taxonomy_v4",
-  "parallel_category_mismatch_rows_rejected": 9583677,
+  "parallel_category_mismatch_rows_rejected": 9583797,
   "parallel_cycle_completed_category_ids": [
     "11",
     "13",
@@ -10554,8 +10554,8 @@
     "11792",
     "11793"
   ],
-  "parallel_cycle_pages_success": 11230,
-  "parallel_cycle_product_rows_success": 213447,
+  "parallel_cycle_pages_success": 11253,
+  "parallel_cycle_product_rows_success": 213905,
   "parallel_cycle_started_at": "2026-11-24T03:37:27.222900+00:00",
   "parallel_cycle_unqueryable_category_ids": [],
   "parallel_deep_pages_pruned": 0,
@@ -11440,66 +11440,38 @@
     "11792",
     "11793"
   ],
-  "parallel_last_batch_at": "2026-11-24T04:09:05.958792+00:00",
-  "parallel_last_batch_candidate_file_bytes": 7412363,
-  "parallel_last_batch_candidate_write_seconds": 0.187,
-  "parallel_last_batch_empty_product_pages": 1,
-  "parallel_last_batch_fetch_seconds": 10.8,
-  "parallel_last_batch_http_5xx_retries": 5,
-  "parallel_last_batch_nonempty_product_pages": 7,
-  "parallel_last_batch_pages": 13,
-  "parallel_last_batch_pages_per_second": 1.2,
-  "parallel_last_batch_processing_seconds": 0.234,
-  "parallel_last_batch_product_rows": 140,
+  "parallel_last_batch_at": "2026-11-24T04:11:12.479433+00:00",
+  "parallel_last_batch_candidate_file_bytes": 7412343,
+  "parallel_last_batch_candidate_write_seconds": 0.125,
+  "parallel_last_batch_empty_product_pages": 0,
+  "parallel_last_batch_fetch_seconds": 0.833,
+  "parallel_last_batch_http_5xx_retries": 12,
+  "parallel_last_batch_nonempty_product_pages": 0,
+  "parallel_last_batch_pages": 12,
+  "parallel_last_batch_pages_per_second": 14.4,
+  "parallel_last_batch_processing_seconds": 0.177,
+  "parallel_last_batch_product_rows": 0,
   "parallel_last_batch_rate_limited": 0,
-  "parallel_last_batch_request_count": 13,
-  "parallel_last_batch_request_max_seconds": 10.79,
-  "parallel_last_batch_request_p50_seconds": 1.007,
-  "parallel_last_batch_request_p95_seconds": 10.79,
-  "parallel_last_batch_retries": 5,
-  "parallel_last_batch_rows_per_second": 12.48,
-  "parallel_last_batch_successes": 8,
+  "parallel_last_batch_request_count": 12,
+  "parallel_last_batch_request_max_seconds": 0.826,
+  "parallel_last_batch_request_p50_seconds": 0.372,
+  "parallel_last_batch_request_p95_seconds": 0.826,
+  "parallel_last_batch_retries": 12,
+  "parallel_last_batch_rows_per_second": 0.0,
+  "parallel_last_batch_successes": 0,
   "parallel_last_batch_terminals": 0,
   "parallel_last_batch_timeout_retries": 0,
-  "parallel_last_batch_worker_limit_before": 12,
-  "parallel_last_batch_worker_limit_next": 6,
+  "parallel_last_batch_worker_limit_before": 8,
+  "parallel_last_batch_worker_limit_next": 4,
   "parallel_leaf_category_count": 877,
   "parallel_pending_pages": [
-    {
-      "attempts": 0,
-      "category_id": "11353",
-      "category_name": "آویز تزئینی خودرو",
-      "category_query": "خودرو",
-      "page": 49
-    },
-    {
-      "attempts": 0,
-      "category_id": "11358",
-      "category_name": "قاب، زه و ضربه‌گیر خودرو",
-      "category_query": "خودرو",
-      "page": 49
-    },
     {
       "attempts": 1,
       "category_id": "76",
       "category_name": "محافظ صفحه نمایش گوشی",
       "category_query": "گوشی",
       "last_error": "discovery_api_v1_category_search_HTTPError",
-      "page": 49
-    },
-    {
-      "attempts": 0,
-      "category_id": "79",
-      "category_name": "باتری گوشی",
-      "category_query": "گوشی",
-      "page": 50
-    },
-    {
-      "attempts": 0,
-      "category_id": "6133",
-      "category_name": "اسباب بازی زینتی",
-      "category_query": "اسباب بازی",
-      "page": 50
+      "page": 51
     },
     {
       "attempts": 1,
@@ -11507,7 +11479,7 @@
       "category_name": "قطعات یدکی موبایل و تبلت",
       "category_query": "گوشی",
       "last_error": "discovery_api_v1_category_search_HTTPError",
-      "page": 49
+      "page": 51
     },
     {
       "attempts": 1,
@@ -11515,14 +11487,31 @@
       "category_name": "چاقو",
       "category_query": "خانه",
       "last_error": "discovery_api_v1_category_search_HTTPError",
-      "page": 49
+      "page": 51
     },
     {
-      "attempts": 0,
+      "attempts": 1,
+      "category_id": "11353",
+      "category_name": "آویز تزئینی خودرو",
+      "category_query": "خودرو",
+      "last_error": "discovery_api_v1_category_search_HTTPError",
+      "page": 51
+    },
+    {
+      "attempts": 1,
+      "category_id": "11358",
+      "category_name": "قاب، زه و ضربه‌گیر خودرو",
+      "category_query": "خودرو",
+      "last_error": "discovery_api_v1_category_search_HTTPError",
+      "page": 51
+    },
+    {
+      "attempts": 1,
       "category_id": "11419",
       "category_name": "براش‌های آرایشی",
       "category_query": "آرایشی",
-      "page": 50
+      "last_error": "discovery_api_v1_category_search_HTTPError",
+      "page": 51
     },
     {
       "attempts": 1,
@@ -11530,21 +11519,23 @@
       "category_name": "لپ تاپ",
       "category_query": "لپ تاپ",
       "last_error": "discovery_api_v1_category_search_HTTPError",
-      "page": 50
+      "page": 52
     },
     {
-      "attempts": 0,
-      "category_id": "1271",
-      "category_name": "شارژر تبلت و موبایل",
+      "attempts": 1,
+      "category_id": "79",
+      "category_name": "باتری گوشی",
       "category_query": "گوشی",
-      "page": 51
+      "last_error": "discovery_api_v1_category_search_HTTPError",
+      "page": 52
     },
     {
-      "attempts": 0,
-      "category_id": "5928",
-      "category_name": "لوازم جانبی صوتی و تصویری خودرو",
-      "category_query": "خودرو",
-      "page": 51
+      "attempts": 1,
+      "category_id": "6133",
+      "category_name": "اسباب بازی زینتی",
+      "category_query": "اسباب بازی",
+      "last_error": "discovery_api_v1_category_search_HTTPError",
+      "page": 52
     },
     {
       "attempts": 1,
@@ -11552,26 +11543,42 @@
       "category_name": "تجهیزات آرایشی چشم و ابرو",
       "category_query": "آرایشی",
       "last_error": "discovery_api_v1_category_search_HTTPError",
-      "page": 50
+      "page": 52
+    },
+    {
+      "attempts": 1,
+      "category_id": "1271",
+      "category_name": "شارژر تبلت و موبایل",
+      "category_query": "گوشی",
+      "last_error": "discovery_api_v1_category_search_HTTPError",
+      "page": 53
+    },
+    {
+      "attempts": 1,
+      "category_id": "5928",
+      "category_name": "لوازم جانبی صوتی و تصویری خودرو",
+      "category_query": "خودرو",
+      "last_error": "discovery_api_v1_category_search_HTTPError",
+      "page": 53
     }
   ],
   "parallel_queue_initialized": true,
   "parallel_scan_policy_version": "all_categories_all_pages_v3_cycle_snapshot",
-  "parallel_worker_limit": 6,
+  "parallel_worker_limit": 4,
   "parallel_worker_ramp_policy_version": "explicit_12_14_16_v1",
-  "parallel_workers_used": 12,
+  "parallel_workers_used": 8,
   "pending_page_count": 12,
   "schema_version": 1,
   "stats": {
-    "api_failures_total": 164135,
-    "catalog_candidate_cards_found_total": 117505201,
+    "api_failures_total": 164148,
+    "catalog_candidate_cards_found_total": 117505539,
     "completed_cycles": 406,
     "cycles_with_gaps_total": 354,
-    "discounted_candidates_found_total": 30534358,
+    "discounted_candidates_found_total": 30534474,
     "empty_product_pages_total": 1791860,
-    "nonempty_product_pages_total": 6472648,
-    "pages_scanned_total": 6524989,
-    "product_rows_scanned_total": 127088918,
+    "nonempty_product_pages_total": 6472671,
+    "pages_scanned_total": 6525012,
+    "product_rows_scanned_total": 127089376,
     "unqueryable_categories_total": 1740482
   },
   "unacknowledged_candidate_count": 3000
