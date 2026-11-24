@@ -1,22 +1,26 @@
 {
-  "editorial_channel_queue": [],
-  "filo_next_upload_at": null,
+  "filo_upload_interval_policy_version": 3,
+  "editorial_delivery_queue": {},
   "last_product_channel_published_at": "2026-11-24T20:32:58.572944+00:00",
-  "filo_login_verified_at": "2026-11-24T20:34:32.024321+00:00",
-  "youtube_uploads_paused_until": null,
-  "generated_at": "2026-11-24T20:35:19.227183+00:00",
-  "last_channel_published_at": "2026-11-24T20:32:58.572944+00:00",
-  "emergency_continuity_expires_at": null,
-  "emergency_continuity_baseline_completed_at": null,
-  "emergency_continuity_active": false,
-  "filo_login_verification_status": "verified",
-  "schema_version": 2,
-  "youtube_upload_pause_reason": null,
   "emergency_continuity_snapshot_sha256": null,
-  "product_publication_plan_cycle_id": "2026-11-24T20:04:25.149347+00:00",
+  "generated_at": "2026-11-24T20:38:24.892999+00:00",
+  "last_channel_published_at": "2026-11-24T20:32:58.572944+00:00",
+  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
+  "schema_version": 2,
+  "product_publication_cadence_cycle_id": "2026-11-24T20:33:32.414004+00:00",
+  "filo_login_verified_at": "2026-11-24T20:34:32.024321+00:00",
+  "emergency_continuity_baseline_completed_at": null,
+  "pending_product_queue_count": 26,
   "aparat_next_upload_at": null,
-  "pending_product_queue_count": 20,
+  "youtube_uploads_paused_until": null,
+  "emergency_continuity_active": false,
+  "next_channel_content_due_at": "2026-11-24T21:03:58.572944+00:00",
+  "product_publication_plan_cycle_id": "2026-11-24T20:33:32.414004+00:00",
   "youtube_next_upload_at": "2026-11-25T02:25:40.856615+00:00",
+  "editorial_channel_queue": [],
+  "product_publication_interval_seconds": 1860.0,
+  "filo_login_verification_status": "verified",
+  "emergency_continuity_expires_at": null,
   "published": {
     "dkp-1736988": {
       "aparat_upload_status": "uploaded",
@@ -626,6 +630,7 @@
       "youtube_upload_status": "pending"
     }
   },
+  "youtube_upload_pause_reason": null,
   "editorial_video_queue": [
     {
       "content_id": "editorial:measure-room-size",
@@ -641,10 +646,5 @@
       "status": "partial"
     }
   ],
-  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
-  "filo_upload_interval_policy_version": 3,
-  "next_channel_content_due_at": "2026-11-24T21:03:58.572944+00:00",
-  "product_publication_interval_seconds": 1860.0,
-  "product_publication_cadence_cycle_id": "2026-11-24T20:04:25.149347+00:00",
-  "editorial_delivery_queue": {}
+  "filo_next_upload_at": null
 }
