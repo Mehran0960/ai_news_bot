@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-25T03:26:58.207115+00:00",
-  "aparat_last_upload_success_at": "2026-11-25T03:27:02.247310+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-25T03:59:54.286020+00:00",
+  "aparat_last_upload_success_at": "2026-11-25T04:00:00.487400+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-25T03:51:33.615007+00:00",
@@ -194686,7 +194686,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-10345443": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-25T03:59:54.286020+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-25T04:00:00.487400+00:00",
+      "aparat_video_hash": "brj2l92",
+      "aparat_video_record_id": "74378407",
+      "aparat_video_url": "https://www.aparat.com/v/brj2l92",
+      "aparat_visibility": "public",
       "bale_message_id": 2565,
       "bale_posted_at": "2026-11-25T03:58:48.823554+00:00",
       "brand": "دیفکتو",
@@ -194810,8 +194816,16 @@
       "telegram_posted_at": "2026-11-25T03:58:48.194771+00:00",
       "title": "مداد ابرو دیفکتو مدل 307101 شماره 601 رنگ قهوه ای روشن",
       "ts": 1795579121.405455,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-10345443.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-10345443.mp4"
+      },
+      "video_generated_at": "2026-11-25T03:59:49.651227+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-1036750": {
       "aparat_upload_started_at": "2026-11-17T19:25:43.027028+00:00",
