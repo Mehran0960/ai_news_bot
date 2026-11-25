@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-25T09:24:23.901339+00:00",
-  "aparat_last_upload_success_at": "2026-11-25T09:24:27.357535+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-25T10:08:31.114862+00:00",
+  "aparat_last_upload_success_at": "2026-11-25T10:08:33.964615+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-25T09:50:24.085659+00:00",
@@ -249670,7 +249670,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-21220964": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-25T10:08:31.114862+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-25T10:08:33.964615+00:00",
+      "aparat_video_hash": "wgi521o",
+      "aparat_video_record_id": "74382798",
+      "aparat_video_url": "https://www.aparat.com/v/wgi521o",
+      "aparat_visibility": "public",
       "bale_message_id": 2578,
       "bale_posted_at": "2026-11-25T10:06:26.296351+00:00",
       "brand": "",
@@ -249794,8 +249800,16 @@
       "telegram_posted_at": "2026-11-25T10:06:25.511062+00:00",
       "title": "پالتو بلند مردانه مدل چهار خانه کد E03",
       "ts": 1795601179.210001,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-21220964.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-21220964.mp4"
+      },
+      "video_generated_at": "2026-11-25T10:08:23.576611+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-21226550": {
       "aparat_skip_reason": "selection_outside_freshness_window",
