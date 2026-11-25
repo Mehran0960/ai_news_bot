@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-25T18:22:26.491930+00:00",
-  "aparat_last_upload_success_at": "2026-11-25T18:22:31.320374+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-25T18:56:36.166601+00:00",
+  "aparat_last_upload_success_at": "2026-11-25T18:56:39.825948+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-25T18:16:23.619783+00:00",
@@ -310429,7 +310429,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-3966457": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-25T18:56:36.166601+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-25T18:56:39.825948+00:00",
+      "aparat_video_hash": "vxbd0i3",
+      "aparat_video_record_id": "74390363",
+      "aparat_video_url": "https://www.aparat.com/v/vxbd0i3",
+      "aparat_visibility": "public",
       "bale_message_id": 2593,
       "bale_posted_at": "2026-11-25T18:54:35.678733+00:00",
       "brand": "دبلیو ام اف",
@@ -310553,8 +310559,16 @@
       "telegram_posted_at": "2026-11-25T18:54:34.650802+00:00",
       "title": "قیچی آشپزخانه دبلیو ام اف مدل R",
       "ts": 1795632867.530777,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-3966457.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-3966457.mp4"
+      },
+      "video_generated_at": "2026-11-25T18:56:28.085298+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-3967728": {
       "aparat_upload_started_at": "2026-11-18T13:57:52.014748+00:00",
