@@ -798,6 +798,17 @@ async function dispatchEditorialChannelUploadsWhenDue(env, tick, state, publishe
   );
 }
 
+export const CATALOG_SWEEP_INTERVAL_MINUTES = 4;
+
+// The dispatcher Worker still wakes every two minutes for publication and audit
+// deadlines. The expensive full-catalog GitHub workflow is intentionally throttled
+// to one start every four minutes (UTC minutes 1, 5, 9, ...).
+export function isCatalogSweepDispatchMinute(minuteValue) {
+  const minute = Number(minuteValue);
+  return Number.isInteger(minute) && minute >= 0 && minute < 60 &&
+    minute % CATALOG_SWEEP_INTERVAL_MINUTES === 1;
+}
+
 async function runScheduledCheck(env, scheduledTime) {
   const hasOfferChinToken = Boolean(env.GITHUB_TOKEN);
   const hasFiloToken = Boolean(env.FILO_GITHUB_TOKEN);
@@ -824,41 +835,45 @@ async function runScheduledCheck(env, scheduledTime) {
   if (!hasOfferChinToken) return;
   const state = await readOfferChinState(env.GITHUB_TOKEN);
 
-  // Continue persisted catalog pages on every tick. If category discovery is in
-  // backoff and no work remains, wait for its retry_after rather than launching a
-  // failing full workflow every minute. Catalog status is used only for catalog
-  // dispatch; video fan-out has an independent gate and never waits for this scan.
-  let catalogStatusForDispatch = null;
-  try {
-    catalogStatusForDispatch = await readCatalogSweepStatus(env.GITHUB_TOKEN);
-    const categoryRetryAt = Date.parse(String(
-      catalogStatusForDispatch && catalogStatusForDispatch.category_discovery_retry_after || ""
-    ));
-    const pendingPages = Math.max(0, Number(catalogStatusForDispatch && catalogStatusForDispatch.pending_page_count || 0));
-    if (Number.isFinite(categoryRetryAt) && categoryRetryAt > tick.getTime() && pendingPages === 0) {
-      console.log("OFFERCHIN_CATALOG_DISCOVERY_BACKOFF seconds_remaining=" +
-        Math.ceil((categoryRetryAt - tick.getTime()) / 1000));
-    } else {
-      await dispatchWorkflowIfIdle(
-        CATALOG_API,
-        env.GITHUB_TOKEN,
-        CATALOG_WORKFLOW,
-        18,
-        8,
-        { ignoreOrphanedNoJobs: true }
-      );
-    }
-  } catch (error) {
-    console.error("OFFERCHIN_CATALOG_SWEEP_DISPATCH_FAILED", String(error).slice(0, 900));
-  }
-
-  // Integrity audit retains its independent five-minute slot.
-  if (offset === 2) {
+  if (isCatalogSweepDispatchMinute(tick.getUTCMinutes())) {
+    // Continue persisted catalog pages on the four-minute catalog slot. If category discovery is in
+    // backoff and no work remains, wait for its retry_after rather than launching a
+    // failing full workflow every minute. Catalog status is used only for catalog
+    // dispatch; video fan-out has an independent gate and never waits for this scan.
+    let catalogStatusForDispatch = null;
     try {
-      await dispatchWorkflowIfIdle(AUDIT_API, env.GITHUB_TOKEN, AUDIT_WORKFLOW, 8, 4);
+      catalogStatusForDispatch = await readCatalogSweepStatus(env.GITHUB_TOKEN);
+      const categoryRetryAt = Date.parse(String(
+        catalogStatusForDispatch && catalogStatusForDispatch.category_discovery_retry_after || ""
+      ));
+      const pendingPages = Math.max(0, Number(catalogStatusForDispatch && catalogStatusForDispatch.pending_page_count || 0));
+      if (Number.isFinite(categoryRetryAt) && categoryRetryAt > tick.getTime() && pendingPages === 0) {
+        console.log("OFFERCHIN_CATALOG_DISCOVERY_BACKOFF seconds_remaining=" +
+          Math.ceil((categoryRetryAt - tick.getTime()) / 1000));
+      } else {
+        await dispatchWorkflowIfIdle(
+          CATALOG_API,
+          env.GITHUB_TOKEN,
+          CATALOG_WORKFLOW,
+          18,
+          8,
+          { ignoreOrphanedNoJobs: true }
+        );
+      }
     } catch (error) {
-      console.error("OFFERCHIN_INTEGRITY_AUDIT_DISPATCH_FAILED", String(error).slice(0, 900));
+      console.error("OFFERCHIN_CATALOG_SWEEP_DISPATCH_FAILED", String(error).slice(0, 900));
     }
+  
+    // Integrity audit retains its independent five-minute slot.
+    if (offset === 2) {
+      try {
+        await dispatchWorkflowIfIdle(AUDIT_API, env.GITHUB_TOKEN, AUDIT_WORKFLOW, 8, 4);
+      } catch (error) {
+        console.error("OFFERCHIN_INTEGRITY_AUDIT_DISPATCH_FAILED", String(error).slice(0, 900));
+      }
+    }
+  } else {
+    console.log("OFFERCHIN_CATALOG_SWEEP_DEFERRED reason=resource_aware_cadence interval_minutes=" + CATALOG_SWEEP_INTERVAL_MINUTES);
   }
 
   let publisherProtected = false;
