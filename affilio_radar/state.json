@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-25T06:08:23.045667+00:00",
-  "aparat_last_upload_success_at": "2026-11-25T06:08:26.808693+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-25T06:48:32.040100+00:00",
+  "aparat_last_upload_success_at": "2026-11-25T06:48:35.329751+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-25T06:42:24.334401+00:00",
@@ -197088,7 +197088,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-12642699": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-25T06:48:32.040100+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-25T06:48:35.329751+00:00",
+      "aparat_video_hash": "buynuk8",
+      "aparat_video_record_id": "74380024",
+      "aparat_video_url": "https://www.aparat.com/v/buynuk8",
+      "aparat_visibility": "public",
       "bale_message_id": 2571,
       "bale_posted_at": "2026-11-25T06:46:33.569995+00:00",
       "brand": "کاسپین",
@@ -197212,8 +197218,16 @@
       "telegram_posted_at": "2026-11-25T06:46:33.128072+00:00",
       "title": "اسپری شامپو خشک تقویت‌کننده مو کاسپین مخصوص پوست سر معمولی و موهای چرب، حجم 200 میلی‌لیتر مدل invisible، حاوی برنج، تمیز‌کننده مو بدون نیاز به آب، جذب‌کننده چربی، حجم‌دهنده و خوشبو",
       "ts": 1795589188.262172,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-12642699.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-12642699.mp4"
+      },
+      "video_generated_at": "2026-11-25T06:48:25.894558+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-12680909": {
       "aparat_skip_reason": "selection_outside_freshness_window",
