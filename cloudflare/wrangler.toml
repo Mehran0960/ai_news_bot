@@ -7,7 +7,7 @@ no_bundle = true
 keep_vars = true
 
 [triggers]
-crons = ["* * * * *"]
+crons = ["1-59/2 * * * *"]
 
 [observability]
 enabled = true
