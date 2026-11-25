@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-25T15:30:28.083568+00:00",
-  "aparat_last_upload_success_at": "2026-11-25T15:30:31.732049+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-25T17:02:25.130647+00:00",
+  "aparat_last_upload_success_at": "2026-11-25T17:02:28.649516+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-25T15:32:20.702521+00:00",
@@ -319661,7 +319661,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-6577019": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-25T17:02:25.130647+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-25T17:02:28.649516+00:00",
+      "aparat_video_hash": "sbmayvr",
+      "aparat_video_record_id": "74388812",
+      "aparat_video_url": "https://www.aparat.com/v/sbmayvr",
+      "aparat_visibility": "public",
       "bale_message_id": 2590,
       "bale_posted_at": "2026-11-25T17:00:28.971978+00:00",
       "brand": "اس اس وی",
@@ -319785,8 +319791,16 @@
       "telegram_posted_at": "2026-11-25T17:00:27.741245+00:00",
       "title": "دستگاه تصفیه کننده آب اس اس وی مدل MaxPro 2W X1000 به همراه شیر دوکاره و فیلتر تصفیه آب بسته 3 عددی",
       "ts": 1795626021.838661,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-6577019.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-6577019.mp4"
+      },
+      "video_generated_at": "2026-11-25T17:02:18.206406+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-6594594": {
       "aparat_upload_started_at": "2026-11-21T00:06:47.474347+00:00",
