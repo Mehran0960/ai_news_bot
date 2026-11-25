@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-25T10:08:31.114862+00:00",
-  "aparat_last_upload_success_at": "2026-11-25T10:08:33.964615+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-25T10:44:34.354625+00:00",
+  "aparat_last_upload_success_at": "2026-11-25T10:44:37.690822+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-25T10:40:24.169852+00:00",
@@ -311868,7 +311868,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-4184133": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-25T10:44:34.354625+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-25T10:44:37.690822+00:00",
+      "aparat_video_hash": "ipb722u",
+      "aparat_video_record_id": "74383319",
+      "aparat_video_url": "https://www.aparat.com/v/ipb722u",
+      "aparat_visibility": "public",
       "bale_message_id": 2579,
       "bale_posted_at": "2026-11-25T10:42:39.927054+00:00",
       "brand": "دیپ سنس",
@@ -311992,8 +311998,16 @@
       "telegram_posted_at": "2026-11-25T10:42:39.372658+00:00",
       "title": "ژل شستشوی صورت دیپ سنس مدل درخت چای و بامبو مناسب پوست‌های چرب حجم 250 میلی‌ لیتر",
       "ts": 1795603352.405333,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-4184133.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-4184133.mp4"
+      },
+      "video_generated_at": "2026-11-25T10:44:26.851939+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-4230050": {
       "aparat_skip_reason": "selection_outside_freshness_window",
