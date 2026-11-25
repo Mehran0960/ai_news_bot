@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-24T23:30:54.651377+00:00",
-  "aparat_last_upload_success_at": "2026-11-24T23:31:01.363018+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-25T00:06:48.121281+00:00",
+  "aparat_last_upload_success_at": "2026-11-25T00:06:51.142755+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-24T23:37:56.169132+00:00",
@@ -228569,7 +228569,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-17986726": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-25T00:06:48.121281+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-25T00:06:51.142755+00:00",
+      "aparat_video_hash": "tnqjg02",
+      "aparat_video_record_id": "74377761",
+      "aparat_video_url": "https://www.aparat.com/v/tnqjg02",
+      "aparat_visibility": "public",
       "bale_message_id": 2559,
       "bale_posted_at": "2026-11-25T00:05:44.711388+00:00",
       "brand": "ایفورج",
@@ -228693,8 +228699,16 @@
       "telegram_posted_at": "2026-11-25T00:05:43.842791+00:00",
       "title": "هندزفری سیمی ایفورج مدل MA-107 با درایور 10 میلی‌متری، جک 3.5 میلی‌متری 90 درجه، میکروفون و دکمه کنترل موسیقی، مقاوم در برابر رطوبت و عرق، مناسب گیمینگ",
       "ts": 1795565137.640451,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-17986726.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-17986726.mp4"
+      },
+      "video_generated_at": "2026-11-25T00:06:40.583735+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-17990275": {
       "aparat_skip_reason": "selection_outside_freshness_window",
