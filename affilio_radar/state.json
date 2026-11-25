@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-25T17:02:25.130647+00:00",
-  "aparat_last_upload_success_at": "2026-11-25T17:02:28.649516+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-25T18:22:26.491930+00:00",
+  "aparat_last_upload_success_at": "2026-11-25T18:22:31.320374+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-25T18:16:23.619783+00:00",
@@ -253386,7 +253386,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-21489950": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-25T18:22:26.491930+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-25T18:22:31.320374+00:00",
+      "aparat_video_hash": "tpg81l4",
+      "aparat_video_record_id": "74389940",
+      "aparat_video_url": "https://www.aparat.com/v/tpg81l4",
+      "aparat_visibility": "public",
       "bale_message_id": 2591,
       "bale_posted_at": "2026-11-25T18:19:44.311344+00:00",
       "brand": "بوف",
@@ -253510,8 +253516,16 @@
       "telegram_posted_at": "2026-11-25T18:19:40.761060+00:00",
       "title": "محافظ لنز دوربین فلزی بوف مدل Metal مناسب برای گوشی موبایل سامسونگ Galaxy S26 Ultra",
       "ts": 1795630772.305606,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-21489950.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-21489950.mp4"
+      },
+      "video_generated_at": "2026-11-25T18:22:21.395640+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-21492107": {
       "aparat_upload_started_at": "2026-11-19T13:49:49.357394+00:00",
