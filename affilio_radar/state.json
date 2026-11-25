@@ -2020,189 +2020,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 1,
-      "content_id": "dkp-21930450",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-21T02:07:33.704261+00:00",
-      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
-      "next_attempt_at": "2026-11-21T01:50:51.612371+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21930450%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "9527",
-        "catalog_best_selling_category_name": "کیف پول مردانه",
-        "catalog_best_selling_rank": 2,
-        "catalog_best_selling_ranks_by_category": {
-          "9527": {
-            "category_name": "کیف پول مردانه",
-            "observed_at": "2026-11-21T00:15:42.957016+00:00",
-            "rank": 2,
-            "rank_history": [
-              {
-                "category_name": "کیف پول مردانه",
-                "observed_at": "2026-11-21T00:15:42.957016+00:00",
-                "rank": 2
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-21T00:42:27.548749+00:00",
-        "catalog_cycle_snapshot_rank": 695,
-        "catalog_rank_observed_at": "2026-11-21T00:15:42.957016+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "fashion",
-        "checked_at": "2026-11-21T01:04:55.842420+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-21930450",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 985600,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 61.48,
-        "discount_percent": 44,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-21T01:05:23.953053+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-21",
-        "history_high_toman": 985600,
-        "history_low_toman": 985600,
-        "history_median_toman": 985600,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-21",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/b448c360ae645690152ed1239dcaf5bdc30fc671_1783196416.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 71.48,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 61.48,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 64.0,
-          "generality_group": "fashion_lifestyle",
-          "live_demand": 99.24,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T01:05:23.956098+00:00",
-          "weakest_factor_score": 61.48
-        },
-        "original_price": 1760000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-21930450",
-        "product_url": "https://www.digikala.com/product/dkp-21930450/",
-        "promo_score": 35,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.22,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 33,
-        "savings_toman": 774400,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 2,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 71.48,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 61.48,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 64.0,
-          "generality_group": "fashion_lifestyle",
-          "live_demand": 99.24,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T01:05:23.956098+00:00",
-          "weakest_factor_score": 61.48
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1651,
-        "title": "جاکارتی اش مدل nexo سری design",
-        "variant_label": "مشکی"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-21T02:07:33.704261+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-21T02:07:40.595322+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "credentials_not_configured",
-          "status": "not_connected",
-          "updated_at": "2026-11-21T02:07:33.704261+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-21T02:07:33.704261+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-21T02:07:44.410725+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-21T02:07:33.704261+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-21T02:07:39.945657+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-21930450",
-      "product_plan_cycle_id": "2026-11-21T02:03:42.080876+00:00",
-      "scheduled_at": "2026-11-21T01:50:51.612371+00:00",
-      "selected_at": "2026-11-21T01:05:28.954755+00:00",
-      "sequence_number": 1651,
-      "status": "published",
-      "updated_at": "2026-11-21T02:07:44.742381+00:00"
-    },
-    {
-      "attempt_count": 1,
       "content_id": "dkp-22469487",
       "content_type": "product",
       "last_attempt_at": "2026-11-21T02:40:36.540284+00:00",
@@ -38809,6 +38626,192 @@
       "sequence_number": 1850,
       "status": "published",
       "updated_at": "2026-11-25T22:03:21.966374+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-7660316",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-25T22:50:16.817322+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-25T22:48:21.965363+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-7660316%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "جمع",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "A",
+        "catalog_best_selling_category_id": "10887",
+        "catalog_best_selling_category_name": "پودر کیک و شیرینی",
+        "catalog_best_selling_rank": 4,
+        "catalog_best_selling_ranks_by_category": {
+          "10887": {
+            "category_name": "پودر کیک و شیرینی",
+            "observed_at": "2026-11-25T06:40:34.202329+00:00",
+            "rank": 4,
+            "rank_history": [
+              {
+                "category_name": "پودر کیک و شیرینی",
+                "observed_at": "2026-11-25T06:40:34.202329+00:00",
+                "rank": 4
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-25T07:16:12.251891+00:00",
+        "catalog_cycle_snapshot_rank": 249,
+        "catalog_rank_observed_at": "2026-11-25T06:40:34.202329+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "grocery_food",
+        "checked_at": "2026-11-25T07:20:46.489920+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-7660316",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 200090,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 56.36,
+        "discount_percent": 42,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-25T07:21:07.348450+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-25",
+        "history_high_toman": 200090,
+        "history_low_toman": 200090,
+        "history_median_toman": 200090,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-25",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/5a1b2cfbd5984c7960e8cd0a421743a0bb043a35_1643172902.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_check_cached": true,
+        "market_error": "RuntimeError",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_query": "پودر کیک پرتقال جمع - 500 گرم",
+        "market_status": "unavailable",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 78.04,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 56.36,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 94.0,
+          "generality_group": "grocery_food",
+          "live_demand": 99.38,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-25T07:21:23.183503+00:00",
+          "weakest_factor_score": 56.36
+        },
+        "original_price": 345000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-7660316",
+        "product_url": "https://www.digikala.com/product/dkp-7660316/",
+        "promo_score": 30,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.25,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 69,
+        "savings_toman": 144910,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 4,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 78.04,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 56.36,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 94.0,
+          "generality_group": "grocery_food",
+          "live_demand": 99.38,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-25T07:21:23.183503+00:00",
+          "weakest_factor_score": 56.36
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1851,
+        "title": "پودر کیک پرتقال جمع - 500 گرم"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-25T22:50:16.817322+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-25T22:50:24.203816+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-25T22:50:16.817322+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-25T22:50:16.817322+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-25T22:50:27.852034+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-25T22:50:16.817322+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-25T22:50:23.318568+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-7660316",
+      "product_plan_cycle_id": "2026-11-25T21:58:11.149347+00:00",
+      "scheduled_at": "2026-11-25T22:48:21.965363+00:00",
+      "selected_at": "2026-11-25T07:21:27.857208+00:00",
+      "sequence_number": 1851,
+      "status": "published",
+      "updated_at": "2026-11-25T22:50:28.142427+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -38823,7 +38826,7 @@
       "attempt_count": 0,
       "content_id": "dkp-11901295",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T00:05:21.965363+00:00",
+      "next_attempt_at": "2026-11-26T00:07:28.141204+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-11901295%2F",
         "availability": "in_stock",
@@ -39013,7 +39016,7 @@
       },
       "product_id": "dkp-11901295",
       "product_plan_cycle_id": "2026-11-25T21:58:11.149347+00:00",
-      "scheduled_at": "2026-11-26T00:05:21.965363+00:00",
+      "scheduled_at": "2026-11-26T00:07:28.141204+00:00",
       "selected_at": "2026-11-25T08:39:14.978309+00:00",
       "sequence_number": 1853,
       "status": "queued"
@@ -39022,7 +39025,7 @@
       "attempt_count": 0,
       "content_id": "dkp-15207521",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T02:19:21.965363+00:00",
+      "next_attempt_at": "2026-11-26T02:21:28.141204+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-15207521%2F",
         "availability": "in_stock",
@@ -39189,7 +39192,7 @@
       },
       "product_id": "dkp-15207521",
       "product_plan_cycle_id": "2026-11-25T21:58:11.149347+00:00",
-      "scheduled_at": "2026-11-26T02:19:21.965363+00:00",
+      "scheduled_at": "2026-11-26T02:21:28.141204+00:00",
       "selected_at": "2026-11-25T11:54:12.304611+00:00",
       "sequence_number": 1856,
       "status": "queued"
@@ -39198,7 +39201,7 @@
       "attempt_count": 0,
       "content_id": "dkp-17909394",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T03:31:21.965363+00:00",
+      "next_attempt_at": "2026-11-26T03:33:28.141204+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-17909394%2F",
         "availability": "in_stock",
@@ -39364,7 +39367,7 @@
       },
       "product_id": "dkp-17909394",
       "product_plan_cycle_id": "2026-11-25T21:58:11.149347+00:00",
-      "scheduled_at": "2026-11-26T03:31:21.965363+00:00",
+      "scheduled_at": "2026-11-26T03:33:28.141204+00:00",
       "selected_at": "2026-11-25T14:23:57.714137+00:00",
       "sequence_number": 1858,
       "status": "queued"
@@ -39373,7 +39376,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21224060",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T05:38:21.965363+00:00",
+      "next_attempt_at": "2026-11-26T05:40:28.141204+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21224060%2F",
         "availability": "in_stock",
@@ -39559,7 +39562,7 @@
       },
       "product_id": "dkp-21224060",
       "product_plan_cycle_id": "2026-11-25T21:58:11.149347+00:00",
-      "scheduled_at": "2026-11-26T05:38:21.965363+00:00",
+      "scheduled_at": "2026-11-26T05:40:28.141204+00:00",
       "selected_at": "2026-11-25T22:03:12.918229+00:00",
       "sequence_number": 1861,
       "status": "queued"
@@ -39568,7 +39571,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21784978",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T01:32:21.965363+00:00",
+      "next_attempt_at": "2026-11-26T01:34:28.141204+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21784978%2F",
         "availability": "in_stock",
@@ -39736,7 +39739,7 @@
       },
       "product_id": "dkp-21784978",
       "product_plan_cycle_id": "2026-11-25T21:58:11.149347+00:00",
-      "scheduled_at": "2026-11-26T01:32:21.965363+00:00",
+      "scheduled_at": "2026-11-26T01:34:28.141204+00:00",
       "selected_at": "2026-11-25T11:54:12.304611+00:00",
       "sequence_number": 1855,
       "status": "queued"
@@ -39745,7 +39748,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22231543",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T03:00:21.965363+00:00",
+      "next_attempt_at": "2026-11-26T03:02:28.141204+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22231543%2F",
         "availability": "in_stock",
@@ -39917,7 +39920,7 @@
       },
       "product_id": "dkp-22231543",
       "product_plan_cycle_id": "2026-11-25T21:58:11.149347+00:00",
-      "scheduled_at": "2026-11-26T03:00:21.965363+00:00",
+      "scheduled_at": "2026-11-26T03:02:28.141204+00:00",
       "selected_at": "2026-11-25T13:11:42.702795+00:00",
       "sequence_number": 1857,
       "status": "queued"
@@ -39926,7 +39929,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22748971",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T04:14:21.965363+00:00",
+      "next_attempt_at": "2026-11-26T04:16:28.141204+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22748971%2F",
         "availability": "in_stock",
@@ -40095,7 +40098,7 @@
       },
       "product_id": "dkp-22748971",
       "product_plan_cycle_id": "2026-11-25T21:58:11.149347+00:00",
-      "scheduled_at": "2026-11-26T04:14:21.965363+00:00",
+      "scheduled_at": "2026-11-26T04:16:28.141204+00:00",
       "selected_at": "2026-11-25T17:05:37.836396+00:00",
       "sequence_number": 1859,
       "status": "queued"
@@ -40104,7 +40107,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22895958",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T04:54:21.965363+00:00",
+      "next_attempt_at": "2026-11-26T04:56:28.141204+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22895958%2F",
         "availability": "in_stock",
@@ -40269,7 +40272,7 @@
       },
       "product_id": "dkp-22895958",
       "product_plan_cycle_id": "2026-11-25T21:58:11.149347+00:00",
-      "scheduled_at": "2026-11-26T04:54:21.965363+00:00",
+      "scheduled_at": "2026-11-26T04:56:28.141204+00:00",
       "selected_at": "2026-11-25T20:49:43.396484+00:00",
       "sequence_number": 1860,
       "status": "queued"
@@ -40278,7 +40281,7 @@
       "attempt_count": 0,
       "content_id": "dkp-6819551",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T06:25:21.965363+00:00",
+      "next_attempt_at": "2026-11-26T06:27:28.141204+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-6819551%2F",
         "availability": "in_stock",
@@ -40441,191 +40444,16 @@
       },
       "product_id": "dkp-6819551",
       "product_plan_cycle_id": "2026-11-25T21:58:11.149347+00:00",
-      "scheduled_at": "2026-11-26T06:25:21.965363+00:00",
+      "scheduled_at": "2026-11-26T06:27:28.141204+00:00",
       "selected_at": "2026-11-25T22:03:12.918229+00:00",
       "sequence_number": 1862,
-      "status": "queued"
-    },
-    "dkp-7660316": {
-      "attempt_count": 0,
-      "content_id": "dkp-7660316",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-25T22:48:21.965363+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-7660316%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "جمع",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "10887",
-        "catalog_best_selling_category_name": "پودر کیک و شیرینی",
-        "catalog_best_selling_rank": 4,
-        "catalog_best_selling_ranks_by_category": {
-          "10887": {
-            "category_name": "پودر کیک و شیرینی",
-            "observed_at": "2026-11-25T06:40:34.202329+00:00",
-            "rank": 4,
-            "rank_history": [
-              {
-                "category_name": "پودر کیک و شیرینی",
-                "observed_at": "2026-11-25T06:40:34.202329+00:00",
-                "rank": 4
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-25T07:16:12.251891+00:00",
-        "catalog_cycle_snapshot_rank": 249,
-        "catalog_rank_observed_at": "2026-11-25T06:40:34.202329+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "grocery_food",
-        "checked_at": "2026-11-25T07:20:46.489920+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-7660316",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 200090,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 56.36,
-        "discount_percent": 42,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-25T07:21:07.348450+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-25",
-        "history_high_toman": 200090,
-        "history_low_toman": 200090,
-        "history_median_toman": 200090,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-25",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/5a1b2cfbd5984c7960e8cd0a421743a0bb043a35_1643172902.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_check_cached": true,
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "پودر کیک پرتقال جمع - 500 گرم",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 78.04,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 56.36,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 99.38,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-25T07:21:23.183503+00:00",
-          "weakest_factor_score": 56.36
-        },
-        "original_price": 345000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-7660316",
-        "product_url": "https://www.digikala.com/product/dkp-7660316/",
-        "promo_score": 30,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.25,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 69,
-        "savings_toman": 144910,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 4,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 78.04,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 56.36,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 99.38,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-25T07:21:23.183503+00:00",
-          "weakest_factor_score": 56.36
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1851,
-        "title": "پودر کیک پرتقال جمع - 500 گرم"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-7660316",
-      "product_plan_cycle_id": "2026-11-25T21:58:11.149347+00:00",
-      "scheduled_at": "2026-11-25T22:48:21.965363+00:00",
-      "selected_at": "2026-11-25T07:21:27.857208+00:00",
-      "sequence_number": 1851,
       "status": "queued"
     },
     "dkp-82035": {
       "attempt_count": 0,
       "content_id": "dkp-82035",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T23:20:21.965363+00:00",
+      "next_attempt_at": "2026-11-25T23:22:28.141204+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-82035%2F",
         "availability": "in_stock",
@@ -40791,7 +40619,7 @@
       },
       "product_id": "dkp-82035",
       "product_plan_cycle_id": "2026-11-25T21:58:11.149347+00:00",
-      "scheduled_at": "2026-11-25T23:20:21.965363+00:00",
+      "scheduled_at": "2026-11-25T23:22:28.141204+00:00",
       "selected_at": "2026-11-25T07:21:27.857208+00:00",
       "sequence_number": 1852,
       "status": "queued"
@@ -40800,7 +40628,7 @@
       "attempt_count": 0,
       "content_id": "dkp-9977293",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T00:45:21.965363+00:00",
+      "next_attempt_at": "2026-11-26T00:47:28.141204+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-9977293%2F",
         "availability": "in_stock",
@@ -40969,7 +40797,7 @@
       },
       "product_id": "dkp-9977293",
       "product_plan_cycle_id": "2026-11-25T21:58:11.149347+00:00",
-      "scheduled_at": "2026-11-26T00:45:21.965363+00:00",
+      "scheduled_at": "2026-11-26T00:47:28.141204+00:00",
       "selected_at": "2026-11-25T10:42:31.566818+00:00",
       "sequence_number": 1854,
       "status": "queued"
@@ -76301,7 +76129,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 0.3,
+      "delivery_duration_seconds": 1.4,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -76364,8 +76192,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 0.3,
-      "delivery_started_at": "2026-11-25T22:06:49.717011+00:00",
+      "delivery_duration_seconds": 1.4,
+      "delivery_started_at": "2026-11-25T22:50:29.161746+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -76857,13 +76685,13 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-25T22:03:21.965363+00:00",
+  "last_channel_published_at": "2026-11-25T22:50:28.141204+00:00",
   "last_content_selection_at": "2026-11-25T22:03:12.918229+00:00",
   "last_editorial_attempt_at": "2026-11-18T02:10:38.177140+00:00",
   "last_editorial_confirmed_at": "2026-11-18T02:10:49.933296+00:00",
   "last_editorial_empty_bank_check_at": "2026-11-18T01:24:46.585898+00:00",
-  "last_product_channel_published_at": "2026-11-25T22:03:21.965363+00:00",
-  "last_published_at": "2026-11-25T22:03:21.965363+00:00",
+  "last_product_channel_published_at": "2026-11-25T22:50:28.141204+00:00",
+  "last_published_at": "2026-11-25T22:50:28.141204+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -131089,8 +130917,8 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-25T22:03:21.965369+00:00",
-    "candidate_count": 12,
+    "calculated_at": "2026-11-25T22:50:28.141212+00:00",
+    "candidate_count": 11,
     "catalog_cycle_id": "2026-11-25T21:58:11.149347+00:00",
     "current_cycle_started_at": "2026-11-25T21:58:11.466918+00:00",
     "daily_post_limit": 72,
@@ -131102,20 +130930,20 @@
     "interval_seconds": 1860.0,
     "last_clean_cycle_completed_at": "2026-11-25T21:58:11.149347+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-25T22:03:21.965363+00:00",
+    "plan_anchor_at": "2026-11-25T22:50:28.141204+00:00",
     "plan_anchor_kind": "last_channel",
-    "planned_product_slots": 12,
+    "planned_product_slots": 11,
     "planned_window_end_at": "2026-11-25T23:14:12.466918+00:00",
     "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
     "scan_eta_is_provisional": false,
     "scan_eta_source": "last_observed_full_cycle_duration",
     "scheduled_product_count": 13,
-    "seconds_from_plan_anchor_to_next_scan": 4250.501555,
-    "seconds_until_estimated_next_clean_scan": 4250.501549
+    "seconds_from_plan_anchor_to_next_scan": 1424.325714,
+    "seconds_until_estimated_next_clean_scan": 1424.325706
   },
   "product_publication_interval_seconds": 1860.0,
   "product_publication_plan": {
-    "anchor_at": "2026-11-25T22:03:21.965363+00:00",
+    "anchor_at": "2026-11-25T22:50:28.141204+00:00",
     "anchor_kind": "last_channel",
     "catalog_cycle_id": "2026-11-25T21:58:11.149347+00:00",
     "first_slot_due_now": false,
@@ -131123,9 +130951,8 @@
     "interval_seconds": 1860.0,
     "maximum_product_interval_seconds": 3420,
     "next_clean_scan_at": "2026-11-25T23:14:12.466918+00:00",
-    "pending_product_count": 12,
+    "pending_product_count": 11,
     "product_ids": [
-      "dkp-7660316",
       "dkp-82035",
       "dkp-11901295",
       "dkp-9977293",
@@ -131138,10 +130965,10 @@
       "dkp-21224060",
       "dkp-6819551"
     ],
-    "scheduled_product_count": 12,
-    "updated_at": "2026-11-25T22:03:21.965369+00:00"
+    "scheduled_product_count": 11,
+    "updated_at": "2026-11-25T22:50:28.141212+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-25T22:03:21.965363+00:00",
+  "product_publication_plan_anchor_at": "2026-11-25T22:50:28.141204+00:00",
   "product_publication_plan_anchor_kind": "last_channel",
   "product_publication_plan_cycle_id": "2026-11-25T21:58:11.149347+00:00",
   "publication_diversity_fallback_count": 5307,
@@ -244203,6 +244030,7 @@
       "aparat_video_record_id": "74391985",
       "aparat_video_url": "https://www.aparat.com/v/dmffl20",
       "aparat_visibility": "public",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2596,
       "bale_posted_at": "2026-11-25T22:03:19.435218+00:00",
       "brand": "آردل",
@@ -244267,6 +244095,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-25T22:05:37.448255+00:00",
@@ -325449,6 +325278,134 @@
       "youtube_skip_reason": "selection_outside_freshness_window",
       "youtube_skip_recorded_at": "2026-11-18T21:30:04.118953+00:00",
       "youtube_upload_status": "skipped_stale_after_freshness_window"
+    },
+    "dkp-7660316": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2598,
+      "bale_posted_at": "2026-11-25T22:50:24.203816+00:00",
+      "brand": "جمع",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "A",
+      "catalog_best_selling_category_id": "10887",
+      "catalog_best_selling_category_name": "پودر کیک و شیرینی",
+      "catalog_best_selling_rank": 4,
+      "catalog_best_selling_ranks_by_category": {
+        "10887": {
+          "category_name": "پودر کیک و شیرینی",
+          "observed_at": "2026-11-25T06:40:34.202329+00:00",
+          "rank": 4,
+          "rank_history": [
+            {
+              "category_name": "پودر کیک و شیرینی",
+              "observed_at": "2026-11-25T06:40:34.202329+00:00",
+              "rank": 4
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-25T07:16:12.251891+00:00",
+      "catalog_cycle_snapshot_rank": 249,
+      "catalog_rank_observed_at": "2026-11-25T06:40:34.202329+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-7660316",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "A",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-25T22:50:27.852068+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 0,
+      "distribution_queue_id": "dkp-7660316:2026-11-25T07:21:27.857208+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-25T07:21:07.348450+00:00",
+      "history_days": 1,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/5a1b2cfbd5984c7960e8cd0a421743a0bb043a35_1643172902.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "unavailable",
+      "platform_message_ids": {
+        "rubika": "1983487183680588651"
+      },
+      "posted_current_price": 200090,
+      "posted_discount_percent": 42,
+      "posted_original_price": 345000,
+      "product_url": "https://www.digikala.com/product/dkp-7660316/",
+      "promo_score": 30,
+      "publication_category": "grocery_food",
+      "publication_family": "digikala_category:10887",
+      "publication_use_case": "grocery_food",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 0.0,
+      "rubika_posted_at": "2026-11-25T22:50:27.852034+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 4,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 78.04,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 56.36,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 94.0,
+        "generality_group": "grocery_food",
+        "live_demand": 99.38,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-25T07:21:23.183503+00:00",
+        "weakest_factor_score": 56.36
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1851,
+      "telegram_message_id": 1921,
+      "telegram_posted_at": "2026-11-25T22:50:23.318568+00:00",
+      "title": "پودر کیک پرتقال جمع - 500 گرم",
+      "ts": 1795647016.817322,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
     },
     "dkp-7665408": {
       "aparat_skip_reason": "selection_outside_freshness_window",
