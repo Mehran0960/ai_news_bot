@@ -21,6 +21,8 @@ import {
   hasActiveChannelPublicationWork,
   hasDueScheduledPublication,
   readLastChannelPublicationAt,
+  CATALOG_SWEEP_INTERVAL_MINUTES,
+  isCatalogSweepDispatchMinute,
 } from "./affilio-minute-dispatcher.mjs";
 
 const categoryIds = Array.from({ length: 4917 }, (_, index) => String(index + 1));
@@ -901,4 +903,17 @@ test("video fan-out is not starved by catalog scans but preserves product priori
     next_editorial_planning_at: new Date(now).toISOString(),
   }), null);
   assert.equal(videoQueueDispatchDeferReason({ published: {} }), "video_queue_empty");
+});
+
+
+test("catalog sweep dispatch is throttled to every four minutes without slowing the dispatcher", () => {
+  assert.equal(CATALOG_SWEEP_INTERVAL_MINUTES, 4);
+  const slots = Array.from({ length: 60 }, (_, minute) => minute)
+    .filter(isCatalogSweepDispatchMinute);
+  assert.deepEqual(slots, [1, 5, 9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49, 53, 57]);
+  for (const minute of [3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43, 47, 51, 55, 59]) {
+    assert.equal(isCatalogSweepDispatchMinute(minute), false);
+  }
+  assert.equal(isCatalogSweepDispatchMinute(-3), false);
+  assert.equal(isCatalogSweepDispatchMinute(60), false);
 });
