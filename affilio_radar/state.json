@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-25T05:28:31.153530+00:00",
-  "aparat_last_upload_success_at": "2026-11-25T05:28:34.882063+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-25T06:08:23.045667+00:00",
+  "aparat_last_upload_success_at": "2026-11-25T06:08:26.808693+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-25T05:30:28.060150+00:00",
@@ -235959,7 +235959,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-20478070": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-25T06:08:23.045667+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-25T06:08:26.808693+00:00",
+      "aparat_video_hash": "oxm4wn5",
+      "aparat_video_record_id": "74379562",
+      "aparat_video_url": "https://www.aparat.com/v/oxm4wn5",
+      "aparat_visibility": "public",
       "bale_message_id": 2570,
       "bale_posted_at": "2026-11-25T06:06:21.460029+00:00",
       "brand": "",
@@ -236083,8 +236089,16 @@
       "telegram_posted_at": "2026-11-25T06:06:20.480177+00:00",
       "title": "شومیز زنانه آستین سه ربع پلی استر مدل سپیده با یقه گرد، طرح راه‌راه، قد روی باسن، بسته شدن با پنج دکمه، تنخور معمولی مناسب مهمانی، روزمره و اداری",
       "ts": 1795586772.829233,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-20478070.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-20478070.mp4"
+      },
+      "video_generated_at": "2026-11-25T06:08:16.575942+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-20483954": {
       "aparat_skip_reason": "selection_outside_freshness_window",
