@@ -3008,181 +3008,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 1,
-      "content_id": "dkp-2882254",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-20T16:59:45.878380+00:00",
-      "last_detail": "selected_price_stale_selected=198900_live=198000",
-      "next_attempt_at": "2026-11-20T16:59:06.144437+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-2882254%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "دکتر ژیلا",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "6475",
-        "catalog_best_selling_category_name": "بالم لب",
-        "catalog_best_selling_rank": 19,
-        "catalog_best_selling_ranks_by_category": {
-          "6475": {
-            "category_name": "بالم لب",
-            "observed_at": "2026-11-20T13:51:39.750686+00:00",
-            "rank": 19,
-            "rank_history": [
-              {
-                "category_name": "بالم لب",
-                "observed_at": "2026-11-20T13:51:39.750686+00:00",
-                "rank": 19
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-20T14:20:39.588055+00:00",
-        "catalog_cycle_snapshot_rank": 357,
-        "catalog_rank_observed_at": "2026-11-20T13:51:39.750686+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "grocery_food",
-        "checked_at": "2026-11-20T14:29:37.482413+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-2882254",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 198900,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 22.4,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 47.06,
-        "discount_percent": 27,
-        "discount_vs_30d_median_pct": -2,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-20T14:30:01.702051+00:00",
-        "history_days": 3,
-        "history_end_day": "2026-11-20",
-        "history_high_toman": 198900,
-        "history_low_toman": 185400,
-        "history_median_toman": 194900,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 194900,
-        "history_start_day": "2026-11-17",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/14a72d200da1f4e279a78a261e79b3fd35a7bfca_1785437991.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 68.62,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 47.06,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 84.5,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-20T14:30:01.704126+00:00",
-          "weakest_factor_score": 47.06
-        },
-        "original_price": 274200,
-        "pct_above_stable_low": 2,
-        "product_id": "dkp-2882254",
-        "product_url": "https://www.digikala.com/product/dkp-2882254/",
-        "promo_score": 19,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.23,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 3008,
-        "savings_toman": 75300,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 19,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 68.62,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 47.06,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 84.5,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-20T14:30:01.704126+00:00",
-          "weakest_factor_score": 47.06
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1633,
-        "title": "بالم لب دکتر ژیلا مدل B01 وزن 12 گرم نرم‌کننده و مرطوب‌کننده لب‌های خشک و حساس حاوی روغن آووکادو، روغن زیتون، روغن جوجوبا و عصاره چای سبز و بابونه مناسب بانوان و آقایان"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-2882254",
-      "product_plan_cycle_id": "2026-11-20T16:42:28.993554+00:00",
-      "scheduled_at": "2026-11-20T16:59:06.144437+00:00",
-      "selected_at": "2026-11-20T14:30:05.030710+00:00",
-      "sequence_number": 1633,
-      "status": "stale_selection",
-      "updated_at": "2026-11-20T16:59:45.878380+00:00"
-    },
-    {
-      "attempt_count": 1,
       "content_id": "dkp-7427571",
       "content_type": "product",
       "last_attempt_at": "2026-11-20T17:05:43.488475+00:00",
@@ -39756,6 +39581,189 @@
       "sequence_number": 1832,
       "status": "published",
       "updated_at": "2026-11-25T10:42:43.756283+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-82141",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-25T11:30:18.311603+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-25T11:29:43.754860+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-82141%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "هیدرودرم",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "A",
+        "catalog_best_selling_category_id": "6556",
+        "catalog_best_selling_category_name": "لایه بردار پوست و اسکراب",
+        "catalog_best_selling_rank": 8,
+        "catalog_best_selling_ranks_by_category": {
+          "6556": {
+            "category_name": "لایه بردار پوست و اسکراب",
+            "observed_at": "2026-11-24T20:04:32.316231+00:00",
+            "rank": 8,
+            "rank_history": [
+              {
+                "category_name": "لایه بردار پوست و اسکراب",
+                "observed_at": "2026-11-24T20:04:32.316231+00:00",
+                "rank": 8
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-24T20:33:32.414004+00:00",
+        "catalog_cycle_snapshot_rank": 223,
+        "catalog_rank_observed_at": "2026-11-24T20:04:32.316231+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "personal_care",
+        "checked_at": "2026-11-24T20:37:39.162715+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-82141",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 357600,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 59.27,
+        "discount_percent": 45,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-24T20:38:02.138657+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-24",
+        "history_high_toman": 357600,
+        "history_low_toman": 357600,
+        "history_median_toman": 357600,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-24",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/ae0cb6f99ac881919913dc0ff6d4330b9d3fe537_1789053378.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 78.36,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 59.27,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 99.49,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-24T20:38:15.951468+00:00",
+          "weakest_factor_score": 59.27
+        },
+        "original_price": 650000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-82141",
+        "product_url": "https://www.digikala.com/product/dkp-82141/",
+        "promo_score": 33,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.4,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 1272,
+        "savings_toman": 292400,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 8,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 78.36,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 59.27,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 99.49,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-24T20:38:15.951468+00:00",
+          "weakest_factor_score": 59.27
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1833,
+        "title": "کرم ساینده و پاک کننده هیدرودرم حجم 200 میلی لیتر"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-25T11:30:18.311603+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-25T11:30:25.276386+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-25T11:30:18.311603+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-25T11:30:18.311603+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-25T11:30:30.060702+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-25T11:30:18.311603+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-25T11:30:24.911000+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-82141",
+      "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
+      "scheduled_at": "2026-11-25T11:29:43.754860+00:00",
+      "selected_at": "2026-11-24T20:38:21.048984+00:00",
+      "sequence_number": 1833,
+      "status": "published",
+      "updated_at": "2026-11-25T11:30:30.358359+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -39770,7 +39778,7 @@
       "attempt_count": 0,
       "content_id": "dkp-11901295",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T00:55:43.754860+00:00",
+      "next_attempt_at": "2026-11-26T00:56:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-11901295%2F",
         "availability": "in_stock",
@@ -39960,7 +39968,7 @@
       },
       "product_id": "dkp-11901295",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-26T00:55:43.754860+00:00",
+      "scheduled_at": "2026-11-26T00:56:30.357065+00:00",
       "selected_at": "2026-11-25T08:39:14.978309+00:00",
       "sequence_number": 1853,
       "status": "queued"
@@ -39969,7 +39977,7 @@
       "attempt_count": 0,
       "content_id": "dkp-17075871",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T12:13:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T12:14:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-17075871%2F",
         "availability": "in_stock",
@@ -40132,7 +40140,7 @@
       },
       "product_id": "dkp-17075871",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T12:13:43.754860+00:00",
+      "scheduled_at": "2026-11-25T12:14:30.357065+00:00",
       "selected_at": "2026-11-24T20:38:21.048984+00:00",
       "sequence_number": 1834,
       "status": "queued"
@@ -40141,7 +40149,7 @@
       "attempt_count": 0,
       "content_id": "dkp-17996239",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T17:35:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T17:36:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-17996239%2F",
         "availability": "in_stock",
@@ -40309,7 +40317,7 @@
       },
       "product_id": "dkp-17996239",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T17:35:43.754860+00:00",
+      "scheduled_at": "2026-11-25T17:36:30.357065+00:00",
       "selected_at": "2026-11-25T03:25:51.448425+00:00",
       "sequence_number": 1842,
       "status": "queued"
@@ -40318,7 +40326,7 @@
       "attempt_count": 0,
       "content_id": "dkp-1909152",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T15:20:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T15:21:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1909152%2F",
         "availability": "in_stock",
@@ -40484,7 +40492,7 @@
       },
       "product_id": "dkp-1909152",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T15:20:43.754860+00:00",
+      "scheduled_at": "2026-11-25T15:21:30.357065+00:00",
       "selected_at": "2026-11-25T01:49:03.673632+00:00",
       "sequence_number": 1839,
       "status": "queued"
@@ -40493,7 +40501,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21110391",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T22:53:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T22:54:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21110391%2F",
         "availability": "in_stock",
@@ -40658,7 +40666,7 @@
       },
       "product_id": "dkp-21110391",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T22:53:43.754860+00:00",
+      "scheduled_at": "2026-11-25T22:54:30.357065+00:00",
       "selected_at": "2026-11-25T04:52:48.014060+00:00",
       "sequence_number": 1850,
       "status": "queued"
@@ -40667,7 +40675,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21172834",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T16:07:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T16:08:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21172834%2F",
         "availability": "in_stock",
@@ -40853,7 +40861,7 @@
       },
       "product_id": "dkp-21172834",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T16:07:43.754860+00:00",
+      "scheduled_at": "2026-11-25T16:08:30.357065+00:00",
       "selected_at": "2026-11-25T01:49:03.673632+00:00",
       "sequence_number": 1840,
       "status": "queued"
@@ -40862,7 +40870,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21196802",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T14:00:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T14:01:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21196802%2F",
         "availability": "in_stock",
@@ -41025,7 +41033,7 @@
       },
       "product_id": "dkp-21196802",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T14:00:43.754860+00:00",
+      "scheduled_at": "2026-11-25T14:01:30.357065+00:00",
       "selected_at": "2026-11-24T21:08:14.903733+00:00",
       "sequence_number": 1837,
       "status": "queued"
@@ -41034,7 +41042,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21224060",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T20:42:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T20:43:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21224060%2F",
         "availability": "in_stock",
@@ -41200,7 +41208,7 @@
       },
       "product_id": "dkp-21224060",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T20:42:43.754860+00:00",
+      "scheduled_at": "2026-11-25T20:43:30.357065+00:00",
       "selected_at": "2026-11-25T04:24:14.575548+00:00",
       "sequence_number": 1847,
       "status": "queued"
@@ -41209,7 +41217,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21249222",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T19:32:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T19:33:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21249222%2F",
         "availability": "in_stock",
@@ -41376,7 +41384,7 @@
       },
       "product_id": "dkp-21249222",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T19:32:43.754860+00:00",
+      "scheduled_at": "2026-11-25T19:33:30.357065+00:00",
       "selected_at": "2026-11-25T04:24:14.575548+00:00",
       "sequence_number": 1845,
       "status": "queued"
@@ -41385,7 +41393,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21489950",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T18:20:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T18:21:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21489950%2F",
         "availability": "in_stock",
@@ -41549,7 +41557,7 @@
       },
       "product_id": "dkp-21489950",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T18:20:43.754860+00:00",
+      "scheduled_at": "2026-11-25T18:21:30.357065+00:00",
       "selected_at": "2026-11-25T03:54:04.631819+00:00",
       "sequence_number": 1843,
       "status": "queued"
@@ -41558,7 +41566,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21659691",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T13:19:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T13:20:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21659691%2F",
         "availability": "in_stock",
@@ -41725,7 +41733,7 @@
       },
       "product_id": "dkp-21659691",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T13:19:43.754860+00:00",
+      "scheduled_at": "2026-11-25T13:20:30.357065+00:00",
       "selected_at": "2026-11-24T21:08:14.903733+00:00",
       "sequence_number": 1836,
       "status": "queued"
@@ -41734,7 +41742,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22409321",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T12:46:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T12:47:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22409321%2F",
         "availability": "in_stock",
@@ -41897,7 +41905,7 @@
       },
       "product_id": "dkp-22409321",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T12:46:43.754860+00:00",
+      "scheduled_at": "2026-11-25T12:47:30.357065+00:00",
       "selected_at": "2026-11-24T20:38:21.048984+00:00",
       "sequence_number": 1835,
       "status": "queued"
@@ -41906,7 +41914,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22895958",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T20:03:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T20:04:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22895958%2F",
         "availability": "in_stock",
@@ -42073,7 +42081,7 @@
       },
       "product_id": "dkp-22895958",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T20:03:43.754860+00:00",
+      "scheduled_at": "2026-11-25T20:04:30.357065+00:00",
       "selected_at": "2026-11-25T04:24:14.575548+00:00",
       "sequence_number": 1846,
       "status": "queued"
@@ -42082,7 +42090,7 @@
       "attempt_count": 0,
       "content_id": "dkp-23204993",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T21:24:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T21:25:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-23204993%2F",
         "availability": "in_stock",
@@ -42246,7 +42254,7 @@
       },
       "product_id": "dkp-23204993",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T21:24:43.754860+00:00",
+      "scheduled_at": "2026-11-25T21:25:30.357065+00:00",
       "selected_at": "2026-11-25T04:24:14.575548+00:00",
       "sequence_number": 1848,
       "status": "queued"
@@ -42255,7 +42263,7 @@
       "attempt_count": 0,
       "content_id": "dkp-2882254",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T22:09:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T22:10:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-2882254%2F",
         "availability": "in_stock",
@@ -42418,7 +42426,7 @@
       },
       "product_id": "dkp-2882254",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T22:09:43.754860+00:00",
+      "scheduled_at": "2026-11-25T22:10:30.357065+00:00",
       "selected_at": "2026-11-25T04:24:14.575548+00:00",
       "sequence_number": 1849,
       "status": "queued"
@@ -42427,7 +42435,7 @@
       "attempt_count": 0,
       "content_id": "dkp-3966457",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T18:53:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T18:54:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-3966457%2F",
         "availability": "in_stock",
@@ -42597,7 +42605,7 @@
       },
       "product_id": "dkp-3966457",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T18:53:43.754860+00:00",
+      "scheduled_at": "2026-11-25T18:54:30.357065+00:00",
       "selected_at": "2026-11-25T04:24:14.575548+00:00",
       "sequence_number": 1844,
       "status": "queued"
@@ -42606,7 +42614,7 @@
       "attempt_count": 0,
       "content_id": "dkp-6577019",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T16:49:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T16:50:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-6577019%2F",
         "availability": "in_stock",
@@ -42769,7 +42777,7 @@
       },
       "product_id": "dkp-6577019",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T16:49:43.754860+00:00",
+      "scheduled_at": "2026-11-25T16:50:30.357065+00:00",
       "selected_at": "2026-11-25T02:15:34.738645+00:00",
       "sequence_number": 1841,
       "status": "queued"
@@ -42778,7 +42786,7 @@
       "attempt_count": 0,
       "content_id": "dkp-7660316",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T23:38:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T23:39:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-7660316%2F",
         "availability": "in_stock",
@@ -42944,7 +42952,7 @@
       },
       "product_id": "dkp-7660316",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T23:38:43.754860+00:00",
+      "scheduled_at": "2026-11-25T23:39:30.357065+00:00",
       "selected_at": "2026-11-25T07:21:27.857208+00:00",
       "sequence_number": 1851,
       "status": "queued"
@@ -42953,7 +42961,7 @@
       "attempt_count": 0,
       "content_id": "dkp-82035",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T00:10:43.754860+00:00",
+      "next_attempt_at": "2026-11-26T00:11:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-82035%2F",
         "availability": "in_stock",
@@ -43119,188 +43127,16 @@
       },
       "product_id": "dkp-82035",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-26T00:10:43.754860+00:00",
+      "scheduled_at": "2026-11-26T00:11:30.357065+00:00",
       "selected_at": "2026-11-25T07:21:27.857208+00:00",
       "sequence_number": 1852,
-      "status": "queued"
-    },
-    "dkp-82141": {
-      "attempt_count": 0,
-      "content_id": "dkp-82141",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-25T11:29:43.754860+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-82141%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "هیدرودرم",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "6556",
-        "catalog_best_selling_category_name": "لایه بردار پوست و اسکراب",
-        "catalog_best_selling_rank": 8,
-        "catalog_best_selling_ranks_by_category": {
-          "6556": {
-            "category_name": "لایه بردار پوست و اسکراب",
-            "observed_at": "2026-11-24T20:04:32.316231+00:00",
-            "rank": 8,
-            "rank_history": [
-              {
-                "category_name": "لایه بردار پوست و اسکراب",
-                "observed_at": "2026-11-24T20:04:32.316231+00:00",
-                "rank": 8
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-24T20:33:32.414004+00:00",
-        "catalog_cycle_snapshot_rank": 223,
-        "catalog_rank_observed_at": "2026-11-24T20:04:32.316231+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "personal_care",
-        "checked_at": "2026-11-24T20:37:39.162715+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-82141",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 357600,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 59.27,
-        "discount_percent": 45,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-24T20:38:02.138657+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-24",
-        "history_high_toman": 357600,
-        "history_low_toman": 357600,
-        "history_median_toman": 357600,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-24",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/ae0cb6f99ac881919913dc0ff6d4330b9d3fe537_1789053378.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 78.36,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 59.27,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.49,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-24T20:38:15.951468+00:00",
-          "weakest_factor_score": 59.27
-        },
-        "original_price": 650000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-82141",
-        "product_url": "https://www.digikala.com/product/dkp-82141/",
-        "promo_score": 33,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.4,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 1272,
-        "savings_toman": 292400,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 8,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 78.36,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 59.27,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.49,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-24T20:38:15.951468+00:00",
-          "weakest_factor_score": 59.27
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1833,
-        "title": "کرم ساینده و پاک کننده هیدرودرم حجم 200 میلی لیتر"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-82141",
-      "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T11:29:43.754860+00:00",
-      "selected_at": "2026-11-24T20:38:21.048984+00:00",
-      "sequence_number": 1833,
       "status": "queued"
     },
     "dkp-9976555": {
       "attempt_count": 0,
       "content_id": "dkp-9976555",
       "content_type": "product",
-      "next_attempt_at": "2026-11-25T14:45:43.754860+00:00",
+      "next_attempt_at": "2026-11-25T14:46:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-9976555%2F",
         "availability": "in_stock",
@@ -43467,7 +43303,7 @@
       },
       "product_id": "dkp-9976555",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-25T14:45:43.754860+00:00",
+      "scheduled_at": "2026-11-25T14:46:30.357065+00:00",
       "selected_at": "2026-11-24T23:09:04.912398+00:00",
       "sequence_number": 1838,
       "status": "queued"
@@ -43476,7 +43312,7 @@
       "attempt_count": 0,
       "content_id": "dkp-9977293",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T01:35:43.754860+00:00",
+      "next_attempt_at": "2026-11-26T01:36:30.357065+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-9977293%2F",
         "availability": "in_stock",
@@ -43645,7 +43481,7 @@
       },
       "product_id": "dkp-9977293",
       "product_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
-      "scheduled_at": "2026-11-26T01:35:43.754860+00:00",
+      "scheduled_at": "2026-11-26T01:36:30.357065+00:00",
       "selected_at": "2026-11-25T10:42:31.566818+00:00",
       "sequence_number": 1854,
       "status": "queued"
@@ -79768,7 +79604,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.8,
+      "delivery_duration_seconds": 1.5,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -79831,8 +79667,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.8,
-      "delivery_started_at": "2026-11-25T10:42:44.966256+00:00",
+      "delivery_duration_seconds": 1.5,
+      "delivery_started_at": "2026-11-25T11:30:31.397225+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -80314,13 +80150,13 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-25T10:42:43.754860+00:00",
+  "last_channel_published_at": "2026-11-25T11:30:30.357065+00:00",
   "last_content_selection_at": "2026-11-25T10:42:31.566818+00:00",
   "last_editorial_attempt_at": "2026-11-18T02:10:38.177140+00:00",
   "last_editorial_confirmed_at": "2026-11-18T02:10:49.933296+00:00",
   "last_editorial_empty_bank_check_at": "2026-11-18T01:24:46.585898+00:00",
-  "last_product_channel_published_at": "2026-11-25T10:42:43.754860+00:00",
-  "last_published_at": "2026-11-25T10:42:43.754860+00:00",
+  "last_product_channel_published_at": "2026-11-25T11:30:30.357065+00:00",
+  "last_published_at": "2026-11-25T11:30:30.357065+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -134360,43 +134196,42 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-25T10:42:43.754868+00:00",
-    "candidate_count": 22,
+    "calculated_at": "2026-11-25T11:30:30.357073+00:00",
+    "candidate_count": 21,
     "catalog_cycle_id": "2026-11-25T10:38:03.308111+00:00",
     "current_cycle_started_at": "2026-11-25T10:38:03.704275+00:00",
     "daily_post_limit": 72,
     "deferred_product_count": 0,
     "estimated_clean_cycle_seconds": 2987,
-    "estimated_next_clean_scan_at": "2026-11-25T11:27:50.704275+00:00",
+    "estimated_next_clean_scan_at": "",
     "first_slot_due_now": false,
-    "interval_minutes": 31.0,
-    "interval_seconds": 1860.0,
+    "interval_minutes": 57.0,
+    "interval_seconds": 3420.0,
     "last_clean_cycle_completed_at": "2026-11-25T10:38:03.308111+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-25T10:42:43.754860+00:00",
-    "plan_anchor_kind": "last_channel",
-    "planned_product_slots": 22,
-    "planned_window_end_at": "2026-11-25T11:27:50.704275+00:00",
+    "plan_anchor_at": "2026-11-25T11:30:30.357065+00:00",
+    "plan_anchor_kind": "last_channel_provisional",
+    "planned_product_slots": 21,
+    "planned_window_end_at": "2026-11-26T07:27:30.357065+00:00",
     "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
-    "scan_eta_is_provisional": false,
-    "scan_eta_source": "last_observed_full_cycle_duration",
+    "scan_eta_is_provisional": true,
+    "scan_eta_source": "provisional_max_interval_after_overdue_or_missing_scan_eta",
     "scheduled_product_count": 23,
-    "seconds_from_plan_anchor_to_next_scan": 2706.949415,
-    "seconds_until_estimated_next_clean_scan": 2706.949407
+    "seconds_from_plan_anchor_to_next_scan": 71820,
+    "seconds_until_estimated_next_clean_scan": 0.0
   },
-  "product_publication_interval_seconds": 1860.0,
+  "product_publication_interval_seconds": 3420.0,
   "product_publication_plan": {
-    "anchor_at": "2026-11-25T10:42:43.754860+00:00",
-    "anchor_kind": "last_channel",
+    "anchor_at": "2026-11-25T11:30:30.357065+00:00",
+    "anchor_kind": "last_channel_provisional",
     "catalog_cycle_id": "2026-11-25T10:38:03.308111+00:00",
     "first_slot_due_now": false,
-    "interval_minutes": 31.0,
-    "interval_seconds": 1860.0,
+    "interval_minutes": 57.0,
+    "interval_seconds": 3420.0,
     "maximum_product_interval_seconds": 3420,
-    "next_clean_scan_at": "2026-11-25T11:27:50.704275+00:00",
-    "pending_product_count": 22,
+    "next_clean_scan_at": "",
+    "pending_product_count": 21,
     "product_ids": [
-      "dkp-82141",
       "dkp-17075871",
       "dkp-22409321",
       "dkp-21659691",
@@ -134419,11 +134254,11 @@
       "dkp-11901295",
       "dkp-9977293"
     ],
-    "scheduled_product_count": 22,
-    "updated_at": "2026-11-25T10:42:43.754868+00:00"
+    "scheduled_product_count": 21,
+    "updated_at": "2026-11-25T11:30:30.357073+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-25T10:42:43.754860+00:00",
-  "product_publication_plan_anchor_kind": "last_channel",
+  "product_publication_plan_anchor_at": "2026-11-25T11:30:30.357065+00:00",
+  "product_publication_plan_anchor_kind": "last_channel_provisional",
   "product_publication_plan_cycle_id": "2026-11-25T10:38:03.308111+00:00",
   "publication_diversity_fallback_count": 5307,
   "publication_diversity_fallback_events": [
@@ -311888,6 +311723,7 @@
       "aparat_video_record_id": "74383319",
       "aparat_video_url": "https://www.aparat.com/v/ipb722u",
       "aparat_visibility": "public",
+      "bale_expiry_status": "unknown",
       "bale_message_id": 2579,
       "bale_posted_at": "2026-11-25T10:42:39.927054+00:00",
       "brand": "دیپ سنس",
@@ -311952,6 +311788,7 @@
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
       "expiry_source": "unavailable",
+      "expiry_status": "unknown",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-25T10:46:08.740659+00:00",
@@ -328633,6 +328470,134 @@
       "youtube_skip_reason": "selection_outside_freshness_window",
       "youtube_skip_recorded_at": "2026-11-18T21:30:04.118953+00:00",
       "youtube_upload_status": "skipped_stale_after_freshness_window"
+    },
+    "dkp-82141": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2580,
+      "bale_posted_at": "2026-11-25T11:30:25.276386+00:00",
+      "brand": "هیدرودرم",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "A",
+      "catalog_best_selling_category_id": "6556",
+      "catalog_best_selling_category_name": "لایه بردار پوست و اسکراب",
+      "catalog_best_selling_rank": 8,
+      "catalog_best_selling_ranks_by_category": {
+        "6556": {
+          "category_name": "لایه بردار پوست و اسکراب",
+          "observed_at": "2026-11-24T20:04:32.316231+00:00",
+          "rank": 8,
+          "rank_history": [
+            {
+              "category_name": "لایه بردار پوست و اسکراب",
+              "observed_at": "2026-11-24T20:04:32.316231+00:00",
+              "rank": 8
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-24T20:33:32.414004+00:00",
+      "catalog_cycle_snapshot_rank": 223,
+      "catalog_rank_observed_at": "2026-11-24T20:04:32.316231+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-82141",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "A",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-25T11:30:30.060727+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 0,
+      "distribution_queue_id": "dkp-82141:2026-11-24T20:38:21.048984+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-24T20:38:02.138657+00:00",
+      "history_days": 1,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/ae0cb6f99ac881919913dc0ff6d4330b9d3fe537_1789053378.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "not_checked",
+      "platform_message_ids": {
+        "rubika": "1982785831579588651"
+      },
+      "posted_current_price": 357600,
+      "posted_discount_percent": 45,
+      "posted_original_price": 650000,
+      "product_url": "https://www.digikala.com/product/dkp-82141/",
+      "promo_score": 33,
+      "publication_category": "personal_care",
+      "publication_family": "digikala_category:6556",
+      "publication_use_case": "personal_care",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 0.0,
+      "rubika_posted_at": "2026-11-25T11:30:30.060702+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 8,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 78.36,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 59.27,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 88.0,
+        "generality_group": "personal_care",
+        "live_demand": 99.49,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-24T20:38:15.951468+00:00",
+        "weakest_factor_score": 59.27
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1833,
+      "telegram_message_id": 1910,
+      "telegram_posted_at": "2026-11-25T11:30:24.911000+00:00",
+      "title": "کرم ساینده و پاک کننده هیدرودرم حجم 200 میلی لیتر",
+      "ts": 1795606218.311603,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
     },
     "dkp-8258039": {
       "aparat_skip_reason": "selection_outside_freshness_window",
