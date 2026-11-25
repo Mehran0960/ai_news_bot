@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-25T14:08:25.710971+00:00",
-  "aparat_last_upload_success_at": "2026-11-25T14:08:29.894158+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-25T15:30:28.083568+00:00",
+  "aparat_last_upload_success_at": "2026-11-25T15:30:31.732049+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-25T14:20:31.131340+00:00",
@@ -228445,7 +228445,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-1909152": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-25T15:30:28.083568+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-25T15:30:31.732049+00:00",
+      "aparat_video_hash": "pal6cdn",
+      "aparat_video_record_id": "74387521",
+      "aparat_video_url": "https://www.aparat.com/v/pal6cdn",
+      "aparat_visibility": "public",
       "bale_message_id": 2588,
       "bale_posted_at": "2026-11-25T15:28:51.276326+00:00",
       "brand": "",
@@ -228569,8 +228575,16 @@
       "telegram_posted_at": "2026-11-25T15:28:50.525690+00:00",
       "title": "کاور طرح خوراکی کد 11054094277 مناسب برای گوشی موبایل سامسونگ galaxy s6",
       "ts": 1795620523.366996,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-1909152.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-1909152.mp4"
+      },
+      "video_generated_at": "2026-11-25T15:30:19.385437+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-19110990": {
       "aparat_skip_reason": "selection_outside_freshness_window",
