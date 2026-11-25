@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-25T00:51:46.632025+00:00",
-  "aparat_last_upload_success_at": "2026-11-25T00:51:50.416842+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-25T01:27:53.014036+00:00",
+  "aparat_last_upload_success_at": "2026-11-25T01:27:56.416899+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-25T01:14:52.462109+00:00",
@@ -305294,7 +305294,13 @@
       "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-23019998": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-25T01:27:53.014036+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-25T01:27:56.416899+00:00",
+      "aparat_video_hash": "tfxipqp",
+      "aparat_video_record_id": "74377945",
+      "aparat_video_url": "https://www.aparat.com/v/tfxipqp",
+      "aparat_visibility": "public",
       "bale_message_id": 2561,
       "bale_posted_at": "2026-11-25T01:26:54.367037+00:00",
       "brand": "",
@@ -305418,8 +305424,16 @@
       "telegram_posted_at": "2026-11-25T01:26:53.463846+00:00",
       "title": "بادام درختی شور نورا - 230 گرم",
       "ts": 1795570007.334427,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-23019998.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-23019998.mp4"
+      },
+      "video_generated_at": "2026-11-25T01:27:45.974792+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-23020276": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
