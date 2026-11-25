@@ -11,7 +11,7 @@ on:
       - ".github/workflows/affilio-expiration-cleanup.yml"
   # Run retention cleanup on a separate clock, without occupying the publisher.
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "*/30 * * * *"
   # Explicit manual dispatch remains available for one-time cleanup/repair.
   workflow_dispatch:
 
