@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-25T03:59:54.286020+00:00",
-  "aparat_last_upload_success_at": "2026-11-25T04:00:00.487400+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-25T04:38:56.015692+00:00",
+  "aparat_last_upload_success_at": "2026-11-25T04:39:00.105000+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-25T04:21:47.990730+00:00",
@@ -266761,7 +266761,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-21804910": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-25T04:38:56.015692+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-25T04:39:00.105000+00:00",
+      "aparat_video_hash": "tbbq3x1",
+      "aparat_video_record_id": "74378649",
+      "aparat_video_url": "https://www.aparat.com/v/tbbq3x1",
+      "aparat_visibility": "public",
       "bale_message_id": 2567,
       "bale_posted_at": "2026-11-25T04:37:58.388990+00:00",
       "brand": "",
@@ -266885,8 +266891,16 @@
       "telegram_posted_at": "2026-11-25T04:37:57.623323+00:00",
       "title": "مجموعه لوازم جانبی موبایل مدل 6IN1 HR-01",
       "ts": 1795581470.614772,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-21804910.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-21804910.mp4"
+      },
+      "video_generated_at": "2026-11-25T04:38:49.479043+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-21809846": {
       "aparat_upload_started_at": "2026-10-26T12:25:43.863434+00:00",
@@ -310090,7 +310104,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "out_of_stock",
       "expiry_source": "live_product_stock_or_price",
-      "expiry_status": "unknown",
+      "expiry_status": "delete_unavailable",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-22T06:06:02.065967+00:00",
@@ -310162,6 +310176,7 @@
       },
       "selection_review_growth_evidence": "none",
       "sequence_number": 1700,
+      "telegram_expiry_last_delete_error": "RuntimeError: Bad Request: message can't be deleted",
       "telegram_message_id": 1816,
       "telegram_posted_at": "2026-11-22T06:03:49.385563+00:00",
       "title": "کراپ کت رسمی زنانه چهارخانه مزونی مدل 1233",
