@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-25T10:44:34.354625+00:00",
-  "aparat_last_upload_success_at": "2026-11-25T10:44:37.690822+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-25T11:32:18.699497+00:00",
+  "aparat_last_upload_success_at": "2026-11-25T11:32:22.416651+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-25T10:40:24.169852+00:00",
@@ -328472,7 +328472,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-82141": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-25T11:32:18.699497+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-25T11:32:22.416651+00:00",
+      "aparat_video_hash": "jyf4125",
+      "aparat_video_record_id": "74383983",
+      "aparat_video_url": "https://www.aparat.com/v/jyf4125",
+      "aparat_visibility": "public",
       "bale_message_id": 2580,
       "bale_posted_at": "2026-11-25T11:30:25.276386+00:00",
       "brand": "هیدرودرم",
@@ -328596,8 +328602,16 @@
       "telegram_posted_at": "2026-11-25T11:30:24.911000+00:00",
       "title": "کرم ساینده و پاک کننده هیدرودرم حجم 200 میلی لیتر",
       "ts": 1795606218.311603,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-82141.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-82141.mp4"
+      },
+      "video_generated_at": "2026-11-25T11:32:12.492054+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-8258039": {
       "aparat_skip_reason": "selection_outside_freshness_window",
