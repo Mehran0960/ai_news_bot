@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-26T18:38:26.902961+00:00",
-  "aparat_last_upload_success_at": "2026-11-26T18:38:30.860635+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-26T19:56:14.570435+00:00",
+  "aparat_last_upload_success_at": "2026-11-26T19:56:19.625275+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-26T18:56:14.471647+00:00",
@@ -276476,7 +276476,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-21988725": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-26T19:56:14.570435+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-26T19:56:19.625275+00:00",
+      "aparat_video_hash": "clwx3l7",
+      "aparat_video_record_id": "74405815",
+      "aparat_video_url": "https://www.aparat.com/v/clwx3l7",
+      "aparat_visibility": "public",
       "bale_message_id": 2636,
       "bale_posted_at": "2026-11-26T19:54:48.356445+00:00",
       "brand": "آلپینا",
@@ -276600,8 +276606,16 @@
       "telegram_posted_at": "2026-11-26T19:54:20.760051+00:00",
       "title": "دوچرخه کودک کوهستان آلپینا مدل 20G سایز طوقه 20 اینچ",
       "ts": 1795722854.563471,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-21988725.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-21988725.mp4"
+      },
+      "video_generated_at": "2026-11-26T19:56:08.327163+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22004922": {
       "aparat_upload_started_at": "2026-11-18T06:21:41.560043+00:00",
