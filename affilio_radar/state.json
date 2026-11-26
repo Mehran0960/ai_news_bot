@@ -2011,191 +2011,6 @@
   },
   "content_delivery_history": [
     {
-      "attempt_count": 1,
-      "content_id": "dkp-18333637",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-21T07:49:51.911994+00:00",
-      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
-      "next_attempt_at": "2026-11-21T07:49:51.415521+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-18333637%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "زدفون",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "6139",
-        "catalog_best_selling_category_name": "عطر و ادکلن مردانه",
-        "catalog_best_selling_rank": 2,
-        "catalog_best_selling_ranks_by_category": {
-          "6139": {
-            "category_name": "عطر و ادکلن مردانه",
-            "observed_at": "2026-11-21T04:23:40.174853+00:00",
-            "rank": 2,
-            "rank_history": [
-              {
-                "category_name": "عطر و ادکلن مردانه",
-                "observed_at": "2026-11-21T04:23:40.174853+00:00",
-                "rank": 2
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-21T04:51:25.261632+00:00",
-        "catalog_cycle_snapshot_rank": 22,
-        "catalog_rank_observed_at": "2026-11-21T04:23:40.174853+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "beauty_fragrance",
-        "checked_at": "2026-11-21T04:55:50.412140+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-18333637",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 1839000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 22.5,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 68.39,
-        "discount_percent": 58,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-21T04:56:08.063100+00:00",
-        "history_days": 4,
-        "history_end_day": "2026-11-21",
-        "history_high_toman": 1839000,
-        "history_low_toman": 1839000,
-        "history_median_toman": 1839000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 1839000,
-        "history_start_day": "2026-11-15",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/a974afe4bf0bac10054923685c74acb50ca1f183_1788947708.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 83.25,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 68.39,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.5,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T04:56:18.244761+00:00",
-          "weakest_factor_score": 68.39
-        },
-        "original_price": 4390000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-18333637",
-        "product_url": "https://www.digikala.com/product/dkp-18333637/",
-        "promo_score": 47,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 3.51,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 276,
-        "savings_toman": 2551000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 2,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 83.25,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 68.39,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.5,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T04:56:18.244761+00:00",
-          "weakest_factor_score": 68.39
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1661,
-        "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-21T07:49:51.911994+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-21T07:49:57.859215+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "credentials_not_configured",
-          "status": "not_connected",
-          "updated_at": "2026-11-21T07:49:51.911994+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-21T07:49:51.911994+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-21T07:50:03.200197+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-21T07:49:51.911994+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-21T07:49:56.985318+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-18333637",
-      "product_plan_cycle_id": "2026-11-21T07:38:43.324502+00:00",
-      "scheduled_at": "2026-11-21T07:49:51.415521+00:00",
-      "selected_at": "2026-11-21T04:56:21.609268+00:00",
-      "sequence_number": 1661,
-      "status": "published",
-      "updated_at": "2026-11-21T07:50:03.445537+00:00"
-    },
-    {
       "attempt_count": 0,
       "content_id": "dkp-22002875",
       "content_type": "product",
@@ -38850,6 +38665,212 @@
       "sequence_number": 1860,
       "status": "published",
       "updated_at": "2026-11-26T04:14:59.054440+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-21224060",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-26T05:00:14.173103+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-26T04:58:59.053539+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21224060%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "آدارز",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "A",
+        "catalog_best_selling_category_id": "6580",
+        "catalog_best_selling_category_name": "مداد چشم",
+        "catalog_best_selling_rank": 9,
+        "catalog_best_selling_ranks_by_category": {
+          "6580": {
+            "category_name": "مداد چشم",
+            "observed_at": "2026-11-25T20:42:22.867239+00:00",
+            "rank": 9,
+            "rank_history": [
+              {
+                "category_name": "مداد چشم",
+                "observed_at": "2026-11-25T20:42:22.867239+00:00",
+                "rank": 9
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-25T21:58:11.149347+00:00",
+        "catalog_cycle_snapshot_rank": 88,
+        "catalog_rank_observed_at": "2026-11-25T20:42:22.867239+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "books_stationery",
+        "checked_at": "2026-11-25T22:02:20.772760+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-21224060",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 824450,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 23.4,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 61.49,
+        "discount_percent": 45,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-25T22:02:52.336624+00:00",
+        "history_days": 2,
+        "history_end_day": "2026-11-25",
+        "history_high_toman": 824450,
+        "history_low_toman": 824450,
+        "history_median_toman": 824450,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": 824450,
+        "history_start_day": "2026-11-24",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/d58e5557ffb7f7d10987b0a594dde1a1f387ff1f_1788950825.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_error": "no_sufficiently_similar_in_stock_product",
+        "market_match_score": 75,
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_query": "مداد چشم آدارز مدل کربن رنگ مشکی شماره 01",
+        "market_search_candidates": [
+          {
+            "match_score": 75,
+            "name": "مداد چشم ویو مدل ضد حساسیت رنگ مشکی شماره 01 VAR-80459924",
+            "price_toman": 56250,
+            "url": "https://torob.com/p/d4387c24-6396-4bc7-83e4-253d8c3f0afc/"
+          },
+          {
+            "match_score": 75,
+            "name": "مداد چشم ویو مدل ضد حساسیت رنگ مشکی شماره 01",
+            "price_toman": 56250,
+            "url": "https://torob.com/p/79cd2608-0898-4708-8c62-1215b2943c43/"
+          },
+          {
+            "match_score": 0,
+            "name": "مداد چشم ضد آب مایا براون مدل الترا رنگ مشکی شماره 001",
+            "price_toman": 1,
+            "url": "https://torob.com/p/1f8f27d3-adef-4a07-ba39-1312e7d9702f/"
+          }
+        ],
+        "market_status": "no_confident_match",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 79.47,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 61.49,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 98.76,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-25T22:03:09.597511+00:00",
+          "weakest_factor_score": 61.49
+        },
+        "original_price": 1499000,
+        "pct_above_stable_low": 0,
+        "product_id": "dkp-21224060",
+        "product_url": "https://www.digikala.com/product/dkp-21224060/",
+        "promo_score": 35,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 3.83,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 62,
+        "savings_toman": 674550,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 9,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 79.47,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 61.49,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 98.76,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-25T22:03:09.597511+00:00",
+          "weakest_factor_score": 61.49
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1861,
+        "title": "مداد چشم آدارز مدل کربن رنگ مشکی شماره 01"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-26T05:00:14.173103+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-26T05:00:22.215817+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-26T05:00:14.173103+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-26T05:00:14.173103+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-26T05:00:25.975982+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-26T05:00:14.173103+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-26T05:00:21.245580+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-21224060",
+      "product_plan_cycle_id": "2026-11-26T04:10:10.214294+00:00",
+      "scheduled_at": "2026-11-26T04:58:59.053539+00:00",
+      "selected_at": "2026-11-25T22:03:12.918229+00:00",
+      "sequence_number": 1861,
+      "status": "published",
+      "updated_at": "2026-11-26T05:00:26.333598+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -38864,7 +38885,7 @@
       "attempt_count": 0,
       "content_id": "dkp-10201695",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T08:32:59.053539+00:00",
+      "next_attempt_at": "2026-11-26T08:34:26.332357+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-10201695%2F",
         "availability": "in_stock",
@@ -39031,7 +39052,7 @@
       },
       "product_id": "dkp-10201695",
       "product_plan_cycle_id": "2026-11-26T04:10:10.214294+00:00",
-      "scheduled_at": "2026-11-26T08:32:59.053539+00:00",
+      "scheduled_at": "2026-11-26T08:34:26.332357+00:00",
       "selected_at": "2026-11-26T03:02:49.164255+00:00",
       "sequence_number": 1866,
       "status": "queued"
@@ -39040,7 +39061,7 @@
       "attempt_count": 0,
       "content_id": "dkp-11901295",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T07:07:59.053539+00:00",
+      "next_attempt_at": "2026-11-26T07:09:26.332357+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-11901295%2F",
         "availability": "in_stock",
@@ -39203,7 +39224,7 @@
       },
       "product_id": "dkp-11901295",
       "product_plan_cycle_id": "2026-11-26T04:10:10.214294+00:00",
-      "scheduled_at": "2026-11-26T07:07:59.053539+00:00",
+      "scheduled_at": "2026-11-26T07:09:26.332357+00:00",
       "selected_at": "2026-11-26T00:34:49.064477+00:00",
       "sequence_number": 1864,
       "status": "queued"
@@ -39212,7 +39233,7 @@
       "attempt_count": 0,
       "content_id": "dkp-12232692",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T07:53:59.053539+00:00",
+      "next_attempt_at": "2026-11-26T07:55:26.332357+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-12232692%2F",
         "availability": "in_stock",
@@ -39375,7 +39396,7 @@
       },
       "product_id": "dkp-12232692",
       "product_plan_cycle_id": "2026-11-26T04:10:10.214294+00:00",
-      "scheduled_at": "2026-11-26T07:53:59.053539+00:00",
+      "scheduled_at": "2026-11-26T07:55:26.332357+00:00",
       "selected_at": "2026-11-26T00:34:49.064477+00:00",
       "sequence_number": 1865,
       "status": "queued"
@@ -39384,7 +39405,7 @@
       "attempt_count": 0,
       "content_id": "dkp-1628844",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T09:55:59.053539+00:00",
+      "next_attempt_at": "2026-11-26T09:57:26.332357+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1628844%2F",
         "availability": "in_stock",
@@ -39548,7 +39569,7 @@
       },
       "product_id": "dkp-1628844",
       "product_plan_cycle_id": "2026-11-26T04:10:10.214294+00:00",
-      "scheduled_at": "2026-11-26T09:55:59.053539+00:00",
+      "scheduled_at": "2026-11-26T09:57:26.332357+00:00",
       "selected_at": "2026-11-26T04:14:49.181997+00:00",
       "sequence_number": 1868,
       "status": "queued"
@@ -39557,7 +39578,7 @@
       "attempt_count": 0,
       "content_id": "dkp-20073130",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T09:17:59.053539+00:00",
+      "next_attempt_at": "2026-11-26T09:19:26.332357+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-20073130%2F",
         "availability": "in_stock",
@@ -39723,211 +39744,16 @@
       },
       "product_id": "dkp-20073130",
       "product_plan_cycle_id": "2026-11-26T04:10:10.214294+00:00",
-      "scheduled_at": "2026-11-26T09:17:59.053539+00:00",
+      "scheduled_at": "2026-11-26T09:19:26.332357+00:00",
       "selected_at": "2026-11-26T04:14:49.181997+00:00",
       "sequence_number": 1867,
-      "status": "queued"
-    },
-    "dkp-21224060": {
-      "attempt_count": 0,
-      "content_id": "dkp-21224060",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-26T04:58:59.053539+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21224060%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "آدارز",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "6580",
-        "catalog_best_selling_category_name": "مداد چشم",
-        "catalog_best_selling_rank": 9,
-        "catalog_best_selling_ranks_by_category": {
-          "6580": {
-            "category_name": "مداد چشم",
-            "observed_at": "2026-11-25T20:42:22.867239+00:00",
-            "rank": 9,
-            "rank_history": [
-              {
-                "category_name": "مداد چشم",
-                "observed_at": "2026-11-25T20:42:22.867239+00:00",
-                "rank": 9
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-25T21:58:11.149347+00:00",
-        "catalog_cycle_snapshot_rank": 88,
-        "catalog_rank_observed_at": "2026-11-25T20:42:22.867239+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "books_stationery",
-        "checked_at": "2026-11-25T22:02:20.772760+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-21224060",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 824450,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 23.4,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 61.49,
-        "discount_percent": 45,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-25T22:02:52.336624+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-25",
-        "history_high_toman": 824450,
-        "history_low_toman": 824450,
-        "history_median_toman": 824450,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 824450,
-        "history_start_day": "2026-11-24",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/d58e5557ffb7f7d10987b0a594dde1a1f387ff1f_1788950825.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_error": "no_sufficiently_similar_in_stock_product",
-        "market_match_score": 75,
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "مداد چشم آدارز مدل کربن رنگ مشکی شماره 01",
-        "market_search_candidates": [
-          {
-            "match_score": 75,
-            "name": "مداد چشم ویو مدل ضد حساسیت رنگ مشکی شماره 01 VAR-80459924",
-            "price_toman": 56250,
-            "url": "https://torob.com/p/d4387c24-6396-4bc7-83e4-253d8c3f0afc/"
-          },
-          {
-            "match_score": 75,
-            "name": "مداد چشم ویو مدل ضد حساسیت رنگ مشکی شماره 01",
-            "price_toman": 56250,
-            "url": "https://torob.com/p/79cd2608-0898-4708-8c62-1215b2943c43/"
-          },
-          {
-            "match_score": 0,
-            "name": "مداد چشم ضد آب مایا براون مدل الترا رنگ مشکی شماره 001",
-            "price_toman": 1,
-            "url": "https://torob.com/p/1f8f27d3-adef-4a07-ba39-1312e7d9702f/"
-          }
-        ],
-        "market_status": "no_confident_match",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 79.47,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 61.49,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 98.76,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-25T22:03:09.597511+00:00",
-          "weakest_factor_score": 61.49
-        },
-        "original_price": 1499000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-21224060",
-        "product_url": "https://www.digikala.com/product/dkp-21224060/",
-        "promo_score": 35,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 3.83,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 62,
-        "savings_toman": 674550,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 9,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 79.47,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 61.49,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 98.76,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-25T22:03:09.597511+00:00",
-          "weakest_factor_score": 61.49
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1861,
-        "title": "مداد چشم آدارز مدل کربن رنگ مشکی شماره 01"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-21224060",
-      "product_plan_cycle_id": "2026-11-26T04:10:10.214294+00:00",
-      "scheduled_at": "2026-11-26T04:58:59.053539+00:00",
-      "selected_at": "2026-11-25T22:03:12.918229+00:00",
-      "sequence_number": 1861,
       "status": "queued"
     },
     "dkp-22165808": {
       "attempt_count": 0,
       "content_id": "dkp-22165808",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T06:30:59.053539+00:00",
+      "next_attempt_at": "2026-11-26T06:32:26.332357+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22165808%2F",
         "availability": "in_stock",
@@ -40095,7 +39921,7 @@
       },
       "product_id": "dkp-22165808",
       "product_plan_cycle_id": "2026-11-26T04:10:10.214294+00:00",
-      "scheduled_at": "2026-11-26T06:30:59.053539+00:00",
+      "scheduled_at": "2026-11-26T06:32:26.332357+00:00",
       "selected_at": "2026-11-26T00:34:49.064477+00:00",
       "sequence_number": 1863,
       "status": "queued"
@@ -40104,7 +39930,7 @@
       "attempt_count": 0,
       "content_id": "dkp-6819551",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T05:45:59.053539+00:00",
+      "next_attempt_at": "2026-11-26T05:47:26.332357+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-6819551%2F",
         "availability": "in_stock",
@@ -40267,7 +40093,7 @@
       },
       "product_id": "dkp-6819551",
       "product_plan_cycle_id": "2026-11-26T04:10:10.214294+00:00",
-      "scheduled_at": "2026-11-26T05:45:59.053539+00:00",
+      "scheduled_at": "2026-11-26T05:47:26.332357+00:00",
       "selected_at": "2026-11-25T22:03:12.918229+00:00",
       "sequence_number": 1862,
       "status": "queued"
@@ -74727,7 +74553,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.2,
+      "delivery_duration_seconds": 1.8,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -74790,8 +74616,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.2,
-      "delivery_started_at": "2026-11-26T04:14:59.901717+00:00",
+      "delivery_duration_seconds": 1.8,
+      "delivery_started_at": "2026-11-26T05:00:27.513018+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -75283,13 +75109,13 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-26T04:14:59.053539+00:00",
+  "last_channel_published_at": "2026-11-26T05:00:26.332357+00:00",
   "last_content_selection_at": "2026-11-26T04:14:49.181997+00:00",
   "last_editorial_attempt_at": "2026-11-18T02:10:38.177140+00:00",
   "last_editorial_confirmed_at": "2026-11-18T02:10:49.933296+00:00",
   "last_editorial_empty_bank_check_at": "2026-11-18T01:24:46.585898+00:00",
-  "last_product_channel_published_at": "2026-11-26T04:14:59.053539+00:00",
-  "last_published_at": "2026-11-26T04:14:59.053539+00:00",
+  "last_product_channel_published_at": "2026-11-26T05:00:26.332357+00:00",
+  "last_published_at": "2026-11-26T05:00:26.332357+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -130086,8 +129912,8 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-26T04:14:59.053546+00:00",
-    "candidate_count": 8,
+    "calculated_at": "2026-11-26T05:00:26.332365+00:00",
+    "candidate_count": 7,
     "catalog_cycle_id": "2026-11-26T04:10:10.214294+00:00",
     "current_cycle_started_at": "2026-11-26T04:10:10.698354+00:00",
     "daily_post_limit": 72,
@@ -130099,20 +129925,20 @@
     "interval_seconds": 1860.0,
     "last_clean_cycle_completed_at": "2026-11-26T04:10:10.214294+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-26T04:14:59.053539+00:00",
+    "plan_anchor_at": "2026-11-26T05:00:26.332357+00:00",
     "plan_anchor_kind": "last_channel",
-    "planned_product_slots": 8,
+    "planned_product_slots": 7,
     "planned_window_end_at": "2026-11-26T05:22:15.698354+00:00",
     "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
     "scan_eta_is_provisional": false,
     "scan_eta_source": "last_observed_full_cycle_duration",
     "scheduled_product_count": 9,
-    "seconds_from_plan_anchor_to_next_scan": 4036.644815,
-    "seconds_until_estimated_next_clean_scan": 4036.644808
+    "seconds_from_plan_anchor_to_next_scan": 1309.365997,
+    "seconds_until_estimated_next_clean_scan": 1309.365989
   },
   "product_publication_interval_seconds": 1860.0,
   "product_publication_plan": {
-    "anchor_at": "2026-11-26T04:14:59.053539+00:00",
+    "anchor_at": "2026-11-26T05:00:26.332357+00:00",
     "anchor_kind": "last_channel",
     "catalog_cycle_id": "2026-11-26T04:10:10.214294+00:00",
     "first_slot_due_now": false,
@@ -130120,9 +129946,8 @@
     "interval_seconds": 1860.0,
     "maximum_product_interval_seconds": 3420,
     "next_clean_scan_at": "2026-11-26T05:22:15.698354+00:00",
-    "pending_product_count": 8,
+    "pending_product_count": 7,
     "product_ids": [
-      "dkp-21224060",
       "dkp-6819551",
       "dkp-22165808",
       "dkp-11901295",
@@ -130131,10 +129956,10 @@
       "dkp-20073130",
       "dkp-1628844"
     ],
-    "scheduled_product_count": 8,
-    "updated_at": "2026-11-26T04:14:59.053546+00:00"
+    "scheduled_product_count": 7,
+    "updated_at": "2026-11-26T05:00:26.332365+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-26T04:14:59.053539+00:00",
+  "product_publication_plan_anchor_at": "2026-11-26T05:00:26.332357+00:00",
   "product_publication_plan_anchor_kind": "last_channel",
   "product_publication_plan_cycle_id": "2026-11-26T04:10:10.214294+00:00",
   "publication_diversity_fallback_count": 5307,
@@ -247340,6 +247165,134 @@
       "video_generation_status": "generated",
       "video_style_version": 7,
       "youtube_last_error": "",
+      "youtube_upload_status": "pending"
+    },
+    "dkp-21224060": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2606,
+      "bale_posted_at": "2026-11-26T05:00:22.215817+00:00",
+      "brand": "آدارز",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "A",
+      "catalog_best_selling_category_id": "6580",
+      "catalog_best_selling_category_name": "مداد چشم",
+      "catalog_best_selling_rank": 9,
+      "catalog_best_selling_ranks_by_category": {
+        "6580": {
+          "category_name": "مداد چشم",
+          "observed_at": "2026-11-25T20:42:22.867239+00:00",
+          "rank": 9,
+          "rank_history": [
+            {
+              "category_name": "مداد چشم",
+              "observed_at": "2026-11-25T20:42:22.867239+00:00",
+              "rank": 9
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-25T21:58:11.149347+00:00",
+      "catalog_cycle_snapshot_rank": 88,
+      "catalog_rank_observed_at": "2026-11-25T20:42:22.867239+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-21224060",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "B",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-26T05:00:25.976008+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 0,
+      "distribution_queue_id": "dkp-21224060:2026-11-25T22:03:12.918229+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-25T22:02:52.336624+00:00",
+      "history_days": 2,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/d58e5557ffb7f7d10987b0a594dde1a1f387ff1f_1788950825.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "no_confident_match",
+      "platform_message_ids": {
+        "rubika": "1983554214913588651"
+      },
+      "posted_current_price": 824450,
+      "posted_discount_percent": 45,
+      "posted_original_price": 1499000,
+      "product_url": "https://www.digikala.com/product/dkp-21224060/",
+      "promo_score": 35,
+      "publication_category": "books_stationery",
+      "publication_family": "digikala_category:6580",
+      "publication_use_case": "personal_care",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 23.4,
+      "rubika_posted_at": "2026-11-26T05:00:25.975982+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 9,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 79.47,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 61.49,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 88.0,
+        "generality_group": "personal_care",
+        "live_demand": 98.76,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-25T22:03:09.597511+00:00",
+        "weakest_factor_score": 61.49
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1861,
+      "telegram_message_id": 1927,
+      "telegram_posted_at": "2026-11-26T05:00:21.245580+00:00",
+      "title": "مداد چشم آدارز مدل کربن رنگ مشکی شماره 01",
+      "ts": 1795669214.173103,
+      "video_generation_status": "pending",
       "youtube_upload_status": "pending"
     },
     "dkp-21226550": {
