@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-26T05:02:20.247875+00:00",
-  "aparat_last_upload_success_at": "2026-11-26T05:02:23.621727+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-26T05:50:14.231480+00:00",
+  "aparat_last_upload_success_at": "2026-11-26T05:50:17.845962+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-26T05:28:30.247965+00:00",
@@ -319864,7 +319864,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-6819551": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-26T05:50:14.231480+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-26T05:50:17.845962+00:00",
+      "aparat_video_hash": "iygd5ug",
+      "aparat_video_record_id": "74393956",
+      "aparat_video_url": "https://www.aparat.com/v/iygd5ug",
+      "aparat_visibility": "public",
       "bale_message_id": 2607,
       "bale_posted_at": "2026-11-26T05:48:12.368158+00:00",
       "brand": "شاهسوند",
@@ -319988,8 +319994,16 @@
       "telegram_posted_at": "2026-11-26T05:48:11.303680+00:00",
       "title": "پکیج دمنوش گیاهی گلایل شاهسوند مجموعه 64 عددی",
       "ts": 1795672085.777054,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-6819551.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-6819551.mp4"
+      },
+      "video_generated_at": "2026-11-26T05:50:09.332008+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-6866113": {
       "aparat_skip_reason": "selection_outside_freshness_window",
