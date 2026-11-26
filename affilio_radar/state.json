@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-26T11:24:29.008155+00:00",
-  "aparat_last_upload_success_at": "2026-11-26T11:24:32.535034+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-26T12:10:23.995879+00:00",
+  "aparat_last_upload_success_at": "2026-11-26T12:10:27.747684+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-26T11:36:06.663643+00:00",
@@ -315006,7 +315006,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-567357": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-26T12:10:23.995879+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-26T12:10:27.747684+00:00",
+      "aparat_video_hash": "qmtlru8",
+      "aparat_video_record_id": "74399588",
+      "aparat_video_url": "https://www.aparat.com/v/qmtlru8",
+      "aparat_visibility": "public",
       "bale_message_id": 2619,
       "bale_posted_at": "2026-11-26T12:08:21.957757+00:00",
       "brand": "ویداس",
@@ -315130,8 +315136,16 @@
       "telegram_posted_at": "2026-11-26T12:08:21.495066+00:00",
       "title": "چرخ گوشت 1800 وات ویداس مدل VIR-3505",
       "ts": 1795694896.15849,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-567357.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-567357.mp4"
+      },
+      "video_generated_at": "2026-11-26T12:10:17.162304+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-56924": {
       "aparat_skip_reason": "selection_outside_freshness_window",
