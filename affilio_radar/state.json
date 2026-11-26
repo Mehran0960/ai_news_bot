@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-26T17:16:24.359525+00:00",
-  "aparat_last_upload_success_at": "2026-11-26T17:16:27.220293+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-26T17:54:25.879426+00:00",
+  "aparat_last_upload_success_at": "2026-11-26T17:54:29.870556+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-26T17:44:12.318410+00:00",
@@ -204635,7 +204635,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-11870883": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-26T17:54:25.879426+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-26T17:54:29.870556+00:00",
+      "aparat_video_hash": "mrn4129",
+      "aparat_video_record_id": "74404353",
+      "aparat_video_url": "https://www.aparat.com/v/mrn4129",
+      "aparat_visibility": "public",
       "bale_message_id": 2633,
       "bale_posted_at": "2026-11-26T17:52:14.475336+00:00",
       "brand": "لایف استار",
@@ -204759,8 +204765,16 @@
       "telegram_posted_at": "2026-11-26T17:52:13.845786+00:00",
       "title": "نوشیدنی انرژی زا زیرو لایف استار - 250 میلی‌لیتر بسته 6 عددی",
       "ts": 1795715527.949089,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-11870883.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-11870883.mp4"
+      },
+      "video_generated_at": "2026-11-26T17:54:17.539067+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-11901295": {
       "aparat_upload_started_at": "2026-11-26T07:14:30.598816+00:00",
