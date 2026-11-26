@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-26T03:28:25.159684+00:00",
-  "aparat_last_upload_success_at": "2026-11-26T03:28:28.458992+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-26T04:16:20.436698+00:00",
+  "aparat_last_upload_success_at": "2026-11-26T04:16:24.159995+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-26T04:12:25.640251+00:00",
@@ -290215,7 +290215,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22895958": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-26T04:16:20.436698+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-26T04:16:24.159995+00:00",
+      "aparat_video_hash": "sgz4mta",
+      "aparat_video_record_id": "74393255",
+      "aparat_video_url": "https://www.aparat.com/v/sgz4mta",
+      "aparat_visibility": "public",
       "bale_message_id": 2605,
       "bale_posted_at": "2026-11-26T04:14:55.311445+00:00",
       "brand": "جاب",
@@ -290339,8 +290345,16 @@
       "telegram_posted_at": "2026-11-26T04:14:54.869836+00:00",
       "title": "مجموعه 20 عددی دریل پیچ‌گوشتی شارژی 10 میلی‌متری 158 ولت جاب مدل JB-158 NEW WORK",
       "ts": 1795666489.772789,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22895958.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22895958.mp4"
+      },
+      "video_generated_at": "2026-11-26T04:16:12.076138+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22896932": {
       "aparat_skip_reason": "selection_outside_freshness_window",
