@@ -2024,189 +2024,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 1,
-      "content_id": "dkp-7159744",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-21T06:41:38.873836+00:00",
-      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
-      "next_attempt_at": "2026-11-21T06:40:52.441775+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-7159744%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "11785",
-        "catalog_best_selling_category_name": "روکش داخل کابینت",
-        "catalog_best_selling_rank": 10,
-        "catalog_best_selling_ranks_by_category": {
-          "11785": {
-            "category_name": "روکش داخل کابینت",
-            "observed_at": "2026-11-21T00:15:57.916997+00:00",
-            "rank": 10,
-            "rank_history": [
-              {
-                "category_name": "روکش داخل کابینت",
-                "observed_at": "2026-11-21T00:15:57.916997+00:00",
-                "rank": 10
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-21T00:42:27.548749+00:00",
-        "catalog_cycle_snapshot_rank": 715,
-        "catalog_rank_observed_at": "2026-11-21T00:15:57.916997+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "other",
-        "checked_at": "2026-11-21T01:04:57.672368+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-7159744",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 677600,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 46.34,
-        "discount_percent": 23,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-21T01:05:23.953196+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-21",
-        "history_high_toman": 677600,
-        "history_low_toman": 677600,
-        "history_median_toman": 677600,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 677600,
-        "history_start_day": "2026-11-17",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/6902d1869bc13f586735482e96105911bbfbde64_1638172416.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 34.4,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 46.34,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 99.25,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T01:05:23.956098+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "original_price": 880000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-7159744",
-        "product_url": "https://www.digikala.com/product/dkp-7159744/",
-        "promo_score": 17,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.25,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 54,
-        "savings_toman": 202400,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 10,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 34.4,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 46.34,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 18.0,
-          "generality_group": "catalog_taxonomy_other",
-          "live_demand": 99.25,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T01:05:23.956098+00:00",
-          "weakest_factor_score": 18.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1658,
-        "title": "روکش داخل کابینت مدل AES303",
-        "variant_label": "بی رنگ شفاف"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-21T06:41:38.873836+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-21T06:41:44.883962+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "credentials_not_configured",
-          "status": "not_connected",
-          "updated_at": "2026-11-21T06:41:38.873836+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-21T06:41:38.873836+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-21T06:41:47.873174+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-21T06:41:38.873836+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-21T06:41:44.337099+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-7159744",
-      "product_plan_cycle_id": "2026-11-21T06:12:32.599445+00:00",
-      "scheduled_at": "2026-11-21T06:40:52.441775+00:00",
-      "selected_at": "2026-11-21T01:05:28.954755+00:00",
-      "sequence_number": 1658,
-      "status": "published",
-      "updated_at": "2026-11-21T06:41:48.167223+00:00"
-    },
-    {
-      "attempt_count": 1,
       "content_id": "dkp-1518091",
       "content_type": "product",
       "last_attempt_at": "2026-11-21T07:16:06.552576+00:00",
@@ -38847,6 +38664,192 @@
       "sequence_number": 1857,
       "status": "published",
       "updated_at": "2026-11-26T02:54:33.667281+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-17909394",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-26T03:26:25.294488+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-26T03:25:33.665890+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-17909394%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "هایبورگ",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "A",
+        "catalog_best_selling_category_id": "5808",
+        "catalog_best_selling_category_name": "مایکروویو، مایکروفر",
+        "catalog_best_selling_rank": 11,
+        "catalog_best_selling_ranks_by_category": {
+          "5808": {
+            "category_name": "مایکروویو، مایکروفر",
+            "observed_at": "2026-11-25T13:06:27.147996+00:00",
+            "rank": 11,
+            "rank_history": [
+              {
+                "category_name": "مایکروویو، مایکروفر",
+                "observed_at": "2026-11-25T13:06:27.147996+00:00",
+                "rank": 11
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-25T14:18:27.700894+00:00",
+        "catalog_cycle_snapshot_rank": 159,
+        "catalog_rank_observed_at": "2026-11-25T13:06:27.147996+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "large_appliances",
+        "checked_at": "2026-11-25T14:23:22.876745+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-17909394",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "B",
+        "current_demand_verified": false,
+        "current_price": 43080000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 18.2,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 66.66,
+        "discount_percent": 40,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-25T14:23:43.010786+00:00",
+        "history_days": 2,
+        "history_end_day": "2026-11-25",
+        "history_high_toman": 43080000,
+        "history_low_toman": 43080000,
+        "history_median_toman": 43080000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": 43080000,
+        "history_start_day": "2026-11-24",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/c4e1c0e3fa8b6239e29c1a734a7e5d42fb7f4170_1778568621.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_error": "RuntimeError",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_query": "مایکروویو 1450 وات 32 لیتر هایبورگ مدل MW-6050 دارای 10 برنامه پخت",
+        "market_status": "unavailable",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 77.29,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 66.66,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 84.0,
+          "generality_group": "home_living",
+          "live_demand": 83.99,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-25T14:23:53.076443+00:00",
+          "weakest_factor_score": 66.66
+        },
+        "original_price": 71800000,
+        "pct_above_stable_low": 0,
+        "product_id": "dkp-17909394",
+        "product_url": "https://www.digikala.com/product/dkp-17909394/",
+        "promo_score": 43,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.29,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 22,
+        "savings_toman": 28720000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 11,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 77.29,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 66.66,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 84.0,
+          "generality_group": "home_living",
+          "live_demand": 83.99,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-25T14:23:53.076443+00:00",
+          "weakest_factor_score": 66.66
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1858,
+        "title": "مایکروویو 1450 وات 32 لیتر هایبورگ مدل MW-6050 دارای 10 برنامه پخت",
+        "variant_label": "نقره ای"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-26T03:26:25.294488+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-26T03:26:32.671821+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-26T03:26:25.294488+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-26T03:26:25.294488+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-26T03:26:37.028423+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-26T03:26:25.294488+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-26T03:26:31.929779+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-17909394",
+      "product_plan_cycle_id": "2026-11-26T02:58:04.597469+00:00",
+      "scheduled_at": "2026-11-26T03:25:33.665890+00:00",
+      "selected_at": "2026-11-25T14:23:57.714137+00:00",
+      "sequence_number": 1858,
+      "status": "published",
+      "updated_at": "2026-11-26T03:26:37.322150+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -38861,7 +38864,7 @@
       "attempt_count": 0,
       "content_id": "dkp-10201695",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T09:06:33.665890+00:00",
+      "next_attempt_at": "2026-11-26T09:07:37.320974+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-10201695%2F",
         "availability": "in_stock",
@@ -39028,7 +39031,7 @@
       },
       "product_id": "dkp-10201695",
       "product_plan_cycle_id": "2026-11-26T02:58:04.597469+00:00",
-      "scheduled_at": "2026-11-26T09:06:33.665890+00:00",
+      "scheduled_at": "2026-11-26T09:07:37.320974+00:00",
       "selected_at": "2026-11-26T03:02:49.164255+00:00",
       "sequence_number": 1866,
       "status": "queued"
@@ -39037,7 +39040,7 @@
       "attempt_count": 0,
       "content_id": "dkp-11901295",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T07:41:33.665890+00:00",
+      "next_attempt_at": "2026-11-26T07:42:37.320974+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-11901295%2F",
         "availability": "in_stock",
@@ -39200,7 +39203,7 @@
       },
       "product_id": "dkp-11901295",
       "product_plan_cycle_id": "2026-11-26T02:58:04.597469+00:00",
-      "scheduled_at": "2026-11-26T07:41:33.665890+00:00",
+      "scheduled_at": "2026-11-26T07:42:37.320974+00:00",
       "selected_at": "2026-11-26T00:34:49.064477+00:00",
       "sequence_number": 1864,
       "status": "queued"
@@ -39209,7 +39212,7 @@
       "attempt_count": 0,
       "content_id": "dkp-12232692",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T08:27:33.665890+00:00",
+      "next_attempt_at": "2026-11-26T08:28:37.320974+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-12232692%2F",
         "availability": "in_stock",
@@ -39372,191 +39375,16 @@
       },
       "product_id": "dkp-12232692",
       "product_plan_cycle_id": "2026-11-26T02:58:04.597469+00:00",
-      "scheduled_at": "2026-11-26T08:27:33.665890+00:00",
+      "scheduled_at": "2026-11-26T08:28:37.320974+00:00",
       "selected_at": "2026-11-26T00:34:49.064477+00:00",
       "sequence_number": 1865,
-      "status": "queued"
-    },
-    "dkp-17909394": {
-      "attempt_count": 0,
-      "content_id": "dkp-17909394",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-26T03:25:33.665890+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-17909394%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "هایبورگ",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "5808",
-        "catalog_best_selling_category_name": "مایکروویو، مایکروفر",
-        "catalog_best_selling_rank": 11,
-        "catalog_best_selling_ranks_by_category": {
-          "5808": {
-            "category_name": "مایکروویو، مایکروفر",
-            "observed_at": "2026-11-25T13:06:27.147996+00:00",
-            "rank": 11,
-            "rank_history": [
-              {
-                "category_name": "مایکروویو، مایکروفر",
-                "observed_at": "2026-11-25T13:06:27.147996+00:00",
-                "rank": 11
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-25T14:18:27.700894+00:00",
-        "catalog_cycle_snapshot_rank": 159,
-        "catalog_rank_observed_at": "2026-11-25T13:06:27.147996+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "large_appliances",
-        "checked_at": "2026-11-25T14:23:22.876745+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-17909394",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": false,
-        "current_price": 43080000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 18.2,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 66.66,
-        "discount_percent": 40,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-25T14:23:43.010786+00:00",
-        "history_days": 2,
-        "history_end_day": "2026-11-25",
-        "history_high_toman": 43080000,
-        "history_low_toman": 43080000,
-        "history_median_toman": 43080000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 43080000,
-        "history_start_day": "2026-11-24",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/c4e1c0e3fa8b6239e29c1a734a7e5d42fb7f4170_1778568621.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "مایکروویو 1450 وات 32 لیتر هایبورگ مدل MW-6050 دارای 10 برنامه پخت",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 77.29,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 66.66,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 84.0,
-          "generality_group": "home_living",
-          "live_demand": 83.99,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-25T14:23:53.076443+00:00",
-          "weakest_factor_score": 66.66
-        },
-        "original_price": 71800000,
-        "pct_above_stable_low": 0,
-        "product_id": "dkp-17909394",
-        "product_url": "https://www.digikala.com/product/dkp-17909394/",
-        "promo_score": 43,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.29,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 22,
-        "savings_toman": 28720000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 11,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 77.29,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 66.66,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 84.0,
-          "generality_group": "home_living",
-          "live_demand": 83.99,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-25T14:23:53.076443+00:00",
-          "weakest_factor_score": 66.66
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1858,
-        "title": "مایکروویو 1450 وات 32 لیتر هایبورگ مدل MW-6050 دارای 10 برنامه پخت",
-        "variant_label": "نقره ای"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-17909394",
-      "product_plan_cycle_id": "2026-11-26T02:58:04.597469+00:00",
-      "scheduled_at": "2026-11-26T03:25:33.665890+00:00",
-      "selected_at": "2026-11-25T14:23:57.714137+00:00",
-      "sequence_number": 1858,
       "status": "queued"
     },
     "dkp-21224060": {
       "attempt_count": 0,
       "content_id": "dkp-21224060",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T05:32:33.665890+00:00",
+      "next_attempt_at": "2026-11-26T05:33:37.320974+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21224060%2F",
         "availability": "in_stock",
@@ -39742,7 +39570,7 @@
       },
       "product_id": "dkp-21224060",
       "product_plan_cycle_id": "2026-11-26T02:58:04.597469+00:00",
-      "scheduled_at": "2026-11-26T05:32:33.665890+00:00",
+      "scheduled_at": "2026-11-26T05:33:37.320974+00:00",
       "selected_at": "2026-11-25T22:03:12.918229+00:00",
       "sequence_number": 1861,
       "status": "queued"
@@ -39751,7 +39579,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22165808",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T07:04:33.665890+00:00",
+      "next_attempt_at": "2026-11-26T07:05:37.320974+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22165808%2F",
         "availability": "in_stock",
@@ -39919,7 +39747,7 @@
       },
       "product_id": "dkp-22165808",
       "product_plan_cycle_id": "2026-11-26T02:58:04.597469+00:00",
-      "scheduled_at": "2026-11-26T07:04:33.665890+00:00",
+      "scheduled_at": "2026-11-26T07:05:37.320974+00:00",
       "selected_at": "2026-11-26T00:34:49.064477+00:00",
       "sequence_number": 1863,
       "status": "queued"
@@ -39928,7 +39756,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22748971",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T04:08:33.665890+00:00",
+      "next_attempt_at": "2026-11-26T04:09:37.320974+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22748971%2F",
         "availability": "in_stock",
@@ -40097,7 +39925,7 @@
       },
       "product_id": "dkp-22748971",
       "product_plan_cycle_id": "2026-11-26T02:58:04.597469+00:00",
-      "scheduled_at": "2026-11-26T04:08:33.665890+00:00",
+      "scheduled_at": "2026-11-26T04:09:37.320974+00:00",
       "selected_at": "2026-11-25T17:05:37.836396+00:00",
       "sequence_number": 1859,
       "status": "queued"
@@ -40106,7 +39934,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22895958",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T04:48:33.665890+00:00",
+      "next_attempt_at": "2026-11-26T04:49:37.320974+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22895958%2F",
         "availability": "in_stock",
@@ -40271,7 +40099,7 @@
       },
       "product_id": "dkp-22895958",
       "product_plan_cycle_id": "2026-11-26T02:58:04.597469+00:00",
-      "scheduled_at": "2026-11-26T04:48:33.665890+00:00",
+      "scheduled_at": "2026-11-26T04:49:37.320974+00:00",
       "selected_at": "2026-11-25T20:49:43.396484+00:00",
       "sequence_number": 1860,
       "status": "queued"
@@ -40280,7 +40108,7 @@
       "attempt_count": 0,
       "content_id": "dkp-6819551",
       "content_type": "product",
-      "next_attempt_at": "2026-11-26T06:19:33.665890+00:00",
+      "next_attempt_at": "2026-11-26T06:20:37.320974+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-6819551%2F",
         "availability": "in_stock",
@@ -40443,7 +40271,7 @@
       },
       "product_id": "dkp-6819551",
       "product_plan_cycle_id": "2026-11-26T02:58:04.597469+00:00",
-      "scheduled_at": "2026-11-26T06:19:33.665890+00:00",
+      "scheduled_at": "2026-11-26T06:20:37.320974+00:00",
       "selected_at": "2026-11-25T22:03:12.918229+00:00",
       "sequence_number": 1862,
       "status": "queued"
@@ -75809,7 +75637,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.4,
+      "delivery_duration_seconds": 1.5,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -75872,8 +75700,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.4,
-      "delivery_started_at": "2026-11-26T03:02:50.519800+00:00",
+      "delivery_duration_seconds": 1.5,
+      "delivery_started_at": "2026-11-26T03:26:38.378072+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -76365,13 +76193,13 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-26T02:54:33.665890+00:00",
+  "last_channel_published_at": "2026-11-26T03:26:37.320974+00:00",
   "last_content_selection_at": "2026-11-26T03:02:49.164255+00:00",
   "last_editorial_attempt_at": "2026-11-18T02:10:38.177140+00:00",
   "last_editorial_confirmed_at": "2026-11-18T02:10:49.933296+00:00",
   "last_editorial_empty_bank_check_at": "2026-11-18T01:24:46.585898+00:00",
-  "last_product_channel_published_at": "2026-11-26T02:54:33.665890+00:00",
-  "last_published_at": "2026-11-26T02:54:33.665890+00:00",
+  "last_product_channel_published_at": "2026-11-26T03:26:37.320974+00:00",
+  "last_published_at": "2026-11-26T03:26:37.320974+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -131124,8 +130952,8 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-26T03:02:49.164255+00:00",
-    "candidate_count": 9,
+    "calculated_at": "2026-11-26T03:26:37.320982+00:00",
+    "candidate_count": 8,
     "catalog_cycle_id": "2026-11-26T02:58:04.597469+00:00",
     "current_cycle_started_at": "2026-11-26T02:58:05.004584+00:00",
     "daily_post_limit": 72,
@@ -131137,30 +130965,29 @@
     "interval_seconds": 1860.0,
     "last_clean_cycle_completed_at": "2026-11-26T02:58:04.597469+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-26T02:54:33.665890+00:00",
-    "plan_anchor_kind": "last_product",
-    "planned_product_slots": 9,
+    "plan_anchor_at": "2026-11-26T03:26:37.320974+00:00",
+    "plan_anchor_kind": "last_channel",
+    "planned_product_slots": 8,
     "planned_window_end_at": "2026-11-26T04:14:05.004584+00:00",
-    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes",
+    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
     "scan_eta_is_provisional": false,
     "scan_eta_source": "last_observed_full_cycle_duration",
     "scheduled_product_count": 9,
-    "seconds_from_plan_anchor_to_next_scan": 4771.338694,
-    "seconds_until_estimated_next_clean_scan": 4275.840329
+    "seconds_from_plan_anchor_to_next_scan": 2847.68361,
+    "seconds_until_estimated_next_clean_scan": 2847.683602
   },
   "product_publication_interval_seconds": 1860.0,
   "product_publication_plan": {
-    "anchor_at": "2026-11-26T02:54:33.665890+00:00",
-    "anchor_kind": "last_product",
+    "anchor_at": "2026-11-26T03:26:37.320974+00:00",
+    "anchor_kind": "last_channel",
     "catalog_cycle_id": "2026-11-26T02:58:04.597469+00:00",
     "first_slot_due_now": false,
     "interval_minutes": 31.0,
     "interval_seconds": 1860.0,
     "maximum_product_interval_seconds": 3420,
     "next_clean_scan_at": "2026-11-26T04:14:05.004584+00:00",
-    "pending_product_count": 9,
+    "pending_product_count": 8,
     "product_ids": [
-      "dkp-17909394",
       "dkp-22748971",
       "dkp-22895958",
       "dkp-21224060",
@@ -131170,11 +130997,11 @@
       "dkp-12232692",
       "dkp-10201695"
     ],
-    "scheduled_product_count": 9,
-    "updated_at": "2026-11-26T03:02:49.164255+00:00"
+    "scheduled_product_count": 8,
+    "updated_at": "2026-11-26T03:26:37.320982+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-26T02:54:33.665890+00:00",
-  "product_publication_plan_anchor_kind": "last_product",
+  "product_publication_plan_anchor_at": "2026-11-26T03:26:37.320974+00:00",
+  "product_publication_plan_anchor_kind": "last_channel",
   "product_publication_plan_cycle_id": "2026-11-26T02:58:04.597469+00:00",
   "publication_diversity_fallback_count": 5307,
   "publication_diversity_fallback_events": [
@@ -219932,6 +219759,134 @@
       "youtube_skip_reason": "selection_outside_freshness_window",
       "youtube_skip_recorded_at": "2026-11-24T01:30:22.400726+00:00",
       "youtube_upload_status": "skipped_stale_after_freshness_window"
+    },
+    "dkp-17909394": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2603,
+      "bale_posted_at": "2026-11-26T03:26:32.671821+00:00",
+      "brand": "هایبورگ",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "A",
+      "catalog_best_selling_category_id": "5808",
+      "catalog_best_selling_category_name": "مایکروویو، مایکروفر",
+      "catalog_best_selling_rank": 11,
+      "catalog_best_selling_ranks_by_category": {
+        "5808": {
+          "category_name": "مایکروویو، مایکروفر",
+          "observed_at": "2026-11-25T13:06:27.147996+00:00",
+          "rank": 11,
+          "rank_history": [
+            {
+              "category_name": "مایکروویو، مایکروفر",
+              "observed_at": "2026-11-25T13:06:27.147996+00:00",
+              "rank": 11
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-25T14:18:27.700894+00:00",
+      "catalog_cycle_snapshot_rank": 159,
+      "catalog_rank_observed_at": "2026-11-25T13:06:27.147996+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-17909394",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "B",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-26T03:26:37.028447+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 0,
+      "distribution_queue_id": "dkp-17909394:2026-11-25T14:23:57.714137+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-25T14:23:43.010786+00:00",
+      "history_days": 2,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/c4e1c0e3fa8b6239e29c1a734a7e5d42fb7f4170_1778568621.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "unavailable",
+      "platform_message_ids": {
+        "rubika": "1983539205553588651"
+      },
+      "posted_current_price": 43080000,
+      "posted_discount_percent": 40,
+      "posted_original_price": 71800000,
+      "product_url": "https://www.digikala.com/product/dkp-17909394/",
+      "promo_score": 43,
+      "publication_category": "large_appliances",
+      "publication_family": "digikala_category:5808",
+      "publication_use_case": "home_living",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 18.2,
+      "rubika_posted_at": "2026-11-26T03:26:37.028423+00:00",
+      "selection_bestseller_category_count": 1,
+      "selection_bestseller_rank": 11,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 77.29,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 66.66,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 84.0,
+        "generality_group": "home_living",
+        "live_demand": 83.99,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-25T14:23:53.076443+00:00",
+        "weakest_factor_score": 66.66
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1858,
+      "telegram_message_id": 1925,
+      "telegram_posted_at": "2026-11-26T03:26:31.929779+00:00",
+      "title": "مایکروویو 1450 وات 32 لیتر هایبورگ مدل MW-6050 دارای 10 برنامه پخت",
+      "ts": 1795663585.294488,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
     },
     "dkp-17918956": {
       "aparat_skip_reason": "selection_outside_freshness_window",
