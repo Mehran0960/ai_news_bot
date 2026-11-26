@@ -1419,191 +1419,6 @@
   },
   "content_delivery_history": [
     {
-      "attempt_count": 2,
-      "content_id": "dkp-1518091",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-21T11:03:04.407944+00:00",
-      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
-      "next_attempt_at": "2026-11-21T10:43:33.975851+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-1518091%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "درمالیفت",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "6488",
-        "catalog_best_selling_category_name": "کرم دور چشم",
-        "catalog_best_selling_rank": 1,
-        "catalog_best_selling_ranks_by_category": {
-          "6488": {
-            "category_name": "کرم دور چشم",
-            "observed_at": "2026-11-21T08:04:01.403754+00:00",
-            "rank": 1,
-            "rank_history": [
-              {
-                "category_name": "کرم دور چشم",
-                "observed_at": "2026-11-21T08:04:01.403754+00:00",
-                "rank": 1
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-21T08:33:31.981310+00:00",
-        "catalog_cycle_snapshot_rank": 241,
-        "catalog_rank_observed_at": "2026-11-21T08:04:01.403754+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "personal_care",
-        "checked_at": "2026-11-21T08:39:25.020282+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-1518091",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "B",
-        "current_demand_verified": true,
-        "current_price": 312670,
-        "deal_expires_at": "",
-        "demand_observed_at": "2026-11-21T08:39:56.736614+00:00",
-        "demand_signal_source": "digikala_recent_review_growth",
-        "demand_window_hours": 22.1,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 58.92,
-        "discount_percent": 45,
-        "discount_vs_30d_median_pct": 6,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 20130,
-        "history_checked_at": "2026-11-21T08:39:58.098074+00:00",
-        "history_days": 3,
-        "history_end_day": "2026-11-21",
-        "history_high_toman": 336900,
-        "history_low_toman": 312670,
-        "history_median_toman": 332800,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": 332800,
-        "history_start_day": "2026-11-19",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/d25e3d40fd07bffc5b13a3495be0c8223cf5cccc_1648965004.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "کرم دور چشم درمالیفت مدل Vitalift Anti Dark حجم 25 میلی لیتر",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 78.14,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 58.92,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.45,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T08:40:08.787021+00:00",
-          "weakest_factor_score": 58.92
-        },
-        "original_price": 568500,
-        "pct_above_stable_low": -6,
-        "product_id": "dkp-1518091",
-        "product_url": "https://www.digikala.com/product/dkp-1518091/",
-        "promo_score": 33,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.03,
-        "recent_review_growth_7d": 3,
-        "recent_review_growth_window": 3,
-        "review_count": 3535,
-        "savings_toman": 255830,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 1,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 78.14,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 58.92,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 99.45,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T08:40:08.787021+00:00",
-          "weakest_factor_score": 58.92
-        },
-        "selection_review_growth_evidence": "verified_indirect_proxy_not_sales",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1667,
-        "title": "کرم دور چشم درمالیفت مدل Vitalift Anti Dark حجم 25 میلی لیتر"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-21T11:03:04.407944+00:00",
-          "attempts": 3,
-          "status": "sent",
-          "updated_at": "2026-11-21T11:03:09.548694+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "credentials_not_configured",
-          "status": "not_connected",
-          "updated_at": "2026-11-21T11:03:04.407944+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-21T10:33:27.732019+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-21T10:33:38.445141+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-21T10:33:27.732019+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-21T10:33:33.269452+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-1518091",
-      "product_plan_cycle_id": "2026-11-21T10:28:26.538821+00:00",
-      "scheduled_at": "2026-11-21T10:17:51.992587+00:00",
-      "selected_at": "2026-11-21T08:40:13.401698+00:00",
-      "sequence_number": 1667,
-      "status": "published",
-      "updated_at": "2026-11-21T11:03:09.956466+00:00"
-    },
-    {
       "attempt_count": 1,
       "content_id": "dkp-4545846",
       "content_type": "product",
@@ -38284,6 +38099,183 @@
       "sequence_number": 1866,
       "status": "published",
       "updated_at": "2026-11-26T08:40:29.791049+00:00"
+    },
+    {
+      "attempt_count": 0,
+      "content_id": "dkp-20073130",
+      "content_type": "product",
+      "last_detail": "recent_product_family_or_brand_cooldown",
+      "next_attempt_at": "2026-11-26T09:25:29.789839+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-20073130%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "تیلسیم",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "6654",
+        "catalog_best_selling_category_name": "سرم پوست",
+        "catalog_best_selling_rank": 5,
+        "catalog_best_selling_ranks_by_category": {
+          "6654": {
+            "category_name": "سرم پوست",
+            "observed_at": "2026-11-26T02:58:59.593769+00:00",
+            "rank": 5,
+            "rank_history": [
+              {
+                "category_name": "سرم پوست",
+                "observed_at": "2026-11-26T02:58:59.593769+00:00",
+                "rank": 5
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-26T04:10:10.214294+00:00",
+        "catalog_cycle_snapshot_rank": 28,
+        "catalog_rank_observed_at": "2026-11-26T02:58:59.593769+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "personal_care",
+        "checked_at": "2026-11-26T04:13:59.624235+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-20073130",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 295000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 69.09,
+        "discount_percent": 76,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-26T04:14:29.462174+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-26",
+        "history_high_toman": 295000,
+        "history_low_toman": 295000,
+        "history_median_toman": 295000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-26",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/d27ddec9092c0505de94db549975f44a9199ea1f_1786372478.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_check_cached": true,
+        "market_error": "RuntimeError",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_query": "سرم آبرسان پوست تیلسیم مدل هیالورونیک اسید و رونیک اسید کد B5 مناسب برای انواع پوست حجم 30 میلی",
+        "market_status": "unavailable",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 83.44,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 69.09,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 98.84,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-26T04:14:45.856978+00:00",
+          "weakest_factor_score": 69.09
+        },
+        "original_price": 1250000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-20073130",
+        "product_url": "https://www.digikala.com/product/dkp-20073130/",
+        "promo_score": 56,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.11,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 2294,
+        "savings_toman": 955000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 5,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 83.44,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 69.09,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 88.0,
+          "generality_group": "personal_care",
+          "live_demand": 98.84,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-26T04:14:45.856978+00:00",
+          "weakest_factor_score": 69.09
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1867,
+        "title": "سرم آبرسان پوست تیلسیم مدل هیالورونیک اسید و رونیک اسید کد B5 مناسب برای انواع پوست حجم 30 میلی‌لیتر"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-20073130",
+      "product_plan_cycle_id": "2026-11-26T09:06:08.553899+00:00",
+      "scheduled_at": "2026-11-26T09:25:29.789839+00:00",
+      "selected_at": "2026-11-26T04:14:49.181997+00:00",
+      "sequence_number": 1867,
+      "status": "stale_selection",
+      "updated_at": "2026-11-26T09:26:11.424778+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -38816,181 +38808,6 @@
       "scheduled_at": "2026-11-26T12:46:29.789839+00:00",
       "selected_at": "2026-11-26T06:42:27.405446+00:00",
       "sequence_number": 1872,
-      "status": "queued"
-    },
-    "dkp-20073130": {
-      "attempt_count": 0,
-      "content_id": "dkp-20073130",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-26T09:25:29.789839+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-20073130%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "تیلسیم",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "6654",
-        "catalog_best_selling_category_name": "سرم پوست",
-        "catalog_best_selling_rank": 5,
-        "catalog_best_selling_ranks_by_category": {
-          "6654": {
-            "category_name": "سرم پوست",
-            "observed_at": "2026-11-26T02:58:59.593769+00:00",
-            "rank": 5,
-            "rank_history": [
-              {
-                "category_name": "سرم پوست",
-                "observed_at": "2026-11-26T02:58:59.593769+00:00",
-                "rank": 5
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-26T04:10:10.214294+00:00",
-        "catalog_cycle_snapshot_rank": 28,
-        "catalog_rank_observed_at": "2026-11-26T02:58:59.593769+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "personal_care",
-        "checked_at": "2026-11-26T04:13:59.624235+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-20073130",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 295000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 69.09,
-        "discount_percent": 76,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-26T04:14:29.462174+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-26",
-        "history_high_toman": 295000,
-        "history_low_toman": 295000,
-        "history_median_toman": 295000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-26",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/d27ddec9092c0505de94db549975f44a9199ea1f_1786372478.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_check_cached": true,
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "سرم آبرسان پوست تیلسیم مدل هیالورونیک اسید و رونیک اسید کد B5 مناسب برای انواع پوست حجم 30 میلی",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 83.44,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 69.09,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 98.84,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-26T04:14:45.856978+00:00",
-          "weakest_factor_score": 69.09
-        },
-        "original_price": 1250000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-20073130",
-        "product_url": "https://www.digikala.com/product/dkp-20073130/",
-        "promo_score": 56,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.11,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 2294,
-        "savings_toman": 955000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 5,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 83.44,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 69.09,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 88.0,
-          "generality_group": "personal_care",
-          "live_demand": 98.84,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-26T04:14:45.856978+00:00",
-          "weakest_factor_score": 69.09
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1867,
-        "title": "سرم آبرسان پوست تیلسیم مدل هیالورونیک اسید و رونیک اسید کد B5 مناسب برای انواع پوست حجم 30 میلی‌لیتر"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-20073130",
-      "product_plan_cycle_id": "2026-11-26T09:06:08.553899+00:00",
-      "scheduled_at": "2026-11-26T09:25:29.789839+00:00",
-      "selected_at": "2026-11-26T04:14:49.181997+00:00",
-      "sequence_number": 1867,
       "status": "queued"
     },
     "dkp-22730702": {
@@ -73185,7 +73002,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.5,
+      "delivery_duration_seconds": 1.8,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -73248,8 +73065,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.5,
-      "delivery_started_at": "2026-11-26T09:10:32.793776+00:00",
+      "delivery_duration_seconds": 1.8,
+      "delivery_started_at": "2026-11-26T09:26:13.430756+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
