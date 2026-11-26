@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-26T02:56:33.878971+00:00",
-  "aparat_last_upload_success_at": "2026-11-26T02:56:37.727124+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-26T03:28:25.159684+00:00",
+  "aparat_last_upload_success_at": "2026-11-26T03:28:28.458992+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-26T03:00:19.864261+00:00",
@@ -219761,7 +219761,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-17909394": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-26T03:28:25.159684+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-26T03:28:28.458992+00:00",
+      "aparat_video_hash": "wlg1zwu",
+      "aparat_video_record_id": "74393081",
+      "aparat_video_url": "https://www.aparat.com/v/wlg1zwu",
+      "aparat_visibility": "public",
       "bale_message_id": 2603,
       "bale_posted_at": "2026-11-26T03:26:32.671821+00:00",
       "brand": "هایبورگ",
@@ -219885,8 +219891,16 @@
       "telegram_posted_at": "2026-11-26T03:26:31.929779+00:00",
       "title": "مایکروویو 1450 وات 32 لیتر هایبورگ مدل MW-6050 دارای 10 برنامه پخت",
       "ts": 1795663585.294488,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-17909394.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-17909394.mp4"
+      },
+      "video_generated_at": "2026-11-26T03:28:20.354121+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-17918956": {
       "aparat_skip_reason": "selection_outside_freshness_window",
@@ -352069,6 +352083,5 @@
   "snappshop_consecutive_failures": 2,
   "snappshop_retry_after": "2026-11-26T15:01:26.267735+00:00",
   "youtube_last_upload_success_at": "2026-11-25T19:12:36.118979+00:00",
-  "youtube_next_upload_at": "2026-11-26T03:27:36.118979+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
