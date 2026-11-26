@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-26T21:56:13.434526+00:00",
-  "aparat_last_upload_success_at": "2026-11-26T21:56:16.765129+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-26T22:38:27.012187+00:00",
+  "aparat_last_upload_success_at": "2026-11-26T22:38:30.198494+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-26T21:24:25.678160+00:00",
@@ -230558,7 +230558,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-17363741": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-26T22:38:27.012187+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-26T22:38:30.198494+00:00",
+      "aparat_video_hash": "rks57x3",
+      "aparat_video_record_id": "74407297",
+      "aparat_video_url": "https://www.aparat.com/v/rks57x3",
+      "aparat_visibility": "public",
       "bale_message_id": 2643,
       "bale_posted_at": "2026-11-26T22:36:24.204228+00:00",
       "brand": "نوتریکوک",
@@ -230682,8 +230688,16 @@
       "telegram_posted_at": "2026-11-26T22:36:23.834138+00:00",
       "title": "تخم مرغ پز نوتریکوک مدل ‎NC-EC360",
       "ts": 1795732578.838133,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-17363741.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-17363741.mp4"
+      },
+      "video_generated_at": "2026-11-26T22:38:22.145263+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-1736988": {
       "aparat_upload_started_at": "2026-11-24T05:58:40.189123+00:00",
