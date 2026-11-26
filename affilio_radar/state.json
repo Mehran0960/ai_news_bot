@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-26T15:36:12.909621+00:00",
-  "aparat_last_upload_success_at": "2026-11-26T15:36:16.735882+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-26T16:38:30.033285+00:00",
+  "aparat_last_upload_success_at": "2026-11-26T16:38:33.663807+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-26T16:32:24.044632+00:00",
@@ -296546,7 +296546,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22604854": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-26T16:38:30.033285+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-26T16:38:33.663807+00:00",
+      "aparat_video_hash": "gfj6e64",
+      "aparat_video_record_id": "74403237",
+      "aparat_video_url": "https://www.aparat.com/v/gfj6e64",
+      "aparat_visibility": "public",
       "bale_message_id": 2630,
       "bale_posted_at": "2026-11-26T16:35:42.726699+00:00",
       "brand": "",
@@ -296694,8 +296700,16 @@
       "telegram_posted_at": "2026-11-26T16:35:41.802542+00:00",
       "title": "پودر شیرین کننده استویا آلما - 200 گرم",
       "ts": 1795710933.678544,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22604854.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22604854.mp4"
+      },
+      "video_generated_at": "2026-11-26T16:38:23.957085+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22614682": {
       "aparat_skip_reason": "selection_outside_freshness_window",
