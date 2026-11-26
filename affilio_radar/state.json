@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-26T23:16:27.098745+00:00",
-  "aparat_last_upload_success_at": "2026-11-26T23:16:30.300906+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-26T23:48:19.491118+00:00",
+  "aparat_last_upload_success_at": "2026-11-26T23:48:23.323580+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-26T22:38:23.674555+00:00",
@@ -330150,7 +330150,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-471187": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-26T23:48:19.491118+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-26T23:48:23.323580+00:00",
+      "aparat_video_hash": "looqmh6",
+      "aparat_video_record_id": "74407606",
+      "aparat_video_url": "https://www.aparat.com/v/looqmh6",
+      "aparat_visibility": "public",
       "bale_message_id": 2647,
       "bale_posted_at": "2026-11-26T23:46:15.924704+00:00",
       "brand": "سریتا",
@@ -330274,8 +330280,16 @@
       "telegram_posted_at": "2026-11-26T23:46:15.277204+00:00",
       "title": "شامپو تقویت‌کننده و ضد ریزش سریتا مخصوص انواع مو، حجم 200 میلی‌لیتر، حاوی کافئین، تنظیم چربی سر، بهبود جریان خون در پوست سر و تحریک رشد مو با عصاره ساوپالمیتو",
       "ts": 1795736768.966111,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-471187.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-471187.mp4"
+      },
+      "video_generated_at": "2026-11-26T23:48:13.207307+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-479131": {
       "aparat_skip_reason": "selection_outside_freshness_window",
