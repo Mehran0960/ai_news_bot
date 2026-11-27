@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-27T02:28:24.346591+00:00",
-  "aparat_last_upload_success_at": "2026-11-27T02:28:28.238674+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-27T03:04:19.431196+00:00",
+  "aparat_last_upload_success_at": "2026-11-27T03:04:23.604689+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-27T02:30:22.971827+00:00",
@@ -296719,7 +296719,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22541705": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-27T03:04:19.431196+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-27T03:04:23.604689+00:00",
+      "aparat_video_hash": "pntqi5x",
+      "aparat_video_record_id": "74408090",
+      "aparat_video_url": "https://www.aparat.com/v/pntqi5x",
+      "aparat_visibility": "public",
       "bale_message_id": 2652,
       "bale_posted_at": "2026-11-27T03:02:19.688802+00:00",
       "brand": "گروه بازرگانی آراد",
@@ -296855,8 +296861,16 @@
       "telegram_posted_at": "2026-11-27T03:02:19.005979+00:00",
       "title": "لپه آراد - 900 گرم",
       "ts": 1795748532.16489,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22541705.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22541705.mp4"
+      },
+      "video_generated_at": "2026-11-27T03:04:11.599659+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22545022": {
       "aparat_skip_reason": "selection_outside_freshness_window",
