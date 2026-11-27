@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-27T17:30:16.952274+00:00",
-  "aparat_last_upload_success_at": "2026-11-27T17:30:20.759658+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-27T18:16:24.129843+00:00",
+  "aparat_last_upload_success_at": "2026-11-27T18:16:28.283026+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-27T18:12:12.934774+00:00",
@@ -211813,7 +211813,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-10847125": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-27T18:16:24.129843+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-27T18:16:28.283026+00:00",
+      "aparat_video_hash": "xzt5fo4",
+      "aparat_video_record_id": "74419163",
+      "aparat_video_url": "https://www.aparat.com/v/xzt5fo4",
+      "aparat_visibility": "public",
       "bale_message_id": 2684,
       "bale_posted_at": "2026-11-27T18:15:19.940785+00:00",
       "brand": "هیسکا",
@@ -211937,8 +211943,16 @@
       "telegram_posted_at": "2026-11-27T18:15:19.226521+00:00",
       "title": "مجموعه لوازم جانبی موبایل هیسکا مدل Multi Function Box HR-01",
       "ts": 1795803313.420947,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-10847125.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-10847125.mp4"
+      },
+      "video_generated_at": "2026-11-27T18:16:15.662461+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-10867257": {
       "aparat_skip_reason": "selection_outside_freshness_window",
