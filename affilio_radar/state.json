@@ -2836,187 +2836,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 1,
-      "content_id": "dkp-23028580",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-22T17:05:13.732763+00:00",
-      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
-      "next_attempt_at": "2026-11-22T17:05:12.891864+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-23028580%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "یوکی",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "204",
-        "catalog_best_selling_category_name": "دوربین های امنیتی و نظارتی",
-        "catalog_best_selling_rank": 8,
-        "catalog_best_selling_ranks_by_category": {
-          "204": {
-            "category_name": "دوربین های امنیتی و نظارتی",
-            "observed_at": "2026-11-22T10:08:44.292055+00:00",
-            "rank": 8,
-            "rank_history": [
-              {
-                "category_name": "دوربین های امنیتی و نظارتی",
-                "observed_at": "2026-11-22T10:08:44.292055+00:00",
-                "rank": 8
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-22T10:36:23.020949+00:00",
-        "catalog_cycle_snapshot_rank": 145,
-        "catalog_rank_observed_at": "2026-11-22T10:08:44.292055+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "power_backup",
-        "checked_at": "2026-11-22T10:41:27.945277+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-23028580",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 18500000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 58.98,
-        "discount_percent": 29,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-22T10:41:51.261621+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-22",
-        "history_high_toman": 18500000,
-        "history_low_toman": 18500000,
-        "history_median_toman": 18500000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-22",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/d3c01441126685ffd8a676489430d85cb644e9d0_1792593177.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 60.32,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 58.98,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 44.0,
-          "generality_group": "pet_care",
-          "live_demand": 99.5,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-22T10:42:01.732162+00:00",
-          "weakest_factor_score": 44.0
-        },
-        "original_price": 26000000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-23028580",
-        "product_url": "https://www.digikala.com/product/dkp-23028580/",
-        "promo_score": 31,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "savings_toman": 7500000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 8,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 60.32,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 58.98,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 44.0,
-          "generality_group": "pet_care",
-          "live_demand": 99.5,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-22T10:42:01.732162+00:00",
-          "weakest_factor_score": 44.0
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1721,
-        "title": "دوربین مداربسته تحت شبکه باتری دار یوکی مدل S320 با رزولوشن 2.5K، اتصال Wi-Fi، با زاویه دید 150 درجه ای، تشخیص انسان و حیوان خانگی"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-22T17:05:13.732763+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-22T17:05:21.751271+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "credentials_not_configured",
-          "status": "not_connected",
-          "updated_at": "2026-11-22T17:05:13.732763+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-22T17:05:13.732763+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-22T17:05:28.071268+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-22T17:05:13.732763+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-22T17:05:20.954954+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-23028580",
-      "product_plan_cycle_id": "2026-11-22T17:01:34.970848+00:00",
-      "scheduled_at": "2026-11-22T17:05:12.891864+00:00",
-      "selected_at": "2026-11-22T10:42:06.515135+00:00",
-      "sequence_number": 1721,
-      "status": "published",
-      "updated_at": "2026-11-22T17:05:28.411911+00:00"
-    },
-    {
-      "attempt_count": 1,
       "content_id": "dkp-20444568",
       "content_type": "product",
       "last_attempt_at": "2026-11-22T17:52:36.886984+00:00",
@@ -39867,6 +39686,181 @@
       "sequence_number": 1920,
       "status": "published",
       "updated_at": "2026-11-27T20:26:29.411850+00:00"
+    },
+    {
+      "attempt_count": 0,
+      "content_id": "dkp-11866907",
+      "content_type": "product",
+      "last_detail": "recent_product_family_or_brand_cooldown",
+      "next_attempt_at": "2026-11-27T21:03:29.410647+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-11866907%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "brand": "درسا لوازم خانگی آشپزخانه",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "A",
+        "catalog_best_selling_category_id": "8283",
+        "catalog_best_selling_category_name": "گاز صفحه ای",
+        "catalog_best_selling_rank": 6,
+        "catalog_best_selling_ranks_by_category": {
+          "8283": {
+            "category_name": "گاز صفحه ای",
+            "observed_at": "2026-11-27T09:38:10.577945+00:00",
+            "rank": 6,
+            "rank_history": [
+              {
+                "category_name": "گاز صفحه ای",
+                "observed_at": "2026-11-27T09:38:10.577945+00:00",
+                "rank": 6
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-27T10:50:03.607340+00:00",
+        "catalog_cycle_snapshot_rank": 246,
+        "catalog_rank_observed_at": "2026-11-27T09:38:10.577945+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "large_appliances",
+        "checked_at": "2026-11-27T10:54:15.493408+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-11866907",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 39500000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 51.74,
+        "discount_percent": 19,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-27T10:54:41.099695+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-27",
+        "history_high_toman": 39500000,
+        "history_low_toman": 39500000,
+        "history_median_toman": 39500000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-27",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/3a08455961cfcf59e36cac83e0dbaf70710bc669_1688283854.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_status": "not_checked",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 72.55,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 51.74,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 84.0,
+          "generality_group": "home_living",
+          "live_demand": 98.83,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-27T10:54:41.101970+00:00",
+          "weakest_factor_score": 51.74
+        },
+        "original_price": 48950000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-11866907",
+        "product_url": "https://www.digikala.com/product/dkp-11866907/",
+        "promo_score": 26,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.0,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 1,
+        "savings_toman": 9450000,
+        "selection_bestseller_category_count": 1,
+        "selection_bestseller_rank": 6,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 72.55,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 51.74,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 84.0,
+          "generality_group": "home_living",
+          "live_demand": 98.83,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-27T10:54:41.101970+00:00",
+          "weakest_factor_score": 51.74
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1921,
+        "title": "اجاق گاز صفحه ای درسا مدل DG2110-5R",
+        "variant_label": "مشکی"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "telegram": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-11866907",
+      "product_plan_cycle_id": "2026-11-27T20:38:19.978078+00:00",
+      "scheduled_at": "2026-11-27T21:03:29.410647+00:00",
+      "selected_at": "2026-11-27T10:54:45.613153+00:00",
+      "sequence_number": 1921,
+      "status": "stale_selection",
+      "updated_at": "2026-11-27T21:04:18.454097+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -40230,179 +40224,6 @@
       "scheduled_at": "2026-11-28T03:01:29.410647+00:00",
       "selected_at": "2026-11-27T13:19:59.871842+00:00",
       "sequence_number": 1930,
-      "status": "queued"
-    },
-    "dkp-11866907": {
-      "attempt_count": 0,
-      "content_id": "dkp-11866907",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-27T21:03:29.410647+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-11866907%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "brand": "درسا لوازم خانگی آشپزخانه",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "8283",
-        "catalog_best_selling_category_name": "گاز صفحه ای",
-        "catalog_best_selling_rank": 6,
-        "catalog_best_selling_ranks_by_category": {
-          "8283": {
-            "category_name": "گاز صفحه ای",
-            "observed_at": "2026-11-27T09:38:10.577945+00:00",
-            "rank": 6,
-            "rank_history": [
-              {
-                "category_name": "گاز صفحه ای",
-                "observed_at": "2026-11-27T09:38:10.577945+00:00",
-                "rank": 6
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-27T10:50:03.607340+00:00",
-        "catalog_cycle_snapshot_rank": 246,
-        "catalog_rank_observed_at": "2026-11-27T09:38:10.577945+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "large_appliances",
-        "checked_at": "2026-11-27T10:54:15.493408+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-11866907",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 39500000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 51.74,
-        "discount_percent": 19,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-27T10:54:41.099695+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-27",
-        "history_high_toman": 39500000,
-        "history_low_toman": 39500000,
-        "history_median_toman": 39500000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-27",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/3a08455961cfcf59e36cac83e0dbaf70710bc669_1688283854.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_status": "not_checked",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 72.55,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 51.74,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 84.0,
-          "generality_group": "home_living",
-          "live_demand": 98.83,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-27T10:54:41.101970+00:00",
-          "weakest_factor_score": 51.74
-        },
-        "original_price": 48950000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-11866907",
-        "product_url": "https://www.digikala.com/product/dkp-11866907/",
-        "promo_score": 26,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.0,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 1,
-        "savings_toman": 9450000,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 6,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 72.55,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 51.74,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 84.0,
-          "generality_group": "home_living",
-          "live_demand": 98.83,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-27T10:54:41.101970+00:00",
-          "weakest_factor_score": 51.74
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1921,
-        "title": "اجاق گاز صفحه ای درسا مدل DG2110-5R",
-        "variant_label": "مشکی"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-11866907",
-      "product_plan_cycle_id": "2026-11-27T20:38:19.978078+00:00",
-      "scheduled_at": "2026-11-27T21:03:29.410647+00:00",
-      "selected_at": "2026-11-27T10:54:45.613153+00:00",
-      "sequence_number": 1921,
       "status": "queued"
     },
     "dkp-18982016": {
@@ -96602,7 +96423,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.4,
+      "delivery_duration_seconds": 1.8,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -96665,8 +96486,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.4,
-      "delivery_started_at": "2026-11-27T20:43:23.447905+00:00",
+      "delivery_duration_seconds": 1.8,
+      "delivery_started_at": "2026-11-27T21:04:20.606830+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -232444,7 +232265,8 @@
       "aparat_skip_reason": "selection_outside_freshness_window",
       "aparat_skip_recorded_at": "2026-11-18T21:25:40.291642+00:00",
       "aparat_upload_status": "skipped_stale_after_freshness_window",
-      "bale_expiry_status": "unknown",
+      "bale_expired_deleted_at": "2026-11-27T20:58:32.901113+00:00",
+      "bale_expiry_status": "already_absent",
       "bale_message_id": 1741,
       "bale_posted_at": "2026-11-07T08:20:59.280740+00:00",
       "bale_retention_deleted_at": "2026-11-14T09:30:14.104250+00:00",
@@ -232486,12 +232308,16 @@
       "demand_window_hours": 21.7,
       "discount_vs_30d_median_pct": 0,
       "distribution_queue_id": "dkp-15401871:2026-11-07T08:20:49.792100+00:00",
-      "expires_at": "",
-      "expiry_deadline_verified_directly": false,
+      "expires_at": "2026-11-27T20:58:17.947638+00:00",
+      "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
-      "expiry_source": "unavailable",
-      "expiry_status": "unknown",
+      "expiry_last_direct_verification_at": "2026-11-27T20:58:17.947638+00:00",
+      "expiry_last_removal_check_at": "2026-11-27T20:58:17.947638+00:00",
+      "expiry_last_removal_check_result": "confirmed",
+      "expiry_reason": "price_mismatch",
+      "expiry_source": "live_product_stock_or_price",
+      "expiry_status": "delete_unavailable",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-12T21:11:25.344030+00:00",
@@ -232506,6 +232332,8 @@
       "history_days": 6,
       "history_status": "pending_history",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/648fb2961b007a3e5bbfd825770f24c3b0796fdd_1715272412.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "last_seen_current_price": 879000,
+      "last_seen_in_stock": true,
       "market_price_advantage_pct": null,
       "market_price_checked_at": "",
       "market_reference_kind": "",
@@ -232516,12 +232344,24 @@
       "posted_current_price": 759050,
       "posted_discount_percent": 5,
       "posted_original_price": 799000,
+      "price_audit_invalidated_at": "2026-11-27T20:58:17.947638+00:00",
+      "price_audit_last_checked_at": "2026-11-27T20:58:17.947638+00:00",
+      "price_audit_live_price": 879000,
+      "price_audit_mismatch_fields": [
+        "current_price"
+      ],
+      "price_audit_next_check_at": "2026-11-27T21:03:17.947638+00:00",
+      "price_audit_posted_original_price": 799000,
+      "price_audit_posted_price": 759050,
+      "price_audit_reason": "price_mismatch",
+      "price_audit_status": "invalidated",
       "product_url": "https://www.digikala.com/product/dkp-15401871/",
       "promo_score": 4,
       "recent_review_growth_7d": 0,
       "rubika_posted_at": "2026-11-07T08:21:08.271585+00:00",
       "selection_discount_band": "1%+",
       "selection_discount_floor": 1,
+      "telegram_expiry_last_delete_error": "RuntimeError: Bad Request: message can't be deleted",
       "telegram_message_id": 1329,
       "telegram_posted_at": "2026-11-07T08:20:56.070475+00:00",
       "title": "ساعت مچی دیجیتال مردانه مدل جهانی کد AB1",
@@ -251693,6 +251533,8 @@
       "aparat_video_record_id": "74420650",
       "aparat_video_url": "https://www.aparat.com/v/fshi367",
       "aparat_visibility": "public",
+      "bale_expired_deleted_at": "2026-11-27T20:58:32.901113+00:00",
+      "bale_expiry_status": "already_absent",
       "bale_message_id": 2689,
       "bale_posted_at": "2026-11-27T20:26:16.737160+00:00",
       "brand": "گلوریمی",
@@ -251752,6 +251594,7 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
+      "expired_deleted_at": "2026-11-27T20:58:32.901113+00:00",
       "expires_at": "2026-11-27T20:38:09.786981+00:00",
       "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
@@ -251761,6 +251604,7 @@
       "expiry_last_removal_check_result": "confirmed",
       "expiry_reason": "price_mismatch",
       "expiry_source": "live_product_stock_or_price",
+      "expiry_status": "already_absent",
       "filo_last_error": "filo_publish_not_accepted",
       "filo_review_required": true,
       "filo_upload_started_at": "2026-11-27T20:29:01.927250+00:00",
