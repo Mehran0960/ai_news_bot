@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-27T09:56:24.027206+00:00",
-  "aparat_last_upload_success_at": "2026-11-27T09:56:27.255871+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-27T10:38:25.205810+00:00",
+  "aparat_last_upload_success_at": "2026-11-27T10:38:28.203040+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-27T09:40:22.473311+00:00",
@@ -346834,7 +346834,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-7358088": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-27T10:38:25.205810+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-27T10:38:28.203040+00:00",
+      "aparat_video_hash": "bkwr1z9",
+      "aparat_video_record_id": "74412865",
+      "aparat_video_url": "https://www.aparat.com/v/bkwr1z9",
+      "aparat_visibility": "public",
       "bale_message_id": 2668,
       "bale_posted_at": "2026-11-27T10:36:29.264456+00:00",
       "brand": "",
@@ -346958,8 +346964,16 @@
       "telegram_posted_at": "2026-11-27T10:36:28.740460+00:00",
       "title": "پیشبند آشپزخانه زوک مدل 0010",
       "ts": 1795775781.006821,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-7358088.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-7358088.mp4"
+      },
+      "video_generated_at": "2026-11-27T10:38:17.580364+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-7359754": {
       "aparat_skip_reason": "selection_outside_freshness_window",
