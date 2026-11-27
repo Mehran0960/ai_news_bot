@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-27T21:46:18.773753+00:00",
-  "aparat_last_upload_success_at": "2026-11-27T21:46:22.474260+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-27T22:32:24.181572+00:00",
+  "aparat_last_upload_success_at": "2026-11-27T22:32:28.958878+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-27T21:56:11.776407+00:00",
@@ -366714,7 +366714,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-9345320": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-27T22:32:24.181572+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-27T22:32:28.958878+00:00",
+      "aparat_video_hash": "zuzw497",
+      "aparat_video_record_id": "74421491",
+      "aparat_video_url": "https://www.aparat.com/v/zuzw497",
+      "aparat_visibility": "public",
       "bale_message_id": 2693,
       "bale_posted_at": "2026-11-27T22:30:28.364040+00:00",
       "brand": "گتر",
@@ -366838,8 +366844,16 @@
       "telegram_posted_at": "2026-11-27T22:30:27.743027+00:00",
       "title": "فانل اسپرسوساز گتر مدل 51",
       "ts": 1795818621.922949,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-9345320.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-9345320.mp4"
+      },
+      "video_generated_at": "2026-11-27T22:32:16.544684+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-9388176": {
       "aparat_skip_reason": "selection_outside_freshness_window",
