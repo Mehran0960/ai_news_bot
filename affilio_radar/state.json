@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-27T19:02:26.682441+00:00",
-  "aparat_last_upload_success_at": "2026-11-27T19:02:30.454038+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-27T19:40:21.377819+00:00",
+  "aparat_last_upload_success_at": "2026-11-27T19:40:24.916891+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-27T19:28:08.832928+00:00",
@@ -230323,7 +230323,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-14996586": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-27T19:40:21.377819+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-27T19:40:24.916891+00:00",
+      "aparat_video_hash": "cnj4mvs",
+      "aparat_video_record_id": "74420174",
+      "aparat_video_url": "https://www.aparat.com/v/cnj4mvs",
+      "aparat_visibility": "public",
       "bale_message_id": 2687,
       "bale_posted_at": "2026-11-27T19:38:18.724557+00:00",
       "brand": "شاد",
@@ -230459,8 +230465,16 @@
       "telegram_posted_at": "2026-11-27T19:38:17.641823+00:00",
       "title": "شیرین گندمک صنایع غذایی شاد - 60 گرم",
       "ts": 1795808290.419004,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-14996586.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-14996586.mp4"
+      },
+      "video_generated_at": "2026-11-27T19:40:13.020608+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-15113099": {
       "aparat_skip_reason": "selection_outside_freshness_window",
