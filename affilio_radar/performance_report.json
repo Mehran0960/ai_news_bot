@@ -1,7 +1,7 @@
 {
   "approved_commission": null,
   "caption_experiment_assignment_active": true,
-  "caption_experiment_assignment_coverage_percent": 30.62,
+  "caption_experiment_assignment_coverage_percent": 30.66,
   "caption_experiment_attribution_active": false,
   "caption_experiment_attribution_supported_by_worker": true,
   "caption_experiment_measurement_status": "blocked_live_cta_bypasses_click_tracker",
@@ -12,7 +12,7 @@
       "clicks_per_published_post": null,
       "ctr": null,
       "orders": null,
-      "published_posts": 211,
+      "published_posts": 212,
       "sales_amount": null,
       "tracked_clicks_30d": null
     },
@@ -43,20 +43,20 @@
       "clicks_per_published_post": null,
       "ctr": null,
       "orders": null,
-      "published_posts": 252,
+      "published_posts": 253,
       "sales_amount": null,
       "tracked_clicks_30d": null
     }
   },
   "ctr": null,
   "experiment_assignment_active": true,
-  "experiment_assignment_coverage_percent": 37.55,
+  "experiment_assignment_coverage_percent": 37.6,
   "experiment_attribution_active": false,
   "experiment_attribution_available": true,
   "experiment_attribution_supported_by_worker": true,
   "experiment_measurement_status": "blocked_live_cta_bypasses_click_tracker",
   "experiment_publication_status": "partially_assigned",
-  "generated_at": "2026-11-26T23:50:23.884794+00:00",
+  "generated_at": "2026-11-27T01:07:33.594415+00:00",
   "impressions": null,
   "interpretation": "Tracked clicks and clicks per published post are descriptive signals, not CTR or causal lift. Live purchase buttons intentionally use direct Affilio URLs and bypass the Cloudflare click tracker; Worker capability and historical tagged events do not establish attribution for current live CTAs. Official Affilio SubID support or an order/report export is required for verified source attribution. Impressions, orders, sales and commission are not inferred from clicks.",
   "live_purchase_attribution_blocker": "requires_official_affilio_subid_or_report_export",
@@ -64,17 +64,17 @@
   "live_purchase_link_mode": "direct_affilio_link",
   "live_purchase_source_attribution_available": false,
   "orders": null,
-  "published_caption_experiment_posts": 428,
-  "published_experiment_posts": 525,
+  "published_caption_experiment_posts": 429,
+  "published_experiment_posts": 526,
   "published_posts_by_caption_variant": {
-    "offerchin-caption-v1:A": 211,
+    "offerchin-caption-v1:A": 212,
     "offerchin-caption-v1:B": 217
   },
   "published_posts_by_platform": {
     "aparat": 41,
-    "bale": 1388,
-    "rubika": 542,
-    "telegram": 1395,
+    "bale": 1389,
+    "rubika": 543,
+    "telegram": 1396,
     "youtube": 206
   },
   "published_posts_by_product": {
@@ -2985,6 +2985,24 @@
       },
       "demand_evidence_scope": "legacy_unknown",
       "discount_percent": 45,
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold"
+    },
+    "dkp-14550381": {
+      "bestseller_category_count": 1,
+      "bestseller_rank": 3,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "A",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "B",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "demand_evidence_scope": "legacy_unknown",
+      "discount_percent": 25,
       "selection_demand_evidence": "digikala_native_bestseller_rank",
       "selection_demand_quality": "direct_relative_sales_rank_not_units_sold"
     },
@@ -24666,46 +24684,34 @@
   },
   "published_posts_by_variant": {
     "offerchin-creative-v1:A": 273,
-    "offerchin-creative-v1:B": 252
+    "offerchin-creative-v1:B": 253
   },
-  "published_product_count": 1398,
+  "published_product_count": 1399,
   "sales_amount": null,
   "sales_data_status": "unavailable_until_official_Affilio_report_or_export_is_connected",
   "source_attribution_available": false,
   "tracked_clicks_by_caption_experiment_variant": {},
   "tracked_clicks_by_experiment_variant": {},
   "tracked_clicks_by_product": {
-    "dkp-12557376": 1,
     "dkp-12755767": 3,
-    "dkp-13339592": 3,
-    "dkp-16711084": 3,
     "dkp-17288007": 3,
     "dkp-17797406": 1,
-    "dkp-17869821": 4,
     "dkp-18478960": 1,
     "dkp-19655591": 1,
     "dkp-20615539": 3,
     "dkp-20917693": 3,
-    "dkp-21056927": 1,
     "dkp-21240900": 3,
     "dkp-21834821": 3,
-    "dkp-22034476": 3,
     "dkp-22037067": 1,
     "dkp-22131910": 3,
     "dkp-22232286": 3,
     "dkp-22343690": 3,
     "dkp-22417178": 1,
     "dkp-22427801": 3,
-    "dkp-22447618": 1,
-    "dkp-22455734": 3,
     "dkp-22484527": 3,
-    "dkp-22742937": 2,
     "dkp-22862463": 3,
-    "dkp-22969458": 2,
     "dkp-2299236": 3,
-    "dkp-22998731": 1,
     "dkp-23134597": 3,
-    "dkp-3365357": 3,
     "dkp-4639315": 3,
     "dkp-5927887": 3,
     "dkp-7608527": 1,
@@ -24713,16 +24719,7 @@
   },
   "tracked_clicks_by_product_caption_variant": {},
   "tracked_clicks_by_product_source": {
-    "dkp-12557376": {
-      "bale": 1
-    },
     "dkp-12755767": {
-      "youtube": 3
-    },
-    "dkp-13339592": {
-      "bale": 3
-    },
-    "dkp-16711084": {
       "youtube": 3
     },
     "dkp-17288007": {
@@ -24730,10 +24727,6 @@
     },
     "dkp-17797406": {
       "bale": 1
-    },
-    "dkp-17869821": {
-      "bale": 1,
-      "youtube": 3
     },
     "dkp-18478960": {
       "bale": 1
@@ -24747,16 +24740,10 @@
     "dkp-20917693": {
       "youtube": 3
     },
-    "dkp-21056927": {
-      "bale": 1
-    },
     "dkp-21240900": {
       "youtube": 3
     },
     "dkp-21834821": {
-      "youtube": 3
-    },
-    "dkp-22034476": {
       "youtube": 3
     },
     "dkp-22037067": {
@@ -24777,34 +24764,16 @@
     "dkp-22427801": {
       "youtube": 3
     },
-    "dkp-22447618": {
-      "bale": 1
-    },
-    "dkp-22455734": {
-      "youtube": 3
-    },
     "dkp-22484527": {
       "youtube": 3
-    },
-    "dkp-22742937": {
-      "youtube": 2
     },
     "dkp-22862463": {
       "youtube": 3
     },
-    "dkp-22969458": {
-      "youtube": 2
-    },
     "dkp-2299236": {
       "youtube": 3
     },
-    "dkp-22998731": {
-      "bale": 1
-    },
     "dkp-23134597": {
-      "youtube": 3
-    },
-    "dkp-3365357": {
       "youtube": 3
     },
     "dkp-4639315": {
@@ -24822,14 +24791,14 @@
   },
   "tracked_clicks_by_product_variant": {},
   "tracked_clicks_by_source": {
-    "bale": 12,
-    "youtube": 72
+    "bale": 4,
+    "youtube": 53
   },
-  "tracked_clicks_total": 84,
+  "tracked_clicks_total": 57,
   "tracked_clicks_with_caption_experiment_attribution": 0,
   "tracked_clicks_with_experiment_attribution": 0,
-  "tracked_clicks_without_caption_experiment_attribution": 84,
-  "tracked_clicks_without_experiment_attribution": 84,
+  "tracked_clicks_without_caption_experiment_attribution": 57,
+  "tracked_clicks_without_experiment_attribution": 57,
   "unassigned_caption_experiment_posts": 970,
   "unassigned_published_posts": 873,
   "window_days": 30,
