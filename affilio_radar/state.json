@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-27T07:00:10.845915+00:00",
-  "aparat_last_upload_success_at": "2026-11-27T07:00:14.464841+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-27T07:34:29.748878+00:00",
+  "aparat_last_upload_success_at": "2026-11-27T07:34:33.706141+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-27T07:08:16.917486+00:00",
@@ -207080,7 +207080,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-12179844": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-27T07:34:29.748878+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-27T07:34:33.706141+00:00",
+      "aparat_video_hash": "lixwt2y",
+      "aparat_video_record_id": "74409988",
+      "aparat_video_url": "https://www.aparat.com/v/lixwt2y",
+      "aparat_visibility": "public",
       "bale_message_id": 2662,
       "bale_posted_at": "2026-11-27T07:32:22.332301+00:00",
       "brand": "ژیک",
@@ -207204,8 +207210,16 @@
       "telegram_posted_at": "2026-11-27T07:32:21.894976+00:00",
       "title": "عرق کاسنی ژیک - 1 لیتر",
       "ts": 1795764734.846272,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-12179844.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-12179844.mp4"
+      },
+      "video_generated_at": "2026-11-27T07:34:22.188080+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-12195127": {
       "aparat_upload_started_at": "2026-11-17T18:42:12.968319+00:00",
