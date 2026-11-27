@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-27T20:28:28.560088+00:00",
-  "aparat_last_upload_success_at": "2026-11-27T20:28:33.018486+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-27T21:46:18.773753+00:00",
+  "aparat_last_upload_success_at": "2026-11-27T21:46:22.474260+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-27T20:40:26.796792+00:00",
@@ -289505,7 +289505,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-21905056": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-27T21:46:18.773753+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-27T21:46:22.474260+00:00",
+      "aparat_video_hash": "dza5w1v",
+      "aparat_video_record_id": "74421276",
+      "aparat_video_url": "https://www.aparat.com/v/dza5w1v",
+      "aparat_visibility": "public",
       "bale_message_id": 2691,
       "bale_posted_at": "2026-11-27T21:44:17.908578+00:00",
       "brand": "نایکی",
@@ -289629,8 +289635,16 @@
       "telegram_posted_at": "2026-11-27T21:44:17.330097+00:00",
       "title": "کفش روزمره مردانه نایکی مدل X UNION LA DUNK DJ9649-500 با زیره لاستیکی تخت، ضد لغزش و مقاوم در برابر سایش، رویه پارچه‌ای تنفسی، کفی طبی قابل تعویض و مناسب استایل کژوال و ورزش",
       "ts": 1795815851.215039,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-21905056.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-21905056.mp4"
+      },
+      "video_generated_at": "2026-11-27T21:46:12.372409+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-21909204": {
       "aparat_skip_reason": "selection_outside_freshness_window",
