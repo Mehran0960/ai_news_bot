@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-27T07:34:29.748878+00:00",
-  "aparat_last_upload_success_at": "2026-11-27T07:34:33.706141+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-27T08:08:20.583055+00:00",
+  "aparat_last_upload_success_at": "2026-11-27T08:08:25.826911+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-27T07:08:16.917486+00:00",
@@ -235943,7 +235943,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-17909796": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-27T08:08:20.583055+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-27T08:08:25.826911+00:00",
+      "aparat_video_hash": "rmdb80s",
+      "aparat_video_record_id": "74410501",
+      "aparat_video_url": "https://www.aparat.com/v/rmdb80s",
+      "aparat_visibility": "public",
       "bale_message_id": 2663,
       "bale_posted_at": "2026-11-27T08:06:24.704070+00:00",
       "brand": "هایبورگ",
@@ -236067,8 +236073,16 @@
       "telegram_posted_at": "2026-11-27T08:06:24.193561+00:00",
       "title": "مایکروویو 1450-1550 وات 32 لیتر هایبورگ مدل MW-6060 دارای 10 برنامه پخت",
       "ts": 1795766777.37942,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-17909796.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-17909796.mp4"
+      },
+      "video_generated_at": "2026-11-27T08:08:15.809710+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-17918956": {
       "aparat_skip_reason": "selection_outside_freshness_window",
