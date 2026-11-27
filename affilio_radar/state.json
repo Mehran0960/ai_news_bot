@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-27T19:40:21.377819+00:00",
-  "aparat_last_upload_success_at": "2026-11-27T19:40:24.916891+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-27T20:28:28.560088+00:00",
+  "aparat_last_upload_success_at": "2026-11-27T20:28:33.018486+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-27T19:28:08.832928+00:00",
@@ -251550,7 +251550,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-18478784": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-27T20:28:28.560088+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-27T20:28:33.018486+00:00",
+      "aparat_video_hash": "fshi367",
+      "aparat_video_record_id": "74420650",
+      "aparat_video_url": "https://www.aparat.com/v/fshi367",
+      "aparat_visibility": "public",
       "bale_message_id": 2689,
       "bale_posted_at": "2026-11-27T20:26:16.737160+00:00",
       "brand": "گلوریمی",
@@ -251674,8 +251680,16 @@
       "telegram_posted_at": "2026-11-27T20:26:15.951992+00:00",
       "title": "ساعت هوشمند گلوریمی مدل Artist مناسب برای ورزش، کنترل سطح اکسیژن خون، شمارش ضربان قلب، پایش وضعیت خواب با بند چرم",
       "ts": 1795811170.353205,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-18478784.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-18478784.mp4"
+      },
+      "video_generated_at": "2026-11-27T20:28:20.139695+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-18478960": {
       "aparat_skip_reason": "selection_outside_freshness_window",
