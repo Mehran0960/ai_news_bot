@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-27T11:10:29.509056+00:00",
-  "aparat_last_upload_success_at": "2026-11-27T11:10:33.120059+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-27T11:56:21.361843+00:00",
+  "aparat_last_upload_success_at": "2026-11-27T11:56:25.122373+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-27T10:52:26.084346+00:00",
@@ -254381,7 +254381,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-18810655": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-27T11:56:21.361843+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-27T11:56:25.122373+00:00",
+      "aparat_video_hash": "sqyzy68",
+      "aparat_video_record_id": "74414034",
+      "aparat_video_url": "https://www.aparat.com/v/sqyzy68",
+      "aparat_visibility": "public",
       "bale_message_id": 2671,
       "bale_posted_at": "2026-11-27T11:54:20.125253+00:00",
       "brand": "کن",
@@ -254505,8 +254511,16 @@
       "telegram_posted_at": "2026-11-27T11:54:19.196932+00:00",
       "title": "هود مخفی کن مدل Artima 1 V2 سایز 70",
       "ts": 1795780452.219738,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-18810655.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-18810655.mp4"
+      },
+      "video_generated_at": "2026-11-27T11:56:13.595034+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-188438": {
       "aparat_skip_reason": "selection_outside_freshness_window",
