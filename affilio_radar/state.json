@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-27T18:16:24.129843+00:00",
-  "aparat_last_upload_success_at": "2026-11-27T18:16:28.283026+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-27T19:02:26.682441+00:00",
+  "aparat_last_upload_success_at": "2026-11-27T19:02:30.454038+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-27T18:12:12.934774+00:00",
@@ -226685,7 +226685,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-14156149": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-27T19:02:26.682441+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-27T19:02:30.454038+00:00",
+      "aparat_video_hash": "sas0e4l",
+      "aparat_video_record_id": "74419755",
+      "aparat_video_url": "https://www.aparat.com/v/sas0e4l",
+      "aparat_visibility": "public",
       "bale_message_id": 2685,
       "bale_posted_at": "2026-11-27T19:00:27.169324+00:00",
       "brand": "کفش شتاب",
@@ -226809,8 +226815,16 @@
       "telegram_posted_at": "2026-11-27T19:00:25.749376+00:00",
       "title": "کفش طبی زنانه مدل تمام چرم",
       "ts": 1795806018.791516,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-14156149.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-14156149.mp4"
+      },
+      "video_generated_at": "2026-11-27T19:02:19.450808+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-14187238": {
       "aparat_upload_started_at": "2026-11-22T21:09:40.507369+00:00",
