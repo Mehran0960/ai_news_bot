@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-27T03:46:26.627691+00:00",
-  "aparat_last_upload_success_at": "2026-11-27T03:46:30.590321+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-27T04:26:35.080847+00:00",
+  "aparat_last_upload_success_at": "2026-11-27T04:26:40.721884+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-27T03:28:11.216939+00:00",
@@ -248766,7 +248766,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-20209469": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-27T04:26:35.080847+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-27T04:26:40.721884+00:00",
+      "aparat_video_hash": "ytp2559",
+      "aparat_video_record_id": "74408291",
+      "aparat_video_url": "https://www.aparat.com/v/ytp2559",
+      "aparat_visibility": "public",
       "bale_message_id": 2654,
       "bale_posted_at": "2026-11-27T04:24:21.525108+00:00",
       "brand": "",
@@ -248890,8 +248896,16 @@
       "telegram_posted_at": "2026-11-27T04:24:20.970362+00:00",
       "title": "فن خنک کننده موبایل ممو مدل DL03",
       "ts": 1795753455.302769,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-20209469.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-20209469.mp4"
+      },
+      "video_generated_at": "2026-11-27T04:26:30.147783+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-20226465": {
       "aparat_skip_reason": "selection_outside_freshness_window",
