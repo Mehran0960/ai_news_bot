@@ -2808,195 +2808,6 @@
   "content_delivery_history": [
     {
       "attempt_count": 1,
-      "content_id": "dkp-22437738",
-      "content_type": "product",
-      "last_attempt_at": "2026-11-22T09:38:36.189314+00:00",
-      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
-      "next_attempt_at": "2026-11-22T09:37:33.262771+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22437738%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "A",
-        "catalog_best_selling_category_id": "9631",
-        "catalog_best_selling_category_name": "پیراهن دخترانه",
-        "catalog_best_selling_rank": 3,
-        "catalog_best_selling_ranks_by_category": {
-          "9631": {
-            "category_name": "پیراهن دخترانه",
-            "observed_at": "2026-11-21T20:22:05.726920+00:00",
-            "rank": 3,
-            "rank_history": [
-              {
-                "category_name": "پیراهن دخترانه",
-                "observed_at": "2026-11-21T20:22:05.726920+00:00",
-                "rank": 3
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-21T20:47:34.643571+00:00",
-        "catalog_cycle_snapshot_rank": 92,
-        "catalog_rank_observed_at": "2026-11-21T20:22:05.726920+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "home",
-        "checked_at": "2026-11-21T20:50:49.513713+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-22437738",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 967600,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "fresh_independent_history_or_market",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 83.75,
-        "discount_percent": 59,
-        "discount_vs_30d_median_pct": 55,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": true,
-        "historical_discount_savings_toman": 1192400,
-        "history_checked_at": "2026-11-21T20:51:13.272349+00:00",
-        "history_days": 30,
-        "history_end_day": "1405/08/29",
-        "history_high_toman": 2160000,
-        "history_last_price_toman": 2160000,
-        "history_low_toman": 990000,
-        "history_match_delta_pct": 123,
-        "history_median_toman": 2160000,
-        "history_source": "digikala_price_chart",
-        "history_stable_low_toman": 1296000,
-        "history_start_day": "1405/07/30",
-        "history_status": "verified",
-        "history_variant": "چند رنگ",
-        "history_variant_match": "label",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/27d4bef18f0b9f658bd42437720722a21954e5fb_1785934379.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "پیراهن دخترانه چهارخانه پنبه مدل آوینا",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 88.52,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 83.75,
-          "discount_evidence": "fresh_independent_history_or_market",
-          "generality": 84.0,
-          "generality_group": "home_living",
-          "live_demand": 99.55,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T20:51:24.172641+00:00",
-          "weakest_factor_score": 83.75
-        },
-        "original_price": 2360000,
-        "pct_above_stable_low": -25,
-        "product_id": "dkp-22437738",
-        "product_url": "https://www.digikala.com/product/dkp-22437738/",
-        "promo_score": 46,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 5.0,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 1,
-        "savings_toman": 1392400,
-        "selection_bestseller_category_count": 1,
-        "selection_bestseller_rank": 3,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 88.52,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 83.75,
-          "discount_evidence": "fresh_independent_history_or_market",
-          "generality": 84.0,
-          "generality_group": "home_living",
-          "live_demand": 99.55,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-21T20:51:24.172641+00:00",
-          "weakest_factor_score": 83.75
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "independently_verified",
-        "sequence_number": 1707,
-        "title": "پیراهن دخترانه چهارخانه پنبه مدل آوینا",
-        "variant_label": "چند رنگ 5 سال"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempt_started_at": "2026-11-22T09:38:36.189314+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-22T09:38:42.654891+00:00"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "last_error": "credentials_not_configured",
-          "status": "not_connected",
-          "updated_at": "2026-11-22T09:38:36.189314+00:00"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempt_started_at": "2026-11-22T09:38:36.189314+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-22T09:38:46.325342+00:00"
-        },
-        "telegram": {
-          "attempt_started_at": "2026-11-22T09:38:36.189314+00:00",
-          "attempts": 1,
-          "status": "sent",
-          "updated_at": "2026-11-22T09:38:41.583931+00:00"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-22437738",
-      "product_plan_cycle_id": "2026-11-22T09:13:38.218999+00:00",
-      "scheduled_at": "2026-11-22T09:37:33.262771+00:00",
-      "selected_at": "2026-11-21T20:51:27.010482+00:00",
-      "sequence_number": 1707,
-      "status": "published",
-      "updated_at": "2026-11-22T09:38:46.581406+00:00"
-    },
-    {
-      "attempt_count": 1,
       "content_id": "dkp-21631011",
       "content_type": "product",
       "last_attempt_at": "2026-11-22T10:14:32.045336+00:00",
@@ -39826,6 +39637,203 @@
       "sequence_number": 1906,
       "status": "published",
       "updated_at": "2026-11-27T10:36:34.333956+00:00"
+    },
+    {
+      "attempt_count": 1,
+      "content_id": "dkp-16787865",
+      "content_type": "product",
+      "last_attempt_at": "2026-11-27T11:08:12.194294+00:00",
+      "last_detail": "telegram=sent,bale=sent,rubika=sent,eitaa=not_connected",
+      "next_attempt_at": "2026-11-27T11:07:34.332833+00:00",
+      "payload": {
+        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-16787865%2F",
+        "availability": "in_stock",
+        "availability_source": "digikala_api",
+        "caption_experiment_id": "offerchin-caption-v1",
+        "caption_variant": "B",
+        "catalog_best_selling_category_id": "8939",
+        "catalog_best_selling_category_name": "سایر غلات صبحانه",
+        "catalog_best_selling_rank": 14,
+        "catalog_best_selling_ranks_by_category": {
+          "10334": {
+            "category_name": "غلات ارگانیک",
+            "observed_at": "2026-11-27T07:06:35.981578+00:00",
+            "rank": 15,
+            "rank_history": [
+              {
+                "category_name": "غلات ارگانیک",
+                "observed_at": "2026-11-27T07:06:35.981578+00:00",
+                "rank": 15
+              }
+            ]
+          },
+          "8939": {
+            "category_name": "سایر غلات صبحانه",
+            "observed_at": "2026-11-27T07:06:21.773094+00:00",
+            "rank": 14,
+            "rank_history": [
+              {
+                "category_name": "سایر غلات صبحانه",
+                "observed_at": "2026-11-27T07:06:21.773094+00:00",
+                "rank": 14
+              }
+            ]
+          }
+        },
+        "catalog_cycle_completed_at": "2026-11-27T08:22:04.433046+00:00",
+        "catalog_cycle_snapshot_rank": 338,
+        "catalog_rank_observed_at": "2026-11-27T07:06:21.773094+00:00",
+        "catalog_sort_mode": "best_selling",
+        "category": "books_stationery",
+        "checked_at": "2026-11-27T09:23:09.391831+00:00",
+        "click_count_30d": 0,
+        "content_id": "dkp-16787865",
+        "creative_experiment_id": "offerchin-creative-v1",
+        "creative_variant": "A",
+        "current_demand_verified": false,
+        "current_price": 404000,
+        "deal_expires_at": "",
+        "demand_observed_at": "",
+        "demand_signal_source": "",
+        "demand_window_hours": 0.0,
+        "discount_attractiveness_evidence": "live_retailer_markdown_only",
+        "discount_attractiveness_minimum_for_publication": 40.0,
+        "discount_attractiveness_score": 60.03,
+        "discount_percent": 46,
+        "discount_vs_30d_median_pct": 0,
+        "expiry_deadline_verified_directly": false,
+        "expiry_deadline_verified_from_site_card": false,
+        "expiry_estimated": false,
+        "expiry_source": "unavailable",
+        "has_affiliate_link": true,
+        "historical_deal_eligible": false,
+        "historical_discount_savings_toman": 0,
+        "history_checked_at": "2026-11-27T09:23:29.390082+00:00",
+        "history_days": 1,
+        "history_end_day": "2026-11-27",
+        "history_high_toman": 404000,
+        "history_low_toman": 404000,
+        "history_median_toman": 404000,
+        "history_source": "radar_daily_snapshots",
+        "history_stable_low_toman": null,
+        "history_start_day": "2026-11-27",
+        "history_status": "pending_history",
+        "image_url": "https://dkstatics-public.digikala.com/digikala-products/668e8f500255e95b22d8ff29d122f314cd5a23be_1727174818.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+        "market_check_cached": true,
+        "market_error": "RuntimeError",
+        "market_price_advantage_pct": null,
+        "market_publish_blocked": false,
+        "market_query": "جو دوسر پرک فوری صبحانه بامداد - 500 گرم",
+        "market_status": "unavailable",
+        "market_value_status": "unknown",
+        "merchant": "دیجی‌کالا",
+        "offerchin_four_factor": {
+          "balanced_score": 76.85,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 60.03,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 94.0,
+          "generality_group": "grocery_food",
+          "live_demand": 85.17,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-27T09:23:39.510287+00:00",
+          "weakest_factor_score": 60.03
+        },
+        "original_price": 745000,
+        "pct_above_stable_low": null,
+        "product_id": "dkp-16787865",
+        "product_url": "https://www.digikala.com/product/dkp-16787865/",
+        "promo_score": 33,
+        "publication_policy": "offerchin_three_factor_harmonic_v5",
+        "qualifies_as_deal": true,
+        "rating": 4.53,
+        "recent_review_growth_7d": 0,
+        "recent_review_growth_window": 0,
+        "review_count": 82,
+        "savings_toman": 341000,
+        "selection_bestseller_category_count": 2,
+        "selection_bestseller_rank": 14,
+        "selection_bestseller_rank_improvement": 0,
+        "selection_demand_evidence": "digikala_native_bestseller_rank",
+        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+        "selection_demand_scope": "digikala_store_only",
+        "selection_discount_band": "1%+",
+        "selection_discount_floor": 1,
+        "selection_fallback_mode": "normal",
+        "selection_four_factor": {
+          "balanced_score": 76.85,
+          "dimensions": [
+            "live_demand",
+            "generality",
+            "discount_attractiveness"
+          ],
+          "discount_attractiveness": 60.03,
+          "discount_evidence": "live_retailer_markdown_only",
+          "generality": 94.0,
+          "generality_group": "grocery_food",
+          "live_demand": 85.17,
+          "policy_version": "offerchin_three_factor_harmonic_v5",
+          "price_independent": true,
+          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+          "scored_at": "2026-11-27T09:23:39.510287+00:00",
+          "weakest_factor_score": 60.03
+        },
+        "selection_review_growth_evidence": "none",
+        "selection_value_evidence": "retailer_listed_markdown_only",
+        "sequence_number": 1907,
+        "title": "جو دوسر پرک فوری صبحانه بامداد - 500 گرم"
+      },
+      "platforms": {
+        "aparat": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "bale": {
+          "attempt_started_at": "2026-11-27T11:08:12.194294+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-27T11:08:18.689712+00:00"
+        },
+        "eitaa": {
+          "attempts": 0,
+          "last_error": "credentials_not_configured",
+          "status": "not_connected",
+          "updated_at": "2026-11-27T11:08:12.194294+00:00"
+        },
+        "filo": {
+          "attempts": 0,
+          "status": "pending"
+        },
+        "rubika": {
+          "attempt_started_at": "2026-11-27T11:08:12.194294+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-27T11:08:23.803442+00:00"
+        },
+        "telegram": {
+          "attempt_started_at": "2026-11-27T11:08:12.194294+00:00",
+          "attempts": 1,
+          "status": "sent",
+          "updated_at": "2026-11-27T11:08:19.216769+00:00"
+        },
+        "youtube": {
+          "attempts": 0,
+          "status": "pending"
+        }
+      },
+      "product_id": "dkp-16787865",
+      "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
+      "scheduled_at": "2026-11-27T11:07:34.332833+00:00",
+      "selected_at": "2026-11-27T09:23:43.175126+00:00",
+      "sequence_number": 1907,
+      "status": "published",
+      "updated_at": "2026-11-27T11:08:24.167160+00:00"
     }
   ],
   "content_delivery_last_enqueue_summary": {
@@ -39840,7 +39848,7 @@
       "attempt_count": 0,
       "content_id": "dkp-10847125",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T17:57:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T17:58:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-10847125%2F",
         "availability": "in_stock",
@@ -40004,7 +40012,7 @@
       },
       "product_id": "dkp-10847125",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T17:57:34.332833+00:00",
+      "scheduled_at": "2026-11-27T17:58:24.165941+00:00",
       "selected_at": "2026-11-27T10:54:45.613153+00:00",
       "sequence_number": 1917,
       "status": "queued"
@@ -40013,7 +40021,7 @@
       "attempt_count": 0,
       "content_id": "dkp-11274271",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T12:39:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T12:40:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-11274271%2F",
         "availability": "in_stock",
@@ -40177,7 +40185,7 @@
       },
       "product_id": "dkp-11274271",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T12:39:34.332833+00:00",
+      "scheduled_at": "2026-11-27T12:40:24.165941+00:00",
       "selected_at": "2026-11-27T10:44:54.470526+00:00",
       "sequence_number": 1909,
       "status": "queued"
@@ -40186,7 +40194,7 @@
       "attempt_count": 0,
       "content_id": "dkp-11866907",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T20:40:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T20:41:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-11866907%2F",
         "availability": "in_stock",
@@ -40350,7 +40358,7 @@
       },
       "product_id": "dkp-11866907",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T20:40:34.332833+00:00",
+      "scheduled_at": "2026-11-27T20:41:24.165941+00:00",
       "selected_at": "2026-11-27T10:54:45.613153+00:00",
       "sequence_number": 1921,
       "status": "queued"
@@ -40359,7 +40367,7 @@
       "attempt_count": 0,
       "content_id": "dkp-13701855",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T16:37:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T16:38:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-13701855%2F",
         "availability": "in_stock",
@@ -40522,7 +40530,7 @@
       },
       "product_id": "dkp-13701855",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T16:37:34.332833+00:00",
+      "scheduled_at": "2026-11-27T16:38:24.165941+00:00",
       "selected_at": "2026-11-27T10:54:45.613153+00:00",
       "sequence_number": 1915,
       "status": "queued"
@@ -40531,7 +40539,7 @@
       "attempt_count": 0,
       "content_id": "dkp-14156149",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T18:40:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T18:41:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-14156149%2F",
         "availability": "in_stock",
@@ -40695,7 +40703,7 @@
       },
       "product_id": "dkp-14156149",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T18:40:34.332833+00:00",
+      "scheduled_at": "2026-11-27T18:41:24.165941+00:00",
       "selected_at": "2026-11-27T10:54:45.613153+00:00",
       "sequence_number": 1918,
       "status": "queued"
@@ -40704,7 +40712,7 @@
       "attempt_count": 0,
       "content_id": "dkp-14996586",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T19:16:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T19:17:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-14996586%2F",
         "availability": "in_stock",
@@ -40877,202 +40885,16 @@
       },
       "product_id": "dkp-14996586",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T19:16:34.332833+00:00",
+      "scheduled_at": "2026-11-27T19:17:24.165941+00:00",
       "selected_at": "2026-11-27T10:54:45.613153+00:00",
       "sequence_number": 1919,
-      "status": "queued"
-    },
-    "dkp-16787865": {
-      "attempt_count": 0,
-      "content_id": "dkp-16787865",
-      "content_type": "product",
-      "next_attempt_at": "2026-11-27T11:07:34.332833+00:00",
-      "payload": {
-        "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-16787865%2F",
-        "availability": "in_stock",
-        "availability_source": "digikala_api",
-        "caption_experiment_id": "offerchin-caption-v1",
-        "caption_variant": "B",
-        "catalog_best_selling_category_id": "8939",
-        "catalog_best_selling_category_name": "سایر غلات صبحانه",
-        "catalog_best_selling_rank": 14,
-        "catalog_best_selling_ranks_by_category": {
-          "10334": {
-            "category_name": "غلات ارگانیک",
-            "observed_at": "2026-11-27T07:06:35.981578+00:00",
-            "rank": 15,
-            "rank_history": [
-              {
-                "category_name": "غلات ارگانیک",
-                "observed_at": "2026-11-27T07:06:35.981578+00:00",
-                "rank": 15
-              }
-            ]
-          },
-          "8939": {
-            "category_name": "سایر غلات صبحانه",
-            "observed_at": "2026-11-27T07:06:21.773094+00:00",
-            "rank": 14,
-            "rank_history": [
-              {
-                "category_name": "سایر غلات صبحانه",
-                "observed_at": "2026-11-27T07:06:21.773094+00:00",
-                "rank": 14
-              }
-            ]
-          }
-        },
-        "catalog_cycle_completed_at": "2026-11-27T08:22:04.433046+00:00",
-        "catalog_cycle_snapshot_rank": 338,
-        "catalog_rank_observed_at": "2026-11-27T07:06:21.773094+00:00",
-        "catalog_sort_mode": "best_selling",
-        "category": "books_stationery",
-        "checked_at": "2026-11-27T09:23:09.391831+00:00",
-        "click_count_30d": 0,
-        "content_id": "dkp-16787865",
-        "creative_experiment_id": "offerchin-creative-v1",
-        "creative_variant": "A",
-        "current_demand_verified": false,
-        "current_price": 404000,
-        "deal_expires_at": "",
-        "demand_observed_at": "",
-        "demand_signal_source": "",
-        "demand_window_hours": 0.0,
-        "discount_attractiveness_evidence": "live_retailer_markdown_only",
-        "discount_attractiveness_minimum_for_publication": 40.0,
-        "discount_attractiveness_score": 60.03,
-        "discount_percent": 46,
-        "discount_vs_30d_median_pct": 0,
-        "expiry_deadline_verified_directly": false,
-        "expiry_deadline_verified_from_site_card": false,
-        "expiry_estimated": false,
-        "expiry_source": "unavailable",
-        "has_affiliate_link": true,
-        "historical_deal_eligible": false,
-        "historical_discount_savings_toman": 0,
-        "history_checked_at": "2026-11-27T09:23:29.390082+00:00",
-        "history_days": 1,
-        "history_end_day": "2026-11-27",
-        "history_high_toman": 404000,
-        "history_low_toman": 404000,
-        "history_median_toman": 404000,
-        "history_source": "radar_daily_snapshots",
-        "history_stable_low_toman": null,
-        "history_start_day": "2026-11-27",
-        "history_status": "pending_history",
-        "image_url": "https://dkstatics-public.digikala.com/digikala-products/668e8f500255e95b22d8ff29d122f314cd5a23be_1727174818.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
-        "market_check_cached": true,
-        "market_error": "RuntimeError",
-        "market_price_advantage_pct": null,
-        "market_publish_blocked": false,
-        "market_query": "جو دوسر پرک فوری صبحانه بامداد - 500 گرم",
-        "market_status": "unavailable",
-        "market_value_status": "unknown",
-        "merchant": "دیجی‌کالا",
-        "offerchin_four_factor": {
-          "balanced_score": 76.85,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 60.03,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 85.17,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-27T09:23:39.510287+00:00",
-          "weakest_factor_score": 60.03
-        },
-        "original_price": 745000,
-        "pct_above_stable_low": null,
-        "product_id": "dkp-16787865",
-        "product_url": "https://www.digikala.com/product/dkp-16787865/",
-        "promo_score": 33,
-        "publication_policy": "offerchin_three_factor_harmonic_v5",
-        "qualifies_as_deal": true,
-        "rating": 4.53,
-        "recent_review_growth_7d": 0,
-        "recent_review_growth_window": 0,
-        "review_count": 82,
-        "savings_toman": 341000,
-        "selection_bestseller_category_count": 2,
-        "selection_bestseller_rank": 14,
-        "selection_bestseller_rank_improvement": 0,
-        "selection_demand_evidence": "digikala_native_bestseller_rank",
-        "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
-        "selection_demand_scope": "digikala_store_only",
-        "selection_discount_band": "1%+",
-        "selection_discount_floor": 1,
-        "selection_fallback_mode": "normal",
-        "selection_four_factor": {
-          "balanced_score": 76.85,
-          "dimensions": [
-            "live_demand",
-            "generality",
-            "discount_attractiveness"
-          ],
-          "discount_attractiveness": 60.03,
-          "discount_evidence": "live_retailer_markdown_only",
-          "generality": 94.0,
-          "generality_group": "grocery_food",
-          "live_demand": 85.17,
-          "policy_version": "offerchin_three_factor_harmonic_v5",
-          "price_independent": true,
-          "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
-          "scored_at": "2026-11-27T09:23:39.510287+00:00",
-          "weakest_factor_score": 60.03
-        },
-        "selection_review_growth_evidence": "none",
-        "selection_value_evidence": "retailer_listed_markdown_only",
-        "sequence_number": 1907,
-        "title": "جو دوسر پرک فوری صبحانه بامداد - 500 گرم"
-      },
-      "platforms": {
-        "aparat": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "bale": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "eitaa": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "filo": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "rubika": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "telegram": {
-          "attempts": 0,
-          "status": "pending"
-        },
-        "youtube": {
-          "attempts": 0,
-          "status": "pending"
-        }
-      },
-      "product_id": "dkp-16787865",
-      "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T11:07:34.332833+00:00",
-      "selected_at": "2026-11-27T09:23:43.175126+00:00",
-      "sequence_number": 1907,
       "status": "queued"
     },
     "dkp-17680943": {
       "attempt_count": 0,
       "content_id": "dkp-17680943",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T15:27:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T15:28:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-17680943%2F",
         "availability": "in_stock",
@@ -41234,7 +41056,7 @@
       },
       "product_id": "dkp-17680943",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T15:27:34.332833+00:00",
+      "scheduled_at": "2026-11-27T15:28:24.165941+00:00",
       "selected_at": "2026-11-27T10:54:45.613153+00:00",
       "sequence_number": 1913,
       "status": "queued"
@@ -41243,7 +41065,7 @@
       "attempt_count": 0,
       "content_id": "dkp-17930368",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T16:01:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T16:02:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-17930368%2F",
         "availability": "in_stock",
@@ -41407,7 +41229,7 @@
       },
       "product_id": "dkp-17930368",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T16:01:34.332833+00:00",
+      "scheduled_at": "2026-11-27T16:02:24.165941+00:00",
       "selected_at": "2026-11-27T10:54:45.613153+00:00",
       "sequence_number": 1914,
       "status": "queued"
@@ -41416,7 +41238,7 @@
       "attempt_count": 0,
       "content_id": "dkp-18478784",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T20:03:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T20:04:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-18478784%2F",
         "availability": "in_stock",
@@ -41580,7 +41402,7 @@
       },
       "product_id": "dkp-18478784",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T20:03:34.332833+00:00",
+      "scheduled_at": "2026-11-27T20:04:24.165941+00:00",
       "selected_at": "2026-11-27T10:54:45.613153+00:00",
       "sequence_number": 1920,
       "status": "queued"
@@ -41589,7 +41411,7 @@
       "attempt_count": 0,
       "content_id": "dkp-18810655",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T11:52:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T11:53:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-18810655%2F",
         "availability": "in_stock",
@@ -41753,7 +41575,7 @@
       },
       "product_id": "dkp-18810655",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T11:52:34.332833+00:00",
+      "scheduled_at": "2026-11-27T11:53:24.165941+00:00",
       "selected_at": "2026-11-27T09:23:43.175126+00:00",
       "sequence_number": 1908,
       "status": "queued"
@@ -41762,7 +41584,7 @@
       "attempt_count": 0,
       "content_id": "dkp-19868411",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T17:13:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T17:14:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-19868411%2F",
         "availability": "in_stock",
@@ -41925,7 +41747,7 @@
       },
       "product_id": "dkp-19868411",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T17:13:34.332833+00:00",
+      "scheduled_at": "2026-11-27T17:14:24.165941+00:00",
       "selected_at": "2026-11-27T10:54:45.613153+00:00",
       "sequence_number": 1916,
       "status": "queued"
@@ -41934,7 +41756,7 @@
       "attempt_count": 0,
       "content_id": "dkp-2151135",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T14:50:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T14:51:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-2151135%2F",
         "availability": "in_stock",
@@ -42097,7 +41919,7 @@
       },
       "product_id": "dkp-2151135",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T14:50:34.332833+00:00",
+      "scheduled_at": "2026-11-27T14:51:24.165941+00:00",
       "selected_at": "2026-11-27T10:54:45.613153+00:00",
       "sequence_number": 1912,
       "status": "queued"
@@ -42106,7 +41928,7 @@
       "attempt_count": 0,
       "content_id": "dkp-21905056",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T21:19:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T21:20:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-21905056%2F",
         "availability": "in_stock",
@@ -42268,7 +42090,7 @@
       },
       "product_id": "dkp-21905056",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T21:19:34.332833+00:00",
+      "scheduled_at": "2026-11-27T21:20:24.165941+00:00",
       "selected_at": "2026-11-27T10:54:45.613153+00:00",
       "sequence_number": 1922,
       "status": "queued"
@@ -42277,7 +42099,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22158043",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T23:45:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T23:46:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22158043%2F",
         "availability": "in_stock",
@@ -42441,7 +42263,7 @@
       },
       "product_id": "dkp-22158043",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T23:45:34.332833+00:00",
+      "scheduled_at": "2026-11-27T23:46:24.165941+00:00",
       "selected_at": "2026-11-27T10:54:45.613153+00:00",
       "sequence_number": 1926,
       "status": "queued"
@@ -42450,7 +42272,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22369738",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T13:24:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T13:25:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22369738%2F",
         "availability": "in_stock",
@@ -42624,7 +42446,7 @@
       },
       "product_id": "dkp-22369738",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T13:24:34.332833+00:00",
+      "scheduled_at": "2026-11-27T13:25:24.165941+00:00",
       "selected_at": "2026-11-27T10:44:54.470526+00:00",
       "sequence_number": 1910,
       "status": "queued"
@@ -42633,7 +42455,7 @@
       "attempt_count": 0,
       "content_id": "dkp-22668997",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T22:34:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T22:35:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-22668997%2F",
         "availability": "in_stock",
@@ -42794,7 +42616,7 @@
       },
       "product_id": "dkp-22668997",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T22:34:34.332833+00:00",
+      "scheduled_at": "2026-11-27T22:35:24.165941+00:00",
       "selected_at": "2026-11-27T10:54:45.613153+00:00",
       "sequence_number": 1924,
       "status": "queued"
@@ -42803,7 +42625,7 @@
       "attempt_count": 0,
       "content_id": "dkp-2305355",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T14:04:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T14:05:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-2305355%2F",
         "availability": "in_stock",
@@ -42967,7 +42789,7 @@
       },
       "product_id": "dkp-2305355",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T14:04:34.332833+00:00",
+      "scheduled_at": "2026-11-27T14:05:24.165941+00:00",
       "selected_at": "2026-11-27T10:44:54.470526+00:00",
       "sequence_number": 1911,
       "status": "queued"
@@ -42976,7 +42798,7 @@
       "attempt_count": 0,
       "content_id": "dkp-23128833",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T23:06:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T23:07:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-23128833%2F",
         "availability": "in_stock",
@@ -43138,7 +42960,7 @@
       },
       "product_id": "dkp-23128833",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T23:06:34.332833+00:00",
+      "scheduled_at": "2026-11-27T23:07:24.165941+00:00",
       "selected_at": "2026-11-27T10:54:45.613153+00:00",
       "sequence_number": 1925,
       "status": "queued"
@@ -43147,7 +42969,7 @@
       "attempt_count": 0,
       "content_id": "dkp-9345320",
       "content_type": "product",
-      "next_attempt_at": "2026-11-27T22:03:34.332833+00:00",
+      "next_attempt_at": "2026-11-27T22:04:24.165941+00:00",
       "payload": {
         "affiliate_url": "https://aflo.ir/QekEYTRg?p=https%3A%2F%2Fwww.digikala.com%2Fproduct%2Fdkp-9345320%2F",
         "availability": "in_stock",
@@ -43311,7 +43133,7 @@
       },
       "product_id": "dkp-9345320",
       "product_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
-      "scheduled_at": "2026-11-27T22:03:34.332833+00:00",
+      "scheduled_at": "2026-11-27T22:04:24.165941+00:00",
       "selected_at": "2026-11-27T10:54:45.613153+00:00",
       "sequence_number": 1923,
       "status": "queued"
@@ -99123,7 +98945,7 @@
       "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
       "content_fingerprint": "6879b6a9ecb7698c71449134da41ead6988530aa58471a198e4b2c075b49143d",
       "content_id": "editorial:measure-room-size",
-      "delivery_duration_seconds": 1.4,
+      "delivery_duration_seconds": 1.6,
       "delivery_event_id": "editorial:measure-room-size:sequence:1554",
       "destinations": {
         "aparat": {
@@ -99186,8 +99008,8 @@
       "attempt_count": 0,
       "content_id": "editorial:measure-room-size",
       "content_type": "editorial",
-      "delivery_duration_seconds": 1.4,
-      "delivery_started_at": "2026-11-27T10:54:46.894622+00:00",
+      "delivery_duration_seconds": 1.6,
+      "delivery_started_at": "2026-11-27T11:08:25.295043+00:00",
       "next_attempt_at": "2026-11-18T03:07:19.173867+00:00",
       "payload": {
         "body": "برای وسایل خانه، ابتدا فضای نصب و مسیر عبور کالا را اندازه بگیر. عرض در، راه‌پله، آسانسور و محل قرارگیری را هم حساب کن. به ابعاد بسته‌بندی و خود محصول توجه کن؛ عکس‌ها همیشه مقیاس واقعی را نشان نمی‌دهند.",
@@ -99689,13 +99511,13 @@
       }
     }
   },
-  "last_channel_published_at": "2026-11-27T10:36:34.332833+00:00",
+  "last_channel_published_at": "2026-11-27T11:08:24.165941+00:00",
   "last_content_selection_at": "2026-11-27T10:54:45.613153+00:00",
   "last_editorial_attempt_at": "2026-11-18T02:10:38.177140+00:00",
   "last_editorial_confirmed_at": "2026-11-18T02:10:49.933296+00:00",
   "last_editorial_empty_bank_check_at": "2026-11-18T01:24:46.585898+00:00",
-  "last_product_channel_published_at": "2026-11-27T10:36:34.332833+00:00",
-  "last_published_at": "2026-11-27T10:36:34.332833+00:00",
+  "last_product_channel_published_at": "2026-11-27T11:08:24.165941+00:00",
+  "last_published_at": "2026-11-27T11:08:24.165941+00:00",
   "market_price_api_checks": {
     "dkp-10003939": {
       "checked_at": "2026-11-15T16:33:16.406305+00:00",
@@ -156114,8 +155936,8 @@
     }
   },
   "product_publication_cadence": {
-    "calculated_at": "2026-11-27T10:54:45.613153+00:00",
-    "candidate_count": 20,
+    "calculated_at": "2026-11-27T11:08:24.165948+00:00",
+    "candidate_count": 19,
     "catalog_cycle_id": "2026-11-27T10:50:03.607340+00:00",
     "current_cycle_started_at": "2026-11-27T10:50:03.984762+00:00",
     "daily_post_limit": 72,
@@ -156127,30 +155949,29 @@
     "interval_seconds": 1860.0,
     "last_clean_cycle_completed_at": "2026-11-27T10:50:03.607340+00:00",
     "maximum_product_interval_seconds": 3420,
-    "plan_anchor_at": "2026-11-27T10:36:34.332833+00:00",
-    "plan_anchor_kind": "last_product",
-    "planned_product_slots": 20,
+    "plan_anchor_at": "2026-11-27T11:08:24.165941+00:00",
+    "plan_anchor_kind": "last_channel",
+    "planned_product_slots": 19,
     "planned_window_end_at": "2026-11-27T12:02:03.984762+00:00",
-    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes",
+    "policy": "shared_variable_31_to_47_minute_channel_spacing_with_product_max_interval_57_minutes_and_provisional_fallback",
     "scan_eta_is_provisional": false,
     "scan_eta_source": "last_observed_full_cycle_duration",
     "scheduled_product_count": 20,
-    "seconds_from_plan_anchor_to_next_scan": 5129.651929,
-    "seconds_until_estimated_next_clean_scan": 4038.371609
+    "seconds_from_plan_anchor_to_next_scan": 3219.818821,
+    "seconds_until_estimated_next_clean_scan": 3219.818814
   },
   "product_publication_interval_seconds": 1860.0,
   "product_publication_plan": {
-    "anchor_at": "2026-11-27T10:36:34.332833+00:00",
-    "anchor_kind": "last_product",
+    "anchor_at": "2026-11-27T11:08:24.165941+00:00",
+    "anchor_kind": "last_channel",
     "catalog_cycle_id": "2026-11-27T10:50:03.607340+00:00",
     "first_slot_due_now": false,
     "interval_minutes": 31.0,
     "interval_seconds": 1860.0,
     "maximum_product_interval_seconds": 3420,
     "next_clean_scan_at": "2026-11-27T12:02:03.984762+00:00",
-    "pending_product_count": 20,
+    "pending_product_count": 19,
     "product_ids": [
-      "dkp-16787865",
       "dkp-18810655",
       "dkp-11274271",
       "dkp-22369738",
@@ -156171,11 +155992,11 @@
       "dkp-23128833",
       "dkp-22158043"
     ],
-    "scheduled_product_count": 20,
-    "updated_at": "2026-11-27T10:54:45.613153+00:00"
+    "scheduled_product_count": 19,
+    "updated_at": "2026-11-27T11:08:24.165948+00:00"
   },
-  "product_publication_plan_anchor_at": "2026-11-27T10:36:34.332833+00:00",
-  "product_publication_plan_anchor_kind": "last_product",
+  "product_publication_plan_anchor_at": "2026-11-27T11:08:24.165941+00:00",
+  "product_publication_plan_anchor_kind": "last_channel",
   "product_publication_plan_cycle_id": "2026-11-27T10:50:03.607340+00:00",
   "publication_diversity_fallback_count": 5307,
   "publication_diversity_fallback_events": [
@@ -242235,6 +242056,146 @@
       "youtube_skip_recorded_at": "2026-11-25T10:51:16.775759+00:00",
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
+    "dkp-16787865": {
+      "aparat_upload_status": "pending",
+      "bale_message_id": 2670,
+      "bale_posted_at": "2026-11-27T11:08:18.689712+00:00",
+      "brand": "",
+      "caption_deadline_format_version": 14,
+      "caption_experiment_id": "offerchin-caption-v1",
+      "caption_variant": "B",
+      "catalog_best_selling_category_id": "8939",
+      "catalog_best_selling_category_name": "سایر غلات صبحانه",
+      "catalog_best_selling_rank": 14,
+      "catalog_best_selling_ranks_by_category": {
+        "10334": {
+          "category_name": "غلات ارگانیک",
+          "observed_at": "2026-11-27T07:06:35.981578+00:00",
+          "rank": 15,
+          "rank_history": [
+            {
+              "category_name": "غلات ارگانیک",
+              "observed_at": "2026-11-27T07:06:35.981578+00:00",
+              "rank": 15
+            }
+          ]
+        },
+        "8939": {
+          "category_name": "سایر غلات صبحانه",
+          "observed_at": "2026-11-27T07:06:21.773094+00:00",
+          "rank": 14,
+          "rank_history": [
+            {
+              "category_name": "سایر غلات صبحانه",
+              "observed_at": "2026-11-27T07:06:21.773094+00:00",
+              "rank": 14
+            }
+          ]
+        }
+      },
+      "catalog_category_id": "",
+      "catalog_category_ids": [],
+      "catalog_category_name": "",
+      "catalog_category_path": "",
+      "catalog_cycle_completed_at": "2026-11-27T08:22:04.433046+00:00",
+      "catalog_cycle_snapshot_rank": 338,
+      "catalog_rank_observed_at": "2026-11-27T07:06:21.773094+00:00",
+      "catalog_sort_mode": "best_selling",
+      "click_count_30d": 0,
+      "click_tracking_url": "",
+      "content_id": "dkp-16787865",
+      "content_type": "product",
+      "creative_experiment_id": "offerchin-creative-v1",
+      "creative_variant": "A",
+      "delivery_attempts": {
+        "aparat": 0,
+        "bale": 1,
+        "eitaa": 0,
+        "filo": 0,
+        "rubika": 1,
+        "telegram": 1,
+        "youtube": 0
+      },
+      "delivery_last_attempt_at": "2026-11-27T11:08:23.803466+00:00",
+      "delivery_status": {
+        "bale": "sent",
+        "eitaa": "not_connected",
+        "rubika": "sent",
+        "telegram": "sent"
+      },
+      "delivery_version": 1,
+      "discount_vs_30d_median_pct": 0,
+      "distribution_queue_id": "dkp-16787865:2026-11-27T09:23:43.175126+00:00",
+      "emergency_continuity_baseline_completed_at": "",
+      "emergency_continuity_quality_score": null,
+      "emergency_continuity_snapshot_sha256": "",
+      "expires_at": "",
+      "expiry_deadline_verified_directly": false,
+      "expiry_deadline_verified_from_site_card": false,
+      "expiry_estimated": false,
+      "expiry_source": "unavailable",
+      "filo_upload_status": "pending",
+      "historical_deal_eligible": false,
+      "history_checked_at": "2026-11-27T09:23:29.390082+00:00",
+      "history_days": 1,
+      "history_status": "pending_history",
+      "image_url": "https://dkstatics-public.digikala.com/digikala-products/668e8f500255e95b22d8ff29d122f314cd5a23be_1727174818.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "market_price_advantage_pct": null,
+      "market_price_checked_at": "",
+      "market_reference_kind": "",
+      "market_status": "unavailable",
+      "platform_message_ids": {
+        "rubika": "1984862835723588651"
+      },
+      "posted_current_price": 404000,
+      "posted_discount_percent": 46,
+      "posted_original_price": 745000,
+      "product_url": "https://www.digikala.com/product/dkp-16787865/",
+      "promo_score": 33,
+      "publication_category": "grocery_food",
+      "publication_family": "digikala_category:8939",
+      "publication_use_case": "grocery_food",
+      "review_growth_proxy_count": 0,
+      "review_growth_proxy_observed_at": "",
+      "review_growth_proxy_source": "",
+      "review_growth_proxy_verified": false,
+      "review_growth_proxy_window_hours": 0.0,
+      "rubika_posted_at": "2026-11-27T11:08:23.803442+00:00",
+      "selection_bestseller_category_count": 2,
+      "selection_bestseller_rank": 14,
+      "selection_bestseller_rank_improvement": 0,
+      "selection_continuity_mode": "",
+      "selection_demand_evidence": "digikala_native_bestseller_rank",
+      "selection_demand_quality": "direct_relative_sales_rank_not_units_sold",
+      "selection_discount_band": "1%+",
+      "selection_discount_floor": 1,
+      "selection_four_factor": {
+        "balanced_score": 76.85,
+        "dimensions": [
+          "live_demand",
+          "generality",
+          "discount_attractiveness"
+        ],
+        "discount_attractiveness": 60.03,
+        "discount_evidence": "live_retailer_markdown_only",
+        "generality": 94.0,
+        "generality_group": "grocery_food",
+        "live_demand": 85.17,
+        "policy_version": "offerchin_three_factor_harmonic_v5",
+        "price_independent": true,
+        "score_interpretation": "three_factor_heuristic_priority_index_not_conversion_probability",
+        "scored_at": "2026-11-27T09:23:39.510287+00:00",
+        "weakest_factor_score": 60.03
+      },
+      "selection_review_growth_evidence": "none",
+      "sequence_number": 1907,
+      "telegram_message_id": 1970,
+      "telegram_posted_at": "2026-11-27T11:08:19.216769+00:00",
+      "title": "جو دوسر پرک فوری صبحانه بامداد - 500 گرم",
+      "ts": 1795777692.194294,
+      "video_generation_status": "pending",
+      "youtube_upload_status": "pending"
+    },
     "dkp-16797557": {
       "aparat_skip_reason": "selection_outside_freshness_window",
       "aparat_skip_recorded_at": "2026-11-18T21:25:40.291642+00:00",
@@ -277902,7 +277863,8 @@
       "aparat_video_record_id": "74393535",
       "aparat_video_url": "https://www.aparat.com/v/rkp6gw9",
       "aparat_visibility": "public",
-      "bale_expiry_status": "unknown",
+      "bale_expired_deleted_at": "2026-11-27T10:58:30.390392+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 2606,
       "bale_posted_at": "2026-11-26T05:00:22.215817+00:00",
       "brand": "آدارز",
@@ -277962,12 +277924,17 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
-      "expires_at": "",
-      "expiry_deadline_verified_directly": false,
+      "expired_deleted_at": "2026-11-27T10:58:30.390392+00:00",
+      "expires_at": "2026-11-27T10:58:15.904671+00:00",
+      "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
-      "expiry_source": "unavailable",
-      "expiry_status": "unknown",
+      "expiry_last_direct_verification_at": "2026-11-27T10:58:15.904671+00:00",
+      "expiry_last_removal_check_at": "2026-11-27T10:58:15.904671+00:00",
+      "expiry_last_removal_check_result": "confirmed",
+      "expiry_reason": "out_of_stock",
+      "expiry_source": "live_product_stock_or_price",
+      "expiry_status": "deleted",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-26T05:03:47.704830+00:00",
@@ -277981,6 +277948,7 @@
       "history_days": 2,
       "history_status": "pending_history",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/d58e5557ffb7f7d10987b0a594dde1a1f387ff1f_1788950825.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "last_seen_in_stock": false,
       "market_price_advantage_pct": null,
       "market_price_checked_at": "",
       "market_reference_kind": "",
@@ -277991,6 +277959,14 @@
       "posted_current_price": 824450,
       "posted_discount_percent": 45,
       "posted_original_price": 1499000,
+      "price_audit_invalidated_at": "2026-11-27T10:58:15.904671+00:00",
+      "price_audit_last_checked_at": "2026-11-27T10:58:15.904671+00:00",
+      "price_audit_live_original_price": 1499000,
+      "price_audit_next_check_at": "2026-11-27T11:03:15.904671+00:00",
+      "price_audit_posted_original_price": 1499000,
+      "price_audit_posted_price": 824450,
+      "price_audit_reason": "out_of_stock",
+      "price_audit_status": "invalidated",
       "product_url": "https://www.digikala.com/product/dkp-21224060/",
       "promo_score": 35,
       "publication_category": "books_stationery",
@@ -349487,7 +349463,8 @@
       "aparat_video_record_id": "74399588",
       "aparat_video_url": "https://www.aparat.com/v/qmtlru8",
       "aparat_visibility": "public",
-      "bale_expiry_status": "unknown",
+      "bale_expired_deleted_at": "2026-11-27T10:58:30.390392+00:00",
+      "bale_expiry_status": "deleted",
       "bale_message_id": 2619,
       "bale_posted_at": "2026-11-26T12:08:21.957757+00:00",
       "brand": "ویداس",
@@ -349547,12 +349524,17 @@
       "emergency_continuity_baseline_completed_at": "",
       "emergency_continuity_quality_score": null,
       "emergency_continuity_snapshot_sha256": "",
-      "expires_at": "",
-      "expiry_deadline_verified_directly": false,
+      "expired_deleted_at": "2026-11-27T10:58:30.390392+00:00",
+      "expires_at": "2026-11-27T10:58:15.904671+00:00",
+      "expiry_deadline_verified_directly": true,
       "expiry_deadline_verified_from_site_card": false,
       "expiry_estimated": false,
-      "expiry_source": "unavailable",
-      "expiry_status": "unknown",
+      "expiry_last_direct_verification_at": "2026-11-27T10:58:15.904671+00:00",
+      "expiry_last_removal_check_at": "2026-11-27T10:58:15.904671+00:00",
+      "expiry_last_removal_check_result": "confirmed",
+      "expiry_reason": "price_mismatch",
+      "expiry_source": "live_product_stock_or_price",
+      "expiry_status": "deleted",
       "filo_last_error": "",
       "filo_review_required": false,
       "filo_submitted_at": "2026-11-26T12:15:53.448797+00:00",
@@ -349567,6 +349549,9 @@
       "history_days": 1,
       "history_status": "pending_history",
       "image_url": "https://dkstatics-public.digikala.com/digikala-products/2213892.jpg?x-oss-process=image/resize,m_lfit,h_800,w_800/format,webp/quality,q_90",
+      "last_seen_current_price": 12585000,
+      "last_seen_in_stock": true,
+      "last_seen_original_price": 16600000,
       "market_price_advantage_pct": null,
       "market_price_checked_at": "",
       "market_reference_kind": "",
@@ -349577,6 +349562,20 @@
       "posted_current_price": 12120190,
       "posted_discount_percent": 27,
       "posted_original_price": 16603000,
+      "price_audit_invalidated_at": "2026-11-27T10:58:15.904671+00:00",
+      "price_audit_last_checked_at": "2026-11-27T10:58:15.904671+00:00",
+      "price_audit_live_original_price": 16600000,
+      "price_audit_live_price": 12585000,
+      "price_audit_mismatch_fields": [
+        "current_price",
+        "original_price",
+        "discount_percent"
+      ],
+      "price_audit_next_check_at": "2026-11-27T11:03:15.904671+00:00",
+      "price_audit_posted_original_price": 16603000,
+      "price_audit_posted_price": 12120190,
+      "price_audit_reason": "price_mismatch",
+      "price_audit_status": "invalidated",
       "product_url": "https://www.digikala.com/product/dkp-567357/",
       "promo_score": 28,
       "publication_category": "grocery_food",
