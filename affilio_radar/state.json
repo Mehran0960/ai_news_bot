@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-27T08:08:20.583055+00:00",
-  "aparat_last_upload_success_at": "2026-11-27T08:08:25.826911+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-27T08:44:15.554936+00:00",
+  "aparat_last_upload_success_at": "2026-11-27T08:44:19.092485+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-27T08:24:11.022360+00:00",
@@ -289831,7 +289831,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22276545": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-27T08:44:15.554936+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-27T08:44:19.092485+00:00",
+      "aparat_video_hash": "nbfd28y",
+      "aparat_video_record_id": "74411052",
+      "aparat_video_url": "https://www.aparat.com/v/nbfd28y",
+      "aparat_visibility": "public",
       "bale_message_id": 2665,
       "bale_posted_at": "2026-11-27T08:42:22.021291+00:00",
       "brand": "خانه مسعود",
@@ -289955,8 +289961,16 @@
       "telegram_posted_at": "2026-11-27T08:42:21.326417+00:00",
       "title": "سرویس خواب 2 نفره 6 تکه خانه مسعود مدل 002",
       "ts": 1795768933.536229,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22276545.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22276545.mp4"
+      },
+      "video_generated_at": "2026-11-27T08:44:10.331392+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22278506": {
       "aparat_skip_reason": "selection_outside_freshness_window",
