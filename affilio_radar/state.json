@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-27T15:38:38.616844+00:00",
-  "aparat_last_upload_success_at": "2026-11-27T15:38:42.284268+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-27T16:14:21.138019+00:00",
+  "aparat_last_upload_success_at": "2026-11-27T16:14:24.269661+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-27T15:48:36.855240+00:00",
@@ -247954,7 +247954,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-17930368": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-27T16:14:21.138019+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-27T16:14:24.269661+00:00",
+      "aparat_video_hash": "zjap12f",
+      "aparat_video_record_id": "74417499",
+      "aparat_video_url": "https://www.aparat.com/v/zjap12f",
+      "aparat_visibility": "public",
       "bale_message_id": 2681,
       "bale_posted_at": "2026-11-27T16:12:17.834357+00:00",
       "brand": "دلیجان",
@@ -248078,8 +248084,16 @@
       "telegram_posted_at": "2026-11-27T16:12:16.782025+00:00",
       "title": "ساک لوازم کودک و نوزاد دلیجان مدل هانا کد 001",
       "ts": 1795795929.548599,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-17930368.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-17930368.mp4"
+      },
+      "video_generated_at": "2026-11-27T16:14:14.781460+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-17986248": {
       "aparat_skip_reason": "selection_outside_freshness_window",
