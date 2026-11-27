@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-27T22:32:24.181572+00:00",
-  "aparat_last_upload_success_at": "2026-11-27T22:32:28.958878+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-27T23:04:32.707442+00:00",
+  "aparat_last_upload_success_at": "2026-11-27T23:04:35.917494+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-27T21:56:11.776407+00:00",
@@ -313919,7 +313919,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22668997": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-27T23:04:32.707442+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-27T23:04:35.917494+00:00",
+      "aparat_video_hash": "mzn559j",
+      "aparat_video_record_id": "74421671",
+      "aparat_video_url": "https://www.aparat.com/v/mzn559j",
+      "aparat_visibility": "public",
       "bale_message_id": 2695,
       "bale_posted_at": "2026-11-27T23:02:28.752848+00:00",
       "brand": "",
@@ -314043,8 +314049,16 @@
       "telegram_posted_at": "2026-11-27T23:02:28.020876+00:00",
       "title": "کفش راحتی بچگانه مدل Chunky Sneaker Lupilu ، راحت ، سبک ، مقاوم ، مناسب ورزش و چیاده روی و استفاده روزمره",
       "ts": 1795820542.028669,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22668997.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22668997.mp4"
+      },
+      "video_generated_at": "2026-11-27T23:04:24.784219+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22671500": {
       "aparat_skip_reason": "selection_outside_freshness_window",
