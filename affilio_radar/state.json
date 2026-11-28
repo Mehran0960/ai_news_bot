@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-28T04:36:29.245366+00:00",
-  "aparat_last_upload_success_at": "2026-11-28T04:36:33.096141+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-28T05:16:27.528501+00:00",
+  "aparat_last_upload_success_at": "2026-11-28T05:16:32.017078+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-28T04:40:13.400589+00:00",
@@ -295325,7 +295325,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22105846": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-28T05:16:27.528501+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-28T05:16:32.017078+00:00",
+      "aparat_video_hash": "axm0ht0",
+      "aparat_video_record_id": "74423004",
+      "aparat_video_url": "https://www.aparat.com/v/axm0ht0",
+      "aparat_visibility": "public",
       "bale_message_id": 2704,
       "bale_posted_at": "2026-11-28T05:14:22.865789+00:00",
       "brand": "",
@@ -295449,8 +295455,16 @@
       "telegram_posted_at": "2026-11-28T05:14:21.762319+00:00",
       "title": "استیکر لپ تاپ و موبایل طرح نوستالژی کد 5040616 مجموعه 24 عددی",
       "ts": 1795842853.795704,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22105846.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22105846.mp4"
+      },
+      "video_generated_at": "2026-11-28T05:16:18.777253+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22109662": {
       "aparat_skip_reason": "selection_outside_freshness_window",
