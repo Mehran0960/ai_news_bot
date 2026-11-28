@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-28T06:24:29.937020+00:00",
-  "aparat_last_upload_success_at": "2026-11-28T06:24:34.273649+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-28T06:56:13.694994+00:00",
+  "aparat_last_upload_success_at": "2026-11-28T06:56:17.380038+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-28T06:32:07.968395+00:00",
@@ -229607,7 +229607,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-14673714": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-28T06:56:13.694994+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-28T06:56:17.380038+00:00",
+      "aparat_video_hash": "nefov80",
+      "aparat_video_record_id": "74424066",
+      "aparat_video_url": "https://www.aparat.com/v/nefov80",
+      "aparat_visibility": "public",
       "bale_message_id": 2707,
       "bale_posted_at": "2026-11-28T06:54:14.517667+00:00",
       "brand": "سریتا",
@@ -229802,8 +229808,16 @@
       "telegram_posted_at": "2026-11-28T06:54:14.033359+00:00",
       "title": "محلول تقویت کننده مژه سریتا مدل Eyelash lotion حجم 8 میلی لیتر",
       "ts": 1795848849.16656,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-14673714.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-14673714.mp4"
+      },
+      "video_generated_at": "2026-11-28T06:56:07.848934+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-1467782": {
       "aparat_skip_reason": "selection_outside_freshness_window",
