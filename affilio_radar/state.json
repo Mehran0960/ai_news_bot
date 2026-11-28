@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-28T11:30:30.498394+00:00",
-  "aparat_last_upload_success_at": "2026-11-28T11:30:34.191253+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-28T12:08:25.120981+00:00",
+  "aparat_last_upload_success_at": "2026-11-28T12:08:30.991308+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-28T11:24:25.994583+00:00",
@@ -300885,7 +300885,13 @@
       "youtube_visual_repair_started_at": "2026-10-23T17:15:19.993933+00:00"
     },
     "dkp-21892676": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-28T12:08:25.120981+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-28T12:08:30.991308+00:00",
+      "aparat_video_hash": "rqfsh38",
+      "aparat_video_record_id": "74429090",
+      "aparat_video_url": "https://www.aparat.com/v/rqfsh38",
+      "aparat_visibility": "public",
       "bale_message_id": 2720,
       "bale_posted_at": "2026-11-28T12:06:19.223020+00:00",
       "brand": "نوشه پوش",
@@ -301009,8 +301015,16 @@
       "telegram_posted_at": "2026-11-28T12:06:18.526620+00:00",
       "title": "ست شورت و سوتین زنانه نوشه پوش مدل توری فنردار کد 444",
       "ts": 1795867571.1206,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-21892676.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-21892676.mp4"
+      },
+      "video_generated_at": "2026-11-28T12:08:17.352543+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-21895534": {
       "aparat_upload_started_at": "2026-11-18T04:23:55.055125+00:00",
