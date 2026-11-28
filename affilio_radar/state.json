@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-28T10:44:24.360119+00:00",
-  "aparat_last_upload_success_at": "2026-11-28T10:44:28.056684+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-28T11:30:30.498394+00:00",
+  "aparat_last_upload_success_at": "2026-11-28T11:30:34.191253+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-28T11:24:25.994583+00:00",
@@ -323248,7 +323248,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22568545": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-28T11:30:30.498394+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-28T11:30:34.191253+00:00",
+      "aparat_video_hash": "stpj5g3",
+      "aparat_video_record_id": "74428518",
+      "aparat_video_url": "https://www.aparat.com/v/stpj5g3",
+      "aparat_visibility": "public",
       "bale_message_id": 2718,
       "bale_posted_at": "2026-11-28T11:28:39.909184+00:00",
       "brand": "پرایمارک",
@@ -323372,8 +323378,16 @@
       "telegram_posted_at": "2026-11-28T11:28:39.278645+00:00",
       "title": "ست سویشرت و شلوار راحتی پسرانه پرایمارک مدل دورس طرح عروسکی کد 17654427",
       "ts": 1795865312.359437,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22568545.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22568545.mp4"
+      },
+      "video_generated_at": "2026-11-28T11:30:22.779795+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22570636": {
       "aparat_upload_started_at": "2026-10-28T07:13:47.418444+00:00",
