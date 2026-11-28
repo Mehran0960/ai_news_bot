@@ -97,7 +97,7 @@
       }
     ]
   },
-  "generated_at": "2026-11-28T04:43:00.181147+00:00",
+  "generated_at": "2026-11-28T05:20:02.851195+00:00",
   "last_24_hours": {
     "catalog_category_post_counts": {
       "آجیل عید نوروز": 1,
@@ -105,10 +105,10 @@
       "تراش آرایشی": 1,
       "جارو شارژی": 1,
       "جاروبرقی": 1,
-      "دئودورانت": 1,
       "ساعت هوشمند": 1,
       "ساک لوازم کودک و نوزاد": 1,
       "سایر غلات صبحانه": 1,
+      "سایر لوازم جانبی لپ تاپ": 1,
       "ست جهیزیه عروس": 1,
       "سرم پوست": 1,
       "سرویس خواب": 1,
@@ -136,6 +136,7 @@
     },
     "category_post_counts": {
       "audio_wearables": 1,
+      "computer_network": 1,
       "fashion": 4,
       "grocery_food": 2,
       "home": 5,
@@ -143,11 +144,12 @@
       "kids_sports": 1,
       "large_appliances": 1,
       "other": 12,
-      "personal_care": 4,
+      "personal_care": 3,
       "sports_outdoor": 1
     },
     "category_share_percent": {
       "audio_wearables": 3.0,
+      "computer_network": 3.0,
       "fashion": 12.1,
       "grocery_food": 6.1,
       "home": 15.2,
@@ -155,15 +157,15 @@
       "kids_sports": 3.0,
       "large_appliances": 3.0,
       "other": 36.4,
-      "personal_care": 12.1,
+      "personal_care": 9.1,
       "sports_outdoor": 3.0
     },
     "distinct_catalog_categories": 33,
-    "distinct_categories": 10,
+    "distinct_categories": 11,
     "distinct_families": 33,
     "distinct_retailers": 1,
     "distinct_use_cases": 13,
-    "known_brand_posts": 25,
+    "known_brand_posts": 24,
     "posts": 33,
     "repeated_brand_count": 0,
     "repeated_brands": {},
@@ -184,8 +186,8 @@
       "home_living": 6,
       "kitchen_food": 2,
       "lighting_electrical": 1,
-      "mobile_productivity": 1,
-      "personal_care": 4,
+      "mobile_productivity": 2,
+      "personal_care": 3,
       "sports_fitness": 1
     }
   },
@@ -195,7 +197,6 @@
       "آجیل عید نوروز": 1,
       "آسیاب": 1,
       "ابزار آشپزی": 1,
-      "ابزار ایمنی کودک و نوزاد": 1,
       "ابزار شوخی": 1,
       "ارگانایزر آشپزخانه": 1,
       "اسباب بازی سگ": 1,
@@ -245,7 +246,7 @@
       "سایر غلات صبحانه": 1,
       "سایر لوازم تزئینی": 1,
       "سایر لوازم جانبی صوتی و تصویری": 1,
-      "سایر لوازم جانبی لپ تاپ": 2,
+      "سایر لوازم جانبی لپ تاپ": 3,
       "سایه چشم": 1,
       "ست جهیزیه عروس": 1,
       "ست عطر و ادکلن": 1,
@@ -364,14 +365,14 @@
       "audio_wearables": 4,
       "beauty_fragrance": 2,
       "books_stationery": 6,
-      "computer_network": 3,
+      "computer_network": 4,
       "digital_accessories": 1,
       "fashion": 28,
       "gaming": 1,
       "grocery_food": 17,
       "home": 32,
       "home_cleaning": 6,
-      "kids_sports": 8,
+      "kids_sports": 7,
       "large_appliances": 4,
       "lighting": 1,
       "mobile_devices": 3,
@@ -385,14 +386,14 @@
       "audio_wearables": 1.9,
       "beauty_fragrance": 1.0,
       "books_stationery": 2.9,
-      "computer_network": 1.4,
+      "computer_network": 1.9,
       "digital_accessories": 0.5,
       "fashion": 13.5,
       "gaming": 0.5,
       "grocery_food": 8.2,
       "home": 15.5,
       "home_cleaning": 2.9,
-      "kids_sports": 3.9,
+      "kids_sports": 3.4,
       "large_appliances": 1.9,
       "lighting": 0.5,
       "mobile_devices": 1.4,
@@ -402,9 +403,9 @@
       "sports_outdoor": 2.9,
       "tools_industrial": 0.5
     },
-    "distinct_catalog_categories": 168,
+    "distinct_catalog_categories": 167,
     "distinct_categories": 19,
-    "distinct_families": 169,
+    "distinct_families": 168,
     "distinct_retailers": 1,
     "distinct_use_cases": 20,
     "known_brand_posts": 135,
@@ -435,7 +436,7 @@
     "use_case_post_counts": {
       "audio_visual": 3,
       "automotive": 4,
-      "baby_care": 7,
+      "baby_care": 6,
       "books_learning": 4,
       "catalog_taxonomy_other": 29,
       "fashion_lifestyle": 7,
@@ -446,7 +447,7 @@
       "home_living": 32,
       "kitchen_food": 16,
       "lighting_electrical": 1,
-      "mobile_productivity": 13,
+      "mobile_productivity": 14,
       "office_study": 2,
       "outdoor_travel": 2,
       "personal_care": 30,
@@ -471,32 +472,14 @@
     "use_case_repeat_cooldown_hours": 4.0
   },
   "repeat_guard_rejections": {
-    "all_time_count": 1685,
-    "last_7_days_count": 5,
+    "all_time_count": 1686,
+    "last_7_days_count": 6,
     "reason_counts_in_retained_history": {
-      "brand_repeat": 69,
+      "brand_repeat": 70,
       "family_repeat": 399,
       "similarity_repeat": 493
     },
     "recent_events": [
-      {
-        "at": "2026-11-20T22:52:45.783837+00:00",
-        "brand": "brand:زدفون",
-        "catalog_category_id": "6139",
-        "catalog_category_name": "عطر و ادکلن مردانه",
-        "category": "beauty_fragrance",
-        "compared_to_product_id": "dkp-21090992",
-        "family": "digikala_category:6139",
-        "product_id": "dkp-18333637",
-        "reason": "family_repeat,brand_repeat,similarity_repeat",
-        "reasons": [
-          "family_repeat",
-          "brand_repeat",
-          "similarity_repeat"
-        ],
-        "title": "ادو پرفیوم مردانه زدفون مدل بلو د شنل با رایحه خنک حجم 100 میلی لیتر",
-        "use_case": "personal_care"
-      },
       {
         "at": "2026-11-20T23:23:15.937227+00:00",
         "brand": "brand:زدفون",
@@ -828,6 +811,24 @@
         ],
         "title": "ساعت هوشمند 47 میلی متر ریولینک مدل RL-2 pro با بند سیلیکونی",
         "use_case": "audio_visual"
+      },
+      {
+        "at": "2026-11-28T05:20:02.851195+00:00",
+        "brand": "brand:دلیجان",
+        "catalog_category_id": "6808",
+        "catalog_category_name": "ساک لوازم کودک و نوزاد",
+        "category": "kids_sports",
+        "compared_to_product_id": "dkp-17930368",
+        "family": "digikala_category:6808",
+        "product_id": "dkp-10467657",
+        "reason": "family_repeat,brand_repeat,similarity_repeat",
+        "reasons": [
+          "family_repeat",
+          "brand_repeat",
+          "similarity_repeat"
+        ],
+        "title": "ساک لوازم کودک و نوزاد دلیجان مدل رز",
+        "use_case": "baby_care"
       }
     ]
   }
