@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-28T12:42:27.973021+00:00",
-  "aparat_last_upload_success_at": "2026-11-28T12:42:31.350943+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-28T13:16:21.730802+00:00",
+  "aparat_last_upload_success_at": "2026-11-28T13:16:25.437010+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-28T12:42:23.273196+00:00",
@@ -339649,7 +339649,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-22950014": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-28T13:16:21.730802+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-28T13:16:25.437010+00:00",
+      "aparat_video_hash": "rfhayok",
+      "aparat_video_record_id": "74430139",
+      "aparat_video_url": "https://www.aparat.com/v/rfhayok",
+      "aparat_visibility": "public",
       "bale_message_id": 2723,
       "bale_posted_at": "2026-11-28T13:14:28.532515+00:00",
       "brand": "",
@@ -339773,8 +339779,16 @@
       "telegram_posted_at": "2026-11-28T13:14:28.303334+00:00",
       "title": "ست بلوز و شلوار راحتی دخترانه پنبه‌ای طرح عروسکی مدل فرشته",
       "ts": 1795871660.884946,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22950014.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22950014.mp4"
+      },
+      "video_generated_at": "2026-11-28T13:16:16.480122+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22954576": {
       "aparat_skip_reason": "selection_outside_freshness_window",
