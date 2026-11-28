@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-28T12:08:25.120981+00:00",
-  "aparat_last_upload_success_at": "2026-11-28T12:08:30.991308+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-28T12:42:27.973021+00:00",
+  "aparat_last_upload_success_at": "2026-11-28T12:42:31.350943+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-28T11:24:25.994583+00:00",
@@ -292584,7 +292584,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-21479983": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-28T12:42:27.973021+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-28T12:42:31.350943+00:00",
+      "aparat_video_hash": "wyqz1w4",
+      "aparat_video_record_id": "74429638",
+      "aparat_video_url": "https://www.aparat.com/v/wyqz1w4",
+      "aparat_visibility": "public",
       "bale_message_id": 2722,
       "bale_posted_at": "2026-11-28T12:40:16.944948+00:00",
       "brand": "کلیز",
@@ -292708,8 +292714,16 @@
       "telegram_posted_at": "2026-11-28T12:40:16.250779+00:00",
       "title": "تخته سرو چوبی کلیز مدل ۴ خانه مستطیلی",
       "ts": 1795869610.669537,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-21479983.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-21479983.mp4"
+      },
+      "video_generated_at": "2026-11-28T12:42:20.534428+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-21479999": {
       "aparat_upload_started_at": "2026-11-27T01:22:16.111768+00:00",
