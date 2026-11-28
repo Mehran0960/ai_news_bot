@@ -1,4 +1,6 @@
 {
+  "aparat_next_upload_at": null,
+  "editorial_channel_queue": [],
   "editorial_video_queue": [
     {
       "content_id": "editorial:measure-room-size",
@@ -14,27 +16,23 @@
       "status": "partial"
     }
   ],
-  "emergency_continuity_snapshot_sha256": null,
-  "filo_next_upload_at": null,
+  "emergency_continuity_active": false,
   "emergency_continuity_baseline_completed_at": null,
-  "generated_at": "2026-11-28T16:45:57.102593+00:00",
-  "product_publication_interval_seconds": 1860.0,
+  "emergency_continuity_expires_at": null,
+  "emergency_continuity_snapshot_sha256": null,
   "filo_login_verification_status": "verified",
-  "product_publication_plan_cycle_id": "2026-11-28T16:17:57.613344+00:00",
-  "pending_product_queue_count": 2,
-  "product_publication_cadence_cycle_id": "2026-11-28T16:17:57.613344+00:00",
-  "filo_upload_interval_policy_version": 3,
-  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
-  "aparat_next_upload_at": null,
   "filo_login_verified_at": "2026-11-28T16:43:13.063410+00:00",
-  "youtube_next_upload_at": "2026-11-28T22:14:11.503508+00:00",
-  "next_channel_content_due_at": "2026-11-28T17:24:20.893364+00:00",
+  "filo_next_upload_at": null,
+  "filo_upload_interval_policy_version": 3,
+  "generated_at": "2026-11-28T16:53:02.372845+00:00",
   "last_channel_published_at": "2026-11-28T16:38:20.893364+00:00",
   "last_product_channel_published_at": "2026-11-28T16:38:20.893364+00:00",
-  "youtube_upload_pause_reason": null,
-  "editorial_channel_queue": [],
-  "youtube_uploads_paused_until": null,
-  "emergency_continuity_active": false,
+  "next_channel_content_due_at": "2026-11-28T17:24:20.893364+00:00",
+  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
+  "pending_product_queue_count": 4,
+  "product_publication_cadence_cycle_id": "2026-11-28T16:17:57.613344+00:00",
+  "product_publication_interval_seconds": 1860.0,
+  "product_publication_plan_cycle_id": "2026-11-28T16:17:57.613344+00:00",
   "published": {
     "dkp-10003516": {
       "aparat_upload_status": "uploaded",
@@ -727,6 +725,7 @@
     }
   },
   "schema_version": 2,
-  "emergency_continuity_expires_at": null,
-  "editorial_delivery_queue": {}
+  "youtube_next_upload_at": "2026-11-28T22:14:11.503508+00:00",
+  "youtube_upload_pause_reason": null,
+  "youtube_uploads_paused_until": null
 }
