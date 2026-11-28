@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-28T13:16:21.730802+00:00",
-  "aparat_last_upload_success_at": "2026-11-28T13:16:25.437010+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-28T13:54:26.591785+00:00",
+  "aparat_last_upload_success_at": "2026-11-28T13:54:29.661702+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-28T12:42:23.273196+00:00",
@@ -324054,7 +324054,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-22593192": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-28T13:54:26.591785+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-28T13:54:29.661702+00:00",
+      "aparat_video_hash": "gsyrdmw",
+      "aparat_video_record_id": "74430681",
+      "aparat_video_url": "https://www.aparat.com/v/gsyrdmw",
+      "aparat_visibility": "public",
       "bale_message_id": 2725,
       "bale_posted_at": "2026-11-28T13:52:21.844210+00:00",
       "brand": "",
@@ -324178,8 +324184,16 @@
       "telegram_posted_at": "2026-11-28T13:52:21.689475+00:00",
       "title": "کفش پیاده روی زنانه طرح نایکی مدل MRD-NW کد 12862",
       "ts": 1795873936.479659,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-22593192.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-22593192.mp4"
+      },
+      "video_generated_at": "2026-11-28T13:54:19.587029+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-22595072": {
       "aparat_upload_started_at": "2026-11-22T19:04:49.209655+00:00",
@@ -400618,6 +400632,5 @@
   "snappshop_consecutive_failures": 4,
   "snappshop_retry_after": "2026-11-28T15:46:21.290326+00:00",
   "youtube_last_upload_success_at": "2026-11-28T05:38:08.285852+00:00",
-  "youtube_next_upload_at": "2026-11-28T13:53:08.285852+00:00",
   "youtube_upload_pause_diagnostic_migrated": true
 }
