@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-28T02:36:21.246712+00:00",
-  "aparat_last_upload_success_at": "2026-11-28T02:36:24.924657+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-28T03:58:32.903810+00:00",
+  "aparat_last_upload_success_at": "2026-11-28T03:58:38.845299+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-28T02:52:38.615979+00:00",
@@ -333842,7 +333842,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-23167851": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-28T03:58:32.903810+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-28T03:58:38.845299+00:00",
+      "aparat_video_hash": "kahh1bd",
+      "aparat_video_record_id": "74422528",
+      "aparat_video_url": "https://www.aparat.com/v/kahh1bd",
+      "aparat_visibility": "public",
       "bale_message_id": 2702,
       "bale_posted_at": "2026-11-28T03:56:20.665825+00:00",
       "brand": "منگو",
@@ -333966,8 +333972,16 @@
       "telegram_posted_at": "2026-11-28T03:56:20.123416+00:00",
       "title": "کت رسمی زنانه چهارخانه منگو مدل HBCV00005PYT1Z",
       "ts": 1795838173.335235,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-23167851.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-23167851.mp4"
+      },
+      "video_generated_at": "2026-11-28T03:58:26.626326+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-23188346": {
       "aparat_upload_started_at": "2026-11-24T19:45:49.631263+00:00",
