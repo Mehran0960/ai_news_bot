@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-28T08:40:25.202451+00:00",
-  "aparat_last_upload_success_at": "2026-11-28T08:40:28.566935+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-28T09:14:29.217959+00:00",
+  "aparat_last_upload_success_at": "2026-11-28T09:14:34.271786+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-28T09:00:12.127512+00:00",
@@ -298881,7 +298881,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-21485497": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-28T09:14:29.217959+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-28T09:14:34.271786+00:00",
+      "aparat_video_hash": "clp0412",
+      "aparat_video_record_id": "74426389",
+      "aparat_video_url": "https://www.aparat.com/v/clp0412",
+      "aparat_visibility": "public",
       "bale_message_id": 2713,
       "bale_posted_at": "2026-11-28T09:12:22.190154+00:00",
       "brand": "",
@@ -299005,8 +299011,16 @@
       "telegram_posted_at": "2026-11-28T09:12:20.130981+00:00",
       "title": "ست تاپ و شلوارک راحتی مردانه مدل ACE",
       "ts": 1795857133.468066,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-21485497.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-21485497.mp4"
+      },
+      "video_generated_at": "2026-11-28T09:14:22.549418+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-21486997": {
       "aparat_shorts_queue_reason": "generic_web_upload_does_not_guarantee_shorts_placement",
