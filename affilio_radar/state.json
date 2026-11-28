@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-28T08:04:16.717879+00:00",
-  "aparat_last_upload_success_at": "2026-11-28T08:04:20.393486+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-28T08:40:25.202451+00:00",
+  "aparat_last_upload_success_at": "2026-11-28T08:40:28.566935+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-28T07:44:23.637952+00:00",
@@ -248025,7 +248025,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-15207521": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-28T08:40:25.202451+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-28T08:40:28.566935+00:00",
+      "aparat_video_hash": "gexv5ap",
+      "aparat_video_record_id": "74425749",
+      "aparat_video_url": "https://www.aparat.com/v/gexv5ap",
+      "aparat_visibility": "public",
       "bale_message_id": 2711,
       "bale_posted_at": "2026-11-28T08:38:25.537181+00:00",
       "brand": "",
@@ -248149,8 +248155,16 @@
       "telegram_posted_at": "2026-11-28T08:38:24.777504+00:00",
       "title": "تایمر آشپزخانه مدل H-118",
       "ts": 1795855097.377826,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-15207521.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-15207521.mp4"
+      },
+      "video_generated_at": "2026-11-28T08:40:18.229237+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-15215572": {
       "aparat_skip_reason": "selection_outside_freshness_window",
