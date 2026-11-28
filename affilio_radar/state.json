@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-28T06:56:13.694994+00:00",
-  "aparat_last_upload_success_at": "2026-11-28T06:56:17.380038+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-28T07:30:25.483190+00:00",
+  "aparat_last_upload_success_at": "2026-11-28T07:30:28.808268+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-28T07:06:10.565325+00:00",
@@ -387284,7 +387284,13 @@
       "youtube_upload_status": "skipped_stale_after_freshness_window"
     },
     "dkp-9558769": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-28T07:30:25.483190+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-28T07:30:28.808268+00:00",
+      "aparat_video_hash": "ajhj610",
+      "aparat_video_record_id": "74424592",
+      "aparat_video_url": "https://www.aparat.com/v/ajhj610",
+      "aparat_visibility": "public",
       "bale_message_id": 2708,
       "bale_posted_at": "2026-11-28T07:28:17.984008+00:00",
       "brand": "اعیان",
@@ -387408,8 +387414,16 @@
       "telegram_posted_at": "2026-11-28T07:28:17.274885+00:00",
       "title": "کابینت آشپزخانه اعیان مدل FH C15",
       "ts": 1795850890.367821,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-9558769.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-9558769.mp4"
+      },
+      "video_generated_at": "2026-11-28T07:30:18.371623+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-9597": {
       "aparat_skip_reason": "selection_outside_freshness_window",
