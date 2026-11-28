@@ -1,11 +1,17 @@
 {
+  "filo_login_verification_status": "verified",
   "product_publication_interval_seconds": 1860.0,
-  "filo_upload_interval_policy_version": 3,
-  "schema_version": 2,
-  "emergency_continuity_baseline_completed_at": null,
-  "next_channel_content_due_at": "2026-11-28T16:37:26.200218+00:00",
-  "filo_next_upload_at": null,
   "product_publication_cadence_cycle_id": "2026-11-28T15:02:07.821273+00:00",
+  "last_channel_published_at": "2026-11-28T15:58:26.200218+00:00",
+  "emergency_continuity_expires_at": null,
+  "emergency_continuity_baseline_completed_at": null,
+  "filo_next_upload_at": null,
+  "product_publication_plan_cycle_id": "2026-11-28T15:02:07.821273+00:00",
+  "emergency_continuity_active": false,
+  "emergency_continuity_snapshot_sha256": null,
+  "generated_at": "2026-11-28T16:06:06.456749+00:00",
+  "filo_upload_interval_policy_version": 3,
+  "aparat_next_upload_at": null,
   "editorial_video_queue": [
     {
       "content_id": "editorial:measure-room-size",
@@ -21,11 +27,14 @@
       "status": "partial"
     }
   ],
+  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
+  "youtube_uploads_paused_until": null,
   "filo_login_verified_at": "2026-11-28T16:00:59.816124+00:00",
-  "aparat_next_upload_at": null,
-  "filo_login_verification_status": "verified",
-  "youtube_upload_pause_reason": null,
-  "generated_at": "2026-11-28T16:01:47.825003+00:00",
+  "pending_product_queue_count": 3,
+  "editorial_channel_queue": [],
+  "last_product_channel_published_at": "2026-11-28T15:58:26.200218+00:00",
+  "next_channel_content_due_at": "2026-11-28T16:37:26.200218+00:00",
+  "youtube_next_upload_at": "2026-11-28T22:14:11.503508+00:00",
   "published": {
     "dkp-17680943": {
       "aparat_upload_status": "uploaded",
@@ -746,16 +755,7 @@
       "youtube_upload_status": "pending"
     }
   },
-  "emergency_continuity_snapshot_sha256": null,
-  "last_product_channel_published_at": "2026-11-28T15:58:26.200218+00:00",
-  "editorial_channel_queue": [],
-  "emergency_continuity_expires_at": null,
-  "pending_product_queue_count": 2,
-  "last_channel_published_at": "2026-11-28T15:58:26.200218+00:00",
-  "youtube_uploads_paused_until": null,
-  "emergency_continuity_active": false,
-  "product_publication_plan_cycle_id": "2026-11-28T15:02:07.821273+00:00",
-  "next_editorial_planning_at": "2026-11-18T03:07:19.173867+00:00",
-  "youtube_next_upload_at": "2026-11-28T22:14:11.503508+00:00",
-  "editorial_delivery_queue": {}
+  "schema_version": 2,
+  "editorial_delivery_queue": {},
+  "youtube_upload_pause_reason": null
 }
