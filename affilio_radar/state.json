@@ -1,6 +1,6 @@
 {
-  "aparat_last_upload_attempt_at": "2026-11-28T01:04:28.180527+00:00",
-  "aparat_last_upload_success_at": "2026-11-28T01:04:44.034941+00:00",
+  "aparat_last_upload_attempt_at": "2026-11-28T02:36:21.246712+00:00",
+  "aparat_last_upload_success_at": "2026-11-28T02:36:24.924657+00:00",
   "catalog_sweep_handoff": {
     "deferred_ids": {},
     "last_handoff_at": "2026-11-28T01:36:15.240640+00:00",
@@ -254445,7 +254445,13 @@
       "youtube_visual_repair_completed_at": ""
     },
     "dkp-18982016": {
-      "aparat_upload_status": "pending",
+      "aparat_upload_started_at": "2026-11-28T02:36:21.246712+00:00",
+      "aparat_upload_status": "uploaded",
+      "aparat_uploaded_at": "2026-11-28T02:36:24.924657+00:00",
+      "aparat_video_hash": "aln5161",
+      "aparat_video_record_id": "74422245",
+      "aparat_video_url": "https://www.aparat.com/v/aln5161",
+      "aparat_visibility": "public",
       "bale_message_id": 2701,
       "bale_posted_at": "2026-11-28T02:34:31.360214+00:00",
       "brand": "سایا",
@@ -254569,8 +254575,16 @@
       "telegram_posted_at": "2026-11-28T02:34:31.043555+00:00",
       "title": "جاروبرقی 2000 وات سایا مدل کامپک",
       "ts": 1795833266.136742,
-      "video_generation_status": "pending",
-      "youtube_upload_status": "pending"
+      "video_file_name": "offerchin-dkp-18982016.mp4",
+      "video_file_names": {
+        "aparat": "offerchin-dkp-18982016.mp4"
+      },
+      "video_generated_at": "2026-11-28T02:36:15.533493+00:00",
+      "video_generation_status": "generated",
+      "video_style_version": 7,
+      "youtube_last_error": "",
+      "youtube_skip_reason": "credentials_not_configured",
+      "youtube_upload_status": "skipped_unavailable"
     },
     "dkp-18987079": {
       "aparat_skip_reason": "selection_outside_freshness_window",
